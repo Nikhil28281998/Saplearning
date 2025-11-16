@@ -1,0 +1,143 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: sap-ulhn-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-ulhn_db}
+      POSTGRES_USER: ${DATABASE_USERNAME:-ulhn_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-ulhn_password}
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sap-ulhn-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME:-ulhn_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: sap-ulhn-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - sap-ulhn-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Meilisearch
+  meilisearch:
+    image: getmeili/meilisearch:v1.5
+    container_name: sap-ulhn-meilisearch
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILISEARCH_MASTER_KEY:-your-meili-master-key}
+      MEILI_ENV: ${MEILISEARCH_ENV:-development}
+    ports:
+      - "${MEILISEARCH_PORT:-7700}:7700"
+    volumes:
+      - meilisearch_data:/meili_data
+    networks:
+      - sap-ulhn-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # pgAdmin (Optional - for database management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: sap-ulhn-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@sap-ulhn.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - sap-ulhn-network
+    depends_on:
+      - postgres
+
+  # Backend (NestJS) - Commented out for local development
+  # Uncomment for full Docker deployment
+  # backend:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/backend/Dockerfile
+  #   container_name: sap-ulhn-backend
+  #   restart: unless-stopped
+  #   environment:
+  #     NODE_ENV: production
+  #     DATABASE_HOST: postgres
+  #     DATABASE_PORT: 5432
+  #     DATABASE_USERNAME: ${DATABASE_USERNAME:-ulhn_user}
+  #     DATABASE_PASSWORD: ${DATABASE_PASSWORD:-ulhn_password}
+  #     DATABASE_NAME: ${DATABASE_NAME:-ulhn_db}
+  #     REDIS_HOST: redis
+  #     REDIS_PORT: 6379
+  #     MEILISEARCH_HOST: http://meilisearch:7700
+  #     MEILISEARCH_MASTER_KEY: ${MEILISEARCH_MASTER_KEY}
+  #     JWT_SECRET: ${JWT_SECRET}
+  #     JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+  #   ports:
+  #     - "4000:4000"
+  #   networks:
+  #     - sap-ulhn-network
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #     meilisearch:
+  #       condition: service_healthy
+
+  # Frontend (Next.js) - Commented out for local development
+  # Uncomment for full Docker deployment
+  # frontend:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/frontend/Dockerfile
+  #   container_name: sap-ulhn-frontend
+  #   restart: unless-stopped
+  #   environment:
+  #     NODE_ENV: production
+  #     NEXT_PUBLIC_API_URL: http://backend:4000
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - sap-ulhn-network
+  #   depends_on:
+  #     - backend
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  meilisearch_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  sap-ulhn-network:
+    driver: bridge
