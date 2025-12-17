@@ -1,0 +1,37 @@
+<mvc:View
+  controllerName="ulhn.app.controller.App"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+  xmlns:f="sap.f"
+  xmlns:tnt="sap.tnt">
+  <tnt:ToolPage>
+    <tnt:header>
+      <f:ShellBar
+        id="shellBar"
+        title="SAP Knowledge Center"
+        showSearch="true"
+        showNotifications="false"
+        showProductSwitcher="false">
+        <f:actions>
+          <Button icon="sap-icon://ai" text="AI" press="onOpenChat"/>
+        </f:actions>
+      </f:ShellBar>
+    </tnt:header>
+    <tnt:sideContent>
+      <tnt:SideNavigation expanded="true">
+        <tnt:NavigationList>
+          <tnt:NavigationListItem text="Search" icon="sap-icon://search" select="onNavSearch"/>
+          <tnt:NavigationListItem text="Training" icon="sap-icon://learning-assistant" select="onNavTraining"/>
+          <tnt:NavigationListItem text="Modules" icon="sap-icon://dimension" enabled="false"/>
+          <tnt:NavigationListItem text="Processes" icon="sap-icon://workflow-tasks" enabled="false"/>
+          <tnt:NavigationListItem text="Roles" icon="sap-icon://badge" enabled="false"/>
+          <tnt:NavigationListItem text="Favorites" icon="sap-icon://favorite" enabled="false"/>
+          <tnt:NavigationListItem text="Notes" icon="sap-icon://note" enabled="false"/>
+        </tnt:NavigationList>
+      </tnt:SideNavigation>
+    </tnt:sideContent>
+    <tnt:mainContents>
+      <App id="nav"/>
+    </tnt:mainContents>
+  </tnt:ToolPage>
+</mvc:View>

@@ -1,0 +1,66 @@
+{
+  "_version": "1.48.0",
+  "sap.app": {
+    "id": "ulhn.app",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "title": "SAP Knowledge Center",
+    "applicationVersion": { "version": "1.0.0" },
+    "crossNavigation": {
+      "inbounds": {
+        "ulhn-display": {
+          "semanticObject": "SAPKnowledgeCenter",
+          "action": "display",
+          "title": "SAP Knowledge Center",
+          "signature": { "parameters": {} }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": { "icon": "", "favIcon": "" },
+    "deviceTypes": { "desktop": true, "tablet": true, "phone": false }
+  },
+  "sap.ui5": {
+    "rootView": {
+      "viewName": "ulhn.app.view.App",
+      "type": "XML",
+      "id": "app"
+    },
+    "dependencies": {
+      "minUI5Version": "1.128.0",
+      "libs": {
+        "sap.m": {},
+        "sap.f": {},
+        "sap.tnt": {},
+        "sap.ui.table": {},
+        "sap.ui.layout": {}
+      }
+    },
+    "contentDensities": { "compact": true, "cozy": true },
+    "models": {
+      "i18n": { "type": "sap.ui.model.resource.ResourceModel", "settings": { "bundleUrl": "i18n/i18n.properties" } },
+      "device": { "type": "sap.ui.model.json.JSONModel", "settings": { "data": { } } },
+      "meta": { "type": "sap.ui.model.json.JSONModel", "settings": { "data": { "roles": [], "modules": [], "processes": [] } } }
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "viewPath": "ulhn.app.view",
+        "controlId": "nav",
+        "controlAggregation": "pages",
+        "async": true
+      },
+      "routes": [
+        { "name": "search", "pattern": "", "target": ["search"] },
+        { "name": "training", "pattern": "training", "target": ["training"] }
+      ],
+      "targets": {
+        "search": { "viewName": "Search", "viewLevel": 1 },
+        "training": { "viewName": "Training", "viewLevel": 2 }
+      }
+    }
+  }
+}

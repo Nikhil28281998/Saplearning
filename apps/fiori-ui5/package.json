@@ -1,0 +1,16 @@
+{
+  "name": "sap-knowledge-center-ui5",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SAP Knowledge Center - UI5 App (BAS-ready)",
+  "scripts": {
+    "start": "ui5 serve -o index.html",
+    "build": "ui5 build --clean-dest",
+    "lint": "echo 'No lint configured'",
+    "test": "echo 'No tests yet'"
+  },
+  "devDependencies": {
+    "@ui5/cli": "^3.5.0",
+    "@sapui5/types": "^1.128.0"
+  }
+}

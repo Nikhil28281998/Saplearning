@@ -1,0 +1,20 @@
+specVersion: "3.0"
+metadata:
+  name: ulhn-fiori-ui5
+type: application
+framework:
+  name: OpenUI5
+  version: 1.128.1
+  libraries:
+    - name: sap.m
+    - name: sap.f
+    - name: sap.tnt
+    - name: sap.ui.table
+    - name: sap.ui.layout
+server:
+  settings:
+    httpPort: 8080
+    httpsPort: 8443
+builder:
+  resources:
+    excludes: []

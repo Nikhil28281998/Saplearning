@@ -1,0 +1,39 @@
+<mvc:View
+  controllerName="ulhn.app.controller.Training"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m">
+  <Page title="Training Assignments">
+    <content>
+      <Toolbar class="sapUiSmallMargin">
+        <ToolbarSpacer/>
+        <Button text="Refresh" press="onRefresh"/>
+      </Toolbar>
+      <Table id="trainingTable" inset="false">
+        <columns>
+          <Column><Text text="id"/></Column>
+          <Column><Text text="title"/></Column>
+          <Column><Text text="role"/></Column>
+          <Column><Text text="module"/></Column>
+          <Column width="10rem"><Text text="dueDate"/></Column>
+          <Column width="8rem"><Text text="status"/></Column>
+          <Column width="10rem"><Text text="completedAt"/></Column>
+          <Column width="12rem" hAlign="End"><Text text="Actions"/></Column>
+        </columns>
+        <items>
+          <ColumnListItem>
+            <Text text="{id}"/>
+            <ObjectIdentifier title="{title}" text="{url}"/>
+            <Text text="{role}"/>
+            <Text text="{module}"/>
+            <Text text="{path: 'dueDate', type: 'sap.ui.model.type.Date', formatOptions: {style: 'medium'}}"/>
+            <ObjectStatus text="{status}" state="{= ${status} === 'Completed' ? 'Success' : 'Warning' }"/>
+            <Text text="{path: 'completedAt', type: 'sap.ui.model.type.Date', formatOptions: {style: 'medium'}}"/>
+            <HBox justifyContent="End">
+              <Button text="Mark Completed" type="Emphasized" enabled="{= ${status} !== 'Completed' }" press="onMarkCompleted"/>
+            </HBox>
+          </ColumnListItem>
+        </items>
+      </Table>
+    </content>
+  </Page>
+</mvc:View>
