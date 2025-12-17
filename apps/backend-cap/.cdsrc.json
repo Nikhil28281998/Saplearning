@@ -1,0 +1,11 @@
+{
+  "requires": {
+    "db": {
+      "kind": "sqlite",
+      "impl": "sqlite3",
+      "credentials": {
+        "database": "./db/sqlite.db"
+      }
+    }
+  }
+}
