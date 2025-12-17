@@ -32,6 +32,11 @@ Pop-Location
   - `/ai/*` -> destination `ai-destination` (SAP AI Core / AI Launchpad)
 - Configure these destinations in your BTP subaccount / space and bind them to your HTML5 app/Approuter.
 
+For local BAS runs, `ui5.yaml` uses `fiori-tools-proxy` to forward:
+- `/api/*` → destination `ULHN_API`
+- `/ai/*` → destination `ai-destination`
+Ensure these destinations exist in your BAS dev space.
+
 ## Structure
 - `webapp/index.html`: Bootstrap OpenUI5 Horizon theme.
 - `webapp/Component.js`: UIComponent with router.
