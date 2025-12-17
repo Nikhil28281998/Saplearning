@@ -1,3 +1,32 @@
+# Node/JS
+node_modules/
+dist/
+build/
+.tmp/
+*.log
+
+# UI5 tooling caches
+.ui5/
+.cache/
+
+# Editors/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test and coverage
+coverage/
+reports/
+
+# Environment and local
+.env
+.env.*
+.venv/
+
+# App-specific
+apps/fiori-ui5/dist/
+apps/fiori-ui5/.cache/
 # Dependencies
 node_modules/
 .pnp

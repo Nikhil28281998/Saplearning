@@ -54,10 +54,12 @@
         "async": true
       },
       "routes": [
-        { "name": "search", "pattern": "", "target": ["search"] },
+        { "name": "dashboard", "pattern": "", "target": ["dashboard"] },
+        { "name": "search", "pattern": "search", "target": ["search"] },
         { "name": "training", "pattern": "training", "target": ["training"] }
       ],
       "targets": {
+        "dashboard": { "viewName": "Dashboard", "viewLevel": 0 },
         "search": { "viewName": "Search", "viewLevel": 1 },
         "training": { "viewName": "Training", "viewLevel": 2 }
       }

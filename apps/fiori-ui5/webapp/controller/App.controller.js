@@ -6,8 +6,9 @@ sap.ui.define([
   "sap/m/Title",
   "sap/m/List",
   "sap/m/StandardListItem",
-  "sap/m/TextArea"
-], function (Controller, Dialog, Bar, Button, Title, List, StandardListItem, TextArea) {
+  "sap/m/TextArea",
+  "ulhn/app/util/api"
+], function (Controller, Dialog, Bar, Button, Title, List, StandardListItem, TextArea, api) {
   "use strict";
 
   return Controller.extend("ulhn.app.controller.App", {
@@ -22,6 +23,10 @@ sap.ui.define([
 
     onNavTraining: function () {
       this.getOwnerComponent().getRouter().navTo("training");
+    },
+
+    onNavDashboard: function(){
+      this.getOwnerComponent().getRouter().navTo("dashboard");
     },
 
     onOpenChat: function () {
@@ -43,6 +48,7 @@ sap.ui.define([
           placeholder: "Ask the assistant..."
         });
 
+        this._chatFullscreen = false;
         this._oChatDialog = new Dialog({
           title: "AI Assistant",
           contentWidth: "30rem",
@@ -62,7 +68,8 @@ sap.ui.define([
           }),
           endButton: new Button({ text: "Close", press: function(){ this._oChatDialog.close(); }.bind(this) }),
           customHeader: new Bar({
-            contentMiddle: [ new Title({ text: "AI Assistant" }) ]
+            contentMiddle: [ new Title({ text: "AI Assistant" }) ],
+            contentRight: [ new Button({ text: "Full Screen", press: this._toggleChatFullscreen.bind(this) }) ]
           })
         });
 
@@ -83,24 +90,27 @@ sap.ui.define([
 
     _callAI: function (prompt) {
       var that = this;
-      // Call SAP AI Core via destination: /ai/chat/completions?api-version=2024-06-01
-      fetch("/ai/chat/completions?api-version=2024-06-01", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [ { role: "user", content: prompt } ]
+      api.postJson("/ai/chat/completions?api-version=2024-06-01", { messages: [ { role: "user", content: prompt } ] })
+        .then(function(data){
+          var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || "";
+          if (!text) { text = "(No content returned)"; }
+          that._pushMessage("assistant", text);
         })
-      })
-      .then(function(r){ return r.ok ? r.json() : Promise.reject(r); })
-      .then(function(data){
-        var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || "";
-        if (!text) { text = "(No content returned)"; }
-        that._pushMessage("assistant", text);
-      })
-      .catch(function(err){
-        that._pushMessage("assistant", "AI call failed. Please try again.");
-        try { console.error("AI error", err); } catch(e){}
-      });
+        .catch(function(err){
+          that._pushMessage("assistant", "AI call failed. Please try again.");
+          try { console.error("AI error", err); } catch(e){}
+        });
+    },
+
+    _toggleChatFullscreen: function(){
+      this._chatFullscreen = !this._chatFullscreen;
+      if (this._chatFullscreen){
+        this._oChatDialog.setContentWidth("85vw");
+        this._oChatDialog.setContentHeight("85vh");
+      } else {
+        this._oChatDialog.setContentWidth("30rem");
+        this._oChatDialog.setContentHeight("70vh");
+      }
     },
 
     _initMeta: function(){

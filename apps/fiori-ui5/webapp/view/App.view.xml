@@ -20,6 +20,7 @@
     <tnt:sideContent>
       <tnt:SideNavigation expanded="true">
         <tnt:NavigationList>
+          <tnt:NavigationListItem text="Dashboard" icon="sap-icon://home" select="onNavDashboard"/>
           <tnt:NavigationListItem text="Search" icon="sap-icon://search" select="onNavSearch"/>
           <tnt:NavigationListItem text="Training" icon="sap-icon://learning-assistant" select="onNavTraining"/>
           <tnt:NavigationListItem text="Modules" icon="sap-icon://dimension" enabled="false"/>

@@ -1,6 +1,6 @@
 # SAP Knowledge Center (UI5, BAS-ready)
 
-Production-ready Fiori-styled UI5 app for SAP Business Application Studio. Includes ShellBar + SideNavigation, Search page (filters + results), Training assignments page, and an AI side panel (dialog) stub ready to connect to SAP AI Core via destination.
+Production-ready Fiori-styled UI5 app for SAP Business Application Studio. Includes ShellBar + SideNavigation, Search page (filters + results), Training assignments page, and an AI panel wired to SAP AI Core via destination.
 
 ## Run locally (UI5 Tooling)
 
@@ -36,9 +36,10 @@ Pop-Location
 - `webapp/index.html`: Bootstrap OpenUI5 Horizon theme.
 - `webapp/Component.js`: UIComponent with router.
 - `webapp/view/App.view.xml`: ShellBar + SideNavigation + `sap.m.App` router target.
-- `webapp/view/Search.view.xml` + `controller`: Filters (Role + Module/Process), Go/Reset, Export, Results table with required columns (id,url,role,title,module,description,lastUpdated,sapHelpLink).
+- `webapp/view/Dashboard.view.xml` + `controller`: Tiles for Modules (from meta model) and quick actions; pressing a tile presets Search filters.
+- `webapp/view/Search.view.xml` + `controller`: Filters (Role + Module), Go/Reset, Export, Results table with required columns (id,url,role,title,module,description,lastUpdated,sapHelpLink).
 - `webapp/view/Training.view.xml` + `controller`: Training assignments with Mark Completed action.
-- Chat: ShellBar action opens an AI dialog with message list + input, wired to `/ai/chat/completions?api-version=2024-06-01`.
+- Chat: ShellBar action opens an AI dialog with message list + input, wired to `/ai/chat/completions?api-version=2024-06-01` with full-screen toggle.
 
 ## Next steps (wiring)
 - Replace stubbed search in `Search.controller.js::_search` with `/api/search` call via destination.

@@ -11,8 +11,9 @@ sap.ui.define([
   "sap/m/Button",
   "sap/m/Bar",
   "sap/m/Input",
-  "sap/m/DatePicker"
-], function (Controller, JSONModel, MessageToast, Spreadsheet, Dialog, List, CustomListItem, Switch, Label, Button, Bar, Input, DatePicker) {
+  "sap/m/DatePicker",
+  "ulhn/app/util/api"
+], function (Controller, JSONModel, MessageToast, Spreadsheet, Dialog, List, CustomListItem, Switch, Label, Button, Bar, Input, DatePicker, api) {
   "use strict";
 
   return Controller.extend("ulhn.app.controller.Search", {
@@ -40,11 +41,29 @@ sap.ui.define([
       this._bindTable();
       this._settingsDialog = null;
       this._filtersDialog = null;
+      // Apply preset filters if present when route matches
+      var oRouter = this.getOwnerComponent().getRouter();
+      oRouter.getRoute("search").attachPatternMatched(this._onRouteMatched, this);
     },
 
     _bindTable: function(){
       var oTable = this.byId("resultsTable");
       oTable.setModel(this.getView().getModel());
+    },
+
+    _onRouteMatched: function(){
+      var oPreset = this.getOwnerComponent().getModel("preset");
+      if (oPreset){
+        var data = oPreset.getData() || {};
+        if (data.role){ this.byId("roleSelect").setSelectedKey(data.role); }
+        if (data.module){ this.byId("moduleSelect").setSelectedKey(data.module); }
+        // Trigger search automatically if module or role provided
+        if (data.role || data.module){
+          this.onGo();
+        }
+        // Clear preset after use
+        this.getOwnerComponent().setModel(new JSONModel({}), "preset");
+      }
     },
 
     onGo: function () {
@@ -70,8 +89,8 @@ sap.ui.define([
       if (filters.tags) params.append("tags", filters.tags);
       if (filters.dateFrom) params.append("dateFrom", filters.dateFrom);
       if (filters.dateTo) params.append("dateTo", filters.dateTo);
-      fetch("/api/search?" + params.toString())
-        .then(function(r){ return r.ok ? r.json() : Promise.reject(r); })
+      this.byId("resultsTable").setBusy(true);
+      api.getJson("/api/search?" + params.toString())
         .then(function(data){
           var results = Array.isArray(data.results) ? data.results : (Array.isArray(data) ? data : []);
           that.getView().getModel().setProperty("/results", results);
@@ -83,7 +102,8 @@ sap.ui.define([
             { id: 2, url: "https://learning.sap.com", role: "MM", title: "MM Basics", module: "MM", description: "Intro to MM", lastUpdated: new Date(), sapHelpLink: "https://help.sap.com" }
           ];
           that.getView().getModel().setProperty("/results", aStub);
-        });
+        })
+        .finally(function(){ that.byId("resultsTable").setBusy(false); });
     },
 
     onOpen: function (oEvent) {
