@@ -94,3 +94,8 @@ annotate S.TrainingAssignments with @UI.FieldGroup #Main: {
 	]
 };
 
+// Enable create/update; disable delete for compliance
+annotate S.TrainingAssignments with @Capabilities.InsertRestrictions: { Insertable: true };
+annotate S.TrainingAssignments with @Capabilities.UpdateRestrictions: { Updatable: true };
+annotate S.TrainingAssignments with @Capabilities.DeleteRestrictions: { Deletable: false };
+
