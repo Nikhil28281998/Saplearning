@@ -79,7 +79,7 @@
   "sap.ui5": {
     "flexEnabled": true,
     "dependencies": {
-      "minUI5Version": "1.120.13",
+      "minUI5Version": "1.136.9",
       "libs": {
         "sap.m": {},
         "sap.ui.core": {},
@@ -121,7 +121,7 @@
           "defaultThreeColumnLayoutType": "ThreeColumnsMidExpanded"
         },
         "routerClass": "sap.f.routing.Router",
-        "controlId": "appRootView"
+        "controlId": "app"
       },
       "routes": [
         { "name": "Entity1List", "pattern": ":?query:", "target": "Entity1List" },
