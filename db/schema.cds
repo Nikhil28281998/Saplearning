@@ -22,6 +22,6 @@ entity TrainingAssignments {
             completedAt: DateTime;
 }
 
-// Distinct value help sources (use entities with keys for OData)
-entity Roles as select distinct from Entity1 { key role };
-entity Modules as select distinct from Entity1 { key module, role };
+// Distinct value help sources via views using GROUP BY
+view Roles as select from Entity1 { key role } group by role;
+view Modules as select from Entity1 { key module, role } group by module, role;

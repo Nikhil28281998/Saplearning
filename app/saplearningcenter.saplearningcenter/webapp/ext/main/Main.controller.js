@@ -70,7 +70,8 @@ sap.ui.define(
                 var that = this;
                 // Ensure destination is used; backend maps '/ai' to 'ai-destination'.
                 // If your destination requires a base path, configure it in ui5.yaml; keep client call relative here.
-                fetch('/ai/chat/completions?api-version=2024-06-01', {
+                // Call destination base only. Destination has Relative Path '/chat/completions?api-version=2024-06-01'.
+                fetch('/ai', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] })
