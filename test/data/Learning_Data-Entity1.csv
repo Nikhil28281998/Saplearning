@@ -1,0 +1,85 @@
+﻿id,url,role,title,module,description,lastUpdated,sapHelpLink
+SAP_0001,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_FE204FE4700D5C88:uebung#2,Asset,Create Asset Master,Record-to-Report,Instructions for asset accountants to create fixed asset master records in SAP S/4HANA.,11/25/2025,
+SAP_0003,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_9562825C8D5522A2:uebung#28,Purchasing,Create a new Business Partner -1,Procure-to-Pay,"Create a new business partner using the app Maintain Business Partner, Maintain all data for the new business partner,Create a new business partner using the app Manage Supplier Master Data - Suppliers",12/9/2025,
+SAP_0004,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_4E818BABA842EC8C:uebung#2,Purchasing,Create a new Business Partner -2,Procure-to-Pay,"Assign a business partner to a purchasing category,Maintain a contact person,Change the address for a business partner",12/9/2025,
+SAP_0005,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_686CAF6A40640E92:uebung#2,Purchasing,Create a new Business Partner -3,Procure-to-Pay,Analyze some configuration settings for business partners,12/9/2025,
+SAP_0006,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_3A7351FC086873B0:uebung#2,Asset,Create an Asset Master Record as Subnumber,Record-to-Report,Create an asset master record as subnumber and Select the main asset number with its subnumbers,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/maintaining-asset-master-data_d9620ea0-2f52-4b98-a87d-d025881ee43f
+SAP_0007,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_431E8C25D35C098:uebung#2,Asset,Change Asset Master Data,Record-to-Report,"Cost center assignment in the time-dependent asset master data, add time-dependent interval",12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/making-changes-to-asset-master-data_ec0e32bb-535c-40f0-bd79-167d99a59273
+SAP_0008,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_2B01AE6B9E5DD588:uebung#2,Asset,Posting Acquisitions for Fixed Assets,Record-to-Report,Post an Integrated Asset Acquisition and Analyze the Value,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/posting-acquisitions-for-fixed-assets_f46e3701-cae3-4f11-b63c-deb74d1dd2f5
+SAP_0009,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_20C359E3D5BD7D97:uebung#2,Asset,Post Credit Memo and Analyze,Record-to-Report,Post the debit asset clearing account against the asset balance account on the credit side,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/posting-non-integrated-acquisitions-for-fixed-assets_ee0ad015-e4c4-4bdd-bf57-2d7b87c3f22b
+SAP_0010,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_5B2DBCC6D837EA82:uebung#2,Asset,Posting Acquisitions for Fixed Assets with Quantity,Record-to-Report,"Create Asset Master Data with Quantity, Post, and Analyze",12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/posting-acquisitions-for-fixed-assets-with-quantity_f302773d-3694-4493-9812-0ec7edfde76a
+SAP_0011,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_3BED0F5FAB3DA84:uebung#2,Asset,Post Retirement by Scrapping,Record-to-Report,Scrapping with the app Post Asset Retirement,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/posting-retirements-from-fixed-assets_f385face-db47-4f18-a0e8-9f40faf832b4
+SAP_0012,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_3D7C10151C0D2487:uebung#2,Asset,Post Retirement With Revenue,Record-to-Report,Retirement with revenue with the app Post Asset Retirement,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/posting-retirements-from-fixed-assets_f385face-db47-4f18-a0e8-9f40faf832b4
+SAP_0013,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_B5431010BCCCDEAC:uebung#2,Asset,Post an Acquisition and Analyze,Record-to-Report,Post the asset against a clearing account,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/posting-non-integrated-acquisitions-for-fixed-assets_ee0ad015-e4c4-4bdd-bf57-2d7b87c3f22b
+SAP_0014,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_D9FE816944F2B0A9:uebung#2,Asset,Post Asset Balances Against Expense and Analyze,Record-to-Report,Post asset balances against expense travel costs account,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/posting-non-integrated-acquisitions-for-fixed-assets_ee0ad015-e4c4-4bdd-bf57-2d7b87c3f22b
+SAP_0015,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_9A4B48D43518D392:uebung#2,Asset,Asset Reports,Record-to-Report,Analyze the Assets in the Asset Reports,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/analyzing-and-correcting-capitalized-assets_c3b6842c-994f-4475-b9b4-ee5c0e5ec608
+SAP_0016,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_55F5B658A5A6D49A:uebung#2,Asset,Fixed Asset Transaction Reversal,Record-to-Report,Post Reversal of the Retirement by Scrapping and Analyze,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/analyzing-and-correcting-capitalized-assets_c3b6842c-994f-4475-b9b4-ee5c0e5ec608
+SAP_0017,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_2AF7F342700641B7:uebung#2,Asset,Post Asset Transfer,Record-to-Report,Transfer Within Company Code and Analyze,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/analyzing-and-correcting-capitalized-assets_c3b6842c-994f-4475-b9b4-ee5c0e5ec608
+SAP_0018,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_E5C5195B7B1B72BC:uebung#2,Asset,Change Asset Sentitive Data,Record-to-Report,Make a Time-Dependent Change in Balance-Sheet-Relevant Fields,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/analyzing-and-correcting-capitalized-assets_c3b6842c-994f-4475-b9b4-ee5c0e5ec608
+SAP_0019,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_6D683EF8440CF98:uebung#2,Asset,Asset Under Construction Process,Record-to-Report,Create and Release an Investment Project with WBS Element,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/understanding-the-asset-under-construction-process_d124520e-df6a-4e98-a08a-ac4f3c3f2c20
+SAP_0020,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_33C8A233204471B2:uebung#2,Asset,Asset under construction periodic settlement,Record-to-Report,Settle the costs to the Assigned Asset Under Construction,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/maintaining-the-periodic-settlement-of-investment-wbs-elements_c6ce0b01-752d-478c-b8c0-43e259ce478c
+SAP_0021,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_76B9793E545809A4:uebung#2,Asset,Maintain the Settlement Rule,Record-to-Report,Create a settlement rule for full settlement,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/maintaining-full-settlement-of-investment-wbs-elements_af946cc2-85a8-4065-bfc7-7fbe2a76fb23
+SAP_0022,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_4C3A14B48C7628A0:uebung#2,Asset,Perform Full Settlement,Record-to-Report,Perform Full Settlement and Analyze the Result,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/maintaining-full-settlement-of-investment-wbs-elements_af946cc2-85a8-4065-bfc7-7fbe2a76fb23
+SAP_0023,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_9643FD3B28A10D97:uebung#2,Asset,Preparing a Depreciation Run,Record-to-Report,Change the Useful Life for an Activated Asset,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/preparing-a-depreciation-run_a7989bf3-5294-457b-a15e-92bc051542c0
+SAP_0024,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_18A7CDFD19F6788C:uebung#2,Asset,Performing a Depreciation Run,Record-to-Report,Run a Depreciation Run as Test Run and Analyze the Log,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/performing-a-depreciation-run_f40e41f8-980c-4e0c-b56d-7b4fc6d5e733
+SAP_0025,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_96B8437BDEBBE182:uebung#2,Asset,Analyze Depreciation Run,Record-to-Report,Analyze the Results of the Depreciation Run,12/10/2025,https://learning.sap.com/courses/asset-accounting-processes/performing-a-depreciation-run_f40e41f8-980c-4e0c-b56d-7b4fc6d5e733
+SAP_0026,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?library=library.txt&show=project!PR_C28D11D2F23330AF:demo#2,Inventory,Post Goods Movement App,Material Management,Post a goods receipt with reference to a purchase order,12/10/2025,https://learning.sap.com/courses/inventory-management-in-sap-cloud-erp/moving-goods-with-the-post-goods-movement-app-2
+SAP_0027,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?library=library.txt&show=project!PR_9BBA830B47B472BA:demo#2,Inventory,Manage Stock app,Material Management,How to Carry Out Initial Entry of Stock,12/10/2025,https://learning.sap.com/courses/inventory-management-in-sap-cloud-erp/posting-goods-receipt-without-reference-1
+SAP_0028,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?library=library.txt&show=project!PR_DA63343F72A49EB4:demo#2,Inventory,Post goods movement(MIGO) App,Material Management,How to Manage Free-of-Charge Delivery,12/10/2025,https://learning.sap.com/courses/inventory-management-in-sap-cloud-erp/posting-goods-receipt-without-reference-1
+SAP_0029,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?library=library.txt&show=project!PR_66ADF28B5A186B8C:demo#2,Inventory,Post Goods Receipt for Purchasing Document app,Material Management,Post a Goods Receipt with Reference to a Purchase Order,12/10/2025,https://learning.sap.com/courses/inventory-management-in-sap-cloud-erp/posting-goods-receipt-with-reference-1
+SAP_0030,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?library=library.txt&show=project!PR_87FA7A48AC2A70B3:demo#2,Inventory,Post Goods Receipt for Production Order app,Material Management,Post a Goods Receipt with Reference to a Production Order,12/10/2025,https://learning.sap.com/courses/inventory-management-in-sap-cloud-erp/posting-goods-receipt-with-reference-1
+SAP_0031,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?library=library.txt&show=project!PR_442EDFCBD9BE9684:demo#2,Inventory,,Material Management,How to Use the Shelf Life Expiration Date Check,12/10/2025,https://learning.sap.com/courses/inventory-management-in-sap-cloud-erp/using-date-checks-in-goods-receipt-processing-1
+SAP_0032,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?library=library.txt&show=project!PR_71789147B20AC8C:demo#2,Inventory,Transfer Stock – In-Plant app,Material Management,How to Post a Stock-to-Stock Transfer,12/10/2025,https://learning.sap.com/courses/inventory-management-in-sap-cloud-erp/explaining-transfer-postings-1
+SAP_0033,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?library=library.txt&show=project!PR_DA4B54A990D87C8E:demo,Inventory,Transfer Stock – Cross-Plant app,Material Management,How to Make Transfers with the Transfer Stock - Cross Plant App,12/10/2025,https://learning.sap.com/courses/inventory-management-in-sap-cloud-erp/performing-stock-transfers-between-plants-2
+SAP_0034,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?library=library.txt&show=project!PR_A77DF7D927D89C90:demo,Inventory,Manage Stock app,Material Management,How to Post Unplanned Goods Issues,12/10/2025,https://learning.sap.com/courses/inventory-management-in-sap-cloud-erp/posting-unplanned-goods-issue-1
+SAP_0035,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?library=library.txt&show=project!PR_1FAD1B7BE36DF4B1:demo#2,Inventory,Post goods movement(MIGO) App,Material Management,How to Post Goods Issue for a Production Order,12/10/2025,https://learning.sap.com/courses/inventory-management-in-sap-cloud-erp/posting-unplanned-goods-issue-1
+SAP_0036,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?library=library.txt&show=project!PR_9981680DC180BCB9:demo#2,Inventory,Overview Inventory Management Apps,Material Management,How to Use the Overview Inventory Processing Page,12/10/2025,https://learning.sap.com/courses/inventory-management-in-sap-cloud-erp/using-analytical-apps-for-inventory-management-2
+SAP_0037,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?library=library.txt&show=project!PR_92757487E3D16286:demo#2,Inventory,Stock Single Material App,Material Management,How to Use the Stock – Single Material App,12/10/2025,https://learning.sap.com/courses/inventory-management-in-sap-cloud-erp/using-analytical-apps-for-inventory-management-2
+SAP_0038,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_6F470296A66E458A:demo#3,Procurement,Create purchase Requisition Advanced (ME51N) App,Material Management,How to Create Purchase Requisitions,12/10/2025,https://learning.sap.com/courses/exploring-operational-procurement-in-sap-s-4hana/outlining-purchase-requisition-processing-in-sap-s-4hana
+SAP_0039,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_871F0B9E7077890:demo#4,Procurement,Process Purchase Requisitions App,Material Management,How to Assign Unprocessed Purchase Requisitions,12/10/2025,https://learning.sap.com/courses/exploring-operational-procurement-in-sap-s-4hana/processing-unassigned-purchase-requisitions-1
+SAP_0040,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_87A7E4EBD36653BE:demo,Procurement,Automatic creation of Purchase orders from Requisitions (ME59N) App,Material Management,How to Create a Purchase Order Automatically,12/10/2025,https://learning.sap.com/courses/exploring-operational-procurement-in-sap-s-4hana/processing-assigned-purchase-requisitions-1
+SAP_0041,https://learnsap.enable-now.cloud.sap/pub/mmcp/index.html?show=project!PR_8758B969F7814993:demo,Procurement,Mutiple Fiori Apps,Material Management,How to Create and Release a Purchase Requisition,12/10/2025,https://learning.sap.com/courses/exploring-operational-procurement-in-sap-s-4hana/processing-release-procedures-for-purchase-requisitions
+SAP_0042,,,,,,12/10/2025,
+SAP_0043,,,,,,12/10/2025,
+SAP_0044,,,,,,12/10/2025,
+SAP_0045,,,,,,12/10/2025,
+SAP_0046,,,,,,12/10/2025,
+SAP_0047,,,,,,12/10/2025,
+SAP_0048,,,,,,12/10/2025,
+SAP_0049,,,,,,12/10/2025,
+SAP_0050,,,,,,12/10/2025,
+SAP_0051,,,,,,12/10/2025,
+SAP_0052,,,,,,12/10/2025,
+SAP_0053,,,,,,12/10/2025,
+SAP_0054,,,,,,12/10/2025,
+SAP_0055,,,,,,12/10/2025,
+SAP_0056,,,,,,12/10/2025,
+SAP_0057,,,,,,12/10/2025,
+SAP_0058,,,,,,12/10/2025,
+SAP_0059,,,,,,12/10/2025,
+SAP_0060,,,,,,12/10/2025,
+SAP_0061,,,,,,12/10/2025,
+SAP_0062,,,,,,12/10/2025,
+SAP_0063,,,,,,12/10/2025,
+SAP_0064,,,,,,12/10/2025,
+SAP_0065,,,,,,12/10/2025,
+SAP_0066,,,,,,12/10/2025,
+SAP_0067,,,,,,12/10/2025,
+SAP_0068,,,,,,12/10/2025,
+SAP_0069,,,,,,12/10/2025,
+SAP_0070,,,,,,12/10/2025,
+SAP_0071,,,,,,12/10/2025,
+SAP_0072,,,,,,12/10/2025,
+SAP_0073,,,,,,12/10/2025,
+SAP_0074,,,,,,12/10/2025,
+SAP_0075,,,,,,12/10/2025,
+SAP_0076,,,,,,12/10/2025,
+SAP_0077,,,,,,12/10/2025,
+SAP_0078,,,,,,12/10/2025,
+SAP_0079,,,,,,12/10/2025,
+SAP_0080,,,,,,12/10/2025,
+SAP_0081,,,,,,12/10/2025,
+SAP_0082,,,,,,12/10/2025,
+SAP_0083,,,,,,12/10/2025,
+SAP_0084,,,,,,12/10/2025,
+SAP_0085,,,,,,12/10/2025,
