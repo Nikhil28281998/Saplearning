@@ -104,7 +104,7 @@
       "routes": [
         { "name": "Entity1List", "pattern": ":?query:", "target": "Entity1List" },
         { "name": "Entity1ObjectPage", "pattern": "Entity1({key})", "target": "Entity1ObjectPage" }
-        { "name": "TrainingAssignmentsList", "pattern": "TrainingAssignments:?query:", "target": "TrainingAssignmentsList" },
+        { "name": "TrainingAssignmentsList", "pattern": "TrainingAssignments", "target": "TrainingAssignmentsList" },
         { "name": "TrainingAssignmentsObjectPage", "pattern": "TrainingAssignments({key})", "target": "TrainingAssignmentsObjectPage" }
       ],
       "targets": {
