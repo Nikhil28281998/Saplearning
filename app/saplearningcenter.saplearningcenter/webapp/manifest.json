@@ -103,36 +103,33 @@
       },
       "routes": [
         {
-          "name": "Entity1Main",
+          "name": "Entity1List",
           "pattern": ":?query:",
           "target": [
-            "Entity1Main"
+            "Entity1List"
           ]
           },
           {
             "name": "Entity1ObjectPage",
-            "pattern": "Entity1({key})",
+          "pattern": "Entity1({key})",
             "target": [
               "Entity1ObjectPage"
             ]
           }
       ],
       "targets": {
-        "Entity1Main": {
+        "Entity1List": {
           "type": "Component",
-          "id": "Entity1Main",
-          "name": "sap.fe.core.fpm",
+          "id": "Entity1List",
+          "name": "sap.fe.templates.ListReport",
           "options": {
             "settings": {
-                "navigation": {
-                  "Entity1": {
-                    "detail": {
-                      "route": "Entity1ObjectPage"
-                    }
-                  }
-                },
-              "contextPath": "/Entity1",
-              "viewName": "saplearningcenter.saplearningcenter.ext.main.Main"
+              "entitySet": "Entity1",
+              "navigation": {
+                "Entity1": {
+                  "detail": { "route": "Entity1ObjectPage" }
+                }
+              }
             }
           },
           "controlAggregation": "beginColumnPages",
