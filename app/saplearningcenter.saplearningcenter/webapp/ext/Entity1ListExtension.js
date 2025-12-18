@@ -1,43 +1,43 @@
 sap.ui.define([
-  "sap/ui/core/mvc/ControllerExtension",
-  "sap/m/Button"
-], function (ControllerExtension, Button) {
+  "sap/ui/core/mvc/ControllerExtension"
+], function (ControllerExtension) {
   "use strict";
 
   return ControllerExtension.extend("saplearningcenter.saplearningcenter.ext.Entity1ListExtension", {
     override: {
-      onAfterRendering: function () {
-        var view = this.base.getView();
-        var appComp = (this.base.getAppComponent && this.base.getAppComponent()) || sap.ui.core.Component.getOwnerComponentFor(view);
+      onInit: function () {
+        var appComp = (this.base.getAppComponent && this.base.getAppComponent());
+        var api = this.base.getExtensionAPI && this.base.getExtensionAPI();
         var role = (appComp && appComp._role) || "Manager";
+        if (!api) { return; }
 
-        // find header toolbars
-        var toolbars = view.findAggregatedObjects(true, function (o) {
-          return o.getMetadata && o.getMetadata().getName() === "sap.m.OverflowToolbar";
-        });
-        var addIfMissing = function (tb, text, icon, handler) {
-          var items = tb.getContent && tb.getContent();
-          var exists = (items || []).some(function (it) { return it.getText && it.getText() === text; });
-          if (!exists) {
-            tb.addContent(new Button({ text: text, icon: icon, type: "Transparent", press: handler }));
+        // Add header action: Training Assignments
+        api.addHeaderAction({
+          id: "TrainingAssignmentsNav",
+          text: "Training Assignments",
+          icon: "sap-icon://study",
+          press: function () {
+            if (appComp && appComp.navigateToTraining) {
+              appComp.navigateToTraining();
+            }
           }
-        };
+        });
 
-        toolbars.forEach(function (tb) {
-          // Navigate to Training Assignments
-          addIfMissing(tb, "Training Assignments", "sap-icon://study", function () {
-            var r = appComp && appComp.getRouter && appComp.getRouter();
-            if (r && r.navTo) { r.navTo("TrainingAssignmentsList"); }
+        // Manager-only Assign action: navigate and trigger Create on TrainingAssignments LR
+        if (role === "Manager") {
+          api.addHeaderAction({
+            id: "TrainingAssignCreate",
+            text: "Assign",
+            icon: "sap-icon://add-document",
+            press: function () {
+              if (appComp && appComp.openTrainingAssignmentsAndCreate) {
+                appComp.openTrainingAssignmentsAndCreate();
+              } else if (appComp && appComp.navigateToTraining) {
+                appComp.navigateToTraining();
+              }
+            }
           });
-          // Manager-only Assign shortcut (triggers standard Create)
-          if (role === "Manager") {
-            addIfMissing(tb, "Assign", "sap-icon://add-document", function () {
-              var items = tb.getContent && tb.getContent();
-              var createBtn = (items || []).find(function (it) { return it.getText && it.getText() === "Create"; });
-              if (createBtn) { createBtn.firePress(); }
-            });
-          }
-        });
+        }
       }
     }
   });

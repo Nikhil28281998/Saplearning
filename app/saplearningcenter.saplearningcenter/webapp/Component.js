@@ -133,6 +133,29 @@ sap.ui.define([
                 fetch('/ai/chat/completions?api-version=2024-06-01', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
                 .then(function(r){ return r.json(); })
                 .then(function(data){
+
+        // Navigate then trigger Create on TrainingAssignments LR (manager only)
+        openTrainingAssignmentsAndCreate: function(){
+            var that = this;
+            var r = this.getRouter();
+            if (r && r.navTo) r.navTo('TrainingAssignmentsList');
+            var tries = 0;
+            var timer = setInterval(function(){
+                tries++;
+                var comp = sap.ui.getCore().byId('TrainingAssignmentsList');
+                var view = comp && comp.getRootControl && comp.getRootControl();
+                var tbars = view && view.findAggregatedObjects(true, function(o){ return o.getMetadata && o.getMetadata().getName() === 'sap.m.OverflowToolbar'; });
+                var fired = false;
+                if (tbars && tbars.length){
+                    tbars.forEach(function(tb){
+                        var items = tb.getContent && tb.getContent();
+                        var createBtn = (items || []).find(function(it){ return it.getText && it.getText() === 'Create'; });
+                        if (createBtn && that._role === 'Manager'){ createBtn.firePress(); fired = true; }
+                    });
+                }
+                if (fired || tries > 10){ clearInterval(timer); }
+            }, 500);
+        }
                     var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
                     that._pushMsg('assistant', text || '(No content returned)');
                 })
