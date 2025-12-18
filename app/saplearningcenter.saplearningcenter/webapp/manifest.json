@@ -1,5 +1,5 @@
 {
-  "_version": "1.58.0",
+  "_version": "1.60.0",
   "sap.app": {
     "id": "saplearningcenter.saplearningcenter",
     "type": "application",
@@ -29,19 +29,11 @@
     },
     "crossNavigation": {
       "inbounds": {
-        "SapLearning-display": {
-          "semanticObject": "SapLearning",
+        "saplearningcentersaplearningce-display": {
+          "semanticObject": "saplearningcentersaplearningce",
           "action": "display",
-          "title": "{{appTitle}}",
-          "signature": {
-            "parameters": {},
-            "additionalParameters": "allowed"
-          },
-          "resolutionResult": {
-            "applicationType": "SAPUI5",
-            "additionalInformation": "SAPUI5.Component=saplearningcenter.saplearningcenter",
-            "url": "."
-          }
+          "title": "{{saplearningcentersaplearningce-display.flpTitle}}",
+          "signature": { "parameters": {}, "additionalParameters": "allowed" }
         }
       }
     }
@@ -65,7 +57,7 @@
   "sap.ui5": {
     "flexEnabled": true,
     "dependencies": {
-      "minUI5Version": "1.136.9",
+      "minUI5Version": "1.120.13",
       "libs": {
         "sap.m": {},
         "sap.ui.core": {},
@@ -106,8 +98,7 @@
           "defaultTwoColumnLayoutType": "TwoColumnsBeginExpanded",
           "defaultThreeColumnLayoutType": "ThreeColumnsMidExpanded"
         },
-        "routerClass": "sap.f.routing.Router",
-        "controlId": "app"
+        "routerClass": "sap.f.routing.Router"
       },
       "routes": [
         { "name": "Entity1List", "pattern": ":?query:", "target": "Entity1List" },
@@ -150,10 +141,10 @@
       }
     },
     "rootView": {
-      "viewName": "sap.fe.templates.RootContainer.view.FCL",
+      "viewName": "sap.fe.templates.RootContainer.view.Fcl",
       "type": "XML",
       "async": true,
-      "id": "app"
+      "id": "appRootView"
     }
   },
   "sap.fiori": {}
