@@ -66,6 +66,15 @@
         "sap.f": {}
       }
     },
+    "extends": {
+      "extensions": {
+        "sap.ui.controllerExtensions": {
+          "sap.fe.templates.ListReport.ListReportController": {
+            "controllerName": "saplearningcenter.saplearningcenter.ext.Entity1ListExtension"
+          }
+        }
+      }
+    },
     "contentDensities": {
       "compact": true,
       "cozy": true
