@@ -35,8 +35,6 @@ sap.ui.define(
                         contentHeight: this._aiSize.h + 'vh',
                         content: [oList, oInput],
                         buttons: [
-                            new Button({ text: 'Smaller', press: function(){ this._resizeAI(-120, -10); }.bind(this) }),
-                            new Button({ text: 'Bigger',  press: function(){ this._resizeAI(120, 10); }.bind(this) }),
                             new Button({ text: 'Close',   press: function(){ this._oAI.close(); }.bind(this) }),
                             new Button({ text: 'Send', type: 'Emphasized', press: function(){
                                 var s = oInput.getValue();
@@ -49,6 +47,14 @@ sap.ui.define(
                     this._oAI.setModel(new sap.ui.model.json.JSONModel({ chat: { messages: [] }}));
                     this.getView().addDependent(this._oAI);
                 }
+                this._oAI.attachAfterOpen(function(){
+                    var r = this._oAI.getDomRef();
+                    if (r){
+                        r.style.position = 'fixed';
+                        r.style.right = '24px';
+                        r.style.bottom = '24px';
+                    }
+                }.bind(this));
                 this._oAI.open();
             },
 

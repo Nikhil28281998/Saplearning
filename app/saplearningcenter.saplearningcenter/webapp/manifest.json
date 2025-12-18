@@ -63,6 +63,7 @@
         "sap.m": {},
         "sap.ui.core": {},
         "sap.fe.core": {},
+        "sap.fe.macros": {},
         "sap.f": {}
       }
     },

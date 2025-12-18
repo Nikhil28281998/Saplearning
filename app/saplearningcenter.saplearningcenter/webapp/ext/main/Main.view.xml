@@ -2,8 +2,22 @@
     controllerName="saplearningcenter.saplearningcenter.ext.main.Main">
     <Page id="Main" title="{i18n>MainTitle}">
         <content>
-            <macros:FilterBar id="FB" contextPath="/Entity1" p13nMode="Value" filterFields="role,module,title"/>
-            <macros:Table id="TBL" contextPath="/Entity1" filterBar="FB" selectionMode="None" busyIndicatorDelay="0"/>
+            <macros:FilterBar id="FB" contextPath="/Entity1" p13nMode="Value">
+                <macros:FilterField propertyPath="role"/>
+                <macros:FilterField propertyPath="module"/>
+                <macros:FilterField propertyPath="title"/>
+            </macros:FilterBar>
+
+            <macros:Table id="TBL" contextPath="/Entity1" filterBar="FB" selectionMode="None" busyIndicatorDelay="0">
+                <columns>
+                    <macros:Column property="title"/>
+                    <macros:Column property="description"/>
+                    <macros:Column property="lastUpdated"/>
+                    <macros:Column property="module"/>
+                    <macros:Column property="role"/>
+                </columns>
+            </macros:Table>
+
             <Button id="aiFab" icon="sap-icon://ai" type="Emphasized" tooltip="AI Assistant" press="onOpenAI" class="aiFab"/>
         </content>
     </Page>
