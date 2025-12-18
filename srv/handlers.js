@@ -11,4 +11,27 @@ module.exports = (srv) => {
     const row = await tx.read(TrainingAssignments).byKey(id);
     return row;
   });
+
+  // Simple role resolver for preview: Manager or User
+  function resolveRole(req) {
+    // precedence: query ?role=, header x-user-role, env DEFAULT_ROLE
+    const qRole = req?.req?.query?.role || req?.data?.role;
+    const hRole = req?.req?.headers?.['x-user-role'] || req?.headers?.['x-user-role'];
+    const envRole = process.env.DEFAULT_ROLE;
+    const role = (qRole || hRole || envRole || 'Manager').toLowerCase();
+    return role === 'manager' ? 'Manager' : 'User';
+  }
+
+  // Enforce that only Managers can create assignments
+  srv.before('CREATE', 'TrainingAssignments', (req) => {
+    const role = resolveRole(req);
+    if (role !== 'Manager') {
+      return req.error(403, 'Only managers can create assignments');
+    }
+  });
+
+  // Provide current role to UI
+  srv.on('getCurrentRole', async (req) => {
+    return resolveRole(req);
+  });
 };

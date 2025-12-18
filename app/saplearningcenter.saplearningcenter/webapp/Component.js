@@ -17,8 +17,47 @@ sap.ui.define([
             AppComponent.prototype.init.apply(this, arguments);
             var that = this;
             sap.ui.getCore().attachInit(function(){
+                that._fetchRole();
                 that._initAI();
             });
+        },
+
+        _fetchRole: function(){
+            var that = this;
+            fetch('/service/SaplearningcenterService/getCurrentRole')
+              .then(function(r){ return r.text ? r.text() : r.json(); })
+              .then(function(role){
+                  that._role = (typeof role === 'string') ? role : (role && role.value) || 'Manager';
+                  that._applyRoleUI();
+              })
+              .catch(function(){ that._role = 'Manager'; that._applyRoleUI(); });
+        },
+
+        _applyRoleUI: function(){
+            var that = this;
+            // hide Create on TrainingAssignments LR for non-managers
+            var tryHide = function(){
+                var comp = sap.ui.getCore().byId('TrainingAssignmentsList');
+                var view = comp && comp.getRootControl && comp.getRootControl();
+                var toolbars = view && view.findAggregatedObjects(true, function(o){ return o.getMetadata && o.getMetadata().getName() === 'sap.m.OverflowToolbar'; });
+                if (toolbars && toolbars.length){
+                    toolbars.forEach(function(tb){
+                        var items = tb.getContent && tb.getContent();
+                        (items || []).forEach(function(it){
+                            if (it.getText && it.getText() === 'Create' && that._role !== 'Manager'){
+                                it.setVisible(false);
+                            }
+                        });
+                    });
+                    return true;
+                }
+                return false;
+            };
+            var attempts = 0;
+            var timer = setInterval(function(){
+                attempts++;
+                if (tryHide() || attempts > 20){ clearInterval(timer); }
+            }, 500);
         },
 
         _initAI: function(){

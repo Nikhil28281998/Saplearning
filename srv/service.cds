@@ -14,4 +14,7 @@ service SaplearningcenterService {
     // Value help projections (read-only)
     entity RolesVH   as projection on my.Roles;
     entity ModulesVH as projection on my.Modules;
+
+    // Role helper for UI logic
+    function getCurrentRole() returns String;
 }
