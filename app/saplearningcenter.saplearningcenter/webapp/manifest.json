@@ -40,7 +40,7 @@
           "resolutionResult": {
             "applicationType": "SAPUI5",
             "additionalInformation": "SAPUI5.Component=saplearningcenter.saplearningcenter",
-            "url": "./saplearningcenter.saplearningcenter/webapp"
+            "url": "."
           }
         }
       }
