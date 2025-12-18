@@ -21,3 +21,7 @@ entity TrainingAssignments {
             status     : String;
             completedAt: DateTime;
 }
+
+// Distinct value help sources
+view Roles as select distinct from Entity1 { role };
+view Modules as select distinct from Entity1 { module, role };

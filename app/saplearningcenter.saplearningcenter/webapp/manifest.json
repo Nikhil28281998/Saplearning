@@ -107,7 +107,14 @@
           "target": [
             "Entity1Main"
           ]
-        }
+          },
+          {
+            "name": "Entity1ObjectPage",
+            "pattern": "Entity1({key})",
+            "target": [
+              "Entity1ObjectPage"
+            ]
+          }
       ],
       "targets": {
         "Entity1Main": {
@@ -116,13 +123,30 @@
           "name": "sap.fe.core.fpm",
           "options": {
             "settings": {
-              "navigation": {},
+                "navigation": {
+                  "Entity1": {
+                    "detail": {
+                      "route": "Entity1ObjectPage"
+                    }
+                  }
+                },
               "contextPath": "/Entity1",
               "viewName": "saplearningcenter.saplearningcenter.ext.main.Main"
             }
           },
           "controlAggregation": "beginColumnPages",
           "contextPattern": ""
+          },
+          "Entity1ObjectPage": {
+            "type": "Component",
+            "id": "Entity1ObjectPage",
+            "name": "sap.fe.templates.ObjectPage",
+            "options": {
+              "settings": {
+                "entitySet": "Entity1"
+              }
+            },
+            "controlAggregation": "midColumnPages"
         }
       }
     },
