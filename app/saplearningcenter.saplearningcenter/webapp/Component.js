@@ -72,15 +72,7 @@ sap.ui.define([
             this._aiBtn.addStyleClass("aiFab");
             this._aiBtn.placeAt(sap.ui.getCore().getStaticAreaRef());
 
-            // Training button (toolbar-adjacent shortcut)
-            this._trainBtn = new Button({
-                icon: "sap-icon://study",
-                type: "Default",
-                tooltip: "Training Assignments",
-                press: function(){ that.navigateToTraining(); }
-            });
-            this._trainBtn.addStyleClass("trainingFabTop");
-            this._trainBtn.placeAt(sap.ui.getCore().getStaticAreaRef());
+            // Header extension provides Training Assignments and Assign; no floating training button
         },
 
         _buildAIDialog: function(){
