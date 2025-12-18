@@ -121,7 +121,7 @@
           "defaultThreeColumnLayoutType": "ThreeColumnsMidExpanded"
         },
         "routerClass": "sap.f.routing.Router",
-        "controlId": "app"
+        "controlId": "appRootView"
       },
       "routes": [
         { "name": "Entity1List", "pattern": ":?query:", "target": "Entity1List" },
