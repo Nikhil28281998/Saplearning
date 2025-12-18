@@ -1,7 +1,7 @@
 sap.ui.define(
     [
         'sap/fe/core/PageController',
-        'sap/m/Dialog',
+        'sap/m/ResponsivePopover',
         'sap/m/Button',
         'sap/m/Bar',
         'sap/m/Title',
@@ -9,7 +9,7 @@ sap.ui.define(
         'sap/m/StandardListItem',
         'sap/m/TextArea'
     ],
-    function(PageController, Dialog, Button, Bar, Title, List, StandardListItem, TextArea) {
+    function(PageController, ResponsivePopover, Button, Bar, Title, List, StandardListItem, TextArea) {
         'use strict';
 
         return PageController.extend('saplearningcenter.saplearningcenter.ext.main.Main', {
@@ -18,6 +18,7 @@ sap.ui.define(
             },
 
             onOpenAI: function(){
+                var oFab = this.getView().byId('aiFab');
                 if (!this._oAI){
                     var oList = new List({
                         items: {
@@ -26,26 +27,29 @@ sap.ui.define(
                         }
                     });
                     var oInput = new TextArea({ rows: 3, width: '100%', placeholder: 'Ask the assistant...' });
-                    this._oAI = new Dialog({
+                    this._oAI = new ResponsivePopover({
                         title: 'AI Assistant',
+                        placement: 'Top',
+                        modal: false,
+                        showArrow: false,
                         contentWidth: '28rem',
-                        contentHeight: '70vh',
-                        resizable: true,
-                        draggable: true,
                         content: [oList, oInput],
-                        beginButton: new Button({ text: 'Send', type: 'Emphasized', press: function(){
-                            var s = oInput.getValue();
-                            oInput.setValue('');
-                            this._pushMsg('user', s);
-                            this._callAI(s);
-                        }.bind(this) }),
-                        endButton: new Button({ text: 'Close', press: function(){ this._oAI.close(); }.bind(this) }),
-                        customHeader: new Bar({ contentMiddle: [ new Title({ text: 'AI Assistant' }) ] })
+                        footer: new Bar({
+                            contentRight: [
+                                new Button({ text: 'Close', press: function(){ this._oAI.close(); }.bind(this) }),
+                                new Button({ text: 'Send', type: 'Emphasized', press: function(){
+                                    var s = oInput.getValue();
+                                    oInput.setValue('');
+                                    this._pushMsg('user', s);
+                                    this._callAI(s);
+                                }.bind(this) })
+                            ]
+                        })
                     });
                     this._oAI.setModel(new sap.ui.model.json.JSONModel({ chat: { messages: [] }}));
                     this.getView().addDependent(this._oAI);
                 }
-                this._oAI.open();
+                this._oAI.openBy(oFab);
             },
 
             _pushMsg: function(role, content){
