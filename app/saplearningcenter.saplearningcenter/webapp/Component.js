@@ -29,6 +29,21 @@ sap.ui.define([
             });
             this._aiBtn.addStyleClass("aiFab");
             this._aiBtn.placeAt(sap.ui.getCore().getStaticAreaRef());
+
+            // Training button (optional shortcut)
+            this._trainBtn = new Button({
+                icon: "sap-icon://learning-assistant",
+                type: "Default",
+                tooltip: "My Training",
+                press: function(){ that.navigateToTraining(); }
+            });
+            this._trainBtn.addStyleClass("aiFab");
+            // shift training button above AI
+            setTimeout(function(){
+                var el = that._trainBtn.getDomRef();
+                if (el) el.style.bottom = '5.0rem';
+            }, 0);
+            this._trainBtn.placeAt(sap.ui.getCore().getStaticAreaRef());
         },
 
         _buildAIDialog: function(){
@@ -58,11 +73,9 @@ sap.ui.define([
                     }})
                 ]
             });
+            this._ai.addStyleClass('aiDialog');
             this._ai.setModel(new JSONModel({ chat: { messages: [] }}));
-            this._ai.attachAfterOpen(function(){
-                var r = that._ai.getDomRef();
-                if (r){ r.style.position='fixed'; r.style.right='24px'; r.style.bottom='24px'; }
-            });
+            this._ai.attachAfterOpen(function(){ /* CSS handles placement */ });
         },
 
         _openAI: function(){
@@ -88,6 +101,12 @@ sap.ui.define([
                 var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
                 that._pushMsg('assistant', text || '(No content returned)');
             }).catch(function(){ that._pushMsg('assistant', 'AI call failed'); });
+        },
+
+        // optional: navigate to TrainingAssignments LR
+        navigateToTraining: function(){
+            var r = this.getRouter();
+            if (r && r.navTo) r.navTo('TrainingAssignmentsList');
         }
     });
 });

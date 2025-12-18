@@ -13,6 +13,9 @@ annotate S.Entity1 with @UI.LineItem: [
 	{ $Type: 'UI.DataFieldWithUrl', Value: 'Open SAP Help', Url: sapHelpLink, Label: 'SAP Help' }
 ];
 
+// Disable Delete on Entity1
+annotate S.Entity1 with @Capabilities.DeleteRestrictions: { Deletable: false };
+
 // Object Page: header + sections
 annotate S.Entity1 with @UI.HeaderInfo: {
 	Title:       { $Type: 'UI.DataField', Value: title },
@@ -54,5 +57,18 @@ annotate S.Entity1 with {
 		]
 	};
 };
+
+// TrainingAssignments list configuration and action
+annotate S.TrainingAssignments with @UI.SelectionFields: [ role, module, status, dueDate ];
+
+annotate S.TrainingAssignments with @UI.LineItem: [
+	{ $Type: 'UI.DataField', Value: title,      Label: 'Title' },
+	{ $Type: 'UI.DataField', Value: role,       Label: 'Role' },
+	{ $Type: 'UI.DataField', Value: module,     Label: 'Module' },
+	{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
+	{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },
+	{ $Type: 'UI.DataField', Value: completedAt, Label: 'Completed At' },
+	{ $Type: 'UI.DataFieldForAction', Action: 'SaplearningcenterService.markCompleted', Label: 'Mark Completed' }
+];
 
 using SaplearningcenterService as service from '../../srv/service';

@@ -7,7 +7,9 @@ service SaplearningcenterService {
 
     // Optional: expose training for future use
     @cds.redirection.target
-    entity TrainingAssignments as projection on my.TrainingAssignments;
+    entity TrainingAssignments as projection on my.TrainingAssignments actions {
+        action markCompleted();
+    };
 
     // Value help projections (read-only)
     entity RolesVH   as projection on my.Roles;

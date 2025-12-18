@@ -110,7 +110,10 @@
           "type": "Component",
           "id": "Entity1List",
           "name": "sap.fe.templates.ListReport",
-          "options": { "settings": { "entitySet": "Entity1" } },
+          "options": { "settings": { 
+            "entitySet": "Entity1",
+            "navigation": { "Entity1": { "detail": { "route": "Entity1ObjectPage" } } }
+          } },
           "controlAggregation": "beginColumnPages"
         },
         "Entity1ObjectPage": {
@@ -118,6 +121,20 @@
           "id": "Entity1ObjectPage",
           "name": "sap.fe.templates.ObjectPage",
           "options": { "settings": { "entitySet": "Entity1" } },
+          "controlAggregation": "midColumnPages"
+        },
+        "TrainingAssignmentsList": {
+          "type": "Component",
+          "id": "TrainingAssignmentsList",
+          "name": "sap.fe.templates.ListReport",
+          "options": { "settings": { "entitySet": "TrainingAssignments" } },
+          "controlAggregation": "beginColumnPages"
+        },
+        "TrainingAssignmentsObjectPage": {
+          "type": "Component",
+          "id": "TrainingAssignmentsObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": { "settings": { "entitySet": "TrainingAssignments" } },
           "controlAggregation": "midColumnPages"
         }
       }
