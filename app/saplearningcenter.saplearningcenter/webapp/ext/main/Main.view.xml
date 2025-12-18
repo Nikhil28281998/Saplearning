@@ -1,6 +1,10 @@
 <mvc:View xmlns:core="sap.ui.core" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:macros="sap.fe.macros"
-    xmlns:html="http://www.w3.org/1999/xhtml" controllerName="saplearningcenter.saplearningcenter.ext.main.Main">
+    controllerName="saplearningcenter.saplearningcenter.ext.main.Main">
     <Page id="Main" title="{i18n>MainTitle}">
-        <content></content>
+        <content>
+            <macros:FilterBar id="FB" contextPath="/Entity1" p13nMode="Value" filterFields="role,module,title"/>
+            <macros:Table id="TBL" contextPath="/Entity1" filterBar="FB" selectionMode="None" busyIndicatorDelay="0"/>
+            <Button id="aiFab" icon="sap-icon://ai" type="Emphasized" tooltip="AI Assistant" press="onOpenAI" class="aiFab"/>
+        </content>
     </Page>
 </mvc:View>
