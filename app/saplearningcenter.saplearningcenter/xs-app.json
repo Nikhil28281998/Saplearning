@@ -1,0 +1,20 @@
+{
+  "welcomeFile": "/index.html",
+  "authenticationMethod": "none",
+  "routes": [
+    {
+      "source": "^/resources/(.*)$",
+      "destination": "ui5"
+    },
+    {
+      "source": "^/test-resources/(.*)$",
+      "destination": "ui5-test"
+    },
+    {
+      "source": "^/ai(.*)$",
+      "destination": "ai-destination",
+      "authenticationType": "none",
+      "forwardAuthToken": true
+    }
+  ]
+}

@@ -68,7 +68,30 @@ annotate S.TrainingAssignments with @UI.LineItem: [
 	{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
 	{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },
 	{ $Type: 'UI.DataField', Value: completedAt, Label: 'Completed At' },
-	{ $Type: 'UI.DataFieldForAction', Action: 'SaplearningcenterService.markCompleted', Label: 'Mark Completed' }
+	{ $Type: 'UI.DataFieldForAction', Action: 'SaplearningcenterService.markCompleted', Label: 'Mark Completed',
+	  Confirmation: { $Type: 'UI.ConfirmationDialogType', Title: 'Confirm', Text: 'Mark this assignment as completed?' } }
 ];
+
+annotate S.TrainingAssignments with @UI.HeaderInfo: {
+	Title:       { $Type: 'UI.DataField', Value: title },
+	Description: { $Type: 'UI.DataField', Value: status }
+};
+
+annotate S.TrainingAssignments with @UI.Facets: [
+	{ $Type: 'UI.ReferenceFacet', Label: 'Details', Target: '@UI.FieldGroup#Main' }
+];
+
+annotate S.TrainingAssignments with @UI.FieldGroup #Main: {
+	Data: [
+		{ $Type: 'UI.DataField', Value: title,      Label: 'Title' },
+		{ $Type: 'UI.DataField', Value: role,       Label: 'Role' },
+		{ $Type: 'UI.DataField', Value: module,     Label: 'Module' },
+		{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
+		{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },
+		{ $Type: 'UI.DataField', Value: completedAt, Label: 'Completed At' },
+		{ $Type: 'UI.DataFieldForAction', Action: 'SaplearningcenterService.markCompleted', Label: 'Mark Completed',
+		  Confirmation: { $Type: 'UI.ConfirmationDialogType', Title: 'Confirm', Text: 'Mark this assignment as completed?' } }
+	]
+};
 
 using SaplearningcenterService as service from '../../srv/service';
