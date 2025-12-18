@@ -80,7 +80,11 @@ sap.ui.define(
                 fetch('/ai', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] })
+                    body: JSON.stringify({
+                        // Adjust 'model' to your destination's deployment name if required
+                        model: 'gpt-4o-mini',
+                        messages: [{ role: 'user', content: prompt }]
+                    })
                 }).then(function(r){ return r.json(); })
                 .then(function(data){
                     var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';

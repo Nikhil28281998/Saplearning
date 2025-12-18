@@ -2,13 +2,13 @@
     controllerName="saplearningcenter.saplearningcenter.ext.main.Main">
     <Page id="Main" title="{i18n>MainTitle}">
         <content>
-            <macros:FilterBar id="FB" contextPath="/Entity1" p13nMode="Value">
+            <macros:FilterBar id="FB" contextPath="/Entity1" metaPath="@UI.SelectionFields" p13nMode="Value">
                 <macros:FilterField propertyPath="role"/>
                 <macros:FilterField propertyPath="module"/>
                 <macros:FilterField propertyPath="title"/>
             </macros:FilterBar>
 
-            <macros:Table id="TBL" contextPath="/Entity1" filterBar="FB" selectionMode="None" busyIndicatorDelay="0">
+            <macros:Table id="TBL" contextPath="/Entity1" metaPath="@UI.LineItem" filterBar="FB" selectionMode="None" busyIndicatorDelay="0">
                 <columns>
                     <macros:Column property="title"/>
                     <macros:Column property="description"/>
