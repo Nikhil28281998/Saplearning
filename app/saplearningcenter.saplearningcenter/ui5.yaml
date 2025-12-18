@@ -18,9 +18,4 @@ server:
         backend:
           - path: /ai
             destination: ai-destination
-    - name: fiori-tools-appreload
-      afterMiddleware: compression
-      configuration:
-        port: 35729
-        path: webapp
-        delay: 300
+    # Disable app reload in BAS Project Preview to avoid CORS noise

@@ -112,7 +112,7 @@ sap.ui.define([
                 })
                 .catch(function(){ that._pushMsg('assistant', 'AI call failed'); });
             });
-        }
+        },
 
         // optional: navigate to TrainingAssignments LR
         navigateToTraining: function(){

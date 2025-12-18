@@ -43,13 +43,46 @@
                     }
                 }
             },
-            applications: {
-                "saplearningcentersaplearningce-tile": {
-                    title: "Sap Learning center",
-                    description: "Sap Learning center",
-                    additionalInformation: "SAPUI5.Component=saplearningcenter.saplearningcenter",
-                    applicationType: "URL",
-                    url: "../"
+            services: {
+                LaunchPage: {
+                    adapter: {
+                        config: {
+                            groups: [
+                                {
+                                    id: "group_0",
+                                    title: "Sandbox",
+                                    tiles: [
+                                        {
+                                            id: "tile_saplearning",
+                                            title: "Sap Learning center",
+                                            targetUrl: "#SapLearning-display"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                NavTargetResolution: {
+                    config: {
+                        enableClientSideTargetResolution: true,
+                        inbounds: {
+                            "SapLearning-display": {
+                                semanticObject: "SapLearning",
+                                action: "display",
+                                title: "Sap Learning center",
+                                signature: {
+                                    parameters: {},
+                                    additionalParameters: "allowed"
+                                },
+                                resolutionResult: {
+                                    applicationType: "SAPUI5",
+                                    additionalInformation: "SAPUI5.Component=saplearningcenter.saplearningcenter",
+                                    url: "../"
+                                }
+                            }
+                        }
+                    }
                 }
             }
         };

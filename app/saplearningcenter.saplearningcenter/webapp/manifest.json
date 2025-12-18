@@ -36,6 +36,25 @@
           "signature": {
             "parameters": {},
             "additionalParameters": "allowed"
+          },
+          "resolutionResult": {
+            "applicationType": "SAPUI5",
+            "additionalInformation": "SAPUI5.Component=saplearningcenter.saplearningcenter",
+            "url": "."
+          }
+        },
+        "SapLearning-display": {
+          "semanticObject": "SapLearning",
+          "action": "display",
+          "title": "{{appTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          },
+          "resolutionResult": {
+            "applicationType": "SAPUI5",
+            "additionalInformation": "SAPUI5.Component=saplearningcenter.saplearningcenter",
+            "url": "."
           }
         }
       }
@@ -101,7 +120,8 @@
           "defaultTwoColumnLayoutType": "TwoColumnsBeginExpanded",
           "defaultThreeColumnLayoutType": "ThreeColumnsMidExpanded"
         },
-        "routerClass": "sap.f.routing.Router"
+        "routerClass": "sap.f.routing.Router",
+        "controlId": "app"
       },
       "routes": [
         { "name": "Entity1List", "pattern": ":?query:", "target": "Entity1List" },
