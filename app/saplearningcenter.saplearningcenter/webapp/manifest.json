@@ -102,49 +102,23 @@
         "routerClass": "sap.f.routing.Router"
       },
       "routes": [
-        {
-          "name": "Entity1List",
-          "pattern": ":?query:",
-          "target": [
-            "Entity1List"
-          ]
-          },
-          {
-            "name": "Entity1ObjectPage",
-          "pattern": "Entity1({key})",
-            "target": [
-              "Entity1ObjectPage"
-            ]
-          }
+        { "name": "Entity1List", "pattern": ":?query:", "target": "Entity1List" },
+        { "name": "Entity1ObjectPage", "pattern": "Entity1({key})", "target": "Entity1ObjectPage" }
       ],
       "targets": {
         "Entity1List": {
           "type": "Component",
           "id": "Entity1List",
           "name": "sap.fe.templates.ListReport",
-          "options": {
-            "settings": {
-              "entitySet": "Entity1",
-              "navigation": {
-                "Entity1": {
-                  "detail": { "route": "Entity1ObjectPage" }
-                }
-              }
-            }
-          },
-          "controlAggregation": "beginColumnPages",
-          "contextPattern": ""
-          },
-          "Entity1ObjectPage": {
-            "type": "Component",
-            "id": "Entity1ObjectPage",
-            "name": "sap.fe.templates.ObjectPage",
-            "options": {
-              "settings": {
-                "entitySet": "Entity1"
-              }
-            },
-            "controlAggregation": "midColumnPages"
+          "options": { "settings": { "entitySet": "Entity1" } },
+          "controlAggregation": "beginColumnPages"
+        },
+        "Entity1ObjectPage": {
+          "type": "Component",
+          "id": "Entity1ObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": { "settings": { "entitySet": "Entity1" } },
+          "controlAggregation": "midColumnPages"
         }
       }
     },
