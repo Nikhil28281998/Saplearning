@@ -94,4 +94,3 @@ annotate S.TrainingAssignments with @UI.FieldGroup #Main: {
 	]
 };
 
-using SaplearningcenterService as service from '../../srv/service';
