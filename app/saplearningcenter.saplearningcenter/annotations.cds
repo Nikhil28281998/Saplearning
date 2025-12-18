@@ -36,21 +36,23 @@ annotate S.Entity1 with @UI.FieldGroup #Main: {
 };
 
 // Value help: Role (distinct) and Module (dependent on Role)
-annotate S.Entity1/role with @Common.ValueList: {
-	$Type: 'Common.ValueListType',
-	CollectionPath: 'RolesVH',
-	Parameters: [
-		{ $Type: 'Common.ValueListParameterOut', LocalDataProperty: role,    ValueListProperty: 'role' }
-	]
-};
+annotate S.Entity1 with {
+	role @Common.ValueList: {
+		$Type: 'Common.ValueListType',
+		CollectionPath: 'RolesVH',
+		Parameters: [
+			{ $Type: 'Common.ValueListParameterOut', LocalDataProperty: role, ValueListProperty: 'role' }
+		]
+	};
 
-annotate S.Entity1/module with @Common.ValueList: {
-	$Type: 'Common.ValueListType',
-	CollectionPath: 'ModulesVH',
-	Parameters: [
-		{ $Type: 'Common.ValueListParameterIn',  LocalDataProperty: role,    ValueListProperty: 'role' },
-		{ $Type: 'Common.ValueListParameterOut', LocalDataProperty: module,  ValueListProperty: 'module' }
-	]
+	module @Common.ValueList: {
+		$Type: 'Common.ValueListType',
+		CollectionPath: 'ModulesVH',
+		Parameters: [
+			{ $Type: 'Common.ValueListParameterIn',  LocalDataProperty: role,   ValueListProperty: 'role' },
+			{ $Type: 'Common.ValueListParameterOut', LocalDataProperty: module, ValueListProperty: 'module' }
+		]
+	};
 };
 
 using SaplearningcenterService as service from '../../srv/service';

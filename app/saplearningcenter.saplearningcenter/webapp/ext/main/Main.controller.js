@@ -1,7 +1,7 @@
 sap.ui.define(
     [
         'sap/fe/core/PageController',
-        'sap/m/ResponsivePopover',
+        'sap/m/Dialog',
         'sap/m/Button',
         'sap/m/Bar',
         'sap/m/Title',
@@ -9,16 +9,16 @@ sap.ui.define(
         'sap/m/StandardListItem',
         'sap/m/TextArea'
     ],
-    function(PageController, ResponsivePopover, Button, Bar, Title, List, StandardListItem, TextArea) {
+    function(PageController, Dialog, Button, Bar, Title, List, StandardListItem, TextArea) {
         'use strict';
 
         return PageController.extend('saplearningcenter.saplearningcenter.ext.main.Main', {
             onInit: function(){
                 this._oAI = null;
+                this._aiSize = { w: 480, h: 70 }; // px, vh
             },
 
             onOpenAI: function(){
-                var oFab = this.getView().byId('aiFab');
                 if (!this._oAI){
                     var oList = new List({
                         items: {
@@ -27,29 +27,36 @@ sap.ui.define(
                         }
                     });
                     var oInput = new TextArea({ rows: 3, width: '100%', placeholder: 'Ask the assistant...' });
-                    this._oAI = new ResponsivePopover({
+                    this._oAI = new Dialog({
                         title: 'AI Assistant',
-                        placement: 'Top',
-                        modal: false,
-                        showArrow: false,
-                        contentWidth: '28rem',
+                        resizable: true,
+                        draggable: true,
+                        contentWidth: this._aiSize.w + 'px',
+                        contentHeight: this._aiSize.h + 'vh',
                         content: [oList, oInput],
-                        footer: new Bar({
-                            contentRight: [
-                                new Button({ text: 'Close', press: function(){ this._oAI.close(); }.bind(this) }),
-                                new Button({ text: 'Send', type: 'Emphasized', press: function(){
-                                    var s = oInput.getValue();
-                                    oInput.setValue('');
-                                    this._pushMsg('user', s);
-                                    this._callAI(s);
-                                }.bind(this) })
-                            ]
-                        })
+                        buttons: [
+                            new Button({ text: 'Smaller', press: function(){ this._resizeAI(-120, -10); }.bind(this) }),
+                            new Button({ text: 'Bigger',  press: function(){ this._resizeAI(120, 10); }.bind(this) }),
+                            new Button({ text: 'Close',   press: function(){ this._oAI.close(); }.bind(this) }),
+                            new Button({ text: 'Send', type: 'Emphasized', press: function(){
+                                var s = oInput.getValue();
+                                oInput.setValue('');
+                                this._pushMsg('user', s);
+                                this._callAI(s);
+                            }.bind(this) })
+                        ]
                     });
                     this._oAI.setModel(new sap.ui.model.json.JSONModel({ chat: { messages: [] }}));
                     this.getView().addDependent(this._oAI);
                 }
-                this._oAI.openBy(oFab);
+                this._oAI.open();
+            },
+
+            _resizeAI: function(dw, dh){
+                this._aiSize.w = Math.max(320, Math.min(960, this._aiSize.w + dw));
+                this._aiSize.h = Math.max(30,  Math.min(90,  this._aiSize.h + dh));
+                this._oAI.setContentWidth(this._aiSize.w + 'px');
+                this._oAI.setContentHeight(this._aiSize.h + 'vh');
             },
 
             _pushMsg: function(role, content){
@@ -61,6 +68,8 @@ sap.ui.define(
 
             _callAI: function(prompt){
                 var that = this;
+                // Ensure destination is used; backend maps '/ai' to 'ai-destination'.
+                // If your destination requires a base path, configure it in ui5.yaml; keep client call relative here.
                 fetch('/ai/chat/completions?api-version=2024-06-01', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -69,7 +78,7 @@ sap.ui.define(
                 .then(function(data){
                     var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
                     that._pushMsg('assistant', text || '(No content returned)');
-                }).catch(function(){ that._pushMsg('assistant', 'AI call failed'); });
+                }).catch(function(e){ that._pushMsg('assistant', 'AI call failed'); });
             }
             /**
              * Called when a controller is instantiated and its View controls (if available) are already created.
