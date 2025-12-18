@@ -3,9 +3,9 @@
     <Page id="Main" title="{i18n>MainTitle}">
         <content>
             <macros:FilterBar id="FB" contextPath="/Entity1" metaPath="@UI.SelectionFields" p13nMode="Value">
-                <macros:FilterField propertyPath="role"/>
-                <macros:FilterField propertyPath="module"/>
-                <macros:FilterField propertyPath="title"/>
+                <macros:FilterField propertyPath="role" dataType="Edm.String"/>
+                <macros:FilterField propertyPath="module" dataType="Edm.String"/>
+                <macros:FilterField propertyPath="title" dataType="Edm.String"/>
             </macros:FilterBar>
 
             <macros:Table id="TBL" contextPath="/Entity1" metaPath="@UI.LineItem" filterBar="FB" selectionMode="None" busyIndicatorDelay="0">
