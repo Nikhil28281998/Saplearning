@@ -150,10 +150,10 @@
       }
     },
     "rootView": {
-      "viewName": "sap.fe.templates.RootContainer.view.Fcl",
+      "viewName": "sap.fe.templates.RootContainer.view.FCL",
       "type": "XML",
       "async": true,
-      "id": "appRootView"
+      "id": "app"
     }
   },
   "sap.fiori": {}
