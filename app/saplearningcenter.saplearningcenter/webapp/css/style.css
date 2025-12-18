@@ -1,2 +1,3 @@
 .aiFab{position:fixed;bottom:1.5rem;right:1.5rem;z-index:1000}
+.trainingFabTop{position:fixed;top:0.75rem;right:7.5rem;z-index:1000}
 .aiDialog.sapMDialog{position:fixed!important;right:24px;bottom:24px;left:auto!important;top:auto!important;transform:none!important}

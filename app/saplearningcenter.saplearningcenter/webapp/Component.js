@@ -33,19 +33,14 @@ sap.ui.define([
             this._aiBtn.addStyleClass("aiFab");
             this._aiBtn.placeAt(sap.ui.getCore().getStaticAreaRef());
 
-            // Training button (optional shortcut)
+            // Training button (toolbar-adjacent shortcut)
             this._trainBtn = new Button({
                 icon: "sap-icon://study",
                 type: "Default",
-                tooltip: "My Training",
+                tooltip: "Training Assignments",
                 press: function(){ that.navigateToTraining(); }
             });
-            this._trainBtn.addStyleClass("aiFab");
-            // shift training button above AI
-            setTimeout(function(){
-                var el = that._trainBtn.getDomRef();
-                if (el) el.style.bottom = '5.0rem';
-            }, 0);
+            this._trainBtn.addStyleClass("trainingFabTop");
             this._trainBtn.placeAt(sap.ui.getCore().getStaticAreaRef());
         },
 
