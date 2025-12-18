@@ -1,5 +1,5 @@
 {
-  "_version": "1.59.0",
+  "_version": "1.58.0",
   "sap.app": {
     "id": "saplearningcenter.saplearningcenter",
     "type": "application",
@@ -29,20 +29,6 @@
     },
     "crossNavigation": {
       "inbounds": {
-        "saplearningcentersaplearningce-display": {
-          "semanticObject": "saplearningcentersaplearningce",
-          "action": "display",
-          "title": "{{saplearningcentersaplearningce-display.flpTitle}}",
-          "signature": {
-            "parameters": {},
-            "additionalParameters": "allowed"
-          },
-          "resolutionResult": {
-            "applicationType": "SAPUI5",
-            "additionalInformation": "SAPUI5.Component=saplearningcenter.saplearningcenter",
-            "url": "./saplearningcenter.saplearningcenter/webapp"
-          }
-        },
         "SapLearning-display": {
           "semanticObject": "SapLearning",
           "action": "display",
