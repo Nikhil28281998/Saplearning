@@ -15,7 +15,10 @@ sap.ui.define([
 
         init: function () {
             AppComponent.prototype.init.apply(this, arguments);
-            this._initAI();
+            var that = this;
+            sap.ui.getCore().attachInit(function(){
+                that._initAI();
+            });
         },
 
         _initAI: function(){
@@ -32,7 +35,7 @@ sap.ui.define([
 
             // Training button (optional shortcut)
             this._trainBtn = new Button({
-                icon: "sap-icon://learning-assistant",
+                icon: "sap-icon://study",
                 type: "Default",
                 tooltip: "My Training",
                 press: function(){ that.navigateToTraining(); }
@@ -92,16 +95,24 @@ sap.ui.define([
 
         _callAI: function(prompt){
             var that = this;
-            fetch('/ai', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }] })
-            }).then(function(r){ return r.json(); })
+            var body = JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }] });
+            // Try destination base '/ai' first; if it fails, fall back to explicit relative path
+            fetch('/ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+            .then(function(r){ if(!r.ok) throw r; return r.json(); })
             .then(function(data){
                 var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
                 that._pushMsg('assistant', text || '(No content returned)');
-            }).catch(function(){ that._pushMsg('assistant', 'AI call failed'); });
-        },
+            })
+            .catch(function(){
+                fetch('/ai/chat/completions?api-version=2024-06-01', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+                .then(function(r){ return r.json(); })
+                .then(function(data){
+                    var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+                    that._pushMsg('assistant', text || '(No content returned)');
+                })
+                .catch(function(){ that._pushMsg('assistant', 'AI call failed'); });
+            });
+        }
 
         // optional: navigate to TrainingAssignments LR
         navigateToTraining: function(){
