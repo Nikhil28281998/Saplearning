@@ -56,7 +56,7 @@ sap.ui.define([
             var attempts = 0;
             var timer = setInterval(function(){
                 attempts++;
-                if (tryHide() || attempts > 20){ clearInterval(timer); }
+                if (tryHide() || attempts > 10){ clearInterval(timer); }
             }, 500);
         },
 
@@ -133,6 +133,12 @@ sap.ui.define([
                 fetch('/ai/chat/completions?api-version=2024-06-01', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
                 .then(function(r){ return r.json(); })
                 .then(function(data){
+                    var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+                    that._pushMsg('assistant', text || '(No content returned)');
+                })
+                .catch(function(){ that._pushMsg('assistant', 'AI call failed'); });
+            });
+        },
 
         // Navigate then trigger Create on TrainingAssignments LR (manager only)
         openTrainingAssignmentsAndCreate: function(){
@@ -155,12 +161,6 @@ sap.ui.define([
                 }
                 if (fired || tries > 10){ clearInterval(timer); }
             }, 500);
-        }
-                    var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
-                    that._pushMsg('assistant', text || '(No content returned)');
-                })
-                .catch(function(){ that._pushMsg('assistant', 'AI call failed'); });
-            });
         },
 
         // optional: navigate to TrainingAssignments LR
