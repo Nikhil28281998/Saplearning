@@ -1,5 +1,5 @@
 {
-  "_version": "1.60.0",
+  "_version": "1.59.0",
   "sap.app": {
     "id": "saplearningcenter.saplearningcenter",
     "type": "application",
@@ -10,6 +10,8 @@
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
     "resources": "resources.json",
+    "archeType": "transactional",
+    "registrationIds": ["saplearningcenter.saplearningcenter"],
     "sourceTemplate": {
       "id": "@sap/generator-fiori:fpm",
       "version": "1.20.0",
@@ -103,7 +105,7 @@
       },
       "routes": [
         { "name": "Entity1List", "pattern": ":?query:", "target": "Entity1List" },
-        { "name": "Entity1ObjectPage", "pattern": "Entity1({key})", "target": "Entity1ObjectPage" }
+        { "name": "Entity1ObjectPage", "pattern": "Entity1({key})", "target": "Entity1ObjectPage" },
         { "name": "TrainingAssignmentsList", "pattern": "TrainingAssignments", "target": "TrainingAssignmentsList" },
         { "name": "TrainingAssignmentsObjectPage", "pattern": "TrainingAssignments({key})", "target": "TrainingAssignmentsObjectPage" }
       ],
