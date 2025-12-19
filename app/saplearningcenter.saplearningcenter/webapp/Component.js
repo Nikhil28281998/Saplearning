@@ -6,8 +6,9 @@ sap.ui.define([
     "sap/m/StandardListItem",
     "sap/m/TextArea",
     "sap/m/Bar",
-    "sap/ui/model/json/JSONModel"
-], function (AppComponent, Button, Dialog, List, StandardListItem, TextArea, Bar, JSONModel) {
+    "sap/ui/model/json/JSONModel",
+    "sap/base/Log"
+], function (AppComponent, Button, Dialog, List, StandardListItem, TextArea, Bar, JSONModel, Log) {
     "use strict";
 
     return AppComponent.extend("saplearningcenter.saplearningcenter.Component", {
@@ -17,9 +18,33 @@ sap.ui.define([
             AppComponent.prototype.init.apply(this, arguments);
             var that = this;
             sap.ui.getCore().attachInit(function(){
+                that._diagnosticsInit();
                 that._fetchRole();
                 that._initAI();
+                that._startupHealthCheck();
             });
+        },
+
+        _diagnosticsInit: function(){
+            try{
+                // Global error logging
+                window.addEventListener('error', function(e){
+                    Log.error('Global Error: ' + (e && e.message), e && e.error);
+                });
+                window.addEventListener('unhandledrejection', function(e){
+                    var msg = (e && e.reason && e.reason.message) || 'Unhandled rejection';
+                    Log.error('Unhandled Promise Rejection: ' + msg, e && e.reason);
+                });
+                var r = this.getRouter();
+                if (r && r.attachRouteMatched){
+                    r.attachRouteMatched(function(o){
+                        try{
+                            var name = o.getParameter && o.getParameter('name');
+                            Log.info('Route matched: ' + name);
+                        }catch(_){/*noop*/}
+                    });
+                }
+            }catch(_){/*noop*/}
         },
 
         _fetchRole: function(){
@@ -75,6 +100,23 @@ sap.ui.define([
             this._aiBtn.placeAt(sap.ui.getCore().getStaticAreaRef());
 
             // Header extension provides Training Assignments and Assign; no floating training button
+        },
+
+        _startupHealthCheck: function(){
+            var that = this;
+            var ok = true;
+            var checks = [
+                fetch('/service/SaplearningcenterService/$metadata').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; }),
+                fetch('/service/SaplearningcenterService/Entity1?$top=1').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; })
+            ];
+            Promise.all(checks).then(function(){
+                if (!ok){
+                    try{
+                        var dlg = new Dialog({ title: 'Startup Issue', content: [ new sap.m.Text({ text: 'Service not reachable. Please check destinations or handlers.' }) ], buttons: [ new Button({ text: 'Close', press: function(){ dlg.close(); } }) ] });
+                        dlg.open();
+                    }catch(_){/*noop*/}
+                }
+            });
         },
 
         _buildAIDialog: function(){
