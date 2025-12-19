@@ -67,6 +67,11 @@ sap.ui.define([
 
         _fetchRole: function(){
             var that = this;
+            // Local preview override via localStorage
+            try{
+                var ls = localStorage.getItem('saplc-role');
+                if (ls) { that._role = ls; that._applyRoleUI(); return; }
+            }catch(_){ /* ignore */ }
                         // OData functions require parentheses even with no params
                         fetch('/service/SaplearningcenterService/getCurrentRole()')
                             .then(function(r){ return r.json(); })

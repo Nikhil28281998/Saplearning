@@ -10,7 +10,7 @@ sap.ui.define([
           var appComp = (this.base && this.base.getAppComponent) ? this.base.getAppComponent() : null;
           var api = (this.base && this.base.getExtensionAPI) ? this.base.getExtensionAPI() : null;
           var role = (appComp && appComp._role) || "Manager";
-          if (!api || !api.addHeaderAction) { return; }
+          var canHeader = !!(api && api.addHeaderAction);
           // Only attach actions on Entity1 ListReport
           var view = (this.base && this.base.getView) ? this.base.getView() : null;
           var vd = view && view.getViewData ? view.getViewData() : null;
@@ -18,7 +18,7 @@ sap.ui.define([
           if (entitySet && entitySet !== "Entity1") { return; }
 
         // Add header action: Trainings (text-only)
-        api.addHeaderAction({
+        if (canHeader) api.addHeaderAction({
           id: "TrainingAssignmentsNav",
           text: "Trainings",
           press: function () {
@@ -28,9 +28,23 @@ sap.ui.define([
           }
         });
 
+        // Also add a Trainings button into the results (table) toolbar
+        (function injectToolbarBtn(){
+          try{
+            var view = (this.base && this.base.getView) ? this.base.getView() : null;
+            // find first OverflowToolbar in LR view (table toolbar)
+            var tbars = view && view.findAggregatedObjects && view.findAggregatedObjects(true, function(o){ return o && o.getMetadata && o.getMetadata().getName() === 'sap.m.OverflowToolbar'; });
+            var tbar = (tbars && tbars.length) ? tbars[0] : null;
+            if (!tbar || !tbar.insertContent) { setTimeout(injectToolbarBtn.bind(this), 400); return; }
+            var btn = new sap.m.Button({ text: 'Trainings', press: function(){ if (appComp && appComp.navigateToTraining) { appComp.navigateToTraining(); } } });
+            // place near the beginning to appear left of settings/export
+            try { tbar.insertContent(btn, 0); } catch(_) { tbar.addContent(btn); }
+          }catch(_){ setTimeout(injectToolbarBtn.bind(this), 400); }
+        }).call(this);
+
         // Manager/Admin Assign action: navigate and trigger Create on TrainingAssignments LR
         if (role === "Manager" || role === "Admin") {
-          api.addHeaderAction({
+          if (canHeader) api.addHeaderAction({
             id: "TrainingAssignCreate",
             text: "Assign",
             icon: "sap-icon://add-document",
@@ -48,7 +62,7 @@ sap.ui.define([
 
         // Admin-only: navigate to Users management
         if (role === "Admin") {
-          api.addHeaderAction({
+          if (canHeader) api.addHeaderAction({
             id: "UsersNav",
             text: "Users",
             press: function () {
@@ -56,21 +70,24 @@ sap.ui.define([
               if (r && r.navTo) { r.navTo('UsersList'); }
             }
           });
-          // Admin-only: quick role switcher for BAS preview (client-side)
+        }
+
+        // Preview role switchers: always available to quickly test roles
+        if (canHeader) {
           api.addHeaderAction({
             id: "RoleAdmin",
             text: "Role: Admin",
-            press: function(){ if(appComp){ appComp._role='Admin'; appComp._applyRoleUI && appComp._applyRoleUI(); } }
+            press: function(){ if(appComp){ appComp._role='Admin'; try{ localStorage.setItem('saplc-role','Admin'); }catch(_){} appComp._applyRoleUI && appComp._applyRoleUI(); } }
           });
           api.addHeaderAction({
             id: "RoleManager",
             text: "Role: Manager",
-            press: function(){ if(appComp){ appComp._role='Manager'; appComp._applyRoleUI && appComp._applyRoleUI(); } }
+            press: function(){ if(appComp){ appComp._role='Manager'; try{ localStorage.setItem('saplc-role','Manager'); }catch(_){} appComp._applyRoleUI && appComp._applyRoleUI(); } }
           });
           api.addHeaderAction({
             id: "RoleUser",
             text: "Role: User",
-            press: function(){ if(appComp){ appComp._role='User'; appComp._applyRoleUI && appComp._applyRoleUI(); } }
+            press: function(){ if(appComp){ appComp._role='User'; try{ localStorage.setItem('saplc-role','User'); }catch(_){} appComp._applyRoleUI && appComp._applyRoleUI(); } }
           });
         }
         } catch(e) {
