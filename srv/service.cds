@@ -1,7 +1,8 @@
 using { Learning_Data as my } from '../db/schema.cds';
 
 @path : '/service/SaplearningcenterService'
-service SaplearningcenterService @impl: 'SaplearningcenterService.js' {
+@impl: 'srv/SaplearningcenterService.js'
+service SaplearningcenterService {
     @cds.redirection.target
     entity Entity1 as projection on my.Entity1;
 

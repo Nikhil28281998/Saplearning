@@ -26,11 +26,12 @@ sap.ui.define([
             var that = this;
                         // OData functions require parentheses even with no params
                         fetch('/service/SaplearningcenterService/getCurrentRole()')
-              .then(function(r){ return r.text ? r.text() : r.json(); })
-              .then(function(role){
-                                    that._role = (typeof role === 'string') ? role : (role && role.value) || 'Admin';
-                  that._applyRoleUI();
-              })
+                            .then(function(r){ return r.json(); })
+                            .then(function(data){
+                                    var val = (data && (data.value || data)) || 'Admin';
+                                    that._role = typeof val === 'string' ? val : 'Admin';
+                                    that._applyRoleUI();
+                            })
                             .catch(function(){ that._role = 'Admin'; that._applyRoleUI(); });
         },
 
