@@ -65,6 +65,7 @@ annotate S.TrainingAssignments with @UI.LineItem: [
 	{ $Type: 'UI.DataField', Value: title,      Label: 'Title' },
 	{ $Type: 'UI.DataField', Value: role,       Label: 'Role' },
 	{ $Type: 'UI.DataField', Value: module,     Label: 'Module' },
+	{ $Type: 'UI.DataField', Value: userId,     Label: 'User' },
 	{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
 	{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },
 	{ $Type: 'UI.DataField', Value: completedAt, Label: 'Completed At' },
@@ -86,6 +87,7 @@ annotate S.TrainingAssignments with @UI.FieldGroup #Main: {
 		{ $Type: 'UI.DataField', Value: title,      Label: 'Title' },
 		{ $Type: 'UI.DataField', Value: role,       Label: 'Role' },
 		{ $Type: 'UI.DataField', Value: module,     Label: 'Module' },
+		{ $Type: 'UI.DataField', Value: userId,     Label: 'User' },
 		{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
 		{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },
 		{ $Type: 'UI.DataField', Value: completedAt, Label: 'Completed At' },
@@ -98,4 +100,27 @@ annotate S.TrainingAssignments with @UI.FieldGroup #Main: {
 annotate S.TrainingAssignments with @Capabilities.InsertRestrictions: { Insertable: true };
 annotate S.TrainingAssignments with @Capabilities.UpdateRestrictions: { Updatable: true };
 annotate S.TrainingAssignments with @Capabilities.DeleteRestrictions: { Deletable: false };
+
+// Users management (Admin)
+annotate S.Users with @UI.SelectionFields: [ name, email, managerId ];
+annotate S.Users with @UI.LineItem: [
+	{ $Type: 'UI.DataField', Value: name,      Label: 'Name' },
+	{ $Type: 'UI.DataField', Value: email,     Label: 'Email' },
+	{ $Type: 'UI.DataField', Value: managerId, Label: 'Manager ID' }
+];
+annotate S.Users with @Capabilities.InsertRestrictions: { Insertable: true };
+annotate S.Users with @Capabilities.UpdateRestrictions: { Updatable: true };
+annotate S.Users with @Capabilities.DeleteRestrictions: { Deletable: true };
+
+// Value help for assigning users in TrainingAssignments
+annotate S.TrainingAssignments with {
+	userId @Common.ValueList: {
+		$Type: 'Common.ValueListType',
+		CollectionPath: 'Users',
+		Parameters: [
+			{ $Type: 'Common.ValueListParameterOut', LocalDataProperty: userId, ValueListProperty: 'ID' },
+			{ $Type: 'Common.ValueListParameterDisplayOnly', ValueListProperty: 'name' }
+		]
+	}
+};
 

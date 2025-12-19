@@ -113,7 +113,9 @@
         { "name": "Entity1List", "pattern": ":?query:", "target": "Entity1List" },
         { "name": "Entity1ObjectPage", "pattern": "Entity1({key})", "target": "Entity1ObjectPage" },
         { "name": "TrainingAssignmentsList", "pattern": "TrainingAssignments", "target": "TrainingAssignmentsList" },
-        { "name": "TrainingAssignmentsObjectPage", "pattern": "TrainingAssignments({key})", "target": "TrainingAssignmentsObjectPage" }
+        { "name": "TrainingAssignmentsObjectPage", "pattern": "TrainingAssignments({key})", "target": "TrainingAssignmentsObjectPage" },
+        { "name": "UsersList", "pattern": "Users", "target": "UsersList" },
+        { "name": "UsersObjectPage", "pattern": "Users({key})", "target": "UsersObjectPage" }
       ],
       "targets": {
         "Entity1List": {
@@ -145,6 +147,20 @@
           "id": "TrainingAssignmentsObjectPage",
           "name": "sap.fe.templates.ObjectPage",
           "options": { "settings": { "entitySet": "TrainingAssignments" } },
+          "controlAggregation": "midColumnPages"
+        },
+        "UsersList": {
+          "type": "Component",
+          "id": "UsersList",
+          "name": "sap.fe.templates.ListReport",
+          "options": { "settings": { "entitySet": "Users" } },
+          "controlAggregation": "beginColumnPages"
+        },
+        "UsersObjectPage": {
+          "type": "Component",
+          "id": "UsersObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": { "settings": { "entitySet": "Users" } },
           "controlAggregation": "midColumnPages"
         }
       }

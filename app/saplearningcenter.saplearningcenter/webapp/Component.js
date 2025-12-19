@@ -24,13 +24,14 @@ sap.ui.define([
 
         _fetchRole: function(){
             var that = this;
-            fetch('/service/SaplearningcenterService/getCurrentRole')
+                        // OData functions require parentheses even with no params
+                        fetch('/service/SaplearningcenterService/getCurrentRole()')
               .then(function(r){ return r.text ? r.text() : r.json(); })
               .then(function(role){
-                  that._role = (typeof role === 'string') ? role : (role && role.value) || 'Manager';
+                                    that._role = (typeof role === 'string') ? role : (role && role.value) || 'Admin';
                   that._applyRoleUI();
               })
-              .catch(function(){ that._role = 'Manager'; that._applyRoleUI(); });
+                            .catch(function(){ that._role = 'Admin'; that._applyRoleUI(); });
         },
 
         _applyRoleUI: function(){
@@ -44,7 +45,7 @@ sap.ui.define([
                     toolbars.forEach(function(tb){
                         var items = tb.getContent && tb.getContent();
                         (items || []).forEach(function(it){
-                            if (it.getText && it.getText() === 'Create' && that._role !== 'Manager'){
+                            if (it.getText && it.getText() === 'Create' && that._role === 'User'){
                                 it.setVisible(false);
                             }
                         });
@@ -167,6 +168,131 @@ sap.ui.define([
         navigateToTraining: function(){
             var r = this.getRouter();
             if (r && r.navTo) r.navTo('TrainingAssignmentsList');
+        },
+
+        // Guided Assign Training dialog (Manager/Admin)
+        openAssignDialog: function(){
+            var that = this;
+            if (this._assignDlg) { this._assignDlg.open(); return; }
+            var oModel = this.getModel();
+            var loadList = function(path){
+                return new Promise(function(resolve, reject){
+                    try{
+                        var b = oModel.bindList(path);
+                        b.requestContexts(0, Infinity).then(function(ctxs){
+                            resolve(ctxs.map(function(c){ return c.getObject(); }));
+                        }).catch(reject);
+                    }catch(e){ reject(e); }
+                });
+            };
+
+            Promise.all([
+                loadList('/Entity1'),
+                loadList('/Users')
+            ]).then(function(results){
+                var trainings = results[0] || [];
+                var users = results[1] || [];
+
+                var dlgModel = new JSONModel({
+                    trainings: trainings,
+                    users: users,
+                    selectedTrainingId: trainings[0] && trainings[0].ID || '',
+                    selectedUserId: users[0] && users[0].ID || '',
+                    dueDate: null,
+                    submitting: false,
+                    error: ''
+                });
+
+                var trainingSelect = new sap.m.Select({
+                    width: '100%',
+                    items: {
+                        path: '/trainings',
+                        template: new sap.ui.core.ListItem({ key: '{ID}', text: '{title}' })
+                    },
+                    selectedKey: '{/selectedTrainingId}'
+                });
+                var userSelect = new sap.m.Select({
+                    width: '100%',
+                    items: {
+                        path: '/users',
+                        template: new sap.ui.core.ListItem({ key: '{ID}', text: '{name}' })
+                    },
+                    selectedKey: '{/selectedUserId}'
+                });
+                var datePicker = new sap.m.DatePicker({
+                    width: '100%',
+                    valueFormat: 'yyyy-MM-dd',
+                    displayFormat: 'long',
+                    value: '{/dueDate}'
+                });
+
+                var form = new sap.m.VBox({
+                    width: '100%',
+                    items: [
+                        new sap.m.Label({ text: 'Training' }),
+                        trainingSelect,
+                        new sap.m.Label({ text: 'User' }),
+                        userSelect,
+                        new sap.m.Label({ text: 'Due Date' }),
+                        datePicker,
+                        new sap.m.Text({ text: '{/error}', visible: '{= !!${/error} }', design: 'Negative' })
+                    ]
+                });
+
+                var onSubmit = function(){
+                    var data = dlgModel.getData();
+                    var tr = (data.trainings || []).find(function(t){ return t.ID === data.selectedTrainingId; });
+                    var usr = (data.users || []).find(function(u){ return u.ID === data.selectedUserId; });
+                    if (!tr || !usr) { dlgModel.setProperty('/error', 'Please select training and user'); return; }
+                    var dueIso = null;
+                    try{
+                        if (data.dueDate) {
+                            // interpret yyyy-MM-dd as local date at 00:00
+                            dueIso = new Date(data.dueDate + 'T00:00:00').toISOString();
+                        }
+                    }catch(e){ /* ignore */ }
+                    var payload = {
+                        title: tr.title,
+                        role: tr.role,
+                        module: tr.module,
+                        url: tr.url,
+                        dueDate: dueIso,
+                        status: 'Assigned',
+                        userId: usr.ID
+                    };
+                    dlgModel.setProperty('/submitting', true);
+
+                    // OData V4 create via list binding
+                    var lb = oModel.bindList('/TrainingAssignments');
+                    var ctx = lb.create(payload);
+                    ctx.created().then(function(){
+                        that.navigateToTraining();
+                        that._assignDlg.close();
+                        dlgModel.setProperty('/submitting', false);
+                    }).catch(function(err){
+                        dlgModel.setProperty('/submitting', false);
+                        dlgModel.setProperty('/error', (err && err.message) || 'Create failed');
+                    });
+                };
+
+                that._assignDlg = new Dialog({
+                    title: 'Assign Training',
+                    contentWidth: '480px',
+                    contentHeight: 'auto',
+                    content: [form],
+                    buttons: [
+                        new Button({ text: 'Cancel', press: function(){ that._assignDlg.close(); } }),
+                        new Button({ text: 'Assign', type: 'Emphasized',
+                            enabled: '{= !${/submitting} }',
+                            press: onSubmit
+                        })
+                    ]
+                });
+                that._assignDlg.setModel(dlgModel);
+                that._assignDlg.open();
+            }).catch(function(err){
+                sap.m.MessageToast.show('Failed to load data for assignment');
+            });
         }
     });
 });

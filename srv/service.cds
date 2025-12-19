@@ -1,7 +1,7 @@
 using { Learning_Data as my } from '../db/schema.cds';
 
 @path : '/service/SaplearningcenterService'
-service SaplearningcenterService {
+service SaplearningcenterService @impl: 'SaplearningcenterService.js' {
     @cds.redirection.target
     entity Entity1 as projection on my.Entity1;
 
@@ -14,6 +14,10 @@ service SaplearningcenterService {
     // Value help projections (read-only)
     entity RolesVH   as projection on my.Roles;
     entity ModulesVH as projection on my.Modules;
+
+    // Admin-managed Users
+    @cds.redirection.target
+    entity Users as projection on my.Users;
 
     // Role helper for UI logic
     function getCurrentRole() returns String;
