@@ -6,14 +6,16 @@ sap.ui.define([
   return ControllerExtension.extend("saplearningcenter.saplearningcenter.ext.Entity1ListExtension", {
     override: {
       onInit: function () {
-        var appComp = (this.base.getAppComponent && this.base.getAppComponent());
-        var api = this.base.getExtensionAPI && this.base.getExtensionAPI();
-        var role = (appComp && appComp._role) || "Manager";
-        if (!api) { return; }
-        // Only attach actions on Entity1 ListReport
-        var vd = this.base.getView && this.base.getView().getViewData && this.base.getView().getViewData();
-        var entitySet = vd && vd.entitySet;
-        if (entitySet && entitySet !== "Entity1") { return; }
+        try {
+          var appComp = (this.base && this.base.getAppComponent) ? this.base.getAppComponent() : null;
+          var api = (this.base && this.base.getExtensionAPI) ? this.base.getExtensionAPI() : null;
+          var role = (appComp && appComp._role) || "Manager";
+          if (!api || !api.addHeaderAction) { return; }
+          // Only attach actions on Entity1 ListReport
+          var view = (this.base && this.base.getView) ? this.base.getView() : null;
+          var vd = view && view.getViewData ? view.getViewData() : null;
+          var entitySet = vd && vd.entitySet;
+          if (entitySet && entitySet !== "Entity1") { return; }
 
         // Add header action: Trainings (text-only)
         api.addHeaderAction({
@@ -70,6 +72,10 @@ sap.ui.define([
             text: "Role: User",
             press: function(){ if(appComp){ appComp._role='User'; appComp._applyRoleUI && appComp._applyRoleUI(); } }
           });
+        }
+        } catch(e) {
+          // fail-safe: do not block boot if extension wiring fails
+          try { jQuery.sap.log.error('Header extension failed to init: ' + (e && e.message)); } catch(_) {}
         }
       }
     }
