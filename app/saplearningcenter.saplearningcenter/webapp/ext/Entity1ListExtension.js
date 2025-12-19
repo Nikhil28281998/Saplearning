@@ -42,6 +42,18 @@ sap.ui.define([
           }catch(_){ setTimeout(injectToolbarBtn.bind(this), 400); }
         }).call(this);
 
+        // Fallback for MDC Table toolbar (sap.ui.mdc.ActionToolbar)
+        (function injectMdcActionToolbar(){
+          try{
+            var view = (this.base && this.base.getView) ? this.base.getView() : null;
+            var atbars = view && view.findAggregatedObjects && view.findAggregatedObjects(true, function(o){ return o && o.getMetadata && o.getMetadata().getName() === 'sap.ui.mdc.ActionToolbar'; });
+            var at = (atbars && atbars.length) ? atbars[0] : null;
+            if (!at || !at.insertContent) { setTimeout(injectMdcActionToolbar.bind(this), 400); return; }
+            var btn = new sap.m.Button({ text: 'Trainings', type: 'Transparent', press: function(){ if (appComp && appComp.navigateToTraining) { appComp.navigateToTraining(); } } });
+            try { at.insertContent(btn, 0); } catch(_) { at.addContent(btn); }
+          }catch(_){ setTimeout(injectMdcActionToolbar.bind(this), 400); }
+        }).call(this);
+
         // Manager/Admin Assign action: navigate and trigger Create on TrainingAssignments LR
         if (role === "Manager" || role === "Admin") {
           if (canHeader) api.addHeaderAction({
