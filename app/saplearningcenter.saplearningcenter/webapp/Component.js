@@ -84,7 +84,7 @@ sap.ui.define([
             var tryHide = function(){
                 var comp = sap.ui.getCore().byId('TrainingAssignmentsList');
                 var view = comp && comp.getRootControl && comp.getRootControl();
-                var toolbars = view && view.findAggregatedObjects(true, function(o){ return o.getMetadata && o.getMetadata().getName() === 'sap.m.OverflowToolbar'; });
+                var toolbars = view && view.findAggregatedObjects(true, function(o){ return o && o.getMetadata && o.getMetadata().getName() === 'sap.m.OverflowToolbar'; });
                 if (toolbars && toolbars.length){
                     toolbars.forEach(function(tb){
                         var items = tb.getContent && tb.getContent();
@@ -212,7 +212,7 @@ sap.ui.define([
                 tries++;
                 var comp = sap.ui.getCore().byId('TrainingAssignmentsList');
                 var view = comp && comp.getRootControl && comp.getRootControl();
-                var tbars = view && view.findAggregatedObjects(true, function(o){ return o.getMetadata && o.getMetadata().getName() === 'sap.m.OverflowToolbar'; });
+                var tbars = view && view.findAggregatedObjects(true, function(o){ return o && o.getMetadata && o.getMetadata().getName() === 'sap.m.OverflowToolbar'; });
                 var fired = false;
                 if (tbars && tbars.length){
                     tbars.forEach(function(tb){

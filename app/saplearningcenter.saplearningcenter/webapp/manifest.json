@@ -69,7 +69,7 @@
     "extends": {
       "extensions": {
         "sap.ui.controllerExtensions": {
-          "sap.fe.templates.ListReport.ListReportController": {
+          "saplearningcenter.saplearningcenter::Entity1List": {
             "controllerName": "saplearningcenter.saplearningcenter.ext.Entity1ListExtension"
           }
         }
