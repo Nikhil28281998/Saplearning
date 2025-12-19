@@ -67,6 +67,22 @@ sap.ui.define([
 
         _fetchRole: function(){
             var that = this;
+            // URL override: ?saplc-role=Admin|Manager|User (works in hash or query)
+            try{
+                var href = window.location && window.location.href || '';
+                var hash = window.location && window.location.hash || '';
+                var m = href.match(/[?&]saplc-role=([^&]+)/) || hash.match(/[?&]saplc-role=([^&]+)/);
+                if (m && m[1]){
+                    var v = decodeURIComponent(m[1]);
+                    if (/^(Admin|Manager|User)$/i.test(v)){
+                        var norm = v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
+                        that._role = norm;
+                        try{ localStorage.setItem('saplc-role', norm); }catch(_){}
+                        that._applyRoleUI();
+                        return;
+                    }
+                }
+            }catch(_){ /* ignore */ }
             // Local preview override via localStorage
             try{
                 var ls = localStorage.getItem('saplc-role');
