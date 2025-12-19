@@ -22,6 +22,7 @@ sap.ui.define([
                 that._fetchRole();
                 that._initAI();
                 that._startupHealthCheck();
+                that._ensureInitialRoute();
             });
         },
 
@@ -36,14 +37,31 @@ sap.ui.define([
                     Log.error('Unhandled Promise Rejection: ' + msg, e && e.reason);
                 });
                 var r = this.getRouter();
+                this._routeStarted = false;
                 if (r && r.attachRouteMatched){
                     r.attachRouteMatched(function(o){
                         try{
                             var name = o.getParameter && o.getParameter('name');
                             Log.info('Route matched: ' + name);
+                            this._routeStarted = true;
                         }catch(_){/*noop*/}
-                    });
+                    }.bind(this));
                 }
+            }catch(_){/*noop*/}
+        },
+
+        _ensureInitialRoute: function(){
+            try{
+                var r = this.getRouter();
+                if (r && r.initialize) { r.initialize(); }
+                setTimeout(function(){
+                    try{
+                        if (!this._routeStarted && r && r.navTo){
+                            Log.info('Fallback initial navigation to Entity1List');
+                            r.navTo('Entity1List');
+                        }
+                    }catch(_){/*noop*/}
+                }.bind(this), 2000);
             }catch(_){/*noop*/}
         },
 
