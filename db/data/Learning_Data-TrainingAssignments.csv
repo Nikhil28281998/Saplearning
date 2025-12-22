@@ -1,3 +1,3 @@
-ID,title,role,module,url,dueDate,status,completedAt,userId
+ID,title,role,module,url,dueDate,status,completionDate,userId
 00000000-0000-0000-0000-000000000001,Intro to SAP Fiori,Asset,Record-to-Report,https://help.sap.com/docs/fiori,2025-12-31T00:00:00Z,Assigned,,00000000-0000-0000-0000-00000000USR1
 00000000-0000-0000-0000-000000000002,Procure to Pay Basics,Purchasing,Procure-to-Pay,https://help.sap.com/docs/ptp,2026-01-15T00:00:00Z,Assigned,,00000000-0000-0000-0000-00000000USR2

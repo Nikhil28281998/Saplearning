@@ -146,7 +146,7 @@ sap.ui.define([
             var ok = true;
             var checks = [
                 fetch('/service/SaplearningcenterService/$metadata').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; }),
-                fetch('/service/SaplearningcenterService/Entity1?$top=1').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; })
+                fetch('/service/SaplearningcenterService/Trainings?$top=1').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; })
             ];
             Promise.all(checks).then(function(){
                 if (!ok){
@@ -269,7 +269,7 @@ sap.ui.define([
             };
 
             Promise.all([
-                loadList('/Entity1'),
+                loadList('/Trainings'),
                 loadList('/Users')
             ]).then(function(results){
                 var trainings = results[0] || [];

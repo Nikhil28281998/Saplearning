@@ -27,7 +27,7 @@
                     return Controller.extend("PreviewController", {
                         onInit: function () {
 
-                            const data = {"Services":[{"ServiceName":"SaplearningcenterService","DetailsURL":"./service/SaplearningcenterService/","Metadata":"./service/SaplearningcenterService/$metadata","Entities":[{"Name":"Entity1","URL":"./service/SaplearningcenterService/Entity1","FioriURL":"$fiori-preview/SaplearningcenterService/Entity1#preview-app"}],"EntitiesCount":1}]}
+                            const data = {"Services":[{"ServiceName":"SaplearningcenterService","DetailsURL":"./service/SaplearningcenterService/","Metadata":"./service/SaplearningcenterService/$metadata","Entities":[{"Name":"Trainings","URL":"./service/SaplearningcenterService/Trainings","FioriURL":"$fiori-preview/SaplearningcenterService/Trainings#preview-app"}],"EntitiesCount":1}]}
                             this.getView().setModel(new JSONModel(data));
                         }
                     });

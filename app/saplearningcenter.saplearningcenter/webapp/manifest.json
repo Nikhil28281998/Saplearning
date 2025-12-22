@@ -70,7 +70,7 @@
       "extensions": {
         "sap.ui.controllerExtensions": {
           "saplearningcenter.saplearningcenter::TrainingsList": {
-            "controllerName": "saplearningcenter.saplearningcenter.ext.Entity1ListExtension"
+            "controllerName": "saplearningcenter.saplearningcenter.ext.TrainingsListExtension"
           }
         }
       }

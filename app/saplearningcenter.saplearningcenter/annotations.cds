@@ -1,10 +1,10 @@
 using { SaplearningcenterService as S } from '../../srv/service.cds';
 
 // Selection fields for FilterBar
-annotate S.Entity1 with @UI.SelectionFields: [ role, module, title ];
+annotate S.Trainings with @UI.SelectionFields: [ role, module, title ];
 
 // List columns (hide ID, keep links clickable)
-annotate S.Entity1 with @UI.LineItem: [
+annotate S.Trainings with @UI.LineItem: [
 	{ $Type: 'UI.DataFieldWithUrl', Value: title, Url: url, Label: 'Title' },
 	{ $Type: 'UI.DataField',        Value: description,             Label: 'Description' },
 	{ $Type: 'UI.DataField',        Value: lastUpdated,             Label: 'Last Updated' },
@@ -14,19 +14,19 @@ annotate S.Entity1 with @UI.LineItem: [
 ];
 
 // Disable Delete on Entity1
-annotate S.Entity1 with @Capabilities.DeleteRestrictions: { Deletable: false };
+annotate S.Trainings with @Capabilities.DeleteRestrictions: { Deletable: false };
 
 // Object Page: header + sections
-annotate S.Entity1 with @UI.HeaderInfo: {
-	Title:       { $Type: 'UI.DataField', Value: title },
+annotate S.Trainings with @UI.HeaderInfo: {
+	Title:       { $Type: 'UI.DataField', Value: title, Label: 'Training Text' },
 	Description: { $Type: 'UI.DataField', Value: module }
 };
 
-annotate S.Entity1 with @UI.Facets: [
+annotate S.Trainings with @UI.Facets: [
 	{ $Type: 'UI.ReferenceFacet', Label: 'Details', Target: '@UI.FieldGroup#Main' }
 ];
 
-annotate S.Entity1 with @UI.FieldGroup #Main: {
+annotate S.Trainings with @UI.FieldGroup #Main: {
 	Data: [
 		{ $Type: 'UI.DataField', Value: title,        Label: 'Title' },
 		{ $Type: 'UI.DataField', Value: description,  Label: 'Description' },
@@ -39,7 +39,7 @@ annotate S.Entity1 with @UI.FieldGroup #Main: {
 };
 
 // Value help: Role (distinct) and Module (dependent on Role)
-annotate S.Entity1 with {
+annotate S.Trainings with {
 	role @Common.ValueList: {
 		$Type: 'Common.ValueListType',
 		CollectionPath: 'RolesVH',
@@ -68,7 +68,7 @@ annotate S.TrainingAssignments with @UI.LineItem: [
 	{ $Type: 'UI.DataField', Value: userId,     Label: 'User' },
 	{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
 	{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },
-	{ $Type: 'UI.DataField', Value: completedAt, Label: 'Completed At' },
+	{ $Type: 'UI.DataField', Value: completionDate, Label: 'Completed At' },
 	{ $Type: 'UI.DataFieldForAction', Action: 'SaplearningcenterService.markCompleted', Label: 'Mark Completed',
 	  Confirmation: { $Type: 'UI.ConfirmationDialogType', Title: 'Confirm', Text: 'Mark this assignment as completed?' } }
 ];
@@ -90,7 +90,11 @@ annotate S.TrainingAssignments with @UI.FieldGroup #Main: {
 		{ $Type: 'UI.DataField', Value: userId,     Label: 'User' },
 		{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
 		{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },
-		{ $Type: 'UI.DataField', Value: completedAt, Label: 'Completed At' },
+		{ $Type: 'UI.DataField', Value: completionDate, Label: 'Completed At' },
+		// Make 'Mark Completed' available only when status != 'Completed'
+		annotate S.TrainingAssignments with actions {
+			markCompleted @Core.OperationAvailable: { $If: [ { $Ne: [ { $Path: 'status' }, 'Completed' ] }, true, false ] };
+		};
 		{ $Type: 'UI.DataFieldForAction', Action: 'SaplearningcenterService.markCompleted', Label: 'Mark Completed',
 		  Confirmation: { $Type: 'UI.ConfirmationDialogType', Title: 'Confirm', Text: 'Mark this assignment as completed?' } }
 	]
