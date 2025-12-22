@@ -91,13 +91,14 @@ annotate S.TrainingAssignments with @UI.FieldGroup #Main: {
 		{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
 		{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },
 		{ $Type: 'UI.DataField', Value: completionDate, Label: 'Completed At' },
-		// Make 'Mark Completed' available only when status != 'Completed'
-		annotate S.TrainingAssignments with actions {
-			markCompleted @Core.OperationAvailable: { $If: [ { $Ne: [ { $Path: 'status' }, 'Completed' ] }, true, false ] };
-		};
 		{ $Type: 'UI.DataFieldForAction', Action: 'SaplearningcenterService.markCompleted', Label: 'Mark Completed',
 		  Confirmation: { $Type: 'UI.ConfirmationDialogType', Title: 'Confirm', Text: 'Mark this assignment as completed?' } }
 	]
+};
+
+// Make 'Mark Completed' available only when status != 'Completed'
+annotate S.TrainingAssignments with actions {
+	markCompleted @Core.OperationAvailable: { $If: [ { $Ne: [ { $Path: 'status' }, 'Completed' ] }, true, false ] };
 };
 
 // Enable create/update; disable delete for compliance
