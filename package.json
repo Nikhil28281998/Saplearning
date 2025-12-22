@@ -34,7 +34,12 @@
       },
       "auth": {
         "[development]": {
-          "kind": "dummy"
+          "kind": "mocked",
+          "users": {
+            "admin@test.com": { "roles": ["Admin"] },
+            "manager@test.com": { "roles": ["Manager"] },
+            "user1@test.com": { "roles": ["User"] }
+          }
         },
         "[production]": {
           "kind": "xsuaa"
