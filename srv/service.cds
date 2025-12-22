@@ -22,6 +22,9 @@ service SaplearningcenterService {
         action markCompleted();
     };
 
+        // Ensure FE refreshes status/completionDate after actions
+        annotate TrainingAssignments with @(com.sap.vocabularies.Common.v1.SideEffects: [{ TargetProperties: ['status','completionDate'] }]);
+
     // Value help projections (read-only)
     entity RolesVH   as projection on my.Roles;
     entity ModulesVH as projection on my.Modules;

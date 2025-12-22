@@ -10,6 +10,7 @@ module.exports = (srv) => {
     const tx = cds.tx(req);
     await tx.update(TrainingAssignments).set({ status: 'Completed', completionDate: new Date().toISOString() }).where({ ID: id });
     const row = await tx.read(TrainingAssignments).byKey(id);
+    try { req.notify(200, 'Training marked as complete'); } catch(_) {}
     return row;
   });
 };
