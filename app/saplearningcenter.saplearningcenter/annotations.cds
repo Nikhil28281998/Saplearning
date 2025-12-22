@@ -13,7 +13,7 @@ annotate S.Trainings with @UI.LineItem: [
 	{ $Type: 'UI.DataFieldWithUrl', Value: 'Open SAP Help', Url: sapHelpLink, Label: '{{sapHelpLabel}}' }
 ];
 
-// Disable Delete on Entity1
+// Disable Delete on Trainings
 annotate S.Trainings with @Capabilities.DeleteRestrictions: { Deletable: false };
 
 // Object Page: header + sections

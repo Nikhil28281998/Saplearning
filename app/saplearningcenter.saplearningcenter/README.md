@@ -16,7 +16,7 @@
 |**Enable Code Assist Libraries**<br>False|
 |**Enable TypeScript**<br>False|
 |**Add Eslint configuration**<br>False|
-|**Main Entity**<br>Entity1|
+|**Main Entity**<br>Trainings|
 
 ## saplearningcenter.saplearningcenter
 
