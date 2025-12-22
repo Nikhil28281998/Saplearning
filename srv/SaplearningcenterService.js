@@ -13,4 +13,19 @@ module.exports = (srv) => {
     try { req.notify(200, 'Training marked as complete'); } catch(_) {}
     return row;
   });
+
+  // Provide role resolution for preview/testing and UI logic
+  srv.on('getCurrentRole', async (req) => {
+    try{
+      const u = req.user;
+      if (!u) return 'User';
+      if (u.is('Admin')) return 'Admin';
+      if (u.is('Manager') || u.is('Lead')) return 'Manager';
+      if (u.is('User')) return 'User';
+      // Fallback
+      return 'User';
+    }catch(_){
+      return 'User';
+    }
+  });
 };
