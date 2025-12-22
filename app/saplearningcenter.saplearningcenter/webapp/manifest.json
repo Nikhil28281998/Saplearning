@@ -69,7 +69,7 @@
     "extends": {
       "extensions": {
         "sap.ui.controllerExtensions": {
-          "saplearningcenter.saplearningcenter::Entity1List": {
+          "saplearningcenter.saplearningcenter::TrainingsList": {
             "controllerName": "saplearningcenter.saplearningcenter.ext.Entity1ListExtension"
           }
         }
@@ -110,29 +110,29 @@
         "routerClass": "sap.f.routing.Router"
       },
       "routes": [
-        { "name": "Entity1List", "pattern": ":?query:", "target": "Entity1List" },
-        { "name": "Entity1ObjectPage", "pattern": "Entity1({key})", "target": "Entity1ObjectPage" },
+        { "name": "TrainingsList", "pattern": ":?query:", "target": "TrainingsList" },
+        { "name": "TrainingsObjectPage", "pattern": "Trainings({key})", "target": "TrainingsObjectPage" },
         { "name": "TrainingAssignmentsList", "pattern": "TrainingAssignments", "target": "TrainingAssignmentsList" },
         { "name": "TrainingAssignmentsObjectPage", "pattern": "TrainingAssignments({key})", "target": "TrainingAssignmentsObjectPage" },
         { "name": "UsersList", "pattern": "Users", "target": "UsersList" },
         { "name": "UsersObjectPage", "pattern": "Users({key})", "target": "UsersObjectPage" }
       ],
       "targets": {
-        "Entity1List": {
+        "TrainingsList": {
           "type": "Component",
-          "id": "Entity1List",
+          "id": "TrainingsList",
           "name": "sap.fe.templates.ListReport",
           "options": { "settings": { 
-            "entitySet": "Entity1",
-            "navigation": { "Entity1": { "detail": { "route": "Entity1ObjectPage" } } }
+            "entitySet": "Trainings",
+            "navigation": { "Trainings": { "detail": { "route": "TrainingsObjectPage" } } }
           } },
           "controlAggregation": "beginColumnPages"
         },
-        "Entity1ObjectPage": {
+        "TrainingsObjectPage": {
           "type": "Component",
-          "id": "Entity1ObjectPage",
+          "id": "TrainingsObjectPage",
           "name": "sap.fe.templates.ObjectPage",
-          "options": { "settings": { "entitySet": "Entity1" } },
+          "options": { "settings": { "entitySet": "Trainings" } },
           "controlAggregation": "midColumnPages"
         },
         "TrainingAssignmentsList": {

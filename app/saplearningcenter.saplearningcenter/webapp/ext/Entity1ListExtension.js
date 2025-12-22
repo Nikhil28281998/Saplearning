@@ -15,7 +15,7 @@ sap.ui.define([
           var view = (this.base && this.base.getView) ? this.base.getView() : null;
           var vd = view && view.getViewData ? view.getViewData() : null;
           var entitySet = vd && vd.entitySet;
-          if (entitySet && entitySet !== "Entity1") { return; }
+          if (entitySet && entitySet !== "Trainings") { return; }
 
         // Add header action: Trainings (text-only)
         if (canHeader) api.addHeaderAction({

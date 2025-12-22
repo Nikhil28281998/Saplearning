@@ -57,8 +57,8 @@ sap.ui.define([
                 setTimeout(function(){
                     try{
                         if (!this._routeStarted && r && r.navTo){
-                            Log.info('Fallback initial navigation to Entity1List');
-                            r.navTo('Entity1List');
+                            Log.info('Fallback initial navigation to TrainingsList');
+                            r.navTo('TrainingsList');
                         }
                     }catch(_){/*noop*/}
                 }.bind(this), 2000);

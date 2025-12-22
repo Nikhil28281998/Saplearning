@@ -1,30 +1,43 @@
+using { managed } from '@sap/cds/common';
+
 namespace Learning_Data;
 
-entity Entity1 {
+// Trainings catalogue (formerly Entity1)
+entity Trainings : managed {
     key ID         : UUID;
-            url        : String;
-            role       : String;
-            title      : String;
-            module     : String;      // renamed from Module for consistency
-            description: String;
-            lastUpdated: DateTime;    // was String, now proper DateTime
-            sapHelpLink: String;
+        url        : String;
+        role       : String;
+        title      : String;
+        module     : String;      // normalized from Module
+        description: String;
+        lastUpdated: DateTime;    // proper DateTime
+        sapHelpLink: String;
 }
 
-entity TrainingAssignments {
+// Assignments linking Users to Trainings
+entity TrainingAssignments : managed {
     key ID         : UUID;
-            title      : String;
-            role       : String;
-            module     : String;
-            url        : String;
-            dueDate    : DateTime;
-            status     : String;
-            completedAt: DateTime;
+        // association to the training record
+        trainingId  : UUID;
+        training    : Association to Trainings on training.ID = trainingId;
+
+        // association to the user
+        userId      : UUID;
+
+        // denormalized fields kept for convenience/search
+        title       : String;
+        role        : String;
+        module      : String;
+        url         : String;
+
+        dueDate     : DateTime;
+        status      : String;
+        completionDate : DateTime;   // renamed from completedAt
 }
 
 // Distinct value help sources via views using GROUP BY
-view Roles as select from Entity1 { key role } group by role;
-view Modules as select from Entity1 { key module, role } group by module, role;
+view Roles as select from Trainings { key role } group by role;
+view Modules as select from Trainings { key module, role } group by module, role;
 
 // Users managed by Admin; Users are tied to a Manager
 entity Users {
@@ -32,9 +45,4 @@ entity Users {
         name     : String;
         email    : String;
         managerId: UUID;
-}
-
-// Link assignments to a specific user
-extend entity TrainingAssignments with {
-    userId: UUID;
 }
