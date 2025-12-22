@@ -17,14 +17,18 @@ sap.ui.define([
           var entitySet = vd && vd.entitySet;
           if (entitySet && entitySet !== "Trainings") { return; }
 
+        // i18n for button text
+        var i18n = view && view.getModel && view.getModel('i18n');
+        var rb = i18n && i18n.getResourceBundle && i18n.getResourceBundle();
+        var txtTraining = rb && rb.getText ? rb.getText('trainingText') : 'Training Text';
+
         // Header action: Trainings (text-only)
         if (canHeader) api.addHeaderAction({
-          id: "TrainingAssignmentsNav",
-          text: "Trainings",
+          id: "TrainingTextNav",
+          text: txtTraining,
           press: function () {
-            if (appComp && appComp.navigateToTraining) {
-              appComp.navigateToTraining();
-            }
+            var r = appComp && appComp.getRouter && appComp.getRouter();
+            if (r && r.navTo) { r.navTo('MyTrainingsList'); }
           }
         });
 
@@ -35,7 +39,7 @@ sap.ui.define([
             var tbars = view && view.findAggregatedObjects && view.findAggregatedObjects(true, function(o){ return o && o.getMetadata && o.getMetadata().getName() === 'sap.m.OverflowToolbar'; });
             var tbar = (tbars && tbars.length) ? tbars[0] : null;
             if (!tbar || !tbar.insertContent) { setTimeout(injectToolbarBtn.bind(this), 400); return; }
-            var btn = new sap.m.Button({ text: 'Trainings', press: function(){ if (appComp && appComp.navigateToTraining) { appComp.navigateToTraining(); } } });
+            var btn = new sap.m.Button({ text: txtTraining, press: function(){ var r = appComp && appComp.getRouter && appComp.getRouter(); if (r && r.navTo) { r.navTo('MyTrainingsList'); } } });
             try { tbar.insertContent(btn, 0); } catch(_) { tbar.addContent(btn); }
           }catch(_){ setTimeout(injectToolbarBtn.bind(this), 400); }
         }).call(this);
@@ -47,7 +51,7 @@ sap.ui.define([
             var atbars = view && view.findAggregatedObjects && view.findAggregatedObjects(true, function(o){ return o && o.getMetadata && o.getMetadata().getName() === 'sap.ui.mdc.ActionToolbar'; });
             var at = (atbars && atbars.length) ? atbars[0] : null;
             if (!at || !at.insertContent) { setTimeout(injectMdcActionToolbar.bind(this), 400); return; }
-            var btn = new sap.m.Button({ text: 'Trainings', type: 'Transparent', press: function(){ if (appComp && appComp.navigateToTraining) { appComp.navigateToTraining(); } } });
+            var btn = new sap.m.Button({ text: txtTraining, type: 'Transparent', press: function(){ var r = appComp && appComp.getRouter && appComp.getRouter(); if (r && r.navTo) { r.navTo('MyTrainingsList'); } } });
             try { at.insertContent(btn, 0); } catch(_) { at.addContent(btn); }
           }catch(_){ setTimeout(injectMdcActionToolbar.bind(this), 400); }
         }).call(this);

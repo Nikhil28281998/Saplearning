@@ -2,6 +2,7 @@ using { Learning_Data as my } from '../db/schema.cds';
 
 @path : '/service/SaplearningcenterService'
 @impl: 'srv/SaplearningcenterService.js'
+@requires: ['Admin','Manager','User']
 service SaplearningcenterService {
         @cds.redirection.target
         @restrict: [
@@ -29,8 +30,9 @@ service SaplearningcenterService {
     entity RolesVH   as projection on my.Roles;
     entity ModulesVH as projection on my.Modules;
 
-    // Admin-managed Users
+    // Admin-managed Users (Admin only)
     @cds.redirection.target
+    @restrict: [ { grant: '*', to: 'Admin' } ]
     entity Users as projection on my.Users;
 
     // Role helper for UI logic

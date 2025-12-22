@@ -34,6 +34,18 @@
           "action": "display",
           "title": "{{saplearningcentersaplearningce-display.flpTitle}}",
           "signature": { "parameters": {}, "additionalParameters": "allowed" }
+        },
+        "users-management": {
+          "semanticObject": "SapLearningUsers",
+          "action": "display",
+          "title": "{{usersTileTitle}}",
+          "signature": { "parameters": {}, "additionalParameters": "allowed" }
+        },
+        "my-trainings": {
+          "semanticObject": "SapLearningMyTrainings",
+          "action": "display",
+          "title": "{{myTrainingsTileTitle}}",
+          "signature": { "parameters": {}, "additionalParameters": "allowed" }
         }
       }
     }
@@ -115,7 +127,8 @@
         { "name": "TrainingAssignmentsList", "pattern": "TrainingAssignments", "target": "TrainingAssignmentsList" },
         { "name": "TrainingAssignmentsObjectPage", "pattern": "TrainingAssignments({key})", "target": "TrainingAssignmentsObjectPage" },
         { "name": "UsersList", "pattern": "Users", "target": "UsersList" },
-        { "name": "UsersObjectPage", "pattern": "Users({key})", "target": "UsersObjectPage" }
+        { "name": "UsersObjectPage", "pattern": "Users({key})", "target": "UsersObjectPage" },
+        { "name": "MyTrainingsList", "pattern": "MyTrainings", "target": "TrainingAssignmentsList" }
       ],
       "targets": {
         "TrainingsList": {
