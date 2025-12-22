@@ -3,12 +3,22 @@ using { Learning_Data as my } from '../db/schema.cds';
 @path : '/service/SaplearningcenterService'
 @impl: 'srv/SaplearningcenterService.js'
 service SaplearningcenterService {
-    @cds.redirection.target
-    entity Trainings as projection on my.Trainings;
+        @cds.redirection.target
+        @restrict: [
+            { grant: '*', to: 'Admin' },
+            { grant: 'READ', to: ['Manager','Lead','User'] }
+        ]
+        entity Trainings as projection on my.Trainings;
 
     // Optional: expose training for future use
-    @cds.redirection.target
-    entity TrainingAssignments as projection on my.TrainingAssignments actions {
+        @cds.redirection.target
+        @restrict: [
+            { grant: '*', to: 'Admin' },
+            { grant: '*', to: ['Manager','Lead'] },
+            { grant: 'READ', to: 'User', where: 'userId = $user' },
+            { grant: 'UPDATE', to: 'User', where: 'userId = $user', columns: ['status','completionDate'] }
+        ]
+        entity TrainingAssignments as projection on my.TrainingAssignments actions {
         action markCompleted();
     };
 
