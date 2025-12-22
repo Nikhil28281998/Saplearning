@@ -10,7 +10,10 @@ annotate S.Trainings with @UI.LineItem: [
 	{ $Type: 'UI.DataField',        Value: lastUpdated,             Label: 'Last Updated' },
 	{ $Type: 'UI.DataField',        Value: module,                  Label: 'Module' },
 	{ $Type: 'UI.DataField',        Value: role,                    Label: 'Role' },
-	{ $Type: 'UI.DataFieldWithUrl', Value: 'Open SAP Help', Url: sapHelpLink, Label: 'SAP Help' }
+	{ $Type: 'UI.DataFieldWithUrl', Value: 'Open SAP Help', Url: sapHelpLink, Label: 'SAP Help' },
+	// Global navigation buttons on the Trainings ListReport toolbar
+	{ $Type: 'UI.DataFieldForIntentBasedNavigation', Label: 'My Assignments', SemanticObject: 'SapLearningMyTrainings', Action: 'display', RequiresContext: false },
+	{ $Type: 'UI.DataFieldForIntentBasedNavigation', Label: 'User Management', SemanticObject: 'SapLearningUsers', Action: 'display', RequiresContext: false }
 ];
 
 // Disable Delete on Trainings
@@ -124,10 +127,10 @@ annotate S.TrainingAssignments with @Capabilities.DeleteRestrictions: { Deletabl
 // Users management (Admin)
 annotate S.Users with @UI.SelectionFields: [ name, email, managerId ];
 annotate S.Users with @UI.LineItem: [
-	{ $Type: 'UI.DataField', Value: ID,        Label: '{{idLabel}}' },
-	{ $Type: 'UI.DataField', Value: name,      Label: '{{nameLabel}}' },
-	{ $Type: 'UI.DataField', Value: email,     Label: '{{emailLabel}}' },
-	{ $Type: 'UI.DataField', Value: managerId, Label: '{{managerIdLabel}}' }
+	{ $Type: 'UI.DataField', Value: ID,        Label: 'ID' },
+	{ $Type: 'UI.DataField', Value: name,      Label: 'Name' },
+	{ $Type: 'UI.DataField', Value: email,     Label: 'Email' },
+	{ $Type: 'UI.DataField', Value: managerId, Label: 'Manager ID' }
 ];
 annotate S.Users with @Capabilities.InsertRestrictions: { Insertable: true };
 annotate S.Users with @Capabilities.UpdateRestrictions: { Updatable: true };

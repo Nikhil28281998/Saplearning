@@ -30,9 +30,13 @@ service SaplearningcenterService {
     entity RolesVH   as projection on my.Roles;
     entity ModulesVH as projection on my.Modules;
 
-    // Admin-managed Users (Admin only)
+    // Users directory
     @cds.redirection.target
-    @restrict: [ { grant: '*', to: 'Admin' } ]
+    @restrict: [
+        { grant: '*', to: 'Admin' },
+        { grant: 'READ', to: ['Manager','Lead'], where: 'managerId = $user' },
+        { grant: 'READ', to: 'User', where: 'ID = $user' }
+    ]
     entity Users as projection on my.Users;
 
     // Role helper for UI logic
