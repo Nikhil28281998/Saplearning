@@ -5,12 +5,12 @@ annotate S.Trainings with @UI.SelectionFields: [ role, module, title ];
 
 // List columns (hide ID, keep links clickable)
 annotate S.Trainings with @UI.LineItem: [
-	{ $Type: 'UI.DataFieldWithUrl', Value: title, Url: url, Label: '{{titleLabel}}' },
-	{ $Type: 'UI.DataField',        Value: description,             Label: '{{descriptionLabel}}' },
-	{ $Type: 'UI.DataField',        Value: lastUpdated,             Label: '{{lastUpdatedLabel}}' },
-	{ $Type: 'UI.DataField',        Value: module,                  Label: '{{moduleLabel}}' },
-	{ $Type: 'UI.DataField',        Value: role,                    Label: '{{roleLabel}}' },
-	{ $Type: 'UI.DataFieldWithUrl', Value: 'Open SAP Help', Url: sapHelpLink, Label: '{{sapHelpLabel}}' }
+	{ $Type: 'UI.DataFieldWithUrl', Value: title, Url: url, Label: 'Title' },
+	{ $Type: 'UI.DataField',        Value: description,             Label: 'Description' },
+	{ $Type: 'UI.DataField',        Value: lastUpdated,             Label: 'Last Updated' },
+	{ $Type: 'UI.DataField',        Value: module,                  Label: 'Module' },
+	{ $Type: 'UI.DataField',        Value: role,                    Label: 'Role' },
+	{ $Type: 'UI.DataFieldWithUrl', Value: 'Open SAP Help', Url: sapHelpLink, Label: 'SAP Help' }
 ];
 
 // Disable Delete on Trainings
@@ -18,23 +18,23 @@ annotate S.Trainings with @Capabilities.DeleteRestrictions: { Deletable: false }
 
 // Object Page: header + sections
 annotate S.Trainings with @UI.HeaderInfo: {
-	Title:       { $Type: 'UI.DataField', Value: title, Label: '{{trainingText}}' },
+	Title:       { $Type: 'UI.DataField', Value: title, Label: 'Training Text' },
 	Description: { $Type: 'UI.DataField', Value: module }
 };
 
 annotate S.Trainings with @UI.Facets: [
-	{ $Type: 'UI.ReferenceFacet', Label: '{{detailsFacetLabel}}', Target: '@UI.FieldGroup#Main' }
+	{ $Type: 'UI.ReferenceFacet', Label: 'Details', Target: '@UI.FieldGroup#Main' }
 ];
 
 annotate S.Trainings with @UI.FieldGroup #Main: {
 	Data: [
-		{ $Type: 'UI.DataField', Value: title,        Label: '{{titleLabel}}' },
-		{ $Type: 'UI.DataField', Value: description,  Label: '{{descriptionLabel}}' },
-		{ $Type: 'UI.DataField', Value: role,         Label: '{{roleLabel}}' },
-		{ $Type: 'UI.DataField', Value: module,       Label: '{{moduleLabel}}' },
-		{ $Type: 'UI.DataField', Value: lastUpdated,  Label: '{{lastUpdatedLabel}}' },
-		{ $Type: 'UI.DataFieldWithUrl', Value: title, Url: url,         Label: '{{primaryLinkLabel}}' },
-		{ $Type: 'UI.DataFieldWithUrl', Value: 'Open SAP Help', Url: sapHelpLink, Label: '{{sapHelpLabel}}' }
+		{ $Type: 'UI.DataField', Value: title,        Label: 'Title' },
+		{ $Type: 'UI.DataField', Value: description,  Label: 'Description' },
+		{ $Type: 'UI.DataField', Value: role,         Label: 'Role' },
+		{ $Type: 'UI.DataField', Value: module,       Label: 'Module' },
+		{ $Type: 'UI.DataField', Value: lastUpdated,  Label: 'Last Updated' },
+		{ $Type: 'UI.DataFieldWithUrl', Value: title, Url: url,         Label: 'Primary Link' },
+		{ $Type: 'UI.DataFieldWithUrl', Value: 'Open SAP Help', Url: sapHelpLink, Label: 'SAP Help' }
 	]
 };
 
@@ -62,15 +62,15 @@ annotate S.Trainings with {
 annotate S.TrainingAssignments with @UI.SelectionFields: [ role, module, status, dueDate ];
 
 annotate S.TrainingAssignments with @UI.LineItem: [
-		{ $Type: 'UI.DataField', Value: title,      Label: '{{titleLabel}}' },
-		{ $Type: 'UI.DataField', Value: role,       Label: '{{roleLabel}}' },
-		{ $Type: 'UI.DataField', Value: module,     Label: '{{moduleLabel}}' },
-		{ $Type: 'UI.DataField', Value: userId,     Label: '{{userLabel}}' },
-		{ $Type: 'UI.DataField', Value: dueDate,    Label: '{{dueDateLabel}}' },
-		{ $Type: 'UI.DataField', Value: status,     Label: '{{trainingStatus}}' },
-		{ $Type: 'UI.DataField', Value: completionDate, Label: '{{completionDateLabel}}' },
-		{ $Type: 'UI.DataFieldForAction', Action: 'SaplearningcenterService.markCompleted', Label: '{{markCompleted}}',
-			Confirmation: { $Type: 'UI.ConfirmationDialogType', Title: '{{confirmTitle}}', Text: '{{confirmText}}' } }
+		{ $Type: 'UI.DataField', Value: title,      Label: 'Title' },
+		{ $Type: 'UI.DataField', Value: role,       Label: 'Role' },
+		{ $Type: 'UI.DataField', Value: module,     Label: 'Module' },
+		{ $Type: 'UI.DataField', Value: userId,     Label: 'User' },
+		{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
+		{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },
+		{ $Type: 'UI.DataField', Value: completionDate, Label: 'Completed At' },
+		{ $Type: 'UI.DataFieldForAction', Action: 'SaplearningcenterService.markCompleted', Label: 'Mark Completed',
+			Confirmation: { $Type: 'UI.ConfirmationDialogType', Title: 'Confirm', Text: 'Mark this assignment as completed?' } }
 ];
 
 annotate S.TrainingAssignments with @UI.HeaderInfo: {
@@ -79,20 +79,35 @@ annotate S.TrainingAssignments with @UI.HeaderInfo: {
 };
 
 annotate S.TrainingAssignments with @UI.Facets: [
-	{ $Type: 'UI.ReferenceFacet', Label: '{{detailsFacetLabel}}', Target: '@UI.FieldGroup#Main' }
+	{ $Type: 'UI.ReferenceFacet', Label: 'Details', Target: '@UI.FieldGroup#Main' }
 ];
 
 annotate S.TrainingAssignments with @UI.FieldGroup #Main: {
 	Data: [
-		{ $Type: 'UI.DataField', Value: title,      Label: '{{titleLabel}}' },
-		{ $Type: 'UI.DataField', Value: role,       Label: '{{roleLabel}}' },
-		{ $Type: 'UI.DataField', Value: module,     Label: '{{moduleLabel}}' },
-		{ $Type: 'UI.DataField', Value: userId,     Label: '{{userLabel}}' },
-		{ $Type: 'UI.DataField', Value: dueDate,    Label: '{{dueDateLabel}}' },
-		{ $Type: 'UI.DataField', Value: status,     Label: '{{trainingStatus}}' },
-		{ $Type: 'UI.DataField', Value: completionDate, Label: '{{completionDateLabel}}' },
-		{ $Type: 'UI.DataFieldForAction', Action: 'SaplearningcenterService.markCompleted', Label: '{{markCompleted}}',
-		  Confirmation: { $Type: 'UI.ConfirmationDialogType', Title: '{{confirmTitle}}', Text: '{{confirmText}}' } }
+		{ $Type: 'UI.DataField', Value: title,      Label: 'Title' },
+		{ $Type: 'UI.DataField', Value: role,       Label: 'Role' },
+		{ $Type: 'UI.DataField', Value: module,     Label: 'Module' },
+		{ $Type: 'UI.DataField', Value: userId,     Label: 'User' },
+		{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
+		{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },
+		{ $Type: 'UI.DataField', Value: completionDate, Label: 'Completed At' },
+		{ $Type: 'UI.DataFieldForAction', Action: 'SaplearningcenterService.markCompleted', Label: 'Mark Completed',
+		  Confirmation: { $Type: 'UI.ConfirmationDialogType', Title: 'Confirm', Text: 'Mark this assignment as completed?' } }
+	]
+};
+
+// Default view variants: ensure columns Role, Module, Status visible and sorted
+annotate S.TrainingAssignments with @UI.PresentationVariant: {
+	SortOrder: [ { Property: 'status', Descending: false } ],
+	RequestAtLeast: [ 'role', 'module', 'status' ],
+	Visualizations: [ { $Type: 'UI.VisualizationSet', Visualizations: [ { $AnnotationPath: '@UI.LineItem' } ] } ]
+};
+
+annotate S.TrainingAssignments with @UI.SelectionVariant: {
+	SelectOptions: [
+		{ PropertyName: 'role' },
+		{ PropertyName: 'module' },
+		{ PropertyName: 'status' }
 	]
 };
 

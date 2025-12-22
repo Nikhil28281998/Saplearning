@@ -83,6 +83,9 @@
         "sap.ui.controllerExtensions": {
           "saplearningcenter.saplearningcenter::TrainingsList": {
             "controllerName": "saplearningcenter.saplearningcenter.ext.TrainingsListExtension"
+          },
+          "saplearningcenter.saplearningcenter::TrainingAssignmentsList": {
+            "controllerName": "saplearningcenter.saplearningcenter.ext.TrainingsListExtension"
           }
         }
       }

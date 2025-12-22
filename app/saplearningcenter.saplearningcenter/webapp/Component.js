@@ -67,13 +67,13 @@ sap.ui.define([
 
         _fetchRole: function(){
             var that = this;
-            // URL override: ?saplc-role=Admin|Manager|User (works in hash or query)
+            // URL override: ?saplc-role=Admin|Manager|User or ?sap-role=Admin|Manager|User (works in hash or query)
             try{
                 var href = window.location && window.location.href || '';
                 var hash = window.location && window.location.hash || '';
-                var m = href.match(/[?&]saplc-role=([^&]+)/) || hash.match(/[?&]saplc-role=([^&]+)/);
+                var m = href.match(/[?&](saplc-role|sap-role)=([^&]+)/) || hash.match(/[?&](saplc-role|sap-role)=([^&]+)/);
                 if (m && m[1]){
-                    var v = decodeURIComponent(m[1]);
+                    var v = decodeURIComponent(m[2] || m[1]);
                     if (/^(Admin|Manager|User)$/i.test(v)){
                         var norm = v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
                         that._role = norm;
