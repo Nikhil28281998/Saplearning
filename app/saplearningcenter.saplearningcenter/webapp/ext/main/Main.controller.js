@@ -72,24 +72,53 @@ sap.ui.define(
                 m.updateBindings(true);
             },
 
-            _callAI: function(prompt){
+            _callAI: async function(prompt){
                 var that = this;
-                // Ensure destination is used; backend maps '/ai' to 'ai-destination'.
-                // If your destination requires a base path, configure it in ui5.yaml; keep client call relative here.
-                // Call destination base only. Destination has Relative Path '/chat/completions?api-version=2024-06-01'.
+                // Preferred: use /api route via xs-app.json with xsuaa + CSRF
+                try{
+                    var sModulePrefix = this.getOwnerComponent().getManifestEntry('/sap.app/id');
+                    var apiUrl = sModulePrefix + '/api/chat/completions?api-version=2024-06-01';
+                    var token = await this._fetchCsrfToken(apiUrl);
+                    var res = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-Token': token || '',
+                            'Content-Type': 'application/json',
+                            'AI-Resource-Group': 'default'
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({
+                            messages: [
+                                { role: 'system', content: 'You are a helpful assistant.' },
+                                { role: 'user', content: prompt }
+                            ]
+                        })
+                    });
+                    if (!res.ok) throw new Error('API call failed');
+                    var data = await res.json();
+                    var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+                    that._pushMsg('assistant', text || '(No content returned)');
+                    return;
+                }catch(e){ /* fallback */ }
+
+                // Fallback: use /ai destination directly
+                var body = JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }] });
                 fetch('/ai', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        // Adjust 'model' to your destination's deployment name if required
-                        model: 'gpt-4o-mini',
-                        messages: [{ role: 'user', content: prompt }]
-                    })
+                    body: body
                 }).then(function(r){ return r.json(); })
                 .then(function(data){
                     var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
                     that._pushMsg('assistant', text || '(No content returned)');
                 }).catch(function(e){ that._pushMsg('assistant', 'AI call failed'); });
+            },
+
+            _fetchCsrfToken: async function(url){
+                try{
+                    var r = await fetch(url, { method: 'GET', headers: { 'X-CSRF-Token': 'Fetch' }, credentials: 'same-origin' });
+                    return r.headers && (r.headers.get('x-csrf-token') || r.headers.get('X-CSRF-Token')) || '';
+                }catch(_){ return ''; }
             }
             /**
              * Called when a controller is instantiated and its View controls (if available) are already created.

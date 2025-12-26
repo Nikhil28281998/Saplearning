@@ -1,6 +1,6 @@
 {
   "welcomeFile": "/index.html",
-  "authenticationMethod": "none",
+  "authenticationMethod": "route",
   "routes": [
     {
       "source": "^/resources/(.*)$",
@@ -9,6 +9,13 @@
     {
       "source": "^/test-resources/(.*)$",
       "destination": "ui5-test"
+    },
+    {
+      "source": "^/api/(.*)$",
+      "target": "/inference/deployments/d0ebc99237386a29/$1",
+      "authenticationType": "xsuaa",
+      "destination": "ai-destination",
+      "csrfProtection": true
     },
     {
       "source": "^/ai(.*)$",
