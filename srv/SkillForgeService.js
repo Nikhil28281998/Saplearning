@@ -254,7 +254,7 @@ module.exports = (srv) => {
     // Regular User can only update their own assignments and only specific fields
     if (userRole === 'User') {
       if (assignment.userId !== userID) {
-        return req.error(403, 'Cannot update other users\\' assignments');
+        return req.error(403, 'Cannot update other users\' assignments');
       }
       
       // Users can only update status and completionDate (via markCompleted action preferably)
