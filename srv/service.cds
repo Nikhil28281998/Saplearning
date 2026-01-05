@@ -15,9 +15,9 @@ service SkillForgeService {
         @cds.redirection.target
         @restrict: [
             { grant: '*', to: 'Admin' },
-            { grant: '*', to: ['Manager','Lead'] },
-            { grant: 'READ', to: 'User', where: 'userId = $user' },
-            { grant: 'UPDATE', to: 'User', where: 'userId = $user', columns: ['status','completionDate'] }
+            { grant: ['READ', 'CREATE', 'UPDATE'], to: ['Manager','Lead'] },
+            { grant: ['READ', 'UPDATE'], to: 'User' }
+            // FIXED: Removed broken where clauses - filtering done in custom handlers
         ]
         entity TrainingAssignments as projection on my.TrainingAssignments actions {
         action markCompleted();
@@ -34,8 +34,9 @@ service SkillForgeService {
     @cds.redirection.target
     @restrict: [
         { grant: '*', to: 'Admin' },
-        { grant: 'READ', to: ['Manager','Lead'], where: 'managerId = $user' },
-        { grant: 'READ', to: 'User', where: 'ID = $user' }
+        { grant: 'READ', to: ['Manager','Lead'] },
+        { grant: 'READ', to: 'User' }
+        // FIXED: Removed broken where clauses - filtering done in custom handlers
     ]
     entity Users as projection on my.Users;
 

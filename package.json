@@ -36,9 +36,9 @@
         "[development]": {
           "kind": "mocked",
           "users": {
-            "alice":   { "roles": ["Admin"] },
-            "bob":     { "roles": ["Manager"] },
-            "charles": { "roles": ["User"] }
+            "admin.one@example.com":   { "roles": ["Admin"] },
+            "manager.one@example.com": { "roles": ["Manager"] },
+            "user1@example.com":       { "roles": ["User"] }
           }
         },
         "[production]": {

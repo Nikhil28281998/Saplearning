@@ -8,10 +8,54 @@ module.exports = (srv) => {
   // Action: mark TrainingAssignment as completed
   srv.on('markCompleted', 'TrainingAssignments', async (req) => {
     const id = req.params?.[0]?.ID;
-    if (!id) return req.error(400, 'Missing key');
+    if (!id) return req.error(400, 'Missing assignment ID');
+    
     const tx = cds.tx(req);
-    await tx.update(TrainingAssignments).set({ status: 'Completed', completionDate: new Date().toISOString() }).where({ ID: id });
+    const userEmail = req.user.id;
+    
+    // CRITICAL FIX: Authorization check
+    const currentUser = await tx.read(Users).where({ email: userEmail }).limit(1);
+    if (!currentUser || currentUser.length === 0) {
+      return req.error(403, 'Unauthorized');
+    }
+    
+    const assignment = await tx.read(TrainingAssignments).byKey(id);
+    if (!assignment) {
+      return req.error(404, 'Assignment not found');
+    }
+    
+    const userRole = currentUser[0].role;
+    const userID = currentUser[0].ID;
+    
+    // Only assignment owner, their manager, or Admin can mark complete
+    if (userRole === 'User' && assignment.userId !== userID) {
+      return req.error(403, 'Cannot modify other users\' assignments');
+    }
+    
+    if (userRole === 'Manager') {
+      const assignee = await tx.read(Users).byKey(assignment.userId);
+      if (assignee.managerId !== userID) {
+        return req.error(403, 'Cannot modify assignments outside your team');
+      }
+    }
+    
+    // Prevent re-completion
+    if (assignment.status === 'Completed') {
+      return req.error(400, 'Assignment already completed');
+    }
+    
+    await tx.update(TrainingAssignments)
+      .set({ 
+        status: 'Completed', 
+        completionDate: new Date().toISOString() 
+      })
+      .where({ ID: id });
+    
     const row = await tx.read(TrainingAssignments).byKey(id);
+    
+    // Audit log
+    console.info(`[AUDIT] User ${userEmail} (${userRole}) marked assignment ${id} complete`);
+    
     try { req.notify(200, 'Training marked as complete'); } catch(_) {}
     return row;
   });
@@ -44,39 +88,74 @@ module.exports = (srv) => {
   srv.before('CREATE', 'TrainingAssignments', async (req) => {
     const userEmail = req.user.id;
     if (!userEmail) {
-      return req.error(403, 'User identity not found');
+      return req.error(403, 'Authentication required');
     }
 
     const tx = cds.tx(req);
     const currentUser = await tx.read(Users).where({ email: userEmail }).limit(1);
     
     if (!currentUser || currentUser.length === 0) {
-      return req.error(403, 'User not found in system');
+      console.warn(`[AUDIT] CREATE TrainingAssignment blocked - user not found: ${userEmail}`);
+      return req.error(403, 'Unauthorized');
     }
 
     const userRole = currentUser[0].role;
     const userID = currentUser[0].ID;
     const assigneeId = req.data.userId;
+    const trainingId = req.data.trainingId;
+    
+    // HIGH FIX: Input validation
+    if (!assigneeId) {
+      return req.error(400, 'User ID is required');
+    }
+    if (!trainingId) {
+      return req.error(400, 'Training ID is required');
+    }
+    
+    // Validate training exists
+    const { Trainings } = cds.entities('Learning_Data');
+    const training = await tx.read(Trainings).byKey(trainingId);
+    if (!training) {
+      return req.error(400, 'Invalid training ID');
+    }
+    
+    // Validate assignee exists
+    const assignee = await tx.read(Users).byKey(assigneeId);
+    if (!assignee) {
+      return req.error(400, 'Invalid user ID');
+    }
+    
+    // Check for duplicate assignment
+    const existing = await tx.read(TrainingAssignments)
+      .where({ userId: assigneeId, trainingId: trainingId, status: { '!=': 'Completed' } });
+    if (existing.length > 0) {
+      return req.error(400, 'User already has an active assignment for this training');
+    }
+    
+    // Set default status if not provided
+    if (!req.data.status) {
+      req.data.status = 'Assigned';
+    }
 
     // Admin can assign to anyone
     if (userRole === 'Admin') {
+      console.info(`[AUDIT] Admin ${userEmail} creating assignment: user=${assigneeId}, training=${trainingId}`);
       return; // allow
     }
 
     // Manager can only assign to their direct reports
     if (userRole === 'Manager') {
-      const assignee = await tx.read(Users).byKey(assigneeId);
-      if (!assignee) {
-        return req.error(400, 'Assignee user not found');
-      }
       if (assignee.managerId !== userID) {
-        return req.error(403, `Managers can only assign trainings to their direct reports`);
+        console.warn(`[AUDIT] Manager ${userEmail} blocked - tried to assign outside team`);
+        return req.error(403, `Cannot assign trainings outside your team`);
       }
+      console.info(`[AUDIT] Manager ${userEmail} creating assignment: user=${assigneeId}, training=${trainingId}`);
       return; // allow
     }
 
     // Regular Users cannot create assignments
-    return req.error(403, 'Regular users cannot create training assignments');
+    console.warn(`[AUDIT] User ${userEmail} blocked - attempted to create assignment`);
+    return req.error(403, 'Insufficient privileges');
   });
 
   // Before READ on Users: enforce role-based filtering
@@ -100,6 +179,7 @@ module.exports = (srv) => {
 
     // Manager can only see their team (where managerId = current user ID)
     if (userRole === 'Manager') {
+      console.debug(`[AUDIT] Manager ${userEmail} accessing team members`);
       req.query.where({ managerId: userID });
       return;
     }
@@ -132,6 +212,60 @@ module.exports = (srv) => {
     // Regular User can only see their own assignments
     if (userRole === 'User') {
       req.query.where({ userId: userID });
+      return;
+    }
+  });
+
+  // Before UPDATE on TrainingAssignments: restrict field updates based on role
+  srv.before('UPDATE', 'TrainingAssignments', async (req) => {
+    const userEmail = req.user.id;
+    if (!userEmail) return req.error(403, 'Authentication required');
+
+    const tx = cds.tx(req);
+    const currentUser = await tx.read(Users).where({ email: userEmail }).limit(1);
+    
+    if (!currentUser || currentUser.length === 0) {
+      return req.error(403, 'Unauthorized');
+    }
+
+    const userRole = currentUser[0].role;
+    const userID = currentUser[0].ID;
+    const assignmentId = req.data.ID || req.params[0]?.ID;
+    
+    if (!assignmentId) return;
+    
+    const assignment = await tx.read(TrainingAssignments).byKey(assignmentId);
+    if (!assignment) return req.error(404, 'Assignment not found');
+
+    // Admin can update anything
+    if (userRole === 'Admin') {
+      return;
+    }
+
+    // Manager can update their team's assignments
+    if (userRole === 'Manager') {
+      const assignee = await tx.read(Users).byKey(assignment.userId);
+      if (assignee.managerId !== userID) {
+        return req.error(403, 'Cannot update assignments outside your team');
+      }
+      return;
+    }
+
+    // Regular User can only update their own assignments and only specific fields
+    if (userRole === 'User') {
+      if (assignment.userId !== userID) {
+        return req.error(403, 'Cannot update other users\\' assignments');
+      }
+      
+      // Users can only update status and completionDate (via markCompleted action preferably)
+      const allowedFields = ['status', 'completionDate'];
+      const attemptedFields = Object.keys(req.data).filter(k => k !== 'ID');
+      const disallowedFields = attemptedFields.filter(f => !allowedFields.includes(f));
+      
+      if (disallowedFields.length > 0) {
+        return req.error(403, `Users can only update: ${allowedFields.join(', ')}`);
+      }
+      
       return;
     }
   });

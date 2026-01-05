@@ -21,8 +21,9 @@ entity TrainingAssignments : managed {
         trainingId  : UUID;
         training    : Association to Trainings on training.ID = trainingId;
 
-        // association to the user
+        // association to the user (FIXED: added proper Association)
         userId      : UUID;
+        user        : Association to Users on user.ID = userId;
 
         // denormalized fields kept for convenience/search
         title       : String;
@@ -44,8 +45,9 @@ view Modules as select from Trainings { key module, role } group by module, role
 // role: Admin | Manager | User (stored in DB, not in XSUAA scopes)
 entity Users {
     key ID       : UUID;
-        name     : String;
-        email    : String;    // must match platform user email/ID from XSUAA token
-        role     : String;    // Admin, Manager, or User
+        name     : String(255);
+        email    : String(255) @assert.unique;  // FIXED: added uniqueness constraint
+        role     : String(20) @assert.range enum { Admin; Manager; User };  // FIXED: enum validation
         managerId: UUID;      // for Manager hierarchy validation
+        manager  : Association to Users on manager.ID = managerId;  // FIXED: self-reference association
 }
