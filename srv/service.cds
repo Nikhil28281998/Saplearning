@@ -1,9 +1,9 @@
 using { Learning_Data as my } from '../db/schema.cds';
 
-@path : '/service/SaplearningcenterService'
-@impl: 'srv/SaplearningcenterService.js'
+@path : '/service/SkillForgeService'
+@impl: 'srv/SkillForgeService.js'
 @requires: ['Admin','Manager','User']
-service SaplearningcenterService {
+service SkillForgeService {
         @cds.redirection.target
         @restrict: [
             { grant: '*', to: 'Admin' },

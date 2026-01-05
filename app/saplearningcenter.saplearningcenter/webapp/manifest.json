@@ -1,7 +1,7 @@
 {
   "_version": "1.60.0",
   "sap.app": {
-    "id": "saplearningcenter.saplearningcenter",
+    "id": "skillforge.training",
     "type": "application",
     "i18n": "i18n/i18n.properties",
     "applicationVersion": {
@@ -11,7 +11,7 @@
     "description": "{{appDescription}}",
     "resources": "resources.json",
     "archeType": "transactional",
-    "registrationIds": ["saplearningcenter.saplearningcenter"],
+    "registrationIds": ["skillforge.training"],
     "sourceTemplate": {
       "id": "@sap/generator-fiori:fpm",
       "version": "1.20.0",
@@ -19,7 +19,7 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "/service/SaplearningcenterService/",
+        "uri": "/service/SkillForgeService/",
         "type": "OData",
         "settings": {
           "annotations": [],
@@ -29,20 +29,20 @@
     },
     "crossNavigation": {
       "inbounds": {
-        "saplearningcentersaplearningce-display": {
-          "semanticObject": "saplearningcentersaplearningce",
+        "skillforge-display": {
+          "semanticObject": "SkillForge",
           "action": "display",
-          "title": "{{saplearningcentersaplearningce-display.flpTitle}}",
+          "title": "{{skillforge-display.flpTitle}}",
           "signature": { "parameters": {}, "additionalParameters": "allowed" }
         },
         "users-management": {
-          "semanticObject": "SapLearningUsers",
+          "semanticObject": "SkillForgeUsers",
           "action": "display",
           "title": "{{usersTileTitle}}",
           "signature": { "parameters": {}, "additionalParameters": "allowed" }
         },
         "my-trainings": {
-          "semanticObject": "SapLearningMyTrainings",
+          "semanticObject": "SkillForgeMyTrainings",
           "action": "display",
           "title": "{{myTrainingsTileTitle}}",
           "signature": { "parameters": {}, "additionalParameters": "allowed" }
@@ -81,11 +81,11 @@
     "extends": {
       "extensions": {
         "sap.ui.controllerExtensions": {
-          "saplearningcenter.saplearningcenter::TrainingsList": {
-            "controllerName": "saplearningcenter.saplearningcenter.ext.TrainingsListExtension"
+          "skillforge.training::TrainingsList": {
+            "controllerName": "skillforge.training.ext.TrainingsListExtension"
           },
-          "saplearningcenter.saplearningcenter::TrainingAssignmentsList": {
-            "controllerName": "saplearningcenter.saplearningcenter.ext.TrainingsListExtension"
+          "skillforge.training::TrainingAssignmentsList": {
+            "controllerName": "skillforge.training.ext.TrainingsListExtension"
           }
         }
       }
@@ -98,7 +98,7 @@
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
-          "bundleName": "saplearningcenter.saplearningcenter.i18n.i18n"
+          "bundleName": "skillforge.training.i18n.i18n"
         }
       },
       "": {

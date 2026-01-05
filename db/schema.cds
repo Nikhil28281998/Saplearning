@@ -40,9 +40,12 @@ view Roles as select from Trainings { key role } group by role;
 view Modules as select from Trainings { key module, role } group by module, role;
 
 // Users managed by Admin; Users are tied to a Manager
+// email maps to req.user.id from XSUAA token for cloud identity
+// role: Admin | Manager | User (stored in DB, not in XSUAA scopes)
 entity Users {
     key ID       : UUID;
         name     : String;
-        email    : String;
-        managerId: UUID;
+        email    : String;    // must match platform user email/ID from XSUAA token
+        role     : String;    // Admin, Manager, or User
+        managerId: UUID;      // for Manager hierarchy validation
 }

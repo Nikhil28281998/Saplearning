@@ -3,7 +3,7 @@ sap.ui.define([
 ], function (ControllerExtension) {
   "use strict";
 
-  return ControllerExtension.extend("saplearningcenter.saplearningcenter.ext.TrainingsListExtension", {
+  return ControllerExtension.extend("skillforge.training.ext.TrainingsListExtension", {
     override: {
       onInit: function () {
         try {

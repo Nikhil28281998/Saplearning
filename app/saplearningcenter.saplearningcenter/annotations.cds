@@ -1,4 +1,4 @@
-using { SaplearningcenterService as S } from '../../srv/service.cds';
+using { SkillForgeService as S } from '../../srv/service.cds';
 
 // Selection fields for FilterBar
 annotate S.Trainings with @UI.SelectionFields: [ role, module, title ];
@@ -12,8 +12,8 @@ annotate S.Trainings with @UI.LineItem: [
 	{ $Type: 'UI.DataField',        Value: role,                    Label: 'Role' },
 	{ $Type: 'UI.DataFieldWithUrl', Value: 'Open SAP Help', Url: sapHelpLink, Label: 'SAP Help' },
 	// Global navigation buttons on the Trainings ListReport toolbar
-	{ $Type: 'UI.DataFieldForIntentBasedNavigation', Label: 'My Assignments', SemanticObject: 'SapLearningMyTrainings', Action: 'display', RequiresContext: false },
-	{ $Type: 'UI.DataFieldForIntentBasedNavigation', Label: 'User Management', SemanticObject: 'SapLearningUsers', Action: 'display', RequiresContext: false }
+	{ $Type: 'UI.DataFieldForIntentBasedNavigation', Label: 'My Assignments', SemanticObject: 'SkillForgeMyTrainings', Action: 'display', RequiresContext: false },
+	{ $Type: 'UI.DataFieldForIntentBasedNavigation', Label: 'User Management', SemanticObject: 'SkillForgeUsers', Action: 'display', RequiresContext: false }
 ];
 
 // Disable Delete on Trainings

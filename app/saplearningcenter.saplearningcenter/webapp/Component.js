@@ -11,7 +11,7 @@ sap.ui.define([
 ], function (AppComponent, Button, Dialog, List, StandardListItem, TextArea, Bar, JSONModel, Log) {
     "use strict";
 
-    return AppComponent.extend("saplearningcenter.saplearningcenter.Component", {
+    return AppComponent.extend("skillforge.training.Component", {
         metadata: { manifest: "json" },
 
         init: function () {
@@ -67,36 +67,48 @@ sap.ui.define([
 
         _fetchRole: function(){
             var that = this;
-            // URL override: ?saplc-role=Admin|Manager|User or ?sap-role=Admin|Manager|User (works in hash or query)
-            try{
-                var href = window.location && window.location.href || '';
-                var hash = window.location && window.location.hash || '';
-                var m = href.match(/[?&](saplc-role|sap-role)=([^&]+)/) || hash.match(/[?&](saplc-role|sap-role)=([^&]+)/);
-                if (m && m[1]){
-                    var v = decodeURIComponent(m[2] || m[1]);
-                    if (/^(Admin|Manager|User)$/i.test(v)){
-                        var norm = v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
-                        that._role = norm;
-                        try{ localStorage.setItem('saplc-role', norm); }catch(_){}
-                        that._applyRoleUI();
-                        return;
+            // In development: allow URL override for testing different roles
+            // In production: this will be skipped, and getCurrentRole will use DB lookup
+            var isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            
+            if (isDev) {
+                // URL override: ?saplc-role=Admin|Manager|User or ?sap-role=Admin|Manager|User (dev only)
+                try{
+                    var href = window.location && window.location.href || '';
+                    var hash = window.location && window.location.hash || '';
+                    var m = href.match(/[?&](saplc-role|sap-role)=([^&]+)/) || hash.match(/[?&](saplc-role|sap-role)=([^&]+)/);
+                    if (m && m[1]){
+                        var v = decodeURIComponent(m[2] || m[1]);
+                        if (/^(Admin|Manager|User)$/i.test(v)){
+                            var norm = v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
+                            that._role = norm;
+                            try{ localStorage.setItem('saplc-role', norm); }catch(_){}
+                            that._applyRoleUI();
+                            return;
+                        }
                     }
-                }
-            }catch(_){ /* ignore */ }
-            // Local preview override via localStorage
-            try{
-                var ls = localStorage.getItem('saplc-role');
-                if (ls) { that._role = ls; that._applyRoleUI(); return; }
-            }catch(_){ /* ignore */ }
-                        // OData functions require parentheses even with no params
-                        fetch('/service/SaplearningcenterService/getCurrentRole()')
-                            .then(function(r){ return r.json(); })
-                            .then(function(data){
-                                    var val = (data && (data.value || data)) || 'Admin';
-                                    that._role = typeof val === 'string' ? val : 'Admin';
-                                    that._applyRoleUI();
-                            })
-                            .catch(function(){ that._role = 'Admin'; that._applyRoleUI(); });
+                }catch(_){ /* ignore */ }
+                // Local preview override via localStorage (dev only)
+                try{
+                    var ls = localStorage.getItem('saplc-role');
+                    if (ls) { that._role = ls; that._applyRoleUI(); return; }
+                }catch(_){ /* ignore */ }
+            }
+            
+            // Production & fallback: call getCurrentRole which looks up user by email from XSUAA token
+            // OData functions require parentheses even with no params
+            fetch('/service/SaplearningcenterService/getCurrentRole()')
+                .then(function(r){ return r.json(); })
+                .then(function(data){
+                    var val = (data && (data.value || data)) || 'User';
+                    that._role = typeof val === 'string' ? val : 'User';
+                    that._applyRoleUI();
+                })
+                .catch(function(){ 
+                    console.error('Failed to fetch role from getCurrentRole, defaulting to User');
+                    that._role = 'User'; 
+                    that._applyRoleUI(); 
+                });
         },
 
         _applyRoleUI: function(){
