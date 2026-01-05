@@ -269,4 +269,136 @@ module.exports = (srv) => {
       return;
     }
   });
+
+  // Before DELETE on Trainings: only Admin can delete
+  srv.before('DELETE', 'Trainings', async (req) => {
+    const userEmail = req.user.id;
+    if (!userEmail) return req.error(403, 'Authentication required');
+
+    const tx = cds.tx(req);
+    const currentUser = await tx.read(Users).where({ email: userEmail }).limit(1);
+    
+    if (!currentUser || currentUser.length === 0) {
+      return req.error(403, 'Unauthorized');
+    }
+
+    const userRole = currentUser[0].role;
+
+    // Only Admin can delete trainings
+    if (userRole !== 'Admin') {
+      console.warn(`[AUDIT] ${userRole} ${userEmail} blocked - attempted to delete Training`);
+      return req.error(403, 'Only Admins can delete trainings');
+    }
+
+    const trainingId = req.data.ID || req.params[0]?.ID;
+    console.info(`[AUDIT] Admin ${userEmail} deleting Training ${trainingId}`);
+  });
+
+  // Before DELETE on Users: only Admin can delete, prevent self-deletion
+  srv.before('DELETE', 'Users', async (req) => {
+    const userEmail = req.user.id;
+    if (!userEmail) return req.error(403, 'Authentication required');
+
+    const tx = cds.tx(req);
+    const currentUser = await tx.read(Users).where({ email: userEmail }).limit(1);
+    
+    if (!currentUser || currentUser.length === 0) {
+      return req.error(403, 'Unauthorized');
+    }
+
+    const userRole = currentUser[0].role;
+    const currentUserID = currentUser[0].ID;
+
+    // Only Admin can delete users
+    if (userRole !== 'Admin') {
+      console.warn(`[AUDIT] ${userRole} ${userEmail} blocked - attempted to delete User`);
+      return req.error(403, 'Only Admins can delete users');
+    }
+
+    const targetUserId = req.data.ID || req.params[0]?.ID;
+
+    // Prevent self-deletion
+    if (targetUserId === currentUserID) {
+      return req.error(400, 'Cannot delete your own user account');
+    }
+
+    console.info(`[AUDIT] Admin ${userEmail} deleting User ${targetUserId}`);
+  });
+
+  // Before CREATE/UPDATE on Users: only Admin can modify users
+  srv.before(['CREATE', 'UPDATE'], 'Users', async (req) => {
+    const userEmail = req.user.id;
+    if (!userEmail) return req.error(403, 'Authentication required');
+
+    const tx = cds.tx(req);
+    const currentUser = await tx.read(Users).where({ email: userEmail }).limit(1);
+    
+    if (!currentUser || currentUser.length === 0) {
+      return req.error(403, 'Unauthorized');
+    }
+
+    const userRole = currentUser[0].role;
+
+    // Only Admin can create/update users
+    if (userRole !== 'Admin') {
+      console.warn(`[AUDIT] ${userRole} ${userEmail} blocked - attempted to ${req.method} User`);
+      return req.error(403, 'Only Admins can manage users');
+    }
+
+    // Validate role if provided
+    if (req.data.role) {
+      const validRoles = ['Admin', 'Manager', 'User'];
+      if (!validRoles.includes(req.data.role)) {
+        return req.error(400, `Invalid role. Must be one of: ${validRoles.join(', ')}`);
+      }
+    }
+
+    // Validate email format
+    if (req.data.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(req.data.email)) {
+        return req.error(400, 'Invalid email format');
+      }
+    }
+
+    // Validate managerId exists if provided
+    if (req.data.managerId) {
+      const manager = await tx.read(Users).byKey(req.data.managerId);
+      if (!manager) {
+        return req.error(400, 'Invalid manager ID - user does not exist');
+      }
+      if (manager.role !== 'Manager' && manager.role !== 'Admin') {
+        return req.error(400, 'Manager ID must reference a user with Manager or Admin role');
+      }
+    }
+
+    const operation = req.method;
+    const userId = req.data.ID || (req.params && req.params[0]?.ID);
+    console.info(`[AUDIT] Admin ${userEmail} ${operation} User ${userId || 'new'}`);
+  });
+
+  // Before CREATE/UPDATE on Trainings: only Admin can modify
+  srv.before(['CREATE', 'UPDATE'], 'Trainings', async (req) => {
+    const userEmail = req.user.id;
+    if (!userEmail) return req.error(403, 'Authentication required');
+
+    const tx = cds.tx(req);
+    const currentUser = await tx.read(Users).where({ email: userEmail }).limit(1);
+    
+    if (!currentUser || currentUser.length === 0) {
+      return req.error(403, 'Unauthorized');
+    }
+
+    const userRole = currentUser[0].role;
+
+    // Only Admin can create/update trainings
+    if (userRole !== 'Admin') {
+      console.warn(`[AUDIT] ${userRole} ${userEmail} blocked - attempted to ${req.method} Training`);
+      return req.error(403, 'Only Admins can manage trainings');
+    }
+
+    const operation = req.method;
+    const trainingId = req.data.ID || (req.params && req.params[0]?.ID);
+    console.info(`[AUDIT] Admin ${userEmail} ${operation} Training ${trainingId || 'new'}`);
+  });
 };

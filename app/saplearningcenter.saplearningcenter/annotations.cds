@@ -16,8 +16,8 @@ annotate S.Trainings with @UI.LineItem: [
 	{ $Type: 'UI.DataFieldForIntentBasedNavigation', Label: 'User Management', SemanticObject: 'SkillForgeUsers', Action: 'display', RequiresContext: false }
 ];
 
-// Disable Delete on Trainings
-annotate S.Trainings with @Capabilities.DeleteRestrictions: { Deletable: false };
+// Enable Delete on Trainings (Admin only - enforced by backend)
+annotate S.Trainings with @Capabilities.DeleteRestrictions: { Deletable: true };
 
 // Object Page: header + sections
 annotate S.Trainings with @UI.HeaderInfo: {
@@ -123,16 +123,68 @@ annotate S.TrainingAssignments with @Capabilities.UpdateRestrictions: { Updatabl
 annotate S.TrainingAssignments with @Capabilities.DeleteRestrictions: { Deletable: false };
 
 // Users management (Admin)
-annotate S.Users with @UI.SelectionFields: [ name, email, managerId ];
+annotate S.Users with @UI.SelectionFields: [ name, email, role, managerId ];
 annotate S.Users with @UI.LineItem: [
-	{ $Type: 'UI.DataField', Value: ID,        Label: 'ID' },
 	{ $Type: 'UI.DataField', Value: name,      Label: 'Name' },
 	{ $Type: 'UI.DataField', Value: email,     Label: 'Email' },
-	{ $Type: 'UI.DataField', Value: managerId, Label: 'Manager ID' }
+	{ $Type: 'UI.DataField', Value: role,      Label: 'Role' },
+	{ $Type: 'UI.DataField', Value: managerId, Label: 'Manager' }
 ];
+
+// Users ObjectPage configuration
+annotate S.Users with @UI.HeaderInfo: {
+\tTypeName: 'User',
+\tTypeNamePlural: 'Users',
+\tTitle: { $Type: 'UI.DataField', Value: name },
+\tDescription: { $Type: 'UI.DataField', Value: email }
+};
+
+annotate S.Users with @UI.Facets: [
+	{ $Type: 'UI.ReferenceFacet', Label: 'User Details', Target: '@UI.FieldGroup#Details' },
+	{ $Type: 'UI.ReferenceFacet', Label: 'Hierarchy', Target: '@UI.FieldGroup#Hierarchy' }
+];
+
+annotate S.Users with @UI.FieldGroup #Details: {
+	Data: [
+		{ $Type: 'UI.DataField', Value: name,  Label: 'Full Name' },
+		{ $Type: 'UI.DataField', Value: email, Label: 'Email Address' },
+		{ $Type: 'UI.DataField', Value: role,  Label: 'Role' }
+	]
+};
+
+annotate S.Users with @UI.FieldGroup #Hierarchy: {
+	Data: [
+		{ $Type: 'UI.DataField', Value: managerId, Label: 'Reports To (Manager)' }
+	]
+};
+
 annotate S.Users with @Capabilities.InsertRestrictions: { Insertable: true };
 annotate S.Users with @Capabilities.UpdateRestrictions: { Updatable: true };
 annotate S.Users with @Capabilities.DeleteRestrictions: { Deletable: true };
+
+// Value helps for Users fields
+annotate S.Users with {
+	role @(
+		Common.ValueList: {
+			$Type: 'Common.ValueListType',
+			CollectionPath: 'RolesVH',
+			Parameters: [
+				{ $Type: 'Common.ValueListParameterInOut', LocalDataProperty: role, ValueListProperty: 'role' }
+			]
+		},
+		Common.ValueListWithFixedValues: true
+	);
+	
+	managerId @Common.ValueList: {
+		$Type: 'Common.ValueListType',
+		CollectionPath: 'Users',
+		Parameters: [
+			{ $Type: 'Common.ValueListParameterOut', LocalDataProperty: managerId, ValueListProperty: 'ID' },
+			{ $Type: 'Common.ValueListParameterDisplayOnly', ValueListProperty: 'name' },
+			{ $Type: 'Common.ValueListParameterDisplayOnly', ValueListProperty: 'role' }
+		]
+	};
+};
 
 // Value help for assigning users in TrainingAssignments
 annotate S.TrainingAssignments with {
