@@ -97,7 +97,7 @@ sap.ui.define([
             
             // Production & fallback: call getCurrentRole which looks up user by email from XSUAA token
             // OData functions require parentheses even with no params
-            fetch('/service/SaplearningcenterService/getCurrentRole()')
+            fetch('/service/SkillForgeService/getCurrentRole()')
                 .then(function(r){ return r.json(); })
                 .then(function(data){
                     var val = (data && (data.value || data)) || 'User';
@@ -157,8 +157,8 @@ sap.ui.define([
             var that = this;
             var ok = true;
             var checks = [
-                fetch('/service/SaplearningcenterService/$metadata').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; }),
-                fetch('/service/SaplearningcenterService/Trainings?$top=1').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; })
+                fetch('/service/SkillForgeService/$metadata').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; }),
+                fetch('/service/SkillForgeService/Trainings?$top=1').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; })
             ];
             Promise.all(checks).then(function(){
                 if (!ok){

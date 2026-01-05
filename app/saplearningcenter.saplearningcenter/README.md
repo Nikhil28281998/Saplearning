@@ -7,7 +7,7 @@
 |**Generation Platform**<br>SAP Business Application Studio|
 |**Template Used**<br>Custom Page V4|
 |**Service Type**<br>Local CAP|
-|**Service URL**<br>http://localhost:4004/service/SaplearningcenterService/|
+|**Service URL**<br>http://localhost:4004/service/SkillForgeService/|
 |**Module Name**<br>saplearningcenter.saplearningcenter|
 |**Application Title**<br>Sap Learning center|
 |**Namespace**<br>|
