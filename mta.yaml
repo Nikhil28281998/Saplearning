@@ -1,0 +1,120 @@
+_schema-version: '3.1'
+ID: skillforge-training-platform
+version: 1.0.0
+description: "SkillForge Training Platform - SAP Learning Resource Management"
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx -p @sap/cds-dk cds build --production
+
+modules:
+  # --------------------- SERVER MODULE ------------------------
+  - name: skillforge-srv
+  # ------------------------------------------------------------
+    type: nodejs
+    path: gen/srv
+    parameters:
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm
+    provides:
+      - name: srv-api # required by approuter
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: skillforge-auth
+      - name: skillforge-db
+
+  # -------------------- DATABASE MODULE -----------------------
+  - name: skillforge-db-deployer
+  # ------------------------------------------------------------
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    requires:
+      - name: skillforge-db
+
+  # ------------------ APPLICATION CONTENT ---------------------
+  - name: skillforge-app-content
+  # ------------------------------------------------------------
+    type: com.sap.application.content
+    path: .
+    requires:
+      - name: skillforge-repo-host
+        parameters:
+          content-target: true
+    build-parameters:
+      build-result: resources
+      requires:
+        - artifacts:
+            - saplearningcentersaplearningcenter.zip
+          name: saplearningcentersaplearningcenter
+          target-path: resources/
+
+  # --------------------- UI MODULE ----------------------------
+  - name: saplearningcentersaplearningcenter
+  # ------------------------------------------------------------
+    type: html5
+    path: app/saplearningcenter.saplearningcenter
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+      supported-platforms: []
+
+resources:
+  # -------------------- UAA SERVICE ---------------------------
+  - name: skillforge-auth
+  # ------------------------------------------------------------
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: skillforge-app-${org}-${space}
+        tenant-mode: dedicated
+        role-collections:
+          - name: 'SkillForge_Admin_${space}'
+            description: Administrator access to SkillForge
+            role-template-references:
+              - $XSAPPNAME.Admin
+          - name: 'SkillForge_Manager_${space}'
+            description: Manager access to SkillForge
+            role-template-references:
+              - $XSAPPNAME.Manager
+          - name: 'SkillForge_User_${space}'
+            description: User access to SkillForge
+            role-template-references:
+              - $XSAPPNAME.User
+
+  # ------------------- HANA SERVICE ---------------------------
+  - name: skillforge-db
+  # ------------------------------------------------------------
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+
+  # ------------- HTML5 REPOSITORY SERVICE ---------------------
+  - name: skillforge-repo-host
+  # ------------------------------------------------------------
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+
+  # --------------- DESTINATION SERVICE ------------------------
+  - name: skillforge-destination
+  # ------------------------------------------------------------
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: destination
+      service-plan: lite

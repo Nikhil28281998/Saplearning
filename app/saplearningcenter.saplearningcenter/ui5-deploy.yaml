@@ -1,0 +1,18 @@
+specVersion: '3.0'
+metadata:
+  name: saplearningcenter.saplearningcenter
+type: application
+builder:
+  resources:
+    excludes:
+      - /test/**
+      - /localService/**
+  settings:
+    includeDependency:
+      - themelib_sap_fiori_3
+  customTasks:
+    - name: deploy-to-abap
+      afterTask: generateCachebusterInfo
+      configuration:
+        target:
+          destination: <DESTINATION_NAME>

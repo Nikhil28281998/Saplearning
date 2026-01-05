@@ -133,10 +133,10 @@ annotate S.Users with @UI.LineItem: [
 
 // Users ObjectPage configuration
 annotate S.Users with @UI.HeaderInfo: {
-\tTypeName: 'User',
-\tTypeNamePlural: 'Users',
-\tTitle: { $Type: 'UI.DataField', Value: name },
-\tDescription: { $Type: 'UI.DataField', Value: email }
+	TypeName: 'User',
+	TypeNamePlural: 'Users',
+	Title: { $Type: 'UI.DataField', Value: name },
+	Description: { $Type: 'UI.DataField', Value: email }
 };
 
 annotate S.Users with @UI.Facets: [
