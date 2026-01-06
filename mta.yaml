@@ -79,7 +79,7 @@ resources:
       service-plan: application
       path: ./xs-security.json
       config:
-        xsappname: skillforge-app-${org}-${space}
+        xsappname: skillforge-training-app
         tenant-mode: dedicated
         role-collections:
           - name: 'SkillForge_Admin_${space}'
