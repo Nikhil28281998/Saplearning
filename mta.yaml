@@ -29,8 +29,8 @@ modules:
       requires:
         - name: saplearningcentersaplearningcenter
           artifacts:
-            - dist/**
-          target-path: saplearningcenter.saplearningcenter/webapp/
+            - dist
+          target-path: saplearningcenter.saplearningcenter/webapp
     requires:
       - name: skillforge-auth
       - name: srv-api

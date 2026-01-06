@@ -1,8 +1,14 @@
 {
-  "welcomeFile": "/saplearningcenter.saplearningcenter/webapp/index.html",
+  "welcomeFile": "/index.html",
   "authenticationMethod": "route",
   "sessionTimeout": 30,
   "routes": [
+    {
+      "source": "^/$",
+      "target": "/saplearningcenter.saplearningcenter/webapp/index.html",
+      "localDir": ".",
+      "authenticationType": "xsuaa"
+    },
     {
       "source": "^/service/(.*)$",
       "target": "$1",
@@ -12,8 +18,8 @@
     },
     {
       "source": "^/saplearningcenter.saplearningcenter/(.*)$",
-      "target": "/saplearningcenter.saplearningcenter/$1",
-      "localDir": ".",
+      "target": "$1",
+      "localDir": "saplearningcenter.saplearningcenter/webapp",
       "authenticationType": "xsuaa",
       "cacheControl": "no-cache, no-store, must-revalidate"
     },
