@@ -31,6 +31,7 @@ modules:
         - saplearningcenter.saplearningcenter/package*.json
         - saplearningcenter.saplearningcenter/README.md
         - saplearningcenter.saplearningcenter/xs-app.json
+        - saplearningcenter.saplearningcenter/webapp/
         - saplearningcenter.saplearningcenter/node_modules/
         - saplearningcenter.saplearningcenter/dist/
         - default-env.json
