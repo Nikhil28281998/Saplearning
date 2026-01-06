@@ -1,0 +1,28 @@
+{
+  "build": {
+    "target": "gen"
+  },
+  "features": {
+    "preserve_computed": true,
+    "assert_integrity": "db"
+  },
+  "odata": {
+    "version": "v4",
+    "flavor": "x4"
+  },
+  "log": {
+    "levels": {
+      "cds": "info",
+      "app": "info",
+      "[production]": {
+        "cds": "warn",
+        "app": "info"
+      }
+    }
+  },
+  "requires": {
+    "db": {
+      "kind": "sql"
+    }
+  }
+}

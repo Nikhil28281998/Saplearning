@@ -2,6 +2,10 @@
   "welcomeFile": "/index.html",
   "authenticationMethod": "route",
   "sessionTimeout": 30,
+  "compression": {
+    "enabled": true,
+    "minSize": 2048
+  },
   "routes": [
     {
       "source": "^/$",
@@ -21,13 +25,31 @@
       "target": "$1",
       "localDir": "saplearningcenter.saplearningcenter/webapp",
       "authenticationType": "xsuaa",
-      "cacheControl": "no-cache, no-store, must-revalidate"
+      "cacheControl": "public, max-age=31536000"
     },
     {
       "source": "^/(.*)$",
       "target": "$1",
       "localDir": ".",
       "authenticationType": "xsuaa"
+    }
+  ],
+  "logout": {
+    "logoutEndpoint": "/do/logout",
+    "logoutPage": "/"
+  },
+  "cors": [
+    {
+      "uriPattern": "^/service/.*$",
+      "allowedOrigins": [
+        {
+          "host": "*.cfapps.*.hana.ondemand.com",
+          "protocol": "https"
+        }
+      ],
+      "allowedMethods": ["GET", "POST", "PUT", "DELETE", "PATCH"],
+      "allowedHeaders": ["Content-Type", "Authorization", "X-CSRF-Token"],
+      "exposeHeaders": ["X-CSRF-Token"]
     }
   ]
 }

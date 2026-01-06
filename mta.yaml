@@ -18,13 +18,17 @@ modules:
     type: approuter.nodejs
     path: app
     parameters:
-      disk-quota: 1024M
-      memory: 512M
+      disk-quota: 2048M
+      memory: 1024M
       buildpack: nodejs_buildpack
+      health-check-type: http
+      health-check-http-endpoint: /
     build-parameters:
       builder: npm
       ignore:
         - saplearningcenter.saplearningcenter/
+        - default-env.json
+        - .gitignore
       requires:
         - name: saplearningcentersaplearningcenter
           artifacts:
@@ -46,6 +50,10 @@ modules:
     path: gen/srv
     parameters:
       buildpack: nodejs_buildpack
+      disk-quota: 2048M
+      memory: 1024M
+      health-check-type: http
+      health-check-http-endpoint: /health
     build-parameters:
       builder: npm
     provides:
@@ -63,6 +71,8 @@ modules:
     path: gen/db
     parameters:
       buildpack: nodejs_buildpack
+      disk-quota: 1024M
+      memory: 512M
     requires:
       - name: skillforge-db
 
@@ -93,12 +103,9 @@ modules:
       build-result: dist
       builder: custom
       commands:
-        - npm install
+        - npm ci
         - npm run build:cf
       supported-platforms: []
-    parameters:
-      disk-quota: 256M
-      memory: 256M
 
 resources:
   # -------------------- UAA SERVICE ---------------------------

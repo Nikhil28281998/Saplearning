@@ -35,21 +35,36 @@
     },
     "requires": {
       "[production]": {
-        "db": "hana",
-        "auth": "xsuaa"
-      },
-      "auth": {
-        "[development]": {
-          "kind": "mocked",
-          "users": {
-            "admin.one@example.com":   { "roles": ["Admin"] },
-            "manager.one@example.com": { "roles": ["Manager"] },
-            "user1@example.com":       { "roles": ["User"] }
+        "db": {
+          "kind": "hana",
+          "pool": {
+            "min": 1,
+            "max": 50
           }
         },
-        "[production]": {
-          "kind": "xsuaa"
+        "auth": "xsuaa"
+      },
+      "[development]": {
+        "db": "sqlite",
+        "auth": {
+          "kind": "mocked",
+          "users": {
+            "admin.one@example.com": {
+              "roles": ["Admin"]
+            },
+            "manager.one@example.com": {
+              "roles": ["Manager"]
+            },
+            "user1@example.com": {
+              "roles": ["User"]
+            }
+          }
         }
+      }
+    },
+    "middlewares": {
+      "health": {
+        "impl": "./srv/health.js"
       }
     }
   },

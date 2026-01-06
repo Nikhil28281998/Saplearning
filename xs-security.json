@@ -1,5 +1,5 @@
 {
-  "xsappname": "skillforge-app",
+  "xsappname": "skillforge-training-app",
   "authorities-inheritance": true,
   "scopes": [
     {
@@ -18,19 +18,26 @@
   "role-templates": [
     {
       "name": "Admin",
-      "description": "Administrator",
-      "scope-references": [ "$XSAPPNAME.Admin" ]
+      "description": "Administrator with full system access",
+      "scope-references": [ "$XSAPPNAME.Admin" ],
+      "attribute-references": []
     },
     {
       "name": "Manager",
-      "description": "Manager",
-      "scope-references": [ "$XSAPPNAME.Manager" ]
+      "description": "Manager with team assignment capabilities",
+      "scope-references": [ "$XSAPPNAME.Manager" ],
+      "attribute-references": []
     },
     {
       "name": "User",
-      "description": "End User",
-      "scope-references": [ "$XSAPPNAME.User" ]
+      "description": "End user with access to own training assignments",
+      "scope-references": [ "$XSAPPNAME.User" ],
+      "attribute-references": []
     }
   ],
-  "attributes": []
+  "oauth2-configuration": {
+    "token-validity": 3600,
+    "refresh-token-validity": 43200,
+    "redirect-uris": ["https://*.cfapps.*.hana.ondemand.com/**"]
+  }
 }
