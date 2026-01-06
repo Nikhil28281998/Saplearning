@@ -18,14 +18,18 @@ modules:
     type: approuter.nodejs
     path: app
     parameters:
-      disk-quota: 256M
+      disk-quota: 512M
       memory: 256M
+      buildpack: nodejs_buildpack
     build-parameters:
       builder: npm
+      ignore:
+        - saplearningcenter.saplearningcenter/
+        - default-env.json
       requires:
         - name: saplearningcentersaplearningcenter
           artifacts:
-            - dist
+            - dist/**
           target-path: saplearningcenter.saplearningcenter/webapp/
     requires:
       - name: skillforge-auth
