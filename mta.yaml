@@ -24,8 +24,8 @@ modules:
       requires:
         - name: saplearningcentersaplearningcenter
           artifacts:
-            - ./*
-          target-path: app/saplearningcenter.saplearningcenter/
+            - dist
+          target-path: app/saplearningcenter.saplearningcenter/webapp/
     provides:
       - name: srv-api # required by approuter
         properties:
