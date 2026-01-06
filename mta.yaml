@@ -40,21 +40,22 @@ modules:
       - name: skillforge-db
 
   # ------------------ APPLICATION CONTENT ---------------------
-  - name: skillforge-app-content
+  # Temporarily disabled - HTML5 repo upload failing
+  # - name: skillforge-app-content
   # ------------------------------------------------------------
-    type: com.sap.application.content
-    path: .
-    requires:
-      - name: skillforge-repo-host
-        parameters:
-          content-target: true
-    build-parameters:
-      build-result: resources
-      requires:
-        - artifacts:
-            - saplearningcentersaplearningcenter.zip
-          name: saplearningcentersaplearningcenter
-          target-path: resources/
+  #   type: com.sap.application.content
+  #   path: .
+  #   requires:
+  #     - name: skillforge-repo-host
+  #       parameters:
+  #         content-target: true
+  #   build-parameters:
+  #     build-result: resources
+  #     requires:
+  #       - artifacts:
+  #           - saplearningcentersaplearningcenter.zip
+  #         name: saplearningcentersaplearningcenter
+  #         target-path: resources/
 
   # --------------------- UI MODULE ----------------------------
   - name: saplearningcentersaplearningcenter
@@ -68,6 +69,9 @@ modules:
         - npm install
         - npm run build:cf
       supported-platforms: []
+    parameters:
+      disk-quota: 256M
+      memory: 256M
 
 resources:
   # -------------------- UAA SERVICE ---------------------------
@@ -104,12 +108,13 @@ resources:
       service-plan: hdi-shared
 
   # ------------- HTML5 REPOSITORY SERVICE ---------------------
-  - name: skillforge-repo-host
+  # Temporarily disabled - using direct srv access instead
+  # - name: skillforge-repo-host
   # ------------------------------------------------------------
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: html5-apps-repo
-      service-plan: app-host
+  #   type: org.cloudfoundry.managed-service
+  #   parameters:
+  #     service: html5-apps-repo
+  #     service-plan: app-host
 
   # --------------- DESTINATION SERVICE ------------------------
   - name: skillforge-destination
