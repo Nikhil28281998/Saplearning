@@ -21,6 +21,11 @@ modules:
       buildpack: nodejs_buildpack
     build-parameters:
       builder: npm
+      requires:
+        - name: saplearningcentersaplearningcenter
+          artifacts:
+            - dist
+          target-path: app/
     provides:
       - name: srv-api # required by approuter
         properties:
