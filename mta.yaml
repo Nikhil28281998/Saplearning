@@ -23,10 +23,12 @@ modules:
       buildpack: nodejs_buildpack
     build-parameters:
       builder: npm
+      ignore:
+        - saplearningcenter.saplearningcenter/
       requires:
         - name: saplearningcentersaplearningcenter
           artifacts:
-            - dist
+            - dist/**
           target-path: saplearningcenter.saplearningcenter/webapp
     requires:
       - name: skillforge-auth
