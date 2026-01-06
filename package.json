@@ -30,6 +30,9 @@
     "server": {
       "index": true
     },
+    "folders": {
+      "app": "app/"
+    },
     "requires": {
       "[production]": {
         "db": "hana",
