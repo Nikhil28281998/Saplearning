@@ -18,14 +18,11 @@ modules:
     type: approuter.nodejs
     path: app
     parameters:
-      disk-quota: 512M
-      memory: 256M
+      disk-quota: 1024M
+      memory: 512M
       buildpack: nodejs_buildpack
     build-parameters:
       builder: npm
-      ignore:
-        - saplearningcenter.saplearningcenter/
-        - default-env.json
       requires:
         - name: saplearningcentersaplearningcenter
           artifacts:
