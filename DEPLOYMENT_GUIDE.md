@@ -1,8 +1,8 @@
-# SkillForge Training Platform - Quick Deployment Guide
+# SkillForge Training Platform - SAP BAS Deployment Guide
 
-## 🚀 HTML5 App Repository Architecture Overview
+## 🚀 SAP Business Application Studio Deployment
 
-Your application now uses **SAP BTP's HTML5 Application Repository** - the same architecture as SAP Build Apps!
+**⚠️ IMPORTANT**: All development and deployment is done in **SAP Business Application Studio (BAS)**, not locally.
 
 ### Architecture Diagram
 ```
@@ -10,44 +10,32 @@ User Browser
     ↓
 [Approuter - Authentication Gateway]
     ↓
-    ├──→ [HTML5 App Repository Runtime] ──→ UI Assets (Fiori App)
+    ├──→ Embedded UI (Fiori Elements)
     │
     └──→ [CAP Backend Service] ──→ HANA Cloud Database
 ```
 
-### Key Benefits
-- ✅ **85% Smaller Approuter**: 8MB instead of 52MB
-- ✅ **Independent UI Updates**: Update UI without touching approuter
-- ✅ **Better Performance**: CDN caching for UI assets
-- ✅ **Launchpad Ready**: Native SAP Build Work Zone integration
-- ✅ **SAP Best Practice**: Production-grade architecture
+### Deployment Workflow
+1. **Code in SAP BAS** → Edit files in Business Application Studio
+2. **Push to GitHub** → `git push origin main`
+3. **Build in SAP BAS** → `mbt build`
+4. **Deploy to BTP** → `cf deploy mta_archives/*.mtar -f`
 
 ---
 
-## 📋 What Changed from Previous Setup?
+## 📋 Embedded UI Architecture
 
-| Aspect | Before (Embedded) | After (HTML5 Repo) |
-|--------|-------------------|-------------------|
-| **UI Location** | Inside approuter package | Managed HTML5 repository |
-| **Approuter Size** | 52+ MB | 8 MB |
-| **UI Updates** | Full redeployment | Independent update |
-| **Route Pattern** | `localDir` serving | `service: html5-apps-repo-rt` |
-| **Build Output** | webapp/ copied to approuter | webapp/ uploaded to HTML5 repo |
+| Aspect | Configuration |
+|--------|--------------|
+| **UI Location** | Inside approuter package |
+| **Route Pattern** | `localDir` serving from approuter |
+| **Build Output** | UI dist/ folder copied to approuter webapp/ |
+| **Updates** | Full MTA redeployment |
 
-### Files Modified
-1. **mta.yaml**:
-   - Added `skillforge-repo-host` (app-host service)
-   - Added `skillforge-repo-runtime` (app-runtime service)
-   - Updated approuter to require `skillforge-repo-runtime`
-   - Updated UI module to require `skillforge-repo-host`
-   - Changed approuter ignore patterns (now ignores webapp/)
-
-2. **app/xs-app.json**:
-   - Removed all `localDir` routes
-   - Added single catch-all route: `service: "html5-apps-repo-rt"`
-   - Simplified from 4 routes to 2 routes
-
-3. **app/saplearningcenter.saplearningcenter/manifest.json**:
+### Key Files
+1. **mta.yaml**: Defines MTA modules and artifact copy from UI to approuter
+2. **app/xs-app.json**: Routes for serving UI and proxying backend services
+3. **app/saplearningcenter.saplearningcenter/manifest.json**: Fiori app descriptor
    - Added `sap.cloud` configuration with `public: true`
 
 4. **app/saplearningcenter.saplearningcenter/package.json**:
@@ -59,27 +47,32 @@ User Browser
 
 ---
 
-## 🔧 Build and Deploy
+## 🔧 Build and Deploy in SAP BAS
 
-### Prerequisites Check
-```powershell
+### Prerequisites Check (in SAP BAS Terminal)
+```bash
 # Verify tools are installed
 node --version          # Should be 20+
 cf --version           # Should be 8+
 mbt --version          # Should be 1.2+
 
-# Verify you're logged in
+# Verify you're logged in to Cloud Foundry
 cf target
 ```
 
-### Step 1: Clean Build (Optional)
-```powershell
-cd "c:\Users\14754\SAP\Saplearning"
-Remove-Item -Recurse -Force mta_archives, gen -ErrorAction SilentlyContinue
+### Step 1: Pull Latest Changes from GitHub
+```bash
+cd /home/user/projects/Saplearningcenter
+git pull origin main
 ```
 
-### Step 2: Build MTA Archive
-```powershell
+### Step 2: Clean Previous Build (Optional)
+```bash
+rm -rf mta_archives gen
+```
+
+### Step 3: Build MTA Archive
+```bash
 mbt build
 ```
 
@@ -91,44 +84,24 @@ mbt build
 [INFO] Building module "skillforge-srv"...
 [INFO] Building module "skillforge-db-deployer"...
 [INFO] Building module "skillforgetraining"...  # ← UI module
-[INFO] Building module "skillforge-app-content"...  # ← HTML5 repo upload
 [INFO] Generating the MTA archive...
 [INFO] The MTA archive generated at: mta_archives/skillforge-training-platform_1.0.0.mtar
-[INFO] MTA archive size: ~20-25 MB  # ← Much smaller than before!
 ```
 
-### Step 3: Deploy to Cloud Foundry
-```powershell
-cf deploy mta_archives/skillforge-training-platform_1.0.0.mtar -f
+### Step 4: Deploy to Cloud Foundry
+```bash
+cf deploy mta_archives/*.mtar -f
 ```
 
 **Expected Output:**
 ```
-Deploying multi-target app archive mta_archives/skillforge-training-platform_1.0.0.mtar...
-...
-Creating service "skillforge-repo-host"...  # ← NEW: HTML5 repo host
-Creating service "skillforge-repo-runtime"...  # ← NEW: HTML5 repo runtime
+Deploying multi-target app archive...
 Uploading application "skillforge-approuter"...
 Uploading application "skillforge-srv"...
-Uploading content module "skillforge-app-content"...  # ← UI upload to HTML5 repo
 ...
 Application "skillforge-approuter" started and available at:
 https://bridgebio-pharma-inc--sap-build-work-zone-zsdt2mzd-buil5883134b.cfapps.us10.hana.ondemand.com
 ```
-
-### Step 4: Verify HTML5 Repo Deployment
-```powershell
-# Check HTML5 apps deployed
-cf html5-list -u -di skillforge-approuter
-```
-
-**Expected Output:**
-```
-name                version   app-host-id                           changed on
-skillforgetraining  0.0.1     <guid>                                2026-01-06 12:00:00
-```
-
-This confirms your UI is deployed to HTML5 repository! ✅
 
 ---
 
@@ -144,13 +117,21 @@ curl https://bridgebio-pharma-inc--sap-build-work-zone-zsdt2mzd-buil5883134b.cfa
 ```powershell
 cf app skillforge-srv
 # Note the backend URL from output
-curl <backend-url>/health
+### Test 1: Application URL
+```bash
+curl https://bridgebio-pharma-inc--sap-build-work-zone-zsdt2mzd-buil5883134b.cfapps.us10.hana.ondemand.com/
+```
+**Expected**: Redirect to login page
+
+### Test 2: Backend Health Check
+```bash
+curl https://bridgebio-pharma-inc--sap-build-work-zone-zsdt2mzd-buil51ed6958.cfapps.us10.hana.ondemand.com/health
 ```
 **Expected**: JSON response with `"status": "UP"`
 
 ### Test 3: OData Metadata
-```powershell
-curl https://bridgebio-pharma-inc--sap-build-work-zone-zsdt2mzd-buil5883134b.cfapps.us10.hana.ondemand.com/service/SkillForgeService/$metadata
+```bash
+curl https://bridgebio-pharma-inc--sap-build-work-zone-zsdt2mzd-buil5883134b.cfapps.us10.hana.ondemand.com/service/SkillForgeService/\$metadata
 ```
 **Expected**: XML metadata document
 
@@ -161,7 +142,7 @@ https://bridgebio-pharma-inc--sap-build-work-zone-zsdt2mzd-buil5883134b.cfapps.u
 ```
 **Expected**: 
 1. Redirects to SAP BTP login page
-2. After login, loads Fiori UI from HTML5 repository
+2. After login, loads Fiori UI
 3. Shows SkillForge Training Platform
 
 ---
@@ -182,8 +163,8 @@ Navigate to BTP Cockpit:
 
 ## 📊 Application Status
 
-### Check All Apps
-```powershell
+### Check All Apps (in SAP BAS Terminal)
+```bash
 cf apps
 ```
 
@@ -196,7 +177,7 @@ skillforge-db-deployer     stopped   0/1         512M     1G  # ← Normal (one-
 ```
 
 ### Check All Services
-```powershell
+```bash
 cf services
 ```
 
@@ -205,13 +186,11 @@ cf services
 name                         service           plan          
 skillforge-auth              xsuaa             application
 skillforge-db                hana              hdi-shared
-skillforge-repo-host         html5-apps-repo   app-host     # ← NEW
-skillforge-repo-runtime      html5-apps-repo   app-runtime  # ← NEW
 skillforge-destination       destination       lite
 ```
 
 ### View Logs
-```powershell
+```bash
 # Real-time logs
 cf logs skillforge-approuter
 cf logs skillforge-srv
@@ -229,26 +208,23 @@ cf logs skillforge-srv --recent
 **Symptoms**: `cf app skillforge-approuter` shows instances 0/1
 
 **Check logs**:
-```powershell
+```bash
 cf logs skillforge-approuter --recent
 ```
 
 **Common causes**:
-1. HTML5 repo service not bound → Check `cf services`
-2. XSUAA configuration error → Check xs-security.json
-3. Destination not configured → Check srv-api destination binding
+1. XSUAA configuration error → Check xs-security.json
+2. Destination not configured → Check srv-api destination binding
+3. UI files missing from approuter → Rebuild with `mbt build`
 
-### Issue: 404 on / or /index.html
-**Symptoms**: "Application is not available"
+### Issue: Blank page after login
+**Symptoms**: Login works but page is blank
 
-**Verify HTML5 app deployment**:
-```powershell
-cf html5-list -u -di skillforge-approuter
-```
-
-**If empty**: UI module didn't upload to HTML5 repo
-- Check `skillforge-app-content` deployment in `cf apps`
-- Rebuild and redeploy
+**Verify**:
+1. Check browser console for 404 errors
+2. UI dist/ folder exists in project: `ls -la app/saplearningcenter.saplearningcenter/dist/`
+3. If missing, pull from GitHub: `git pull origin main`
+4. Rebuild and redeploy
 
 ### Issue: Service calls return 401 Unauthorized
 **Symptoms**: UI loads but data doesn't appear
@@ -271,9 +247,9 @@ cf html5-list -u -di skillforge-approuter
 ## 📈 Performance Expectations
 
 ### Startup Times
-- **Approuter**: 5-7 seconds (was 10-15s with embedded UI)
+- **Approuter**: 5-10 seconds
 - **Backend**: 15-20 seconds (HANA connection pool init)
-- **First page load**: 2-3 seconds (HTML5 repo CDN cache)
+- **First page load**: 2-3 seconds
 
 ### Memory Usage
 - **Approuter**: 200-300 MB (of 1GB allocated)

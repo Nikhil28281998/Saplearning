@@ -150,54 +150,75 @@ if (userRole === 'User') {
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Development & Deployment
 
 ### Prerequisites
-- **Node.js**: v18+ (LTS recommended)
-- **SAP Cloud SDK**: @sap/cds-dk installed globally
-- **Package Manager**: npm or pnpm
-- **IDE**: SAP Business Application Studio or VS Code with SAP extensions
-- **BTP Account** (for cloud deployment): Trial or enterprise account
+- **SAP Business Application Studio (BAS)** - Full-stack cloud IDE
+- **Node.js**: v20+ (pre-installed in BAS)
+- **SAP Cloud SDK**: @sap/cds-dk (pre-installed in BAS)
+- **Cloud Foundry CLI**: v8+ (pre-installed in BAS)
+- **MTA Build Tool**: v1.2+ (pre-installed in BAS)
+- **BTP Account**: SAP BTP Cloud Foundry space with HANA entitlement
 
-### Local Development Setup
+### Development Workflow
 
-#### 1. Install Dependencies
+#### 1. Clone from GitHub (in SAP BAS)
 ```bash
-# At repository root
+cd /home/user/projects
+git clone https://github.com/Nikhil28281998/Saplearning.git
+cd Saplearning
+```
+
+#### 2. Install Dependencies
+```bash
 npm install
-
-# Or using pnpm (faster)
-pnpm install
 ```
 
-#### 2. Start Development Server
+#### 3. Preview in SAP BAS
 ```bash
-# Watch mode with auto-reload
-npm run cds-watch
-# or
+# Start CAP development server
 cds watch
+```
+Access preview: Use BAS "Open in New Tab" feature when prompted
 
-# Alternative: run backend and frontend separately
-npm run dev:backend   # Port 4004 (OData services)
-npm run dev:frontend  # Port 8080 (Fiori UI)
+#### 4. Make Code Changes
+- Edit files in SAP BAS
+- Test locally with `cds watch`
+- Commit to GitHub when ready
+
+### Deployment to BTP (from SAP BAS)
+
+#### Step 1: Pull Latest from GitHub
+```bash
+git pull origin main
 ```
 
-#### 3. Access Application
-- **Fiori UI**: http://localhost:4004/saplearningcenter/webapp/index.html
-- **OData Service**: http://localhost:4004/odata/v4/skillforge
-- **Service Metadata**: http://localhost:4004/odata/v4/skillforge/$metadata
+#### Step 2: Build MTA Archive
+```bash
+# Clean previous builds
+rm -rf mta_archives gen
 
-### Mock User Configuration
-**File**: `package.json` → `cds.requires.auth.[development]`
+# Build
+mbt build
+```
 
-```json
-{
-  "auth": {
-    "[development]": {
-      "kind": "mocked",
-      "users": {
-        "admin.one@example.com": { "roles": ["Admin"] },
-        "manager.one@example.com": { "roles": ["Manager"] },
+#### Step 3: Deploy to Cloud Foundry
+```bash
+cf deploy mta_archives/*.mtar -f
+```
+
+#### Step 4: Verify Deployment
+```bash
+# Check application status
+cf apps
+
+# View logs
+cf logs skillforge-approuter --recent
+```
+
+### Application URLs (Production)
+- **Approuter**: https://bridgebio-pharma-inc--sap-build-work-zone-zsdt2mzd-buil5883134b.cfapps.us10.hana.ondemand.com
+- **Backend**: https://bridgebio-pharma-inc--sap-build-work-zone-zsdt2mzd-buil51ed6958.cfapps.us10.hana.ondemand.com
         "user1@example.com": { "roles": ["User"] }
       }
     }
