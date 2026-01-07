@@ -7,14 +7,3 @@ builder:
     excludes:
       - /test/**
       - /localService/**
-  customTasks:
-    - name: deploy-to-abap
-      afterTask: generateCachebusterInfo
-      configuration:
-        target:
-          url: https://bridgebio-pharma-inc--sap-build-work-zone-zsdt2mzd-buil5883134b.cfapps.us10.hana.ondemand.com
-        app:
-          name: skillforgetraining
-          description: SkillForge Training Platform
-          package: ZSKILLFORGE
-          transport: ''
