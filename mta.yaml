@@ -40,7 +40,7 @@ modules:
         - name: skillforgetraining
           artifacts:
             - dist/**
-          target-path: saplearningcenter.saplearningcenter/webapp
+          target-path: saplearningcenter.saplearningcenter
     requires:
       - name: skillforge-auth
       - name: srv-api

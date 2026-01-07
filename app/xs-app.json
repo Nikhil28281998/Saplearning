@@ -9,7 +9,7 @@
   "routes": [
     {
       "source": "^/(index\\.html)?$",
-      "target": "/saplearningcenter.saplearningcenter/webapp/index.html",
+      "target": "/saplearningcenter.saplearningcenter/index.html",
       "localDir": ".",
       "authenticationType": "xsuaa"
     },
@@ -23,7 +23,7 @@
     {
       "source": "^/saplearningcenter.saplearningcenter/(.*)$",
       "target": "$1",
-      "localDir": "saplearningcenter.saplearningcenter/webapp",
+      "localDir": "saplearningcenter.saplearningcenter",
       "authenticationType": "xsuaa",
       "cacheControl": "public, max-age=31536000"
     },
