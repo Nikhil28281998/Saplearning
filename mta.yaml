@@ -33,14 +33,17 @@ modules:
         - saplearningcenter.saplearningcenter/xs-app.json
         - saplearningcenter.saplearningcenter/node_modules/
         - saplearningcenter.saplearningcenter/dist/
-        - saplearningcenter.saplearningcenter/webapp/
         - saplearningcenter.saplearningcenter/annotations.cds
         - default-env.json
         - .gitignore
         - .git/
+      requires:
+        - name: skillforgetraining
+          artifacts:
+            - dist/**
+          target-path: saplearningcenter.saplearningcenter/webapp
     requires:
       - name: skillforge-auth
-      - name: skillforge-repo-runtime
       - name: srv-api
         group: destinations
         properties:
@@ -81,23 +84,6 @@ modules:
     requires:
       - name: skillforge-db
 
-  # ------------------ APPLICATION CONTENT ---------------------
-  - name: skillforge-app-content
-  # ------------------------------------------------------------
-    type: com.sap.application.content
-    path: .
-    requires:
-      - name: skillforge-repo-host
-        parameters:
-          content-target: true
-    build-parameters:
-      build-result: resources
-      requires:
-        - artifacts:
-            - skillforgetraining.zip
-          name: skillforgetraining
-          target-path: resources/
-
   # --------------------- UI MODULE ----------------------------
   - name: skillforgetraining
   # ------------------------------------------------------------
@@ -110,10 +96,6 @@ modules:
         - npm ci
         - npm run build:cf
       supported-platforms: []
-    requires:
-      - name: skillforge-repo-host
-        parameters:
-          content-target: true
 
 resources:
   # -------------------- UAA SERVICE ---------------------------
@@ -148,21 +130,6 @@ resources:
     parameters:
       service: hana
       service-plan: hdi-shared
-
-  # ------------- HTML5 REPOSITORY SERVICE ---------------------
-  - name: skillforge-repo-host
-  # ------------------------------------------------------------
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: html5-apps-repo
-      service-plan: app-host
-
-  - name: skillforge-repo-runtime
-  # ------------------------------------------------------------
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: html5-apps-repo
-      service-plan: app-runtime
 
   # --------------- DESTINATION SERVICE ------------------------
   - name: skillforge-destination
