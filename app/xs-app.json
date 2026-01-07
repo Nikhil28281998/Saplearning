@@ -8,7 +8,7 @@
   },
   "routes": [
     {
-      "source": "^/$",
+      "source": "^/(index\\.html)?$",
       "target": "/saplearningcenter.saplearningcenter/webapp/index.html",
       "localDir": ".",
       "authenticationType": "xsuaa"
