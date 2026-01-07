@@ -32,7 +32,6 @@ modules:
         - saplearningcenter.saplearningcenter/README.md
         - saplearningcenter.saplearningcenter/xs-app.json
         - saplearningcenter.saplearningcenter/node_modules/
-        - saplearningcenter.saplearningcenter/dist/
         - saplearningcenter.saplearningcenter/annotations.cds
         - default-env.json
         - .gitignore
