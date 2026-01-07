@@ -37,19 +37,5 @@
   "logout": {
     "logoutEndpoint": "/do/logout",
     "logoutPage": "/"
-  },
-  "cors": [
-    {
-      "uriPattern": "^/service/.*$",
-      "allowedOrigins": [
-        {
-          "host": "*.cfapps.*.hana.ondemand.com",
-          "protocol": "https"
-        }
-      ],
-      "allowedMethods": ["GET", "POST", "PUT", "DELETE", "PATCH"],
-      "allowedHeaders": ["Content-Type", "Authorization", "X-CSRF-Token"],
-      "exposeHeaders": ["X-CSRF-Token"]
-    }
-  ]
+  }
 }
