@@ -50,6 +50,10 @@
       }
     }
   },
+  "sap.cloud": {
+    "public": true,
+    "service": "skillforge.training"
+  },
   "sap.ui": {
     "technology": "UI5",
     "icons": {

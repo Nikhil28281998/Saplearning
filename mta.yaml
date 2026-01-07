@@ -33,17 +33,14 @@ modules:
         - saplearningcenter.saplearningcenter/xs-app.json
         - saplearningcenter.saplearningcenter/node_modules/
         - saplearningcenter.saplearningcenter/dist/
+        - saplearningcenter.saplearningcenter/webapp/
         - saplearningcenter.saplearningcenter/annotations.cds
         - default-env.json
         - .gitignore
         - .git/
-      requires:
-        - name: saplearningcentersaplearningcenter
-          artifacts:
-            - dist/**
-          target-path: saplearningcenter.saplearningcenter/webapp
     requires:
       - name: skillforge-auth
+      - name: skillforge-repo-runtime
       - name: srv-api
         group: destinations
         properties:
@@ -85,25 +82,24 @@ modules:
       - name: skillforge-db
 
   # ------------------ APPLICATION CONTENT ---------------------
-  # Temporarily disabled - HTML5 repo upload failing
-  # - name: skillforge-app-content
+  - name: skillforge-app-content
   # ------------------------------------------------------------
-  #   type: com.sap.application.content
-  #   path: .
-  #   requires:
-  #     - name: skillforge-repo-host
-  #       parameters:
-  #         content-target: true
-  #   build-parameters:
-  #     build-result: resources
-  #     requires:
-  #       - artifacts:
-  #           - saplearningcentersaplearningcenter.zip
-  #         name: saplearningcentersaplearningcenter
-  #         target-path: resources/
+    type: com.sap.application.content
+    path: .
+    requires:
+      - name: skillforge-repo-host
+        parameters:
+          content-target: true
+    build-parameters:
+      build-result: resources
+      requires:
+        - artifacts:
+            - skillforgetraining.zip
+          name: skillforgetraining
+          target-path: resources/
 
   # --------------------- UI MODULE ----------------------------
-  - name: saplearningcentersaplearningcenter
+  - name: skillforgetraining
   # ------------------------------------------------------------
     type: html5
     path: app/saplearningcenter.saplearningcenter
@@ -114,6 +110,10 @@ modules:
         - npm ci
         - npm run build:cf
       supported-platforms: []
+    requires:
+      - name: skillforge-repo-host
+        parameters:
+          content-target: true
 
 resources:
   # -------------------- UAA SERVICE ---------------------------
@@ -150,13 +150,19 @@ resources:
       service-plan: hdi-shared
 
   # ------------- HTML5 REPOSITORY SERVICE ---------------------
-  # Temporarily disabled - using direct srv access instead
-  # - name: skillforge-repo-host
+  - name: skillforge-repo-host
   # ------------------------------------------------------------
-  #   type: org.cloudfoundry.managed-service
-  #   parameters:
-  #     service: html5-apps-repo
-  #     service-plan: app-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+
+  - name: skillforge-repo-runtime
+  # ------------------------------------------------------------
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-runtime
 
   # --------------- DESTINATION SERVICE ------------------------
   - name: skillforge-destination
