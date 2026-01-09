@@ -8,12 +8,6 @@
   },
   "routes": [
     {
-      "source": "^/(index\\.html)?$",
-      "target": "saplearningcenter.saplearningcenter/index.html",
-      "localDir": ".",
-      "authenticationType": "xsuaa"
-    },
-    {
       "source": "^/service/(.*)$",
       "target": "/service/$1",
       "destination": "srv-api",
@@ -21,11 +15,10 @@
       "csrfProtection": true
     },
     {
-      "source": "^/saplearningcenter.saplearningcenter/(.*)$",
+      "source": "^(.*)$",
       "target": "$1",
-      "localDir": "saplearningcenter.saplearningcenter",
-      "authenticationType": "xsuaa",
-      "cacheControl": "public, max-age=31536000"
+      "service": "html5-apps-repo-rt",
+      "authenticationType": "xsuaa"
     },
     {
       "source": "^/(.*)$",

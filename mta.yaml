@@ -26,23 +26,13 @@ modules:
     build-parameters:
       builder: npm
       ignore:
-        - saplearningcenter.saplearningcenter/*.cds
-        - saplearningcenter.saplearningcenter/ui5*.yaml
-        - saplearningcenter.saplearningcenter/package*.json
-        - saplearningcenter.saplearningcenter/README.md
-        - saplearningcenter.saplearningcenter/xs-app.json
-        - saplearningcenter.saplearningcenter/node_modules/
-        - saplearningcenter.saplearningcenter/annotations.cds
+        - saplearningcenter.saplearningcenter/**
         - default-env.json
         - .gitignore
         - .git/
-      requires:
-        - name: skillforgetraining
-          artifacts:
-            - dist/**
-          target-path: saplearningcenter.saplearningcenter
     requires:
       - name: skillforge-auth
+      - name: skillforge-repo-runtime
       - name: srv-api
         group: destinations
         properties:
@@ -95,6 +85,11 @@ modules:
         - npm ci
         - npm run build:cf
       supported-platforms: []
+    requires:
+      - name: skillforge-repo-host
+    parameters:
+      disk-quota: 256M
+      memory: 256M
 
 resources:
   # -------------------- UAA SERVICE ---------------------------
@@ -137,3 +132,19 @@ resources:
     parameters:
       service: destination
       service-plan: lite
+
+  # ------------ HTML5 REPO HOST (UI Deployment) --------------
+  - name: skillforge-repo-host
+  # ------------------------------------------------------------
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+
+  # ---------- HTML5 REPO RUNTIME (Approuter Serving) ---------
+  - name: skillforge-repo-runtime
+  # ------------------------------------------------------------
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-runtime
