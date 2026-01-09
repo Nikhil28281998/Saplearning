@@ -85,11 +85,10 @@ modules:
         - npm ci
         - npm run build:cf
       supported-platforms: []
+    parameters:
+      service-key-name: skillforgetraining-key
     requires:
       - name: skillforge-repo-host
-    parameters:
-      disk-quota: 256M
-      memory: 256M
 
 resources:
   # -------------------- UAA SERVICE ---------------------------
