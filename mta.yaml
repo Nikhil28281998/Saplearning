@@ -85,10 +85,23 @@ modules:
         - npm ci
         - npm run build:cf
       supported-platforms: []
-    parameters:
-      service-key-name: skillforgetraining-key
+
+  # --------------- HTML5 REPO DEPLOYER ------------------------
+  - name: skillforge-ui-deployer
+  # ------------------------------------------------------------
+    type: com.sap.application.content
+    path: .
     requires:
       - name: skillforge-repo-host
+        parameters:
+          content-target: true
+    build-parameters:
+      build-result: resources
+      requires:
+        - name: skillforgetraining
+          artifacts:
+            - dist/**
+          target-path: resources/
 
 resources:
   # -------------------- UAA SERVICE ---------------------------
