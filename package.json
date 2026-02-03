@@ -1,29 +1,30 @@
 {
-  "name": "skillforge-training-platform",
-  "version": "1.0.1",
-  "repository": "<Add your repository here>",
-  "license": "UNLICENSED",
-  "description": "SkillForge Training Platform",
-  "dependencies": {
-    "@sap/cds": "^7.9.5",
-    "@sap/xssec": "^3.6.0",
-    "express": "^4",
-    "@cap-js/hana": "1.0.0",   
-    "@cap-js/sqlite": "1.0.0"  
-  },
-  "devDependencies": {
-    "@sap/cds-dk": "^7.9.0",
-    "bestzip": "^2.2.1",
-    "rimraf": "^3.0.2",
-    "sqlite3": "^5.0.0"        
-  },
-  "scripts": {
-    "start": "cds-serve"
-  },
-  "cds": {
-    "requires": {
-      "db": "hana",
-      "auth": "xsuaa"
-    }
-  }
+	"name": "skillforge-training-platform",
+	"version": "1.0.1",
+	"repository": "<Add your repository here>",
+	"license": "UNLICENSED",
+	"description": "SkillForge Training Platform",
+	"dependencies": {
+		"@sap/cds": "^7.9.5",
+		"@sap/xssec": "^3.6.0",
+		"express": "^4",
+		"@cap-js/hana": "1.0.0",
+		"@cap-js/sqlite": "1.0.0"
+	},
+	"devDependencies": {
+		"@sap/cds-dk": "^7.9.0",
+		"bestzip": "^2.2.1",
+		"rimraf": "^3.0.2",
+		"sqlite3": "^5.0.0",
+		"@sap/dev-cap-tools": "^1.31.0"
+	},
+	"scripts": {
+		"start": "cds-serve"
+	},
+	"cds": {
+		"requires": {
+			"db": "hana",
+			"auth": "xsuaa"
+		}
+	}
 }

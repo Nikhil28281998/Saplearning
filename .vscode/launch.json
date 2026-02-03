@@ -17,7 +17,8 @@
       "preLaunchTask": "PreLaunchTask for Run Saplearningcenter",
       "envFile": "${workspaceFolder}/env/.env1",
       "env": {
-        "run.config": "{\"handlerId\":\"lcap_run_config_handler_id\",\"runnableId\":\"{\\\"projectPath\\\":\\\"/home/user/projects/Saplearningcenter\\\",\\\"profileName\\\":\\\"\\\"}\"}"
+        "run.config": "{\"handlerId\":\"lcap_run_config_handler_id\",\"runnableId\":\"{\\\"projectPath\\\":\\\"/home/user/projects/Saplearningcenter\\\",\\\"profileName\\\":\\\"\\\"}\"}",
+        "runConfigurations": "{\"dbBinding\":{\"type\":\"SAP HANA Cloud\",\"dbName\":\"skillforge-db\"}}"
       }
     }
   ]

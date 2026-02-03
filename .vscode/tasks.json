@@ -1,5 +1,5 @@
 {
-  "version": "1.38.0",
+  "version": "2.0.0",
   "tasks": [
     {
       "label": "kill-cds-processes",
@@ -40,21 +40,6 @@
       }
     },
     {
-      "label": "PreLaunchTask for Run Saplearningcenter",
-      "type": "process",
-      "command": "npx",
-      "args": [
-        "dev-cap-tools",
-        "gen-entrypoint"
-      ],
-      "dependsOn": [
-        "BuildMDK"
-      ],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      }
-    },
-    {
       "type": "dpt.ptdeploy",
       "label": "Deploy Saplearningcenter",
       "taskType": "Deploy"
@@ -76,6 +61,34 @@
       "buildCodeServicePlan": false,
       "subdomain": "",
       "ui5version": "1.143.0"
+    },
+    {
+      "label": "DeployToHANADB:.env1",
+      "type": "shell",
+      "command": "eval $(cat ${workspaceFolder}/env/.env1) cds deploy --to hana --auto-undeploy",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "PreLaunchTask for Run Saplearningcenter",
+      "type": "process",
+      "command": "npx",
+      "args": [
+        "dev-cap-tools",
+        "gen-entrypoint",
+        "--ui5version",
+        "1.143.0",
+        "--ui5theme",
+        "sap_fiori_3"
+      ],
+      "dependsOn": [
+        "npm-install",
+        "DeployToHANADB:.env1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
     }
   ]
 }
