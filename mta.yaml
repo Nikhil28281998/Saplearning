@@ -1,35 +1,19 @@
 _schema-version: '3.1'
 ID: skillforge-training-platform
-version: 1.0.0
-description: "SkillForge Training Platform - SAP Learning Resource Management"
+version: 1.0.1
 parameters:
   enable-parallel-deployments: true
 build-parameters:
   before-all:
     - builder: custom
       commands:
-        - npm ci
+        - npm install --legacy-peer-deps # [FIX] Added flag to prevent ERESOLVE error
         - npx -p @sap/cds-dk cds build --production
 
 modules:
-  # --------------------- APPROUTER MODULE ---------------------
   - name: skillforge-approuter
-  # ------------------------------------------------------------
     type: approuter.nodejs
     path: app
-    parameters:
-      disk-quota: 2048M
-      memory: 1024M
-      buildpack: nodejs_buildpack
-      health-check-type: http
-      health-check-http-endpoint: /
-    build-parameters:
-      builder: npm
-      ignore:
-        - saplearningcenter.saplearningcenter/**
-        - default-env.json
-        - .gitignore
-        - .git/
     requires:
       - name: skillforge-auth
       - name: skillforge-repo-runtime
@@ -40,19 +24,9 @@ modules:
           url: ~{srv-url}
           forwardAuthToken: true
 
-  # --------------------- SERVER MODULE ------------------------
   - name: skillforge-srv
-  # ------------------------------------------------------------
     type: nodejs
     path: gen/srv
-    parameters:
-      buildpack: nodejs_buildpack
-      disk-quota: 2048M
-      memory: 1024M
-      health-check-type: http
-      health-check-http-endpoint: /health
-    build-parameters:
-      builder: npm
     provides:
       - name: srv-api
         properties:
@@ -61,34 +35,26 @@ modules:
       - name: skillforge-auth
       - name: skillforge-db
 
-  # -------------------- DATABASE MODULE -----------------------
   - name: skillforge-db-deployer
-  # ------------------------------------------------------------
     type: hdb
     path: gen/db
-    parameters:
-      buildpack: nodejs_buildpack
-      disk-quota: 1024M
-      memory: 512M
     requires:
       - name: skillforge-db
 
-  # --------------------- UI MODULE ----------------------------
   - name: skillforgetraining
-  # ------------------------------------------------------------
     type: html5
     path: app/saplearningcenter.saplearningcenter
     build-parameters:
-      build-result: dist
+      build-result: dist-zip
       builder: custom
       commands:
-        - npm ci
-        - npm run build:cf
+        - npm install --legacy-peer-deps # [FIX] Added flag here for safety
+        - npm run build
+        - mkdir -p dist-zip
+        - cd dist && npx bestzip ../dist-zip/webapp.zip *
       supported-platforms: []
 
-  # --------------- HTML5 REPO DEPLOYER ------------------------
   - name: skillforge-ui-deployer
-  # ------------------------------------------------------------
     type: com.sap.application.content
     path: .
     requires:
@@ -100,13 +66,41 @@ modules:
       requires:
         - name: skillforgetraining
           artifacts:
-            - dist/**
+            - webapp.zip
           target-path: resources/
 
+  - name: skillforge-destination-content
+    type: com.sap.application.content
+    build-parameters:
+      no-source: true
+    requires:
+      - name: skillforge-destination
+        parameters:
+          content-target: true
+      - name: skillforge-repo-host
+        parameters:
+          service-key:
+            name: skillforge-repo-host-key
+      - name: skillforge-auth
+        parameters:
+          service-key:
+            name: skillforge-auth-key
+    parameters:
+      content:
+        subaccount:
+          destinations:
+            - Name: skillforge_auth
+              ServiceInstanceName: skillforge-auth
+              ServiceKeyName: skillforge-auth-key
+              sap.cloud.service: lcap.skillforge-training-platform
+            - Name: skillforge_html_repo_host
+              ServiceInstanceName: skillforge-repo-host
+              ServiceKeyName: skillforge-repo-host-key
+              sap.cloud.service: lcap.skillforge-training-platform
+          existing_destinations_policy: update
+
 resources:
-  # -------------------- UAA SERVICE ---------------------------
   - name: skillforge-auth
-  # ------------------------------------------------------------
     type: org.cloudfoundry.managed-service
     parameters:
       service: xsuaa
@@ -115,47 +109,19 @@ resources:
       config:
         xsappname: skillforge-training-app
         tenant-mode: dedicated
-        role-collections:
-          - name: 'SkillForge_Admin_${space}'
-            description: Administrator access to SkillForge
-            role-template-references:
-              - $XSAPPNAME.Admin
-          - name: 'SkillForge_Manager_${space}'
-            description: Manager access to SkillForge
-            role-template-references:
-              - $XSAPPNAME.Manager
-          - name: 'SkillForge_User_${space}'
-            description: User access to SkillForge
-            role-template-references:
-              - $XSAPPNAME.User
-
-  # ------------------- HANA SERVICE ---------------------------
   - name: skillforge-db
-  # ------------------------------------------------------------
     type: com.sap.xs.hdi-container
-    parameters:
-      service: hana
-      service-plan: hdi-shared
-
-  # --------------- DESTINATION SERVICE ------------------------
   - name: skillforge-destination
-  # ------------------------------------------------------------
     type: org.cloudfoundry.managed-service
     parameters:
       service: destination
       service-plan: lite
-
-  # ------------ HTML5 REPO HOST (UI Deployment) --------------
   - name: skillforge-repo-host
-  # ------------------------------------------------------------
     type: org.cloudfoundry.managed-service
     parameters:
       service: html5-apps-repo
       service-plan: app-host
-
-  # ---------- HTML5 REPO RUNTIME (Approuter Serving) ---------
   - name: skillforge-repo-runtime
-  # ------------------------------------------------------------
     type: org.cloudfoundry.managed-service
     parameters:
       service: html5-apps-repo

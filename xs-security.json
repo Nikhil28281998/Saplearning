@@ -1,43 +1,57 @@
 {
-  "xsappname": "skillforge-training-app",
-  "authorities-inheritance": true,
   "scopes": [
     {
       "name": "$XSAPPNAME.Admin",
-      "description": "Full admin access"
+      "description": "Admin"
     },
     {
       "name": "$XSAPPNAME.Manager",
-      "description": "Manager access to team assignments"
+      "description": "Manager"
     },
     {
       "name": "$XSAPPNAME.User",
-      "description": "End user access to own assignments"
+      "description": "User"
+    },
+    {
+      "name": "$XSAPPNAME.Lead",
+      "description": "Lead"
     }
   ],
+  "attributes": [],
   "role-templates": [
     {
       "name": "Admin",
-      "description": "Administrator with full system access",
-      "scope-references": [ "$XSAPPNAME.Admin" ],
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.Admin"
+      ],
       "attribute-references": []
     },
     {
       "name": "Manager",
-      "description": "Manager with team assignment capabilities",
-      "scope-references": [ "$XSAPPNAME.Manager" ],
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.Manager"
+      ],
       "attribute-references": []
     },
     {
       "name": "User",
-      "description": "End user with access to own training assignments",
-      "scope-references": [ "$XSAPPNAME.User" ],
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.User"
+      ],
+      "attribute-references": []
+    },
+    {
+      "name": "Lead",
+      "description": "generated",
+      "scope-references": [
+        "$XSAPPNAME.Lead"
+      ],
       "attribute-references": []
     }
   ],
-  "oauth2-configuration": {
-    "token-validity": 3600,
-    "refresh-token-validity": 43200,
-    "redirect-uris": ["https://*.cfapps.*.hana.ondemand.com/**"]
-  }
+  "xsappname": "skillforge-training-platform",
+  "tenant-mode": "dedicated"
 }

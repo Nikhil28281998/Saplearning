@@ -11,7 +11,9 @@
     "description": "{{appDescription}}",
     "resources": "resources.json",
     "archeType": "transactional",
-    "registrationIds": ["skillforge.training"],
+    "registrationIds": [
+      "skillforge.training"
+    ],
     "sourceTemplate": {
       "id": "@sap/generator-fiori:fpm",
       "version": "1.20.0",
@@ -19,7 +21,7 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "/service/SkillForgeService/",
+        "uri": "service/SkillForgeService/",
         "type": "OData",
         "settings": {
           "annotations": [],
@@ -33,26 +35,35 @@
           "semanticObject": "SkillForge",
           "action": "display",
           "title": "{{skillforge-display.flpTitle}}",
-          "signature": { "parameters": {}, "additionalParameters": "allowed" }
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
         },
         "users-management": {
           "semanticObject": "SkillForgeUsers",
           "action": "display",
           "title": "{{usersTileTitle}}",
-          "signature": { "parameters": {}, "additionalParameters": "allowed" }
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
         },
         "my-trainings": {
           "semanticObject": "SkillForgeMyTrainings",
           "action": "display",
           "title": "{{myTrainingsTileTitle}}",
-          "signature": { "parameters": {}, "additionalParameters": "allowed" }
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
         }
       }
     }
   },
   "sap.cloud": {
     "public": true,
-    "service": "skillforge.training"
+    "service": "lcap.skillforge-training-platform"
   },
   "sap.ui": {
     "technology": "UI5",
@@ -119,7 +130,13 @@
         "uri": "i18n/i18n.properties"
       }
     },
-    "resources": { "css": [ { "uri": "css/style.css" } ] },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
     "routing": {
       "config": {
         "flexibleColumnLayout": {
@@ -129,58 +146,114 @@
         "routerClass": "sap.f.routing.Router"
       },
       "routes": [
-        { "name": "TrainingsList", "pattern": ":?query:", "target": "TrainingsList" },
-        { "name": "TrainingsObjectPage", "pattern": "Trainings({key})", "target": "TrainingsObjectPage" },
-        { "name": "TrainingAssignmentsList", "pattern": "TrainingAssignments", "target": "TrainingAssignmentsList" },
-        { "name": "TrainingAssignmentsObjectPage", "pattern": "TrainingAssignments({key})", "target": "TrainingAssignmentsObjectPage" },
-        { "name": "UsersList", "pattern": "Users", "target": "UsersList" },
-        { "name": "UsersObjectPage", "pattern": "Users({key})", "target": "UsersObjectPage" },
-        { "name": "MyTrainingsList", "pattern": "MyTrainings", "target": "TrainingAssignmentsList" }
+        {
+          "name": "TrainingsList",
+          "pattern": ":?query:",
+          "target": "TrainingsList"
+        },
+        {
+          "name": "TrainingsObjectPage",
+          "pattern": "Trainings({key})",
+          "target": "TrainingsObjectPage"
+        },
+        {
+          "name": "TrainingAssignmentsList",
+          "pattern": "TrainingAssignments",
+          "target": "TrainingAssignmentsList"
+        },
+        {
+          "name": "TrainingAssignmentsObjectPage",
+          "pattern": "TrainingAssignments({key})",
+          "target": "TrainingAssignmentsObjectPage"
+        },
+        {
+          "name": "UsersList",
+          "pattern": "Users",
+          "target": "UsersList"
+        },
+        {
+          "name": "UsersObjectPage",
+          "pattern": "Users({key})",
+          "target": "UsersObjectPage"
+        },
+        {
+          "name": "MyTrainingsList",
+          "pattern": "MyTrainings",
+          "target": "TrainingAssignmentsList"
+        }
       ],
       "targets": {
         "TrainingsList": {
           "type": "Component",
           "id": "TrainingsList",
           "name": "sap.fe.templates.ListReport",
-          "options": { "settings": { 
-            "entitySet": "Trainings",
-            "navigation": { "Trainings": { "detail": { "route": "TrainingsObjectPage" } } }
-          } },
+          "options": {
+            "settings": {
+              "entitySet": "Trainings",
+              "navigation": {
+                "Trainings": {
+                  "detail": {
+                    "route": "TrainingsObjectPage"
+                  }
+                }
+              }
+            }
+          },
           "controlAggregation": "beginColumnPages"
         },
         "TrainingsObjectPage": {
           "type": "Component",
           "id": "TrainingsObjectPage",
           "name": "sap.fe.templates.ObjectPage",
-          "options": { "settings": { "entitySet": "Trainings" } },
+          "options": {
+            "settings": {
+              "entitySet": "Trainings"
+            }
+          },
           "controlAggregation": "midColumnPages"
         },
         "TrainingAssignmentsList": {
           "type": "Component",
           "id": "TrainingAssignmentsList",
           "name": "sap.fe.templates.ListReport",
-          "options": { "settings": { "entitySet": "TrainingAssignments" } },
+          "options": {
+            "settings": {
+              "entitySet": "TrainingAssignments"
+            }
+          },
           "controlAggregation": "beginColumnPages"
         },
         "TrainingAssignmentsObjectPage": {
           "type": "Component",
           "id": "TrainingAssignmentsObjectPage",
           "name": "sap.fe.templates.ObjectPage",
-          "options": { "settings": { "entitySet": "TrainingAssignments" } },
+          "options": {
+            "settings": {
+              "entitySet": "TrainingAssignments"
+            }
+          },
           "controlAggregation": "midColumnPages"
         },
         "UsersList": {
           "type": "Component",
           "id": "UsersList",
           "name": "sap.fe.templates.ListReport",
-          "options": { "settings": { "entitySet": "Users" } },
+          "options": {
+            "settings": {
+              "entitySet": "Users"
+            }
+          },
           "controlAggregation": "beginColumnPages"
         },
         "UsersObjectPage": {
           "type": "Component",
           "id": "UsersObjectPage",
           "name": "sap.fe.templates.ObjectPage",
-          "options": { "settings": { "entitySet": "Users" } },
+          "options": {
+            "settings": {
+              "entitySet": "Users"
+            }
+          },
           "controlAggregation": "midColumnPages"
         }
       }

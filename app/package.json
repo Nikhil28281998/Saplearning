@@ -1,15 +1,13 @@
 {
-  "name": "skillforge-approuter",
-  "version": "1.0.0",
-  "description": "Application Router for SkillForge Training Platform",
-  "engines": {
-    "node": "^20.0.0",
-    "npm": ">=10.0.0"
-  },
-  "dependencies": {
-    "@sap/approuter": "^16"
+  "name": "skillforgetraining",
+  "version": "0.0.1",
+  "description": "SkillForge Training UI",
+  "devDependencies": {
+    "@ui5/cli": "^4.0.0",
+    "@sap/ux-ui5-tooling": "1",
+    "ui5-task-zipper": "^3.0.0"
   },
   "scripts": {
-    "start": "node node_modules/@sap/approuter/approuter.js"
+    "build": "ui5 build --config ui5-deploy.yaml --clean-dest --dest dist"
   }
 }

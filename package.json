@@ -1,75 +1,29 @@
 {
   "name": "skillforge-training-platform",
-  "version": "1.0.0",
-  "description": "SkillForge - Enterprise Training Management Platform built on SAP CAP",
+  "version": "1.0.1",
+  "repository": "<Add your repository here>",
+  "license": "UNLICENSED",
+  "description": "SkillForge Training Platform",
   "dependencies": {
-    "@cap-js/hana": "^2",
-    "@sap-cloud-sdk/http-client": "^4.2.0",
-    "@sap-cloud-sdk/util": "^4.2.0",
-    "@sap/cds": "^9",
-    "@sap/low-code-event-handler": "^1.2.5",
-    "@sap/xsenv": ">=3.3.2 <3.3.3",
-    "@sap/xssec": "^4.12.1",
+    "@sap/cds": "^7.9.5",
+    "@sap/xssec": "^3.6.0",
     "express": "^4",
-    "hdb": "^2.26.4",
-    "passport": "^0.7.0"
+    "@cap-js/hana": "1.0.0",   
+    "@cap-js/sqlite": "1.0.0"  
   },
   "devDependencies": {
-    "@cap-js/sqlite": "^2",
-    "@sap/dev-cap-tools": "^1.31.0"
+    "@sap/cds-dk": "^7.9.0",
+    "bestzip": "^2.2.1",
+    "rimraf": "^3.0.2",
+    "sqlite3": "^5.0.0"        
   },
   "scripts": {
-    "start": "cds-serve",
-    "start-local": "npm run generate-entry-point && npm run cds-watch",
-    "generate-entry-point": "dev-cap-tools gen-entrypoint",
-    "cds-watch": "cds watch --open",
-    "watch-skillforge": "cds watch --open saplearningcenter.saplearningcenter/webapp/index.html?sap-ui-xx-viewCache=false"
+    "start": "cds-serve"
   },
-  "private": true,
   "cds": {
-    "server": {
-      "index": true
-    },
-    "folders": {
-      "app": "app/"
-    },
     "requires": {
-      "[production]": {
-        "db": {
-          "kind": "hana",
-          "pool": {
-            "min": 1,
-            "max": 50
-          }
-        },
-        "auth": "xsuaa"
-      },
-      "[development]": {
-        "db": "sqlite",
-        "auth": {
-          "kind": "mocked",
-          "users": {
-            "admin.one@example.com": {
-              "roles": ["Admin"]
-            },
-            "manager.one@example.com": {
-              "roles": ["Manager"]
-            },
-            "user1@example.com": {
-              "roles": ["User"]
-            }
-          }
-        }
-      }
-    },
-    "middlewares": {
-      "health": {
-        "impl": "./srv/health.js"
-      }
+      "db": "hana",
+      "auth": "xsuaa"
     }
-  },
-  "lcap": true,
-  "sapux": [
-    "app/saplearningcenter.saplearningcenter"
-  ]
+  }
 }

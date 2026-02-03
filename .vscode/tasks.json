@@ -64,6 +64,18 @@
       "label": "Enable Discovery and Deploy Saplearningcenter",
       "taskType": "Deploy",
       "enableDiscovery": "true"
+    },
+    {
+      "type": "build.mta",
+      "label": "Build MTA: skillforge-training-platform - PT",
+      "taskType": "Build",
+      "projectPath": "/home/user/projects/Saplearningcenter",
+      "extensions": [],
+      "ui5theme": "sap_fiori_3",
+      "vendorDependency": false,
+      "buildCodeServicePlan": false,
+      "subdomain": "",
+      "ui5version": "1.143.0"
     }
   ]
 }

@@ -26,7 +26,7 @@
 		},
 		"dataSources": {
 			"mainService": {
-				"uri": "/service/SkillForgeService/",
+				"uri": "service/SkillForgeService/",
 				"type": "OData",
 				"settings": {
 					"annotations": [],
@@ -68,7 +68,7 @@
 	},
 	"sap.cloud": {
 		"public": true,
-		"service": "skillforge.training"
+		"service": "lcap.skillforge-training-platform"
 	},
 	"sap.ui": {
 		"technology": "UI5",
