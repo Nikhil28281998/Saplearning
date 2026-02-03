@@ -1,7 +1,7 @@
 {
   "_version": "1.60.0",
   "sap.app": {
-    "id": "skillforge.training",
+    "id": "z.sap.learningcenter",
     "type": "application",
     "i18n": "i18n/i18n.properties",
     "applicationVersion": {
@@ -21,7 +21,7 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "service/SkillForgeService/",
+        "uri": "/sap/opu/odata/sap/Z_SLC_MAIN_SRV/",
         "type": "OData",
         "settings": {
           "annotations": [],
@@ -32,7 +32,7 @@
     "crossNavigation": {
       "inbounds": {
         "skillforge-display": {
-          "semanticObject": "SkillForge",
+          "semanticObject": "ZLEARNING",
           "action": "display",
           "title": "{{skillforge-display.flpTitle}}",
           "signature": {
@@ -41,8 +41,8 @@
           }
         },
         "users-management": {
-          "semanticObject": "SkillForgeUsers",
-          "action": "display",
+          "semanticObject": "ZLEARNING",
+          "action": "users",
           "title": "{{usersTileTitle}}",
           "signature": {
             "parameters": {},
@@ -50,8 +50,8 @@
           }
         },
         "my-trainings": {
-          "semanticObject": "SkillForgeMyTrainings",
-          "action": "display",
+          "semanticObject": "ZLEARNING",
+          "action": "mytrainings",
           "title": "{{myTrainingsTileTitle}}",
           "signature": {
             "parameters": {},

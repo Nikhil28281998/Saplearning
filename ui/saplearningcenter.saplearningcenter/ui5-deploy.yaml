@@ -1,14 +1,30 @@
-specVersion: "3.1"
+specVersion: "4.0"
 metadata:
-  name: skillforgetraining
+  name: saplearningcenter.saplearningcenter
 type: application
+
 builder:
-  resources:
-    excludes:
-      - "/test/**"
-      - "/localService/**"
   customTasks:
     - name: ui5-task-zipper
       afterTask: generateCachebusterInfo
       configuration:
-        archiveName: skillforgetraining # This creates skillforgetraining.zip
+        archiveName: Z_SLC_COURSES
+
+server:
+  customMiddleware:
+    - name: fiori-tools-proxy
+      afterMiddleware: compression
+      configuration:
+        ignoreCertErrors: false
+        ui5:
+          path:
+            - /resources
+            - /test-resources
+          url: https://ui5.sap.com
+        # Local proxy for S/4 OData services during development
+        # Configure S4_HOST, S4_USER, S4_PASSWORD via environment variables
+        backend:
+          - path: /sap
+            url: http://localhost:8080/sap  # Replace with actual S/4 HOST during local testing
+            changeOrigin: true
+
