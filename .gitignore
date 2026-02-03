@@ -37,3 +37,19 @@ mta_archives/
 build/ui-deployer/
 build/dist/
 env/
+
+# Local/environment
+.env
+.env.local
+default-env.json
+
+# Build outputs
+ui/dist/
+ui/*/dist/
+dist/
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
