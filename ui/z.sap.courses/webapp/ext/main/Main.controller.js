@@ -12,7 +12,7 @@ sap.ui.define(
     function(PageController, Dialog, Button, Bar, Title, List, StandardListItem, TextArea) {
         'use strict';
 
-        return PageController.extend('skillforge.training.ext.main.Main', {
+        return PageController.extend('z.sap.courses.ext.main.Main', {
             onInit: function(){
                 this._oAI = null;
                 this._aiSize = { w: 480, h: 70 }; // px, vh

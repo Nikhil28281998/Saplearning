@@ -32,10 +32,10 @@
     },
     "crossNavigation": {
       "inbounds": {
-        "skillforge-display": {
+        "sap-courses-display": {
           "semanticObject": "ZLEARNING",
           "action": "display",
-          "title": "{{skillforge-display.flpTitle}}",
+          "title": "{{sap-courses-display.flpTitle}}",
           "signature": {
             "parameters": {},
             "additionalParameters": "allowed"
@@ -97,11 +97,8 @@
     "extends": {
       "extensions": {
         "sap.ui.controllerExtensions": {
-          "skillforge.training::TrainingsList": {
-            "controllerName": "skillforge.training.ext.TrainingsListExtension"
-          },
-          "skillforge.training::TrainingAssignmentsList": {
-            "controllerName": "skillforge.training.ext.TrainingsListExtension"
+          "sap.fe.templates.ListReport.ListReportController": {
+            "controllerName": "z.sap.courses.ext.TrainingsListExtension"
           }
         }
       }
@@ -114,7 +111,7 @@
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
-          "bundleName": "skillforge.training.i18n.i18n"
+          "bundleName": "z.sap.courses.i18n.i18n"
         }
       },
       "": {

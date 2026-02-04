@@ -6,7 +6,7 @@ module.exports = (app) => {
     const health = {
       status: 'UP',
       timestamp: new Date().toISOString(),
-      service: 'skillforge-srv',
+      service: 'sap-learning-courses-srv',
       checks: {
         database: 'UP',
         memory: process.memoryUsage(),

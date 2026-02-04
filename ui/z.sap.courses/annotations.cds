@@ -12,8 +12,8 @@ annotate S.Trainings with @UI.LineItem: [
 	{ $Type: 'UI.DataField',        Value: role,                    Label: 'Role' },
 	{ $Type: 'UI.DataFieldWithUrl', Value: 'Open SAP Help', Url: sapHelpLink, Label: 'SAP Help' },
 	// Global navigation buttons on the Trainings ListReport toolbar
-	{ $Type: 'UI.DataFieldForIntentBasedNavigation', Label: 'My Assignments', SemanticObject: 'SkillForgeMyTrainings', Action: 'display', RequiresContext: false },
-	{ $Type: 'UI.DataFieldForIntentBasedNavigation', Label: 'User Management', SemanticObject: 'SkillForgeUsers', Action: 'display', RequiresContext: false }
+	{ $Type: 'UI.DataFieldForIntentBasedNavigation', Label: 'My Assignments', SemanticObject: 'ZLearningMyTrainings', Action: 'display', RequiresContext: false },
+	{ $Type: 'UI.DataFieldForIntentBasedNavigation', Label: 'User Management', SemanticObject: 'ZLearningUsers', Action: 'display', RequiresContext: false }
 ];
 
 // Enable Delete on Trainings (Admin only - enforced by backend)

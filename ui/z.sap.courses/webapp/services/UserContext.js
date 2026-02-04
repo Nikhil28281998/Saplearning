@@ -10,7 +10,7 @@
  * - ABAP backend is authoritative for all data access and modifications
  * - Backend must enforce PFCG roles via AUTHORITY-CHECK / DCL
  * 
- * @module sapcourses/services/UserContext
+ * @module z.sap.courses/services/UserContext
  */
 
 sap.ui.define([
@@ -19,7 +19,7 @@ sap.ui.define([
 ], function (BaseObject, Log) {
     "use strict";
 
-    var UserContext = BaseObject.extend("sapcourses.services.UserContext", {
+    var UserContext = BaseObject.extend("z.sap.courses.services.UserContext", {
         metadata: {
             publicMethods: [
                 "getUserInfo",
