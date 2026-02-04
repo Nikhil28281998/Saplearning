@@ -1,38 +1,24 @@
 {
-	"name": "skillforge-training-platform",
-	"version": "1.0.1",
-	"repository": "<Add your repository here>",
+	"name": "sap-learning-courses",
+	"version": "1.0.0",
+	"description": "SAP Learning Courses Platform - S4HANA On-Premise",
+	"repository": "https://github.com/Nikhil28281998/Saplearning",
 	"license": "UNLICENSED",
-	"description": "SkillForge Training Platform - S4HANA On-Premise",
 	"dependencies": {
 		"@sap/cds": "^8",
-		"@sap/xssec": "^4",
 		"express": "^4"
 	},
 	"devDependencies": {
-		"@sap/cds-dk": "^8",
-		"bestzip": "^2.2.1",
-		"rimraf": "^5.0.0",
-		"@sap/ux-specification": "latest"
+		"@sap/cds-dk": "^8"
 	},
 	"scripts": {
 		"start": "cds-serve",
-		"build": "cds build --production",
-		"deploy": "cd ui/z.sap.courses && npm run deploy"
+		"build": "cds build --production"
 	},
 	"cds": {
 		"requires": {
 			"db": {
-				"kind": "sql",
-				"[production]": {
-					"kind": "hana"
-				}
-			},
-			"auth": {
-				"kind": "dummy",
-				"[production]": {
-					"kind": "xsuaa"
-				}
+				"kind": "sql"
 			}
 		}
 	}
