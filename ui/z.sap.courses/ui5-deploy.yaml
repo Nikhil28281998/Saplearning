@@ -8,7 +8,7 @@ builder:
     - name: ui5-task-zipper
       afterTask: generateCachebusterInfo
       configuration:
-        archiveName: Z_COURSES
+        archiveName: Z_COURSES_UI
 
 server:
   customMiddleware:
