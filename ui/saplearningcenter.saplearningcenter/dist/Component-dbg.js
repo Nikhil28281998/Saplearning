@@ -7,8 +7,9 @@ sap.ui.define([
     "sap/m/TextArea",
     "sap/m/Bar",
     "sap/ui/model/json/JSONModel",
-    "sap/base/Log"
-], function (AppComponent, Button, Dialog, List, StandardListItem, TextArea, Bar, JSONModel, Log) {
+    "sap/base/Log",
+    "skillforge/training/services/UserContext"
+], function (AppComponent, Button, Dialog, List, StandardListItem, TextArea, Bar, JSONModel, Log, UserContext) {
     "use strict";
 
     return AppComponent.extend("skillforge.training.Component", {
@@ -17,6 +18,10 @@ sap.ui.define([
         init: function () {
             AppComponent.prototype.init.apply(this, arguments);
             var that = this;
+            
+            // Initialize UserContext service (S/4 authorization adapter)
+            this._userContext = new UserContext();
+            
             sap.ui.getCore().attachInit(function(){
                 that._diagnosticsInit();
                 that._fetchRole();
@@ -65,14 +70,16 @@ sap.ui.define([
             }catch(_){/*noop*/}
         },
 
+        /**
+         * Fetch user role from S/4 via UserContext service
+         * Replaces email-based role lookup with PFCG-based authorization
+         */
         _fetchRole: function(){
             var that = this;
-            // In development: allow URL override for testing different roles
-            // In production: this will be skipped, and getCurrentRole will use DB lookup
             var isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             
+            // Development: allow URL/localStorage override for testing
             if (isDev) {
-                // URL override: ?saplc-role=Admin|Manager|User or ?sap-role=Admin|Manager|User (dev only)
                 try{
                     var href = window.location && window.location.href || '';
                     var hash = window.location && window.location.hash || '';
@@ -88,24 +95,22 @@ sap.ui.define([
                         }
                     }
                 }catch(_){ /* ignore */ }
-                // Local preview override via localStorage (dev only)
                 try{
                     var ls = localStorage.getItem('saplc-role');
                     if (ls) { that._role = ls; that._applyRoleUI(); return; }
                 }catch(_){ /* ignore */ }
             }
             
-            // Production & fallback: call getCurrentRole which looks up user by email from XSUAA token
-            // OData functions require parentheses even with no params
-            fetch('/service/SkillForgeService/getCurrentRole()')
-                .then(function(r){ return r.json(); })
-                .then(function(data){
-                    var val = (data && (data.value || data)) || 'User';
-                    that._role = typeof val === 'string' ? val : 'User';
+            // Production: Use S/4 UserContext service for PFCG role-based authorization
+            // NOTE: This is for UX purposes only - backend enforces actual authorization
+            this._userContext.getCurrentRole()
+                .then(function(role){
+                    that._role = role;
                     that._applyRoleUI();
                 })
-                .catch(function(){ 
-                    console.error('Failed to fetch role from getCurrentRole, defaulting to User');
+                .catch(function(error){ 
+                    Log.error('Failed to fetch role from S/4 UserContext: ' + error);
+                    // Default to read-only user role
                     that._role = 'User'; 
                     that._applyRoleUI(); 
                 });
@@ -156,14 +161,15 @@ sap.ui.define([
         _startupHealthCheck: function(){
             var that = this;
             var ok = true;
+            // Check S/4 OData service availability (Z_SLC_MAIN_SRV)
             var checks = [
-                fetch('/service/SkillForgeService/$metadata').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; }),
-                fetch('/service/SkillForgeService/Trainings?$top=1').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; })
+                fetch('/sap/opu/odata/sap/Z_SLC_MAIN_SRV/$metadata').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; }),
+                fetch('/sap/opu/odata/sap/Z_SLC_MAIN_SRV/Trainings?$top=1').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; })
             ];
             Promise.all(checks).then(function(){
                 if (!ok){
                     try{
-                        var dlg = new Dialog({ title: 'Startup Issue', content: [ new sap.m.Text({ text: 'Service not reachable. Please check destinations or handlers.' }) ], buttons: [ new Button({ text: 'Close', press: function(){ dlg.close(); } }) ] });
+                        var dlg = new Dialog({ title: 'Startup Issue', content: [ new sap.m.Text({ text: 'S/4 OData service not reachable. Please check system configuration.' }) ], buttons: [ new Button({ text: 'Close', press: function(){ dlg.close(); } }) ] });
                         dlg.open();
                     }catch(_){/*noop*/}
                 }
