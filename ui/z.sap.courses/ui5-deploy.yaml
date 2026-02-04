@@ -1,4 +1,4 @@
-specVersion: "4.0"
+specVersion: "3.1"
 metadata:
   name: z.sap.courses
 type: application
@@ -9,22 +9,27 @@ builder:
       afterTask: generateCachebusterInfo
       configuration:
         archiveName: Z_COURSES_UI
+        additionalFiles:
+          - "xs-app.json"
 
-server:
-  customMiddleware:
-    - name: fiori-tools-proxy
-      afterMiddleware: compression
+---
+# Deployment configuration for S4HANA ABAP On-Premise
+specVersion: "3.1"
+metadata:
+  name: deploy-to-abap
+
+builder:
+  customTasks:
+    - name: deploy-to-abap
+      afterTask: generateCachebusterInfo
       configuration:
-        ignoreCertErrors: false
-        ui5:
-          path:
-            - /resources
-            - /test-resources
-          url: https://ui5.sap.com
-        # Local proxy for S/4 OData services during development
-        # Configure S4_HOST, S4_USER, S4_PASSWORD via environment variables
-        backend:
-          - path: /sap
-            url: http://localhost:8080/sap  # Replace with actual S/4 HOST during local testing
-            changeOrigin: true
+        target:
+          url: ~{FIORI_TOOLS_ABAP_DEPLOY_URL}
+          client: ~{FIORI_TOOLS_ABAP_DEPLOY_CLIENT}
+          auth: ~{FIORI_TOOLS_ABAP_DEPLOY_AUTH}
+        app:
+          name: Z_COURSES_UI
+          description: SAP Learning Courses UI
+          package: ZTMP
+          transport: ~{FIORI_TOOLS_ABAP_DEPLOY_TRANSPORT}
 

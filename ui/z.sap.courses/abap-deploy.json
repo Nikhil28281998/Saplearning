@@ -1,0 +1,25 @@
+{
+  "target": {
+    "url": "",
+    "client": "",
+    "auth": "basic",
+    "scp": false
+  },
+  "app": {
+    "name": "Z_COURSES_UI",
+    "description": "SAP Learning Courses UI",
+    "package": "ZTMP",
+    "transport": ""
+  },
+  "exclude": [
+    "node_modules/",
+    "test/",
+    "dist-zip/",
+    ".env",
+    ".env.*",
+    "*.md",
+    ".git/",
+    ".vscode/",
+    "package-lock.json"
+  ]
+}
