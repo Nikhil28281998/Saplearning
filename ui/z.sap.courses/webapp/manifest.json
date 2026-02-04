@@ -21,10 +21,11 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "/sap/opu/odata/sap/Z_COURSES_MAIN_SRV/",
+        "uri": "/service/SkillForgeService/",
         "type": "OData",
         "settings": {
           "annotations": [],
+          "localUri": "localService/metadata.xml",
           "odataVersion": "4.0"
         }
       }
@@ -63,7 +64,7 @@
   },
   "sap.cloud": {
     "public": true,
-    "service": "lcap.skillforge-training-platform"
+    "service": "sap.learning.courses"
   },
   "sap.ui": {
     "technology": "UI5",
