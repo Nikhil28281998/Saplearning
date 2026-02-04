@@ -24,12 +24,7 @@ builder:
       afterTask: generateCachebusterInfo
       configuration:
         target:
-          url: https://your-s4hana-system:port
-          client: "100"
-          scp: false
-        credentials:
-          username: env:S4H_USER
-          password: env:S4H_PASSWORD
+          destination: S4HANA_ABAP
         app:
           name: Z_COURSES_UI
           description: SAP Learning Courses Application
