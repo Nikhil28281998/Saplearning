@@ -11,17 +11,8 @@ builder:
         archiveName: Z_COURSES_UI
         additionalFiles:
           - "xs-app.json"
-
----
-# ABAP Deployment Configuration
-specVersion: "3.1"
-metadata:
-  name: deploy-to-abap
-
-builder:
-  customTasks:
     - name: deploy-to-abap
-      afterTask: generateCachebusterInfo
+      afterTask: ui5-task-zipper
       configuration:
         target:
           destination: S4_ABAP_DEV
