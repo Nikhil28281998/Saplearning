@@ -20,6 +20,12 @@
 			"db": {
 				"kind": "sql"
 			}
+		},
+		"features": {
+			"serve_on_root": false
 		}
-	}
+	},
+	"sapux": [
+		"app/z.sap.courses"
+	]
 }
