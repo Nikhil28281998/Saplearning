@@ -1,4 +1,4 @@
-using { SkillForgeService as S } from '../../srv/service.cds';
+using { SAPLearningService as S } from '../../srv/service.cds';
 
 // Selection fields for FilterBar
 annotate S.Trainings with @UI.SelectionFields: [ role, module, title ];
@@ -72,7 +72,7 @@ annotate S.TrainingAssignments with @UI.LineItem: [
 		{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
 		{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },
 		{ $Type: 'UI.DataField', Value: completionDate, Label: 'Completed At' },
-	{ $Type: 'UI.DataFieldForAction', Action: 'SkillForgeService.markCompleted', Label: 'Mark Completed',		Confirmation: { $Type: 'UI.ConfirmationDialogType', Title: 'Confirm', Text: 'Mark this assignment as completed?' } }
+	{ $Type: 'UI.DataFieldForAction', Action: 'SAPLearningService.markCompleted', Label: 'Mark Completed',		Confirmation: { $Type: 'UI.ConfirmationDialogType', Title: 'Confirm', Text: 'Mark this assignment as completed?' } }
 ];
 annotate S.TrainingAssignments with @UI.HeaderInfo: {
 	Title:       { $Type: 'UI.DataField', Value: title },
@@ -92,7 +92,7 @@ annotate S.TrainingAssignments with @UI.FieldGroup #Main: {
 		{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
 		{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },
 		{ $Type: 'UI.DataField', Value: completionDate, Label: 'Completed At' },
-		{ $Type: 'UI.DataFieldForAction', Action: 'SkillForgeService.markCompleted', Label: 'Mark Completed',
+		{ $Type: 'UI.DataFieldForAction', Action: 'SAPLearningService.markCompleted', Label: 'Mark Completed',
 		  Confirmation: { $Type: 'UI.ConfirmationDialogType', Title: 'Confirm', Text: 'Mark this assignment as completed?' } }
 	]
 };

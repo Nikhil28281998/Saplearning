@@ -3,7 +3,7 @@ const cds = require('@sap/cds');
 module.exports = (srv) => {
   const { TrainingAssignments, Users } = cds.entities('Learning_Data');
   
-  // SkillForge Training Platform - Service Implementation
+  // SAP Learning Courses - Service Implementation
 
   // Action: mark TrainingAssignment as completed
   srv.on('markCompleted', 'TrainingAssignments', async (req) => {

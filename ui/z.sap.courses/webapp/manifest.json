@@ -21,7 +21,7 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "/service/SkillForgeService/",
+        "uri": "/service/SAPLearningService/",
         "type": "OData",
         "settings": {
           "annotations": [],
