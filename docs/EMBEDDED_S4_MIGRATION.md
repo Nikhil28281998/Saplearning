@@ -28,7 +28,7 @@
 
 ### 1.2 Key Benefits
 
-- **Single login**: Users log in once to S/4, access all apps including SkillForge
+- **Single login**: Users log in once to S/4, access all apps including SAP Courses
 - **No external provisioning**: No XSUAA user sync; S/4 is authoritative
 - **Native role enforcement**: PFCG roles in SPRO, AUTHORITY-CHECK in ABAP
 - **Embedded UX**: App runs in S/4 Fiori Launchpad, not standalone

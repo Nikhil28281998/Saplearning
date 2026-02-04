@@ -1,4 +1,4 @@
-# SkillForge Learning Center — S/4HANA Embedded
+# SAP Courses — S/4HANA Embedded
 
 > Enterprise Training Management System for SAP S/4HANA
 

@@ -1,4 +1,4 @@
-# AI Agent Runbook — Migrate “Saplearningcenter / SkillForge” from BTP Cloud Foundry Runtime to Embedded S/4HANA
+# AI Agent Runbook — Migrate "Saplearningcenter / SAP Courses" from BTP Cloud Foundry Runtime to Embedded S/4HANA
 
 **Audience:** GitHub AI Agent (VS Code / GitHub Agent mode)  
 **Goal:** Produce a PR that removes BTP Cloud Foundry runtime deployment from the repo and prepares the existing **rich UI5 UI** for deployment to **S/4HANA (embedded)**, with clean-core-friendly role handling.

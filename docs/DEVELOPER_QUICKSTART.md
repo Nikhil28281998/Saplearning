@@ -1,4 +1,4 @@
-# Developer Quickstart — SkillForge Learning Center
+# Developer Quickstart — SAP Courses
 
 > Get the UI5 application running locally in 5 minutes
 

@@ -1,7 +1,7 @@
 {
   "name": "skillforgetraining",
   "version": "0.0.1",
-  "description": "SkillForge Training Platform UI - S/4HANA Embedded",
+  "description": "SAP Courses UI - S/4HANA Embedded",
   "main": "webapp/index.html",
   "devDependencies": {
     "@sap/ux-ui5-tooling": "^1.0.0",
