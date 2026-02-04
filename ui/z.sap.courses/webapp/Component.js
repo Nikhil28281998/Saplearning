@@ -8,11 +8,11 @@ sap.ui.define([
     "sap/m/Bar",
     "sap/ui/model/json/JSONModel",
     "sap/base/Log",
-    "skillforge/training/services/UserContext"
+    "z/sap/courses/services/UserContext"
 ], function (AppComponent, Button, Dialog, List, StandardListItem, TextArea, Bar, JSONModel, Log, UserContext) {
     "use strict";
 
-    return AppComponent.extend("skillforge.training.Component", {
+    return AppComponent.extend("z.sap.courses.Component", {
         metadata: { manifest: "json" },
 
         init: function () {

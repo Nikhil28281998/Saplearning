@@ -161,8 +161,8 @@ builder:
           username: env:S4_USER
           password: env:S4_PASSWORD
         app:
-          name: Z_SLC_COURSES
-          package: Z_SLC_UI
+          name: Z_COURSES
+          package: Z_COURSES
           transport: DEVK900001
         exclude:
           - /test/
@@ -240,7 +240,7 @@ Agent tasks:
 1) Create a service module (example):
    - `ui/webapp/services/UserContext.ts` (or `.js`)
 2) It calls a backend endpoint (placeholder):
-   - `/sap/opu/odata/sap/Z_SLC_USERCTX_SRV/UserContextSet('ME')`
+   - `/sap/opu/odata/sap/Z_COURSES_USERCTX_SRV/UserContextSet('ME')`
 3) Return a normalized object:
    - `{ isAdmin, isManager, isEndUser, allowedActions: {...} }`
 
@@ -348,8 +348,8 @@ Add to PR description:
 - **Changed:** manifest URLs, deploy config, role logic
 - **New docs:** (paths)
 - **Open items (ABAP team):**
-  - Create services: `Z_SLC_*`
-  - Create PFCG roles: `Z_SLC_ENDUSER`, `Z_SLC_MANAGER`, `Z_SLC_ADMIN`
+  - Create services: `Z_COURSES_*`
+  - Create PFCG roles: `Z_COURSES_ENDUSER`, `Z_COURSES_MANAGER`, `Z_COURSES_ADMIN`
   - Activate OData services and create FLP target mapping
 
 ---

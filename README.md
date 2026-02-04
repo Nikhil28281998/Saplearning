@@ -51,7 +51,7 @@ SkillForge Learning Center is a UI5-based training management application design
 
 ```bash
 # 1. Navigate to UI folder
-cd ui/saplearningcenter.saplearningcenter/
+cd ui/z.sap.courses/
 
 # 2. Install dependencies
 npm ci
@@ -67,7 +67,7 @@ npm run start
 
 ```bash
 # 1. Create .env file (never commit!)
-cp ui/saplearningcenter.saplearningcenter/.env.example .env
+cp ui/z.sap.courses/.env.example .env
 
 # 2. Fill in S/4 system details
 S4_HOST=https://your-s4-system.com:44300
@@ -75,7 +75,7 @@ S4_USER=DEPLOY_USER
 S4_PASSWORD=your_password
 
 # 3. Build and deploy
-cd ui/saplearningcenter.saplearningcenter/
+cd ui/z.sap.courses/
 npm run deploy
 ```
 
@@ -89,9 +89,9 @@ npm run deploy
 
 | Role | Permissions | Use Case |
 |---|---|---|
-| `Z_SLC_ENDUSER` | View trainings, mark complete | Standard employee |
-| `Z_SLC_MANAGER` | Assign trainings to team, view team progress | Team lead / manager |
-| `Z_SLC_ADMIN` | Full access, user management | System admin |
+| `Z_COURSES_ENDUSER` | View trainings, mark complete | Standard employee |
+| `Z_COURSES_MANAGER` | Assign trainings to team, view team progress | Team lead / manager |
+| `Z_COURSES_ADMIN` | Full access, user management | System admin |
 
 **Security Principle:**
 - UI uses `UserContext` service to fetch role for UX purposes (hide/show buttons)
@@ -108,8 +108,8 @@ The ABAP team must create these S/4 OData services:
 
 | Service Name | Endpoint | Purpose |
 |---|---|---|
-| `Z_SLC_MAIN_SRV` | `/sap/opu/odata/sap/Z_SLC_MAIN_SRV/` | Trainings, Assignments, Users (CRUD) |
-| `Z_SLC_USERCTX_SRV` | `/sap/opu/odata/sap/Z_SLC_USERCTX_SRV/` | User context (role, permissions) |
+| `Z_COURSES_MAIN_SRV` | `/sap/opu/odata/sap/Z_COURSES_MAIN_SRV/` | Trainings, Assignments, Users (CRUD) |
+| `Z_COURSES_USERCTX_SRV` | `/sap/opu/odata/sap/Z_COURSES_USERCTX_SRV/` | User context (role, permissions) |
 
 **Entities:**
 - `Trainings` — Course master data
@@ -118,7 +118,7 @@ The ABAP team must create these S/4 OData services:
 - `UserContextSet('ME')` — Current user's role & authorizations
 
 **Authorization Object:**
-- `Z_SLC_TRAINING` with ACTIVITY field (01=Create, 02=Read, 03=Update, 04=Delete)
+- `Z_COURSES_TRAINING` with ACTIVITY field (01=Create, 02=Read, 03=Update, 04=Delete)
 
 **See:** [docs/EMBEDDED_S4_MIGRATION.md § 6](docs/EMBEDDED_S4_MIGRATION.md) for ABAP requirements
 
@@ -137,7 +137,7 @@ The ABAP team must create these S/4 OData services:
 
 ```bash
 # Run build (verify no errors)
-cd ui/saplearningcenter.saplearningcenter/
+cd ui/z.sap.courses/
 npm run build
 
 # Test different roles (dev mode only)
@@ -169,7 +169,7 @@ All BTP runtime artifacts are preserved in `archive/btp-runtime/`:
 
 ## 🤝 Contributing
 
-1. **UI Changes**: Edit `ui/saplearningcenter.saplearningcenter/webapp/`
+1. **UI Changes**: Edit `ui/z.sap.courses/webapp/`
 2. **Backend Expectations**: Update `docs/EMBEDDED_S4_MIGRATION.md § 6`
 3. **Documentation**: Keep docs/ current with architecture changes
 

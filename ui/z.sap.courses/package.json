@@ -1,5 +1,5 @@
 {
-  "name": "skillforgetraining",
+  "name": "z.sap.courses",
   "version": "0.0.1",
   "description": "SAP Courses UI - S/4HANA Embedded",
   "main": "webapp/index.html",

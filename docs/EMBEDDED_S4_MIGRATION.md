@@ -42,7 +42,7 @@
 
 ```
 ui/
-├── saplearningcenter.saplearningcenter/   ← Main UI5 application
+├── z.sap.courses/   ← Main UI5 application
 │   ├── webapp/
 │   │   ├── manifest.json                  ← Updated for S/4 URLs
 │   │   ├── Component.js                   ← Uses UserContext service
@@ -89,13 +89,13 @@ The ABAP team must create these OData services in S/4:
 The ABAP team must create and assign these PFCG roles in SPRO:
 
 ```
-Z_SLC_ENDUSER     ← Standard user: view trainings, mark complete
-Z_SLC_MANAGER     ← Manager: edit trainings, assign to team members  
-Z_SLC_ADMIN       ← Admin: full system access, user management
+Z_COURSES_ENDUSER     ← Standard user: view trainings, mark complete
+Z_COURSES_MANAGER     ← Manager: edit trainings, assign to team members  
+Z_COURSES_ADMIN       ← Admin: full system access, user management
 ```
 
 Each role includes:
-- Authorization object: `Z_SLC_TRAINING` (or similar)
+- Authorization object: `Z_COURSES_TRAINING` (or similar)
 - ACTIVITY values: 01 (Create), 02 (Read), 03 (Update), 04 (Delete)
 - Field-level restrictions (if needed): e.g., Budget limits per training
 
@@ -104,7 +104,7 @@ Each role includes:
 The ABAP OData handler must enforce authorizations:
 
 ```abap
-AUTHORITY-CHECK OBJECT 'Z_SLC_TRAINING'
+AUTHORITY-CHECK OBJECT 'Z_COURSES_TRAINING'
   ID 'ACTIVITY' FIELD '02'
   ID 'TRAINING_TYPE' FIELD <training_type>.
 
@@ -120,7 +120,7 @@ ENDIF.
 
 The UI has a `UserContext` service (see `webapp/services/UserContext.js`) that:
 
-1. **Fetches user role from S/4** via `Z_SLC_USERCTX_SRV` endpoint
+1. **Fetches user role from S/4** via `Z_COURSES_USERCTX_SRV` endpoint
 2. **Caches for 5 minutes** to reduce backend calls  
 3. **Exposes role methods:**
    - `isAdmin()` — True if user has admin role
@@ -156,12 +156,12 @@ Even if user hacks the UI to show the button and click "Create", the backend rej
 **Prerequisites:**
 - Node.js 16+ and npm 8+
 - UI5 CLI: `npm install -g @ui5/cli`
-- `.env` file with S/4 test system details (see `ui/saplearningcenter.saplearningcenter/.env.example`)
+- `.env` file with S/4 test system details (see `ui/z.sap.courses/.env.example`)
 
 **Steps:**
 
 ```bash
-cd ui/saplearningcenter.saplearningcenter/
+cd ui/z.sap.courses/
 
 # 1. Install dependencies
 npm ci
@@ -268,22 +268,22 @@ These are kept for **reference only**, not for deployment.
 ### 6.1 Backend Implementation
 
 1. **Create OData services** (RAP or legacy gateway):
-   - `Z_SLC_MAIN_SRV` — Main business logic
-   - `Z_SLC_USERCTX_SRV` — User context & roles
+   - `Z_COURSES_MAIN_SRV` — Main business logic
+   - `Z_COURSES_USERCTX_SRV` — User context & roles
    - **Entity names** must match UI manifest: `Trainings`, `Users`, `TrainingAssignments`, etc.
 
 2. **Implement AUTHORITY-CHECK**:
-   - Create authorization object: `Z_SLC_TRAINING`
+   - Create authorization object: `Z_COURSES_TRAINING`
    - Enforce in OData handlers (read, create, update, delete)
    - Return 403 if user lacks authorization
 
 3. **Create PFCG roles**:
-   - `Z_SLC_ENDUSER` — Standard permissions
-   - `Z_SLC_MANAGER` — Broader permissions
-   - `Z_SLC_ADMIN` — Full access
+   - `Z_COURSES_ENDUSER` — Standard permissions
+   - `Z_COURSES_MANAGER` — Broader permissions
+   - `Z_COURSES_ADMIN` — Full access
 
 4. **Create user context endpoint**:
-   - Expose `/sap/opu/odata/sap/Z_SLC_USERCTX_SRV/UserContextSet('ME')`
+   - Expose `/sap/opu/odata/sap/Z_COURSES_USERCTX_SRV/UserContextSet('ME')`
    - Return user ID, full name, role flags, authorizations array
 
 ### 6.2 UI5 Deployment (IT/Basis)
@@ -307,7 +307,7 @@ These are kept for **reference only**, not for deployment.
 
 **Cause**: OData endpoints return 404  
 **Check**:
-- S/4 services (`Z_SLC_MAIN_SRV`, etc.) deployed and activated  
+- S/4 services (`Z_COURSES_MAIN_SRV`, etc.) deployed and activated  
 - Correct URLs in `manifest.json`  
 - SICF service `/sap/opu/odata` enabled in S/4
 

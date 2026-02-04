@@ -20,7 +20,7 @@ npm install -g @ui5/cli
 ### 2. Install & Start
 
 ```bash
-cd ui/saplearningcenter.saplearningcenter/
+cd ui/z.sap.courses/
 
 # Install dependencies (first time only, ~2 min)
 npm ci
@@ -183,7 +183,7 @@ npm run test  # Run unit tests
 ## Project Structure
 
 ```
-ui/saplearningcenter.saplearningcenter/
+ui/z.sap.courses/
 ├── webapp/
 │   ├── index.html                    ← Entry point
 │   ├── Component.js                  ← App bootstrap

@@ -1,6 +1,6 @@
 specVersion: "4.0"
 metadata:
-  name: saplearningcenter.saplearningcenter
+  name: z.sap.courses
 type: application
 
 builder:
@@ -8,7 +8,7 @@ builder:
     - name: ui5-task-zipper
       afterTask: generateCachebusterInfo
       configuration:
-        archiveName: Z_SLC_COURSES
+        archiveName: Z_COURSES
 
 server:
   customMiddleware:

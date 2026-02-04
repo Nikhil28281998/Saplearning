@@ -42,7 +42,7 @@ sap.ui.define([
         /**
          * Fetch current user context from S/4 backend
          * 
-         * Calls /sap/opu/odata/sap/Z_SLC_USERCTX_SRV/UserContextSet('ME')
+         * Calls /sap/opu/odata/sap/Z_COURSES_USERCTX_SRV/UserContextSet('ME')
          * 
          * @returns {Promise<Object>} User context with role and permissions
          * @example
