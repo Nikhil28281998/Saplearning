@@ -13,7 +13,7 @@ builder:
           - "xs-app.json"
 
 ---
-# Deployment configuration for S4HANA ABAP On-Premise
+# ABAP Deployment Configuration
 specVersion: "3.1"
 metadata:
   name: deploy-to-abap
@@ -24,12 +24,15 @@ builder:
       afterTask: generateCachebusterInfo
       configuration:
         target:
-          url: ~{FIORI_TOOLS_ABAP_DEPLOY_URL}
-          client: ~{FIORI_TOOLS_ABAP_DEPLOY_CLIENT}
-          auth: ~{FIORI_TOOLS_ABAP_DEPLOY_AUTH}
+          url: https://your-s4hana-system:port
+          client: "100"
+          scp: false
+        credentials:
+          username: env:S4H_USER
+          password: env:S4H_PASSWORD
         app:
           name: Z_COURSES_UI
-          description: SAP Learning Courses UI
-          package: ZTMP
-          transport: ~{FIORI_TOOLS_ABAP_DEPLOY_TRANSPORT}
+          description: SAP Learning Courses Application
+          package: $TMP
+          transport:
 
