@@ -42,15 +42,10 @@ sap.ui.define([
         /**
          * Fetch current user context from backend
          * 
+         * For S/4HANA deployment, calls /sap/opu/odata/sap/Z_COURSES_USERCTX_SRV/UserContextSet('ME')
          * For local CAP development, returns mock admin user.
-         * For S/4HANA deployment, call /sap/opu/odata/sap/Z_COURSES_USERCTX_SRV/UserContextSet('ME')
          * 
          * @returns {Promise<Object>} User context with role and permissions
-         * @example
-         * userContext.getUserInfo().then(function(user) {
-         *   console.log("Current user:", user.UserId);
-         *   console.log("Is Admin:", user.IsAdmin);
-         * });
          */
         getUserInfo: function () {
             var that = this;
@@ -60,24 +55,76 @@ sap.ui.define([
                 return Promise.resolve(this._userInfo);
             }
 
-            // For local development with CAP, return mock admin user
-            // TODO: When deploying to S/4HANA, implement actual OData call to Z_COURSES_USERCTX_SRV
-            var userInfo = {
-                UserId: "DEVUSER",
-                FullName: "Developer User",
-                Email: "dev@example.com",
-                IsAdmin: true,
-                IsManager: true,
-                IsEndUser: true,
-                Authorizations: []
-            };
+            // Check if running in S/4HANA environment (production)
+            var isS4Hana = window.location.hostname !== 'localhost' && 
+                          window.location.hostname !== '127.0.0.1';
 
-            // Cache the result
-            that._userInfo = userInfo;
-            that._cacheExpiry = Date.now() + that._cacheTTL;
+            if (isS4Hana) {
+                // Production S/4HANA: Call ABAP OData service for PFCG role-based authorization
+                return fetch("/sap/opu/odata/sap/Z_COURSES_USERCTX_SRV/UserContextSet('ME')", {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json",
+                        "X-CSRF-Token": "Fetch"
+                    },
+                    credentials: "include"
+                })
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error("Failed to fetch user context: " + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        var userInfo = {
+                            UserId: (data && data.d && data.d.UserId) || "UNKNOWN",
+                            FullName: (data && data.d && data.d.FullName) || "",
+                            Email: (data && data.d && data.d.Email) || "",
+                            IsAdmin: !!(data && data.d && data.d.IsAdmin),
+                            IsManager: !!(data && data.d && data.d.IsManager),
+                            IsEndUser: !!(data && data.d && data.d.IsEndUser),
+                            Authorizations: (data && data.d && data.d.Authorizations) || []
+                        };
 
-            Log.info("UserContext (mock) for: " + userInfo.UserId);
-            return Promise.resolve(userInfo);
+                        // Cache the result
+                        that._userInfo = userInfo;
+                        that._cacheExpiry = Date.now() + that._cacheTTL;
+
+                        Log.info("UserContext fetched from S/4HANA for: " + userInfo.UserId);
+                        return userInfo;
+                    })
+                    .catch(function (error) {
+                        Log.error("Error fetching user context from S/4HANA: " + error.message);
+                        // Return minimal default context (read-only user)
+                        return {
+                            UserId: "ANONYMOUS",
+                            FullName: "",
+                            Email: "",
+                            IsAdmin: false,
+                            IsManager: false,
+                            IsEndUser: true,
+                            Authorizations: []
+                        };
+                    });
+            } else {
+                // Local development: Return mock admin user for testing
+                var userInfo = {
+                    UserId: "DEVUSER",
+                    FullName: "Developer User",
+                    Email: "dev@example.com",
+                    IsAdmin: true,
+                    IsManager: true,
+                    IsEndUser: true,
+                    Authorizations: []
+                };
+
+                // Cache the result
+                that._userInfo = userInfo;
+                that._cacheExpiry = Date.now() + that._cacheTTL;
+
+                Log.info("UserContext (mock) for local development: " + userInfo.UserId);
+                return Promise.resolve(userInfo);
+            }
         },
 
         /**

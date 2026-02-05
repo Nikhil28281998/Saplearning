@@ -22,8 +22,7 @@
 		"requires": {
 			"db": {
 				"kind": "sql"
-			},
-			"auth": "dummy"
+			}
 		},
 		"features": {
 			"serve_on_root": false

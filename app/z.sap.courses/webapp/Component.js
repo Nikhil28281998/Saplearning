@@ -161,15 +161,33 @@ sap.ui.define([
         _startupHealthCheck: function(){
             var that = this;
             var ok = true;
-            // Check OData service availability (SAPLearningService)
+            
+            // Determine service path based on environment
+            var isS4Hana = window.location.hostname !== 'localhost' && 
+                          window.location.hostname !== '127.0.0.1';
+            var metadataPath = isS4Hana ? 
+                '/sap/opu/odata/sap/Z_COURSES_MAIN_SRV/$metadata' : 
+                '/service/SAPLearningService/$metadata';
+            var dataPath = isS4Hana ? 
+                '/sap/opu/odata/sap/Z_COURSES_MAIN_SRV/TrainingsSet?$top=1' : 
+                '/service/SAPLearningService/Trainings?$top=1';
+            
+            // Check OData service availability
             var checks = [
-                fetch('/service/SAPLearningService/$metadata').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; }),
-                fetch('/service/SAPLearningService/Trainings?$top=1').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; })
+                fetch(metadataPath).then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; }),
+                fetch(dataPath).then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; })
             ];
             Promise.all(checks).then(function(){
                 if (!ok){
                     try{
-                        var dlg = new Dialog({ title: 'Startup Issue', content: [ new sap.m.Text({ text: 'S/4 OData service not reachable. Please check system configuration.' }) ], buttons: [ new Button({ text: 'Close', press: function(){ dlg.close(); } }) ] });
+                        var serviceType = isS4Hana ? 'S/4 ABAP OData service' : 'CAP service';
+                        var dlg = new Dialog({ 
+                            title: 'Startup Issue', 
+                            content: [ new sap.m.Text({ 
+                                text: serviceType + ' not reachable. Please check system configuration.' 
+                            }) ], 
+                            buttons: [ new Button({ text: 'Close', press: function(){ dlg.close(); } }) ] 
+                        });
                         dlg.open();
                     }catch(_){/*noop*/}
                 }
