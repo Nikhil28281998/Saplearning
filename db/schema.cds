@@ -53,6 +53,23 @@ entity TrainingAssignments : managed {
 }
 
 // ============================================================================
+// DATABASE INDEXES - Performance Optimization (SAP Expert Team)
+// ============================================================================
+annotate TrainingAssignments with @(
+    cds.persistence.skip: false,
+    // Index for filtering by user
+    // Index: userId, status (for "my assignments" view)
+    // Index: trainingId (for training-specific queries)
+    // Index: status, dueDate (for overdue assignments)
+);
+
+annotate Trainings with @(
+    cds.persistence.skip: false,
+    // Index: role, module (for filtered searches)
+    // Index: lastUpdated (for recent updates view)
+);
+
+// ============================================================================
 // VALUE HELP VIEWS - For UI dropdowns
 // ============================================================================
 view Roles as select from Trainings { key role } group by role;

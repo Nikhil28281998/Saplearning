@@ -6,10 +6,10 @@
 	"license": "UNLICENSED",
 	"dependencies": {
 		"@sap/cds": "^8",
+		"cors": "^2.8.6",
 		"express": "^4",
-		"express-rate-limit": "^7",
-		"sqlite3": "^5",
-		"cors": "^2"
+		"express-rate-limit": "^7.5.1",
+		"sqlite3": "^5.1.7"
 	},
 	"devDependencies": {
 		"@sap/cds-dk": "^8"
@@ -22,7 +22,38 @@
 	"cds": {
 		"requires": {
 			"db": {
-				"kind": "sql"
+				"kind": "sql",
+				"[production]": {
+					"kind": "hana",
+					"credentials": {
+						"schema": "${env.HDI_SCHEMA}"
+					}
+				}
+			},
+			"auth": {
+				"[production]": {
+					"kind": "xsuaa"
+				},
+				"[development]": {
+					"kind": "dummy",
+					"users": {
+						"admin@test.com": {
+							"password": "admin",
+							"roles": ["Z_COURSES_ADMIN"],
+							"attr": { "sapUsername": "ADMIN001" }
+						},
+						"manager@test.com": {
+							"password": "manager",
+							"roles": ["Z_COURSES_MANAGER"],
+							"attr": { "sapUsername": "MGR001" }
+						},
+						"user@test.com": {
+							"password": "user",
+							"roles": ["Z_COURSES_USER"],
+							"attr": { "sapUsername": "USER001" }
+						}
+					}
+				}
 			}
 		},
 		"features": {

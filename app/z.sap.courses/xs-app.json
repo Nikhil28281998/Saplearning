@@ -1,12 +1,22 @@
 {
   "welcomeFile": "/index.html",
-  "authenticationMethod": "none",
+  "authenticationMethod": "route",
+  "logout": {
+    "logoutEndpoint": "/do/logout"
+  },
   "routes": [
+    {
+      "source": "^/service/(.*)$",
+      "target": "/service/$1",
+      "destination": "backend",
+      "authenticationType": "xsuaa",
+      "csrfProtection": true
+    },
     {
       "source": "^/sap/opu/odata/(.*)$",
       "target": "/sap/opu/odata/$1",
-      "authenticationType": "none",
-      "csrfProtection": false
+      "authenticationType": "xsuaa",
+      "csrfProtection": true
     },
     {
       "source": "^/resources/(.*)$",
@@ -24,7 +34,7 @@
       "source": "^(.*)$",
       "target": "$1",
       "service": "html5-apps-repo-rt",
-      "authenticationType": "none"
+      "authenticationType": "xsuaa"
     }
   ]
 }
