@@ -161,10 +161,10 @@ sap.ui.define([
         _startupHealthCheck: function(){
             var that = this;
             var ok = true;
-            // Check S/4 OData service availability (Z_SLC_MAIN_SRV)
+            // Check OData service availability (SAPLearningService)
             var checks = [
-                fetch('/sap/opu/odata/sap/Z_SLC_MAIN_SRV/$metadata').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; }),
-                fetch('/sap/opu/odata/sap/Z_SLC_MAIN_SRV/Trainings?$top=1').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; })
+                fetch('/service/SAPLearningService/$metadata').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; }),
+                fetch('/service/SAPLearningService/Trainings?$top=1').then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; })
             ];
             Promise.all(checks).then(function(){
                 if (!ok){
