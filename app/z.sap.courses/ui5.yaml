@@ -25,8 +25,3 @@ server:
         port: 35729
         path: webapp
         delay: 300
-    - name: ui5-middleware-livereload
-      afterMiddleware: compression
-      configuration:
-        port: 35729
-        path: webapp
