@@ -2,52 +2,58 @@ using { managed } from '@sap/cds/common';
 
 namespace Learning_Data;
 
-// Trainings catalogue (formerly Entity1)
+// ============================================================================
+// TRAINING CATALOG - External training course data
+// ============================================================================
+// Stores SAP Learning Hub course URLs and metadata
+// This data is external to SAP and must be maintained in custom table
+// ============================================================================
 entity Trainings : managed {
     key ID         : UUID;
         url        : String;
-        role       : String;
+        role       : String;      // Target role: Admin, Manager, User
         title      : String;
-        module     : String;      // normalized from Module
+        module     : String;      // SAP module (MM, SD, FICO, etc.)
         description: String;
-        lastUpdated: DateTime;    // proper DateTime
-        sapHelpLink: String;
+        lastUpdated: DateTime;
+        sapHelpLink: String;      // Link to SAP Help documentation
 }
 
-// Assignments linking Users to Trainings
+// ============================================================================
+// TRAINING ASSIGNMENTS - Who is assigned what, with tracking
+// ============================================================================
+// Links SAP users (from USR21) to training courses with completion tracking
+// Authorization handled by PFCG roles - no manager hierarchy needed!
+// ============================================================================
 entity TrainingAssignments : managed {
     key ID         : UUID;
-        // association to the training record
+        // Foreign key to Trainings
         trainingId  : UUID;
         training    : Association to Trainings on training.ID = trainingId;
 
-        // association to the user (FIXED: added proper Association)
-        userId      : UUID;
-        user        : Association to Users on user.ID = userId;
+        // SAP user ID (from USR21 - standard SAP user table)
+        userId      : String(12);  // SYUNAME format (12 char max)
+        userName    : String(80);  // Cached from ADRP for display/search
+        userEmail   : String(241); // Cached from ADR6 for display/search
 
-        // denormalized fields kept for convenience/search
+        // Denormalized fields from training for search/filter performance
         title       : String;
         role        : String;
         module      : String;
         url         : String;
 
+        // Assignment tracking
         dueDate     : DateTime;
-        status      : String;
-        completionDate : DateTime;   // renamed from completedAt
+        status      : String;       // Assigned, In Progress, Completed
+        completionDate : DateTime;
+        
+        // Assignment creator (manager who assigned this training)
+        assignedBy  : String(12);   // SYUNAME of the assigner
+        assignedByName : String(80); // Name for display
 }
 
-// Distinct value help sources via views using GROUP BY
+// ============================================================================
+// VALUE HELP VIEWS - For UI dropdowns
+// ============================================================================
 view Roles as select from Trainings { key role } group by role;
 view Modules as select from Trainings { key module, role } group by module, role;
-
-// Users managed by Admin; Users are tied to a Manager
-// email maps to req.user.id from XSUAA token for cloud identity
-// role: Admin | Manager | User (stored in DB, not in XSUAA scopes)
-entity Users {
-    key ID       : UUID;
-        name     : String(255);
-        email    : String(255) @assert.unique;  // FIXED: added uniqueness constraint
-        role     : String(20) @assert.range enum { Admin; Manager; User };  // FIXED: enum validation
-        managerId: UUID;      // for Manager hierarchy validation
-        manager  : Association to Users on manager.ID = managerId;  // FIXED: self-reference association
-}
