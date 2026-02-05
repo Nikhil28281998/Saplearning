@@ -9,19 +9,24 @@ server:
     - name: fiori-tools-proxy
       afterMiddleware: compression
       configuration:
-        ignoreCertErrors: false
+        ignoreCertError: false
+        backend:
+          - path: /service
+            url: http://localhost:4004
+            destination: null
         ui5:
           path:
             - /resources
             - /test-resources
           url: https://ui5.sap.com
-        backend:
-          - path: /service
-            url: http://localhost:4004
-            authenticationType: none
     - name: fiori-tools-appreload
       afterMiddleware: compression
       configuration:
         port: 35729
         path: webapp
         delay: 300
+    - name: ui5-middleware-livereload
+      afterMiddleware: compression
+      configuration:
+        port: 35729
+        path: webapp
