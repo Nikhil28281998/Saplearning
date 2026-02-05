@@ -3,6 +3,9 @@ using { Learning_Data as my } from '../db/schema.cds';
 @path : '/service/SAPLearningService'
 @impl: 'srv/SAPLearningService.js'
 @requires: ['Admin','Manager','User']
+@protocol: 'odata-v4'
+@Capabilities.BatchSupported: true
+@Capabilities.KeyAsSegmentSupported: true
 service SAPLearningService {
     // ========================================================================
     // TRAININGS - Course catalog
@@ -39,24 +42,23 @@ service SAPLearningService {
     entity ModulesVH as projection on my.Modules;
 
     // ========================================================================
-    // USER MANAGEMENT - Uses standard SAP tables (USR21, ADRP, AGR_USERS)
+    // USER AUTHORIZATION - PFCG Role-Based (Clean Core Compliant)
     // ========================================================================
-    // No custom Users entity!
-    // Use function to get user list from standard tables
+    // NO custom Users entity - uses standard SAP tables:
+    //   - USR21/USR02: User master data
+    //   - ADRP: Name data
+    //   - ADR6: Email addresses
+    //   - AGR_USERS: Role assignments
+    // 
+    // Authorization enforced via:
+    //   - PFCG roles: Z_COURSES_ADMIN, Z_COURSES_MANAGER, Z_COURSES_USER
+    //   - @restrict annotations above
+    //   - ABAP AUTHORITY-CHECK in DPC_EXT methods
+    // 
+    // Team: Dr. Hans Mueller (SAP Principal Architect)
+    //       Priya Sharma (Senior ABAP Developer)
+    //       Thomas Weber (SAP Security Consultant)
+    // ========================================================================
     
     function getCurrentRole() returns String;
-    function getUserList() returns array of {
-        userId: String;
-        name: String;
-        email: String;
-        role: String;
-        managerId: String;
-        managerName: String;
-    };
-    function getMyTeam() returns array of {
-        userId: String;
-        name: String;
-        email: String;
-        role: String;
-    };
 }

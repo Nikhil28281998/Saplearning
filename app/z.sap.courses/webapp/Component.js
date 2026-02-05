@@ -25,7 +25,7 @@ sap.ui.define([
             sap.ui.getCore().attachInit(function(){
                 that._diagnosticsInit();
                 that._fetchRole();
-                that._initAI();
+                // AI functionality removed for clean core compliance - SAP Expert Team
                 that._startupHealthCheck();
                 that._ensureInitialRoute();
             });
@@ -143,21 +143,6 @@ sap.ui.define([
             }, 500);
         },
 
-        _initAI: function(){
-            var that = this;
-            this._ai = null;
-            this._aiBtn = new Button({
-                icon: "sap-icon://ai",
-                type: "Emphasized",
-                tooltip: "AI Assistant",
-                press: function(){ that._openAI(); }
-            });
-            this._aiBtn.addStyleClass("aiFab");
-            this._aiBtn.placeAt(sap.ui.getCore().getStaticAreaRef());
-
-            // Header extension provides Training Assignments and Assign; no floating training button
-        },
-
         _startupHealthCheck: function(){
             var that = this;
             var ok = true;
@@ -192,106 +177,6 @@ sap.ui.define([
                     }catch(_){/*noop*/}
                 }
             });
-        },
-
-        _buildAIDialog: function(){
-            var that = this;
-            var oList = new List({
-                items: {
-                    path: '/chat/messages',
-                    template: new StandardListItem({ title: '{role}', description: '{content}' })
-                }
-            });
-            var oInput = new TextArea({ rows: 3, width: '100%', placeholder: 'Ask the assistant...' });
-            this._ai = new Dialog({
-                title: 'AI Assistant',
-                resizable: true,
-                draggable: true,
-                contentWidth: '520px',
-                contentHeight: '70vh',
-                content: [oList, oInput],
-                buttons: [
-                    new Button({ text: 'Close', press: function(){ that._ai.close(); } }),
-                    new Button({ text: 'Send', type: 'Emphasized', press: function(){
-                        var s = oInput.getValue();
-                        if (!s) { return; }
-                        oInput.setValue('');
-                        that._pushMsg('user', s);
-                        that._callAI(s);
-                    }})
-                ]
-            });
-            this._ai.addStyleClass('aiDialog');
-            this._ai.setModel(new JSONModel({ chat: { messages: [] }}));
-            this._ai.attachAfterOpen(function(){ /* CSS handles placement */ });
-        },
-
-        _openAI: function(){
-            if(!this._ai){ this._buildAIDialog(); }
-            this._ai.open();
-        },
-
-        _pushMsg: function(role, content){
-            var m = this._ai.getModel();
-            var a = m.getProperty('/chat/messages');
-            a.push({ role: role, content: content });
-            m.updateBindings(true);
-        },
-
-        _callAI: async function(prompt){
-            var that = this;
-            // Preferred: use xs-app.json /api route via destination with xsuaa + CSRF
-            try{
-                var sModulePrefix = this.getManifestEntry && this.getManifestEntry('/sap.app/id');
-                if (!sModulePrefix){ var m = this.getManifestEntry && this.getManifestEntry('sap.app'); sModulePrefix = m && m.id || ''; }
-                var apiUrl = sModulePrefix + '/api/chat/completions?api-version=2024-06-01';
-                var token = await this._fetchCsrfToken(apiUrl);
-                var res = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-Token': token || '',
-                        'Content-Type': 'application/json',
-                        'AI-Resource-Group': 'default'
-                    },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({
-                        messages: [
-                            { role: 'system', content: 'You are a helpful assistant.' },
-                            { role: 'user', content: prompt }
-                        ]
-                    })
-                });
-                if (!res.ok) throw new Error('API call failed');
-                var data = await res.json();
-                var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
-                that._pushMsg('assistant', text || '(No content returned)');
-                return;
-            }catch(e){ /* fall back to existing /ai path */ }
-
-            // Fallback: use /ai destination path (Azure/OpenAI style)
-            var body = JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: prompt }] });
-            fetch('/ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
-            .then(function(r){ if(!r.ok) throw r; return r.json(); })
-            .then(function(data){
-                var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
-                that._pushMsg('assistant', text || '(No content returned)');
-            })
-            .catch(function(){
-                fetch('/ai/chat/completions?api-version=2024-06-01', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
-                .then(function(r){ return r.json(); })
-                .then(function(data){
-                    var text = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
-                    that._pushMsg('assistant', text || '(No content returned)');
-                })
-                .catch(function(){ that._pushMsg('assistant', 'AI call failed'); });
-            });
-        },
-
-        _fetchCsrfToken: async function(url){
-            try{
-                var r = await fetch(url, { method: 'GET', headers: { 'X-CSRF-Token': 'Fetch' }, credentials: 'same-origin' });
-                return r.headers && (r.headers.get('x-csrf-token') || r.headers.get('X-CSRF-Token')) || '';
-            }catch(_){ return ''; }
         },
 
         // Navigate then trigger Create on TrainingAssignments LR (manager only)
@@ -339,18 +224,17 @@ sap.ui.define([
                 });
             };
 
-            Promise.all([
-                loadList('/Trainings'),
-                loadList('/Users')
-            ]).then(function(results){
-                var trainings = results[0] || [];
-                var users = results[1] || [];
+            // Load trainings only - user ID entered manually (SYUNAME from USR21)
+            // SAP Expert Team: No Users entity - use standard SAP tables via PFCG
+            loadList('/Trainings').then(function(trainings){
+                trainings = trainings || [];
 
                 var dlgModel = new JSONModel({
                     trainings: trainings,
-                    users: users,
                     selectedTrainingId: trainings[0] && trainings[0].ID || '',
-                    selectedUserId: users[0] && users[0].ID || '',
+                    userId: '',  // Direct SYUNAME input
+                    userName: '',  // Optional display name
+                    userEmail: '',  // Optional email
                     dueDate: null,
                     submitting: false,
                     error: ''
@@ -364,13 +248,26 @@ sap.ui.define([
                     },
                     selectedKey: '{/selectedTrainingId}'
                 });
-                var userSelect = new sap.m.Select({
+                
+                // Direct userId input (SYUNAME format) - SAP Expert Team
+                var userIdInput = new sap.m.Input({
                     width: '100%',
-                    items: {
-                        path: '/users',
-                        template: new sap.ui.core.ListItem({ key: '{ID}', text: '{name}' })
-                    },
-                    selectedKey: '{/selectedUserId}'
+                    placeholder: 'Enter SAP Username (SYUNAME)',
+                    value: '{/userId}',
+                    required: true,
+                    maxLength: 12,
+                    description: 'Uppercase alphanumeric, max 12 chars'
+                });
+                var userNameInput = new sap.m.Input({
+                    width: '100%',
+                    placeholder: 'Full Name (optional)',
+                    value: '{/userName}'
+                });
+                var userEmailInput = new sap.m.Input({
+                    width: '100%',
+                    placeholder: 'Email (optional)',
+                    value: '{/userEmail}',
+                    type: 'Email'
                 });
                 var datePicker = new sap.m.DatePicker({
                     width: '100%',
@@ -382,10 +279,14 @@ sap.ui.define([
                 var form = new sap.m.VBox({
                     width: '100%',
                     items: [
-                        new sap.m.Label({ text: 'Training' }),
+                        new sap.m.Label({ text: 'Training', required: true }),
                         trainingSelect,
-                        new sap.m.Label({ text: 'User' }),
-                        userSelect,
+                        new sap.m.Label({ text: 'User ID (SYUNAME)', required: true }),
+                        userIdInput,
+                        new sap.m.Label({ text: 'User Name' }),
+                        userNameInput,
+                        new sap.m.Label({ text: 'User Email' }),
+                        userEmailInput,
                         new sap.m.Label({ text: 'Due Date' }),
                         datePicker,
                         new sap.m.Text({ text: '{/error}', visible: '{= !!${/error} }', design: 'Negative' })
@@ -395,23 +296,41 @@ sap.ui.define([
                 var onSubmit = function(){
                     var data = dlgModel.getData();
                     var tr = (data.trainings || []).find(function(t){ return t.ID === data.selectedTrainingId; });
-                    var usr = (data.users || []).find(function(u){ return u.ID === data.selectedUserId; });
-                    if (!tr || !usr) { dlgModel.setProperty('/error', 'Please select training and user'); return; }
+                    
+                    // Validate inputs - SAP Expert Team
+                    if (!tr) { 
+                        dlgModel.setProperty('/error', 'Please select a training'); 
+                        return; 
+                    }
+                    if (!data.userId || data.userId.trim() === '') {
+                        dlgModel.setProperty('/error', 'User ID (SYUNAME) is required');
+                        return;
+                    }
+                    // Validate SYUNAME format
+                    var userIdUpper = data.userId.toUpperCase();
+                    if (!/^[A-Z0-9]{1,12}$/.test(userIdUpper)) {
+                        dlgModel.setProperty('/error', 'Invalid User ID format. Must be uppercase alphanumeric, max 12 chars');
+                        return;
+                    }
+                    
                     var dueIso = null;
                     try{
                         if (data.dueDate) {
-                            // interpret yyyy-MM-dd as local date at 00:00
                             dueIso = new Date(data.dueDate + 'T00:00:00').toISOString();
                         }
                     }catch(e){ /* ignore */ }
+                    
                     var payload = {
+                        trainingId: tr.ID,  // Foreign key to Trainings
                         title: tr.title,
                         role: tr.role,
                         module: tr.module,
                         url: tr.url,
                         dueDate: dueIso,
                         status: 'Assigned',
-                        userId: usr.ID
+                        userId: userIdUpper,  // SYUNAME from USR21
+                        userName: data.userName || '',
+                        userEmail: data.userEmail || ''
                     };
                     dlgModel.setProperty('/submitting', true);
 

@@ -41,15 +41,6 @@
             "additionalParameters": "allowed"
           }
         },
-        "users-management": {
-          "semanticObject": "ZLEARNING",
-          "action": "users",
-          "title": "{{usersTileTitle}}",
-          "signature": {
-            "parameters": {},
-            "additionalParameters": "allowed"
-          }
-        },
         "my-trainings": {
           "semanticObject": "ZLEARNING",
           "action": "mytrainings",
