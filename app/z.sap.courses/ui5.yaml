@@ -18,6 +18,7 @@ server:
         backend:
           - path: /service
             url: http://localhost:4004
+            authenticationType: none
     - name: fiori-tools-appreload
       afterMiddleware: compression
       configuration:

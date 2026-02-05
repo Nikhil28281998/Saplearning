@@ -22,11 +22,7 @@
 			"db": {
 				"kind": "sql"
 			},
-			"auth": {
-				"[development]": {
-					"kind": "mocked-auth"
-				}
-			}
+			"auth": "dummy"
 		},
 		"features": {
 			"serve_on_root": false
