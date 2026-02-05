@@ -40,9 +40,10 @@ sap.ui.define([
         },
 
         /**
-         * Fetch current user context from S/4 backend
+         * Fetch current user context from backend
          * 
-         * Calls /sap/opu/odata/sap/Z_COURSES_USERCTX_SRV/UserContextSet('ME')
+         * For local CAP development, returns mock admin user.
+         * For S/4HANA deployment, call /sap/opu/odata/sap/Z_COURSES_USERCTX_SRV/UserContextSet('ME')
          * 
          * @returns {Promise<Object>} User context with role and permissions
          * @example
@@ -59,51 +60,24 @@ sap.ui.define([
                 return Promise.resolve(this._userInfo);
             }
 
-            return fetch("/sap/opu/odata/sap/Z_SLC_USERCTX_SRV/UserContextSet('ME')", {
-                method: "GET",
-                headers: {
-                    "Accept": "application/json",
-                    "X-CSRF-Token": "Fetch"
-                },
-                credentials: "include" // Include S/4 session cookies
-            })
-                .then(function (response) {
-                    if (!response.ok) {
-                        throw new Error("Failed to fetch user context: " + response.status);
-                    }
-                    return response.json();
-                })
-                .then(function (data) {
-                    var userInfo = {
-                        UserId: (data && data.UserId) || "UNKNOWN",
-                        FullName: (data && data.FullName) || "",
-                        Email: (data && data.Email) || "",
-                        IsAdmin: !!(data && data.IsAdmin),
-                        IsManager: !!(data && data.IsManager),
-                        IsEndUser: !!(data && data.IsEndUser),
-                        Authorizations: (data && data.Authorizations) || []
-                    };
+            // For local development with CAP, return mock admin user
+            // TODO: When deploying to S/4HANA, implement actual OData call to Z_COURSES_USERCTX_SRV
+            var userInfo = {
+                UserId: "DEVUSER",
+                FullName: "Developer User",
+                Email: "dev@example.com",
+                IsAdmin: true,
+                IsManager: true,
+                IsEndUser: true,
+                Authorizations: []
+            };
 
-                    // Cache the result
-                    that._userInfo = userInfo;
-                    that._cacheExpiry = Date.now() + that._cacheTTL;
+            // Cache the result
+            that._userInfo = userInfo;
+            that._cacheExpiry = Date.now() + that._cacheTTL;
 
-                    Log.info("UserContext fetched for: " + userInfo.UserId);
-                    return userInfo;
-                })
-                .catch(function (error) {
-                    Log.error("Error fetching user context: " + error.message);
-                    // Return minimal default context (read-only user)
-                    return {
-                        UserId: "ANONYMOUS",
-                        FullName: "",
-                        Email: "",
-                        IsAdmin: false,
-                        IsManager: false,
-                        IsEndUser: true,
-                        Authorizations: []
-                    };
-                });
+            Log.info("UserContext (mock) for: " + userInfo.UserId);
+            return Promise.resolve(userInfo);
         },
 
         /**
