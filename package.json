@@ -21,6 +21,23 @@
 		"requires": {
 			"db": {
 				"kind": "sql"
+			},
+			"auth": {
+				"kind": "mocked",
+				"users": {
+					"admin": {
+						"password": "admin",
+						"roles": ["Admin"]
+					},
+					"manager": {
+						"password": "manager",
+						"roles": ["Manager"]
+					},
+					"user": {
+						"password": "user",
+						"roles": ["User"]
+					}
+				}
 			}
 		},
 		"features": {
