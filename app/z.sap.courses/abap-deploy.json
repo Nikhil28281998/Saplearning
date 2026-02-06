@@ -1,15 +1,15 @@
 {
   "target": {
-    "url": "",
-    "client": "",
+    "url": "https://your-s4hana-server:port",
+    "client": "100",
     "auth": "basic",
     "scp": false
   },
   "app": {
     "name": "Z_COURSES_UI",
     "description": "SAP Learning Courses UI",
-    "package": "ZTMP",
-    "transport": ""
+    "package": "Z_COURSES",
+    "transport": "NPLK9#####"
   },
   "exclude": [
     "node_modules/",
