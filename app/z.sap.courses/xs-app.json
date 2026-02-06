@@ -6,17 +6,11 @@
   },
   "routes": [
     {
-      "source": "^/service/(.*)$",
-      "target": "/service/$1",
-      "destination": "backend",
-      "authenticationType": "xsuaa",
-      "csrfProtection": true
-    },
-    {
-      "source": "^/sap/opu/odata/(.*)$",
-      "target": "/sap/opu/odata/$1",
-      "authenticationType": "xsuaa",
-      "csrfProtection": true
+      "source": "^/sap/opu/odata/sap/(.*)$",
+      "target": "/sap/opu/odata/sap/$1",
+      "localDir": ".",
+      "authenticationType": "none",
+      "csrfProtection": false
     },
     {
       "source": "^/resources/(.*)$",
@@ -33,8 +27,8 @@
     {
       "source": "^(.*)$",
       "target": "$1",
-      "service": "html5-apps-repo-rt",
-      "authenticationType": "xsuaa"
+      "localDir": ".",
+      "authenticationType": "none"
     }
   ]
 }

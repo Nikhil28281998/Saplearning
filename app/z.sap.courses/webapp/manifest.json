@@ -53,10 +53,6 @@
       }
     }
   },
-  "sap.cloud": {
-    "public": true,
-    "service": "sap.learning.courses"
-  },
   "sap.ui": {
     "technology": "UI5",
     "icons": {

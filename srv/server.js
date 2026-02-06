@@ -39,7 +39,7 @@ cds.on('bootstrap', (app) => {
       app.use('/service/', limiter);
       cds.log('security').info('Rate limiting enabled');
     } catch (err) {
-      cds.log('warn')._('express-rate-limit not installed, skipping rate limiting');
+      cds.log('warn', 'express-rate-limit not installed, skipping rate limiting');
     }
   }
   
@@ -77,7 +77,7 @@ cds.on('bootstrap', (app) => {
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-Token']
     }));
     
-    cds.log('info')._('CORS enabled for development');
+    cds.log('info', 'CORS enabled for development');
   }
   
   // ========================================================================
