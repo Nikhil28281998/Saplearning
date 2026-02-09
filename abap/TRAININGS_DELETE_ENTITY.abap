@@ -8,6 +8,11 @@ METHOD trainings_delete_entity.
 
   " Read key
   READ TABLE it_key_tab WITH KEY name = 'ID' INTO DATA(ls_key).
+  IF sy-subrc <> 0.
+    " Try case-sensitive 'Id'
+    READ TABLE it_key_tab WITH KEY name = 'Id' INTO ls_key.
+  ENDIF.
+  
   IF sy-subrc = 0.
     lv_id = ls_key-value.
   ELSE.

@@ -9,7 +9,19 @@ METHOD trainings_update_entity.
         lv_id       TYPE char36.
 
   " Read key
+  " Debug: Check what key name is actually passed
+  DATA(lv_key_count) = lines( it_key_tab ).
+  IF lv_key_count > 0.
+    READ TABLE it_key_tab INDEX 1 INTO DATA(ls_key_debug).
+    " Check if key name is 'ID' or 'Id' (case sensitive)
+  ENDIF.
+  
   READ TABLE it_key_tab WITH KEY name = 'ID' INTO DATA(ls_key).
+  IF sy-subrc <> 0.
+    " Try lowercase 'id'
+    READ TABLE it_key_tab WITH KEY name = 'Id' INTO ls_key.
+  ENDIF.
+  
   IF sy-subrc = 0.
     lv_id = ls_key-value.
   ELSE.
