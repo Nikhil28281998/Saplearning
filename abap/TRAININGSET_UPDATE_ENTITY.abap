@@ -15,14 +15,14 @@ METHOD trainingset_update_entity.
   ELSE.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
-        textid            = /iwbep/cx_mgw_busi_exception=>bad_request
+        textid            = /iwbep/cx_mgw_busi_exception=>business_error
         message           = 'Training ID is required'
-        http_status_code  = /iwbep/cx_mgw_busi_exception=>gcs_http_status_codes-bad_request.
+        http_status_code  = 400.
   ENDIF.
 
   " Get existing record
-  SELECT SINGLE * FROM zcourses INTO ls_training
-    WHERE id = lv_id.
+  SELECT SINGLE * FROM zcourses INTO @ls_training
+    WHERE id = @lv_id.
   
   IF sy-subrc <> 0.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
@@ -59,7 +59,7 @@ METHOD trainingset_update_entity.
   ls_training-last_updated = sy-datum.
 
   " Update database
-  UPDATE zcourses FROM ls_training.
+  UPDATE zcourses FROM @ls_training.
   
   IF sy-subrc = 0.
     COMMIT WORK.
@@ -79,9 +79,9 @@ METHOD trainingset_update_entity.
     ROLLBACK WORK.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
-        textid            = /iwbep/cx_mgw_busi_exception=>internal_server_error
+        textid            = /iwbep/cx_mgw_busi_exception=>business_error
         message           = 'Failed to update training'
-        http_status_code  = /iwbep/cx_mgw_busi_exception=>gcs_http_status_codes-internal_server_error.
+        http_status_code  = 500.
   ENDIF.
 
 ENDMETHOD.

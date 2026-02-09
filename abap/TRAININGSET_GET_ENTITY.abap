@@ -14,8 +14,8 @@ METHOD trainingset_get_entity.
     lv_id = ls_key-value.
     
     " Get from database
-    SELECT SINGLE * FROM zcourses INTO ls_training
-      WHERE id = lv_id.
+    SELECT SINGLE * FROM zcourses INTO @ls_training
+      WHERE id = @lv_id.
     
     IF sy-subrc = 0.
       " Map to entity
@@ -33,9 +33,9 @@ METHOD trainingset_get_entity.
       " Not found
       RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
         EXPORTING
-          textid            = /iwbep/cx_mgw_busi_exception=>resource_not_found
+          textid            = /iwbep/cx_mgw_busi_exception=>business_error
           message           = 'Training not found'
-          http_status_code  = /iwbep/cx_mgw_busi_exception=>gcs_http_status_codes-not_found.
+          http_status_code  = 404.
     ENDIF.
   ENDIF.
 

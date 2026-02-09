@@ -20,7 +20,7 @@ METHOD trainingset_get_entityset.
   ENDIF.
 
   READ TABLE it_filter_select_options 
-    WITH KEY property = 'MODULE' 
+    WITH KEY property = 'SAP_MODULE' 
     INTO DATA(ls_filter_module).
   IF sy-subrc = 0.
     READ TABLE ls_filter_module-select_options INDEX 1 INTO DATA(ls_module_opt).
@@ -28,14 +28,14 @@ METHOD trainingset_get_entityset.
   ENDIF.
 
   " Query database with filters
-  SELECT * FROM zcourses INTO TABLE lt_training
-    WHERE ( role = lv_role OR lv_role IS INITIAL )
-      AND ( module = lv_module OR lv_module IS INITIAL )
+  SELECT * FROM zcourses INTO TABLE @lt_training
+    WHERE ( role = @lv_role OR @lv_role IS INITIAL )
+      AND ( sap_module = @lv_module OR @lv_module IS INITIAL )
     ORDER BY last_updated DESCENDING.
 
   IF sy-subrc = 0.
     " Convert to OData entity format
-    LOOP AT lt_training INTO ls_training.
+    LOOP AT @lt_training INTO @ls_training.
       CLEAR ls_entity.
       ls_entity-id = ls_training-id.
       ls_entity-url = ls_training-url.

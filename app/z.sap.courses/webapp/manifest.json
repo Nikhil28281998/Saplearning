@@ -21,7 +21,7 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "/sap/opu/odata/sap/ZCOURSES_SRV_0001/",
+        "uri": "/sap/opu/odata/sap/ZCOURSES_SRV/",
         "type": "OData",
         "settings": {
           "annotations": [],

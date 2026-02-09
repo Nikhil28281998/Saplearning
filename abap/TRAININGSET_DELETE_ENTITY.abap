@@ -13,9 +13,9 @@ METHOD trainingset_delete_entity.
   ELSE.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
-        textid            = /iwbep/cx_mgw_busi_exception=>bad_request
+        textid            = /iwbep/cx_mgw_busi_exception=>business_error
         message           = 'Training ID is required'
-        http_status_code  = /iwbep/cx_mgw_busi_exception=>gcs_http_status_codes-bad_request.
+        http_status_code  = 400.
   ENDIF.
 
   " Check if record exists
@@ -25,13 +25,13 @@ METHOD trainingset_delete_entity.
   IF sy-subrc <> 0.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
-        textid            = /iwbep/cx_mgw_busi_exception=>resource_not_found
+        textid            = /iwbep/cx_mgw_busi_exception=>business_error
         message           = 'Training not found'
-        http_status_code  = /iwbep/cx_mgw_busi_exception=>gcs_http_status_codes-not_found.
+        http_status_code  = 404.
   ENDIF.
 
   " Delete from database
-  DELETE FROM zcourses WHERE id = lv_id.
+  DELETE FROM zcourses WHERE id = @lv_id.
   
   IF sy-subrc = 0.
     COMMIT WORK.
@@ -39,9 +39,9 @@ METHOD trainingset_delete_entity.
     ROLLBACK WORK.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
-        textid            = /iwbep/cx_mgw_busi_exception=>internal_server_error
+        textid            = /iwbep/cx_mgw_busi_exception=>business_error
         message           = 'Failed to delete training'
-        http_status_code  = /iwbep/cx_mgw_busi_exception=>gcs_http_status_codes-internal_server_error.
+        http_status_code  = 500.
   ENDIF.
 
 ENDMETHOD.

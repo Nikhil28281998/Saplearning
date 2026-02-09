@@ -5,12 +5,17 @@
 METHOD trainingset_create_entity.
   
   DATA: ls_training TYPE zcourses,
+        ls_entity   TYPE zcl_zcourses_mpc=>ts_training.
+
+  " Read entry data
+  io_data_provider->read_entry_data( IMPORTING es_data = ls_entity ).
+
   IF ls_entity-title IS INITIAL OR ls_entity-url IS INITIAL.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
-        textid            = /iwbep/cx_mgw_busi_exception=>bad_request
+        textid            = /iwbep/cx_mgw_busi_exception=>business_error
         message           = 'Title and URL are required'
-        http_status_code  = /iwbep/cx_mgw_busi_exception=>gcs_http_status_codes-bad_request.
+        http_status_code  = 400.
   ENDIF.
 
   " Generate UUID if not provided
@@ -35,7 +40,7 @@ METHOD trainingset_create_entity.
   ls_training-sap_help_link = ls_entity-sap_help_link.
 
   " Insert into database
-  INSERT zcourses FROM ls_training.
+  INSERT zcourses FROM @ls_training.
   
   IF sy-subrc = 0.
     COMMIT WORK.
@@ -44,9 +49,9 @@ METHOD trainingset_create_entity.
     ROLLBACK WORK.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
-        textid            = /iwbep/cx_mgw_busi_exception=>internal_server_error
+        textid            = /iwbep/cx_mgw_busi_exception=>business_error
         message           = 'Failed to create training'
-        http_status_code  = /iwbep/cx_mgw_busi_exception=>gcs_http_status_codes-internal_server_error.
+        http_status_code  = 500.
   ENDIF.
 
 ENDMETHOD.
