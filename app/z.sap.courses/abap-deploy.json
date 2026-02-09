@@ -5,8 +5,8 @@
   "app": {
     "name": "Z_COURSES_UI",
     "description": "SAP Learning Courses UI",
-    "package": "Z_COURSES",
-    "transport": "NPLK9#####"
+    "package": "$TMP",
+    "transport": ""
   },
   "exclude": [
     "node_modules/",
