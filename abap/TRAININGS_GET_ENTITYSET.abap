@@ -28,10 +28,11 @@ METHOD trainings_get_entityset.
   ENDIF.
 
   " Query database with filters
-  SELECT * FROM zcourses INTO TABLE @lt_training
+  SELECT * FROM zcourses
     WHERE ( role = @lv_role OR @lv_role IS INITIAL )
       AND ( sap_module = @lv_module OR @lv_module IS INITIAL )
-    ORDER BY last_updated DESCENDING.
+    ORDER BY last_updated DESCENDING
+    INTO TABLE @lt_training.
 
   IF sy-subrc = 0.
     " Convert to OData entity format
