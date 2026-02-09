@@ -31,8 +31,7 @@ METHOD trainings_create_entity.
   " Set last updated date
   ls_entity-last_updated = sy-datum.
 
-  " Map to database structure
-  ls_training-mandt = sy-mandt.
+  " Map to database structure (MANDT handled automatically by compiler)
   ls_training-id = ls_entity-id.
   ls_training-url = ls_entity-url.
   ls_training-role = ls_entity-role.

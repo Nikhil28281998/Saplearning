@@ -70,7 +70,7 @@ METHOD trainings_update_entity.
   " Update timestamp
   ls_training-last_updated = sy-datum.
 
-  " Update database - ensure MANDT is preserved from SELECT
+  " Update database
   UPDATE zcourses
     SET title = @ls_training-title,
         url = @ls_training-url,
@@ -79,8 +79,7 @@ METHOD trainings_update_entity.
         description = @ls_training-description,
         sap_help_link = @ls_training-sap_help_link,
         last_updated = @ls_training-last_updated
-    WHERE mandt = @ls_training-mandt
-      AND id = @lv_id.
+    WHERE id = @lv_id.
   
   IF sy-subrc = 0.
     COMMIT WORK.
