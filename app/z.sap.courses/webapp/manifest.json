@@ -21,7 +21,7 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "/service/SAPLearningService/",
+        "uri": "http://localhost:4004/service/SAPLearningService/",
         "type": "OData",
         "settings": {
           "annotations": [],

@@ -1,0 +1,47 @@
+*&---------------------------------------------------------------------*
+*& Method: TRAININGSET_DELETE_ENTITY
+*& Delete training record
+*&---------------------------------------------------------------------*
+METHOD trainingset_delete_entity.
+  
+  DATA: lv_id TYPE char36.
+
+  " Read key
+  READ TABLE it_key_tab WITH KEY name = 'ID' INTO DATA(ls_key).
+  IF sy-subrc = 0.
+    lv_id = ls_key-value.
+  ELSE.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid            = /iwbep/cx_mgw_busi_exception=>bad_request
+        message           = 'Training ID is required'
+        http_status_code  = /iwbep/cx_mgw_busi_exception=>gcs_http_status_codes-bad_request.
+  ENDIF.
+
+  " Check if record exists
+  SELECT SINGLE id FROM zcourses_train INTO @DATA(lv_check)
+    WHERE id = @lv_id.
+  
+  IF sy-subrc <> 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid            = /iwbep/cx_mgw_busi_exception=>resource_not_found
+        message           = 'Training not found'
+        http_status_code  = /iwbep/cx_mgw_busi_exception=>gcs_http_status_codes-not_found.
+  ENDIF.
+
+  " Delete from database
+  DELETE FROM zcourses_train WHERE id = lv_id.
+  
+  IF sy-subrc = 0.
+    COMMIT WORK.
+  ELSE.
+    ROLLBACK WORK.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid            = /iwbep/cx_mgw_busi_exception=>internal_server_error
+        message           = 'Failed to delete training'
+        http_status_code  = /iwbep/cx_mgw_busi_exception=>gcs_http_status_codes-internal_server_error.
+  ENDIF.
+
+ENDMETHOD.
