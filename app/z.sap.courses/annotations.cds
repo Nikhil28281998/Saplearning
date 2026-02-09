@@ -1,14 +1,14 @@
 using { SAPLearningService as S } from '../../srv/service.cds';
 
 // Selection fields for FilterBar
-annotate S.Trainings with @UI.SelectionFields: [ role, module, title ];
+annotate S.Trainings with @UI.SelectionFields: [ role, sap_module, title ];
 
 // List columns (hide ID, keep links clickable)
 annotate S.Trainings with @UI.LineItem: [
 	{ $Type: 'UI.DataFieldWithUrl', Value: title, Url: url, Label: 'Title' },
 	{ $Type: 'UI.DataField',        Value: description,             Label: 'Description' },
 	{ $Type: 'UI.DataField',        Value: lastUpdated,             Label: 'Last Updated' },
-	{ $Type: 'UI.DataField',        Value: module,                  Label: 'Module' },
+	{ $Type: 'UI.DataField',        Value: sap_module,              Label: 'Module' },
 	{ $Type: 'UI.DataField',        Value: role,                    Label: 'Role' },
 	{ $Type: 'UI.DataFieldWithUrl', Value: 'Open SAP Help', Url: sapHelpLink, Label: 'SAP Help' },
 	// Global navigation buttons on the Trainings ListReport toolbar
@@ -22,7 +22,7 @@ annotate S.Trainings with @Capabilities.DeleteRestrictions: { Deletable: true };
 // Object Page: header + sections
 annotate S.Trainings with @UI.HeaderInfo: {
 	Title:       { $Type: 'UI.DataField', Value: title, Label: 'Training Text' },
-	Description: { $Type: 'UI.DataField', Value: module }
+	Description: { $Type: 'UI.DataField', Value: sap_module }
 };
 
 annotate S.Trainings with @UI.Facets: [
@@ -34,7 +34,7 @@ annotate S.Trainings with @UI.FieldGroup #Main: {
 		{ $Type: 'UI.DataField', Value: title,        Label: 'Title' },
 		{ $Type: 'UI.DataField', Value: description,  Label: 'Description' },
 		{ $Type: 'UI.DataField', Value: role,         Label: 'Role' },
-		{ $Type: 'UI.DataField', Value: module,       Label: 'Module' },
+		{ $Type: 'UI.DataField', Value: sap_module,   Label: 'Module' },
 		{ $Type: 'UI.DataField', Value: lastUpdated,  Label: 'Last Updated' },
 		{ $Type: 'UI.DataFieldWithUrl', Value: title, Url: url,         Label: 'Primary Link' },
 		{ $Type: 'UI.DataFieldWithUrl', Value: 'Open SAP Help', Url: sapHelpLink, Label: 'SAP Help' }
@@ -51,23 +51,23 @@ annotate S.Trainings with {
 		]
 	};
 
-	module @Common.ValueList: {
+	sap_module @Common.ValueList: {
 		$Type: 'Common.ValueListType',
 		CollectionPath: 'ModulesVH',
 		Parameters: [
-			{ $Type: 'Common.ValueListParameterIn',  LocalDataProperty: role,   ValueListProperty: 'role' },
-			{ $Type: 'Common.ValueListParameterOut', LocalDataProperty: module, ValueListProperty: 'module' }
+			{ $Type: 'Common.ValueListParameterIn',  LocalDataProperty: role,       ValueListProperty: 'role' },
+			{ $Type: 'Common.ValueListParameterOut', LocalDataProperty: sap_module, ValueListProperty: 'sap_module' }
 		]
 	};
 };
 
 // TrainingAssignments list configuration and action
-annotate S.TrainingAssignments with @UI.SelectionFields: [ role, module, status, dueDate ];
+annotate S.TrainingAssignments with @UI.SelectionFields: [ role, sap_module, status, dueDate ];
 
 annotate S.TrainingAssignments with @UI.LineItem: [
 		{ $Type: 'UI.DataField', Value: title,      Label: 'Title' },
 		{ $Type: 'UI.DataField', Value: role,       Label: 'Role' },
-		{ $Type: 'UI.DataField', Value: module,     Label: 'Module' },
+		{ $Type: 'UI.DataField', Value: sap_module, Label: 'Module' },
 		{ $Type: 'UI.DataField', Value: userId,     Label: 'User' },
 		{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
 		{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },
@@ -87,7 +87,7 @@ annotate S.TrainingAssignments with @UI.FieldGroup #Main: {
 	Data: [
 		{ $Type: 'UI.DataField', Value: title,      Label: 'Title' },
 		{ $Type: 'UI.DataField', Value: role,       Label: 'Role' },
-		{ $Type: 'UI.DataField', Value: module,     Label: 'Module' },
+		{ $Type: 'UI.DataField', Value: sap_module, Label: 'Module' },
 		{ $Type: 'UI.DataField', Value: userId,     Label: 'User' },
 		{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
 		{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },

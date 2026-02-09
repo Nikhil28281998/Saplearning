@@ -13,7 +13,7 @@ entity Trainings : managed {
         url        : String;
         role       : String;      // Target role: Admin, Manager, User
         title      : String;
-        module     : String;      // SAP module (MM, SD, FICO, etc.)
+        sap_module : String;      // SAP module (MM, SD, FICO, etc.) - renamed from 'module' (ABAP reserved word)
         description: String;
         lastUpdated: DateTime;
         sapHelpLink: String;      // Link to SAP Help documentation
@@ -39,7 +39,7 @@ entity TrainingAssignments : managed {
         // Denormalized fields from training for search/filter performance
         title       : String;
         role        : String;
-        module      : String;
+        sap_module  : String;
         url         : String;
 
         // Assignment tracking
@@ -65,7 +65,7 @@ annotate TrainingAssignments with @(
 
 annotate Trainings with @(
     cds.persistence.skip: false,
-    // Index: role, module (for filtered searches)
+    // Index: role, sap_module (for filtered searches)
     // Index: lastUpdated (for recent updates view)
 );
 
@@ -73,4 +73,4 @@ annotate Trainings with @(
 // VALUE HELP VIEWS - For UI dropdowns
 // ============================================================================
 view Roles as select from Trainings { key role } group by role;
-view Modules as select from Trainings { key module, role } group by module, role;
+view Modules as select from Trainings { key sap_module, role } group by sap_module, role;
