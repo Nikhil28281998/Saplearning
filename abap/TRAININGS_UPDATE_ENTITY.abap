@@ -72,12 +72,12 @@ METHOD trainings_update_entity.
 
   " Update database - ensure MANDT is preserved from SELECT
   UPDATE zcourses
-    SET title = @ls_training-title
-        url = @ls_training-url
-        role = @ls_training-role
-        sap_module = @ls_training-sap_module
-        description = @ls_training-description
-        sap_help_link = @ls_training-sap_help_link
+    SET title = @ls_training-title,
+        url = @ls_training-url,
+        role = @ls_training-role,
+        sap_module = @ls_training-sap_module,
+        description = @ls_training-description,
+        sap_help_link = @ls_training-sap_help_link,
         last_updated = @ls_training-last_updated
     WHERE mandt = @ls_training-mandt
       AND id = @lv_id.
