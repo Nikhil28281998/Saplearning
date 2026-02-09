@@ -250,5 +250,13 @@
       "id": "appRootView"
     }
   },
-  "sap.fiori": {}
+  "sap.fiori": {
+    "registrationIds": [
+      "F5765"
+    ],
+    "archeType": "transactional"
+  },
+  "sap.platform.cf": {
+    "ui5VersionNumber": "1.120.13"
+  }
 }
