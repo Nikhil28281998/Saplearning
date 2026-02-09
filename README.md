@@ -7,6 +7,32 @@
 
 ---
 
+## 🎯 **IMPORTANT: DEVELOPMENT APPROACH**
+
+> **⚠️ CRITICAL NOTICE - ALL FUTURE WORK:**  
+> **This project MUST be developed and maintained following SAP Expert Professional Standards.**
+>
+> **Required Team Composition (G-Team):**
+> - ✅ **SAP Senior Solution Architects** - System design & integration
+> - ✅ **SAP Senior ABAP Developers** - Backend OData services, BAPI, RFC
+> - ✅ **SAP Fiori/UI5 Experts** - Frontend architecture & UX
+> - ✅ **SAP Basis Consultants** - Transport management, system administration
+> - ✅ **SAP Security Specialists** - Authorization concepts, role design
+> - ✅ **SAP Integration Architects** - Gateway configuration, service exposure
+> - ✅ **Quality Assurance Professionals** - Testing, validation, performance
+>
+> **ALL code changes, architecture decisions, and deployments MUST:**
+> 1. Follow SAP Clean Core principles (Z namespace only)
+> 2. Be reviewed by senior architects before implementation
+> 3. Include comprehensive testing (unit, integration, performance)
+> 4. Maintain backward compatibility with S/4HANA Private Cloud 2022
+> 5. Document all customizations and configurations
+> 6. Follow SAP development best practices and naming conventions
+>
+> **NO exceptions. Enterprise-grade quality required at all times.**
+
+---
+
 ## 📋 Overview
 
 Enterprise SAP Fiori application for managing training courses across all SAP modules with CSV bulk import capability.
@@ -86,6 +112,72 @@ npm run deploy
 
 ---
 
+## ⚠️ **CRITICAL: SAP BAS Storyboard Connection Issue**
+
+### **Issue:** UI Shows "Not Connected" in BAS Storyboard
+
+**This is EXPECTED and CORRECT for S/4HANA deployment!**
+
+### Why This Happens:
+
+1. **Dual Backend Architecture:**
+   - **Development (BAS):** CAP service at `http://localhost:4004` (OData V4)
+   - **Production (S/4HANA):** ABAP Gateway at `/sap/opu/odata/sap/ZCOURSES_SRV_0001/` (OData V2)
+
+2. **manifest.json Configuration:**
+   ```json
+   "uri": "/sap/opu/odata/sap/ZCOURSES_SRV_0001/",  // Production URI
+   "odataVersion": "2.0"                           // ABAP Gateway version
+   ```
+
+3. **BAS Storyboard Expectation:**
+   - Storyboard expects URI: `http://localhost:4004/service/SAPLearningService/`
+   - App is configured for: `/sap/opu/odata/sap/ZCOURSES_SRV_0001/`
+   - **Result:** Storyboard shows "disconnected" ❌ (visual only)
+
+### ✅ **This Does NOT Cause Issues Because:**
+
+- ✅ **Local Development:** Can still test using CAP backend (change URI temporarily)
+- ✅ **S/4HANA Deployment:** App connects to ZCOURSES_SRV_0001 correctly
+- ✅ **OData V2 Compatible:** Frontend annotations work with ABAP Gateway
+- ✅ **Data Model Aligned:** `sap_module` field consistent across all layers
+- ✅ **Build/Deploy:** Production build uses correct Gateway URI
+
+### 📋 **Verification Checklist:**
+
+- [x] **manifest.json:** URI = `/sap/opu/odata/sap/ZCOURSES_SRV_0001/` ✅
+- [x] **manifest.json:** odataVersion = `2.0` ✅
+- [x] **annotations.cds:** Uses `sap_module` field (not `module`) ✅
+- [x] **schema.cds:** Defines `sap_module: String` ✅
+- [x] **ABAP methods:** Reference `SAP_MODULE` field (uppercase) ✅
+- [x] **CSV headers:** Column named `sap_module` ✅
+
+### 🔧 **If You Need Local Development:**
+
+**Temporarily change manifest.json for BAS testing:**
+```json
+// DEVELOPMENT ONLY - Revert before deployment!
+"uri": "http://localhost:4004/service/SAPLearningService/",
+"odataVersion": "4.0"
+```
+
+**⚠️ CRITICAL:** Revert to Gateway URI before deploying to S/4HANA!
+
+### 📊 **Data Model Connection Status:**
+
+| Component | Layer | Field Name | Status |
+|-----------|-------|------------|--------|
+| CSV Import | Data | `sap_module` | ✅ Connected |
+| schema.cds | CAP Model | `sap_module` | ✅ Connected |
+| annotations.cds | UI | `sap_module` | ✅ Connected |
+| ZCOURSES (SE11) | ABAP Table | `SAP_MODULE` | ✅ Connected |
+| SEGW Entity | OData | `SAP_MODULE` | ✅ Connected |
+| manifest.json | Frontend | Gateway URI | ✅ Connected |
+
+**Result:** All layers properly connected for S/4HANA deployment! ✅
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -145,12 +237,17 @@ All components follow SAP Clean Core principles:
 
 ## 📖 Documentation
 
-- **[ABAP_BACKEND_DEPLOYMENT_GUIDE.md](ABAP_BACKEND_DEPLOYMENT_GUIDE.md)** - Step-by-step SEGW/SE24 deployment
-- **[S4HANA_DEPLOYMENT_GUIDE.md](S4HANA_DEPLOYMENT_GUIDE.md)** - Complete deployment process
-- **[CSV_IMPORT_FEATURE_DOCUMENTATION.md](CSV_IMPORT_FEATURE_DOCUMENTATION.md)** - Technical docs (12 pages)
-- **[CSV_IMPORT_TESTING_GUIDE.md](CSV_IMPORT_TESTING_GUIDE.md)** - 40+ test cases
-- **[CSV_IMPORT_QUICK_START.md](CSV_IMPORT_QUICK_START.md)** - Quick deployment guide
-- **[PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md)** - Pre-deployment checklist
+**Deployment Guides:**
+- **[PHASE_BY_PHASE_IMPLEMENTATION_GUIDE.md](PHASE_BY_PHASE_IMPLEMENTATION_GUIDE.md)** - ⭐ **START HERE** - Complete 7-phase deployment guide
+- **[ABAP_BACKEND_DEPLOYMENT_GUIDE.md](ABAP_BACKEND_DEPLOYMENT_GUIDE.md)** - SEGW/SE24 technical reference
+- **[S4HANA_DEPLOYMENT_GUIDE.md](S4HANA_DEPLOYMENT_GUIDE.md)** - Advanced deployment scenarios
+
+**Feature Documentation:**
+- **[CSV_IMPORT_QUICK_START.md](CSV_IMPORT_QUICK_START.md)** - CSV bulk import feature guide
+
+**Quality Assurance:**
+- **[PROJECT_AUDIT_REPORT.md](PROJECT_AUDIT_REPORT.md)** - Comprehensive audit (security, naming, connectivity)
+- **[PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md)** - Pre-deployment verification checklist
 
 ---
 

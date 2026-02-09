@@ -21,12 +21,12 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "http://localhost:4004/service/SAPLearningService/",
+        "uri": "/sap/opu/odata/sap/ZCOURSES_SRV_0001/",
         "type": "OData",
         "settings": {
           "annotations": [],
           "localUri": "localService/metadata.xml",
-          "odataVersion": "4.0"
+          "odataVersion": "2.0"
         }
       }
     },
