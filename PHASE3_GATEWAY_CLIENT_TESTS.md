@@ -3,6 +3,16 @@
 **Transaction:** `/IWFND/GW_CLIENT`  
 **Service:** `ZCOURSES_SRV`
 
+**⚠️ IMPORTANT - KEY FORMAT DISCOVERY:**
+This service uses **COMPOSITE KEY** (Mandt + Id), not single GUID key.
+
+**URI Pattern for single record operations:**
+```
+/sap/opu/odata/sap/ZCOURSES_SRV/Trainings(Mandt='',Id='PASTE-ID-HERE')
+```
+
+**Example ID format:** `7BC6625F4DA81FD181BED1096D5D2D53` (32 hex chars, NO hyphens)
+
 ---
 
 ## Test 1: Verify Metadata
@@ -62,7 +72,7 @@ Accept: application/json
 
 ## Test 4: GET Single Record by ID
 
-**URI:** `/sap/opu/odata/sap/ZCOURSES_SRV/Trainings(guid'PASTE-ID-FROM-TEST3')`  
+**URI:** `/sap/opu/odata/sap/ZCOURSES_SRV/Trainings(Mandt='',Id='PASTE-ID-FROM-TEST3')`  
 **Method:** `GET`  
 **Headers:**
 ```
@@ -71,16 +81,16 @@ Accept: application/json
 **Body:** None  
 **Expected:** `200 OK` with single training record
 
-**Example URI:**
+**Example URI (replace with your actual ID):**
 ```
-/sap/opu/odata/sap/ZCOURSES_SRV/Trainings(guid'12345678-1234-1234-1234-123456789012')
+/sap/opu/odata/sap/ZCOURSES_SRV/Trainings(Mandt='',Id='7BC6625F4DA81FD181BED1096D5D2D53')
 ```
 
 ---
 
 ## Test 5: UPDATE Training Record
 
-**URI:** `/sap/opu/odata/sap/ZCOURSES_SRV/Trainings(guid'PASTE-ID-FROM-TEST3')`  
+**URI:** `/sap/opu/odata/sap/ZCOURSES_SRV/Trainings(Mandt='',Id='PASTE-ID-FROM-TEST3')`  
 **Method:** `PUT` or `PATCH`  
 **Headers:**
 ```
@@ -95,6 +105,8 @@ Accept: application/json
 }
 ```
 **Expected:** `200 OK` or `204 No Content`
+
+**✅ TEST RESULT:** HTTP 204 - Update successful!
 
 ---
 
@@ -234,9 +246,7 @@ Accept: application/json
 
 ---
 
-## Test 13: DELETE Training Record
-
-**URI:** `/sap/opu/odata/sap/ZCOURSES_SRV/Trainings(guid'PASTE-FIRST-RECORD-ID')`  
+## Test 13: DELETE Training RecordMandt='',Id='PASTE-FIRST-RECORD-ID')`  
 **Method:** `DELETE`  
 **Headers:** None  
 **Body:** None  
@@ -245,6 +255,8 @@ Accept: application/json
 ---
 
 ## Test 14: DELETE Non-Existent Record (Error Test)
+
+**URI:** `/sap/opu/odata/sap/ZCOURSES_SRV/Trainings(Mandt='',Id='99999999999999999999
 
 **URI:** `/sap/opu/odata/sap/ZCOURSES_SRV/Trainings(guid'99999999-9999-9999-9999-999999999999')`  
 **Method:** `DELETE`  
@@ -276,7 +288,7 @@ Accept: application/json
 
 ## Test 16: UPDATE Non-Existent Record (Error Test)
 
-**URI:** `/sap/opu/odata/sap/ZCOURSES_SRV/Trainings(guid'88888888-8888-8888-8888-888888888888')`  
+**URI:** `/sap/opu/odata/sap/ZCOURSES_SRV/Trainings(Mandt='',Id='88888888888888888888888888888888')`  
 **Method:** `PUT`  
 **Headers:**
 ```
