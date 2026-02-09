@@ -1,15 +1,17 @@
 *&---------------------------------------------------------------------*
-*& Method: TRAININGSET_CREATE_ENTITY
+*& Method: TRAININGS_CREATE_ENTITY
 *& Create new training record
 *&---------------------------------------------------------------------*
-METHOD trainingset_create_entity.
+METHOD trainings_create_entity.
   
   DATA: ls_training TYPE zcourses,
-        ls_entity   TYPE zcl_zcourses_mpc=>ts_training.
+        ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
+        lv_guid     TYPE guid_16.
 
   " Read entry data
   io_data_provider->read_entry_data( IMPORTING es_data = ls_entity ).
 
+  " Validate required fields
   IF ls_entity-title IS INITIAL OR ls_entity-url IS INITIAL.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
@@ -22,7 +24,7 @@ METHOD trainingset_create_entity.
   IF ls_entity-id IS INITIAL.
     CALL FUNCTION 'GUID_CREATE'
       IMPORTING
-        ev_guid_16 = DATA(lv_guid).
+        ev_guid_16 = lv_guid.
     ls_entity-id = lv_guid.
   ENDIF.
 
@@ -30,6 +32,7 @@ METHOD trainingset_create_entity.
   ls_entity-last_updated = sy-datum.
 
   " Map to database structure
+  ls_training-mandt = sy-mandt.
   ls_training-id = ls_entity-id.
   ls_training-url = ls_entity-url.
   ls_training-role = ls_entity-role.

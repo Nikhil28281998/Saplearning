@@ -1,12 +1,12 @@
 *&---------------------------------------------------------------------*
-*& Method: TRAININGSET_GET_ENTITY
+*& Method: TRAININGS_GET_ENTITY
 *& Get single training by ID
 *&---------------------------------------------------------------------*
-METHOD trainingset_get_entity.
+METHOD trainings_get_entity.
   
   DATA: ls_training TYPE zcourses,
-        ls_entity   TYPE zcl_zcourses_srv_mpc=>ts_training,
-        lv_id TYPE char36.
+        ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
+        lv_id       TYPE char36.
 
   " Read key from request
   READ TABLE it_key_tab WITH KEY name = 'ID' INTO DATA(ls_key).

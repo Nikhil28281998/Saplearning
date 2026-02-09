@@ -1,12 +1,12 @@
 *&---------------------------------------------------------------------*
-*& Method: TRAININGSET_UPDATE_ENTITY
+*& Method: TRAININGS_UPDATE_ENTITY
 *& Update existing training record
 *&---------------------------------------------------------------------*
-METHOD trainingset_update_entity.
+METHOD trainings_update_entity.
   
   DATA: ls_training TYPE zcourses,
-        ls_entity   TYPE zcl_zcourses_srv_mpc=>ts_training,
-        lv_id TYPE char36.
+        ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
+        lv_id       TYPE char36.
 
   " Read key
   READ TABLE it_key_tab WITH KEY name = 'ID' INTO DATA(ls_key).
@@ -27,9 +27,9 @@ METHOD trainingset_update_entity.
   IF sy-subrc <> 0.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
-        textid            = /iwbep/cx_mgw_busi_exception=>resource_not_found
+        textid            = /iwbep/cx_mgw_busi_exception=>business_error
         message           = 'Training not found'
-        http_status_code  = /iwbep/cx_mgw_busi_exception=>gcs_http_status_codes-not_found.
+        http_status_code  = 404.
   ENDIF.
 
   " Get updated data

@@ -1,14 +1,14 @@
 *&---------------------------------------------------------------------*
-*& Method: TRAININGSET_GET_ENTITYSET
+*& Method: TRAININGS_GET_ENTITYSET
 *& Get all training records (with optional filters)
 *&---------------------------------------------------------------------*
-METHOD trainingset_get_entityset.
+METHOD trainings_get_entityset.
   
   DATA: lt_training TYPE TABLE OF zcourses,
         ls_training TYPE zcourses,
-        ls_entity   TYPE zcl_zcourses_srv_mpc=>ts_training,
-        lv_role     TYPE string,
-        lv_module   TYPE string.
+        ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
+        lv_role     TYPE char50,
+        lv_module   TYPE char50.
 
   " Read filter parameters from $filter query
   READ TABLE it_filter_select_options 
@@ -35,7 +35,7 @@ METHOD trainingset_get_entityset.
 
   IF sy-subrc = 0.
     " Convert to OData entity format
-    LOOP AT @lt_training INTO @ls_training.
+    LOOP AT lt_training INTO ls_training.
       CLEAR ls_entity.
       ls_entity-id = ls_training-id.
       ls_entity-url = ls_training-url.

@@ -1,8 +1,8 @@
 *&---------------------------------------------------------------------*
-*& Method: TRAININGSET_DELETE_ENTITY
+*& Method: TRAININGS_DELETE_ENTITY
 *& Delete training record
 *&---------------------------------------------------------------------*
-METHOD trainingset_delete_entity.
+METHOD trainings_delete_entity.
   
   DATA: lv_id TYPE char36.
 
