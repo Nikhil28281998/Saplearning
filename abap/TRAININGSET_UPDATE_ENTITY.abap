@@ -45,8 +45,8 @@ METHOD trainingset_update_entity.
   IF ls_entity-role IS NOT INITIAL.
     ls_training-role = ls_entity-role.
   ENDIF.
-  IF ls_entity-module IS NOT INITIAL.
-    ls_training-module = ls_entity-module.
+  IF ls_entity-sap_module IS NOT INITIAL.
+    ls_training-sap_module = ls_entity-sap_module.
   ENDIF.
   IF ls_entity-description IS NOT INITIAL.
     ls_training-description = ls_entity-description.
@@ -69,7 +69,7 @@ METHOD trainingset_update_entity.
     ls_entity-url = ls_training-url.
     ls_entity-role = ls_training-role.
     ls_entity-title = ls_training-title.
-    ls_entity-module = ls_training-module.
+    ls_entity-sap_module = ls_training-sap_module.
     ls_entity-description = ls_training-description.
     ls_entity-last_updated = ls_training-last_updated.
     ls_entity-sap_help_link = ls_training-sap_help_link.
