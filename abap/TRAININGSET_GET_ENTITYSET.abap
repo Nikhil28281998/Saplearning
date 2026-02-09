@@ -4,8 +4,8 @@
 *&---------------------------------------------------------------------*
 METHOD trainingset_get_entityset.
   
-  DATA: lt_training TYPE TABLE OF zcourses_train,
-        ls_training TYPE zcourses_train,
+  DATA: lt_training TYPE TABLE OF zcourses,
+        ls_training TYPE zcourses,
         ls_entity   TYPE zcl_zcourses_srv_mpc=>ts_training,
         lv_role     TYPE string,
         lv_module   TYPE string.
@@ -28,7 +28,7 @@ METHOD trainingset_get_entityset.
   ENDIF.
 
   " Query database with filters
-  SELECT * FROM zcourses_train INTO TABLE lt_training
+  SELECT * FROM zcourses INTO TABLE lt_training
     WHERE ( role = lv_role OR lv_role IS INITIAL )
       AND ( module = lv_module OR lv_module IS INITIAL )
     ORDER BY last_updated DESCENDING.

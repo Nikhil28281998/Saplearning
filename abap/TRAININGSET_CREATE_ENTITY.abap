@@ -4,13 +4,7 @@
 *&---------------------------------------------------------------------*
 METHOD trainingset_create_entity.
   
-  DATA: ls_training TYPE zcourses_train,
-        ls_entity   TYPE zcl_zcourses_srv_mpc=>ts_training.
-
-  " Get data from request
-  io_data_provider->read_entry_data( IMPORTING es_data = ls_entity ).
-
-  " Validate required fields
+  DATA: ls_training TYPE zcourses,
   IF ls_entity-title IS INITIAL OR ls_entity-url IS INITIAL.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
@@ -41,7 +35,7 @@ METHOD trainingset_create_entity.
   ls_training-sap_help_link = ls_entity-sap_help_link.
 
   " Insert into database
-  INSERT zcourses_train FROM ls_training.
+  INSERT zcourses FROM ls_training.
   
   IF sy-subrc = 0.
     COMMIT WORK.

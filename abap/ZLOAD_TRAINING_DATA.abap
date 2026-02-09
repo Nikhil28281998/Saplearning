@@ -1,8 +1,9 @@
 *&---------------------------------------------------------------------*
 *& Report ZLOAD_TRAINING_DATA
 *&---------------------------------------------------------------------*
-*& Load 52 SAP Training Courses from CSV data into ZCOURSES_TRAIN table
-*& FIXED VERSION - Uses ID field (not COURSE_ID) to match frontend
+*& Load 52 SAP Training Courses from CSV data into ZCOURSES table
+*& SAP Clean Code: Simplified table name (ZCOURSES instead of ZCOURSES_TRAIN)
+*& Uses ID field (not COURSE_ID) to match frontend
 *&---------------------------------------------------------------------*
 REPORT zload_training_data.
 
@@ -17,8 +18,8 @@ TYPES: BEGIN OF ty_training,
          sap_help_link TYPE char255,
        END OF ty_training.
 
-DATA: lt_training TYPE TABLE OF zcourses_train,
-      ls_training TYPE zcourses_train,
+DATA: lt_training TYPE TABLE OF zcourses,
+      ls_training TYPE zcourses,
       lv_lines    TYPE i.
 
 * Training data (52 records from CSV)
@@ -597,19 +598,19 @@ ls_training-sap_help_link = 'https://help.sap.com/docs/performance'.
 APPEND ls_training TO lt_training.
 
 * Insert all 52 records into database
-INSERT zcourses_train FROM TABLE lt_training.
+INSERT zcourses FROM TABLE lt_training.
 
 IF sy-subrc = 0.
   COMMIT WORK.
   lv_lines = lines( lt_training ).
-  WRITE: / '✓ Successfully loaded', lv_lines, 'training records into ZCOURSES_TRAIN table.'.
+  WRITE: / '✓ Successfully loaded', lv_lines, 'training records into ZCOURSES table.'.
   WRITE: / '✓ Data source: Learning_Data-Trainings.csv (52 SAP training courses)'.
   WRITE: / '✓ Field: ID (not COURSE_ID) - matches frontend expectations'.
-  WRITE: / '✓ Verify in SE16: SELECT * FROM ZCOURSES_TRAIN'.
+  WRITE: / '✓ Verify in SE16: SELECT * FROM ZCOURSES'.
 ELSE.
   ROLLBACK WORK.
   WRITE: / '✗ Error loading training data - sy-subrc:', sy-subrc.
-  WRITE: / 'Check: 1) Table ZCOURSES_TRAIN exists (SE11)'.
+  WRITE: / 'Check: 1) Table ZCOURSES exists (SE11)'.
   WRITE: / '       2) Table is activated (Ctrl+F3)'.
   WRITE: / '       3) Field is named ID (not COURSE_ID)'.
   WRITE: / '       4) You have INSERT authorization'.

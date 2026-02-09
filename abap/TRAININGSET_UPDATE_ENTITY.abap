@@ -4,7 +4,7 @@
 *&---------------------------------------------------------------------*
 METHOD trainingset_update_entity.
   
-  DATA: ls_training TYPE zcourses_train,
+  DATA: ls_training TYPE zcourses,
         ls_entity   TYPE zcl_zcourses_srv_mpc=>ts_training,
         lv_id TYPE char36.
 
@@ -21,7 +21,7 @@ METHOD trainingset_update_entity.
   ENDIF.
 
   " Get existing record
-  SELECT SINGLE * FROM zcourses_train INTO ls_training
+  SELECT SINGLE * FROM zcourses INTO ls_training
     WHERE id = lv_id.
   
   IF sy-subrc <> 0.
@@ -59,7 +59,7 @@ METHOD trainingset_update_entity.
   ls_training-last_updated = sy-datum.
 
   " Update database
-  UPDATE zcourses_train FROM ls_training.
+  UPDATE zcourses FROM ls_training.
   
   IF sy-subrc = 0.
     COMMIT WORK.

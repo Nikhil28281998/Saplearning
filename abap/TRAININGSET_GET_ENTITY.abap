@@ -4,7 +4,7 @@
 *&---------------------------------------------------------------------*
 METHOD trainingset_get_entity.
   
-  DATA: ls_training TYPE zcourses_train,
+  DATA: ls_training TYPE zcourses,
         ls_entity   TYPE zcl_zcourses_srv_mpc=>ts_training,
         lv_id TYPE char36.
 
@@ -14,7 +14,7 @@ METHOD trainingset_get_entity.
     lv_id = ls_key-value.
     
     " Get from database
-    SELECT SINGLE * FROM zcourses_train INTO ls_training
+    SELECT SINGLE * FROM zcourses INTO ls_training
       WHERE id = lv_id.
     
     IF sy-subrc = 0.

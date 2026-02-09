@@ -19,7 +19,7 @@ METHOD trainingset_delete_entity.
   ENDIF.
 
   " Check if record exists
-  SELECT SINGLE id FROM zcourses_train INTO @DATA(lv_check)
+  SELECT SINGLE id FROM zcourses INTO @DATA(lv_check)
     WHERE id = @lv_id.
   
   IF sy-subrc <> 0.
@@ -31,7 +31,7 @@ METHOD trainingset_delete_entity.
   ENDIF.
 
   " Delete from database
-  DELETE FROM zcourses_train WHERE id = lv_id.
+  DELETE FROM zcourses WHERE id = lv_id.
   
   IF sy-subrc = 0.
     COMMIT WORK.

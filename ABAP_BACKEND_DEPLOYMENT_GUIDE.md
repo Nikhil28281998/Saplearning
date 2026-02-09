@@ -43,7 +43,7 @@ abap/
 ```
 Transaction: SE11
 Click: "Database Table"
-Table Name: ZCOURSES_TRAIN
+Table Name: ZCOURSES
 Click: "Create"
 ```
 
@@ -61,7 +61,10 @@ Click: "Create"
 | LAST_UPDATED   | DATS         | DATS | 8      |     | Last Updated Date        |
 | SAP_HELP_LINK  | CHAR255      | CHAR | 255    |     | SAP Help URL             |
 
-**⚠️ CRITICAL: Field must be named ID (not COURSE_ID) to match frontend expectations!**
+**⚠️ CRITICAL:** 
+- **Table name:** ZCOURSES (SAP clean code - simple and standard)
+- **Key field:** ID (not COURSE_ID) to match frontend expectations!
+
 ### **1.3 Technical Settings**
 
 ```
@@ -135,7 +138,7 @@ Expected Output:
 
 ```
 Transaction: SE16 (or SE16N)
-Table: ZCOURSES_TRAIN
+Table: ZCOURSES
 Click: "Execute" (F8)
 ✓ Should see 52 records
 ```
@@ -163,7 +166,7 @@ Transport: YOUR_TRANSPORT
 In project tree:
 Right-click "Data Model" → Import → DDIC Structure
 
-ABAP Structure: ZCOURSES_TRAIN
+ABAP Structure: ZCOURSES
 Entity Type Name: Training
 Entity Set Name: Trainings
 
@@ -504,7 +507,7 @@ https://YOUR_S4HANA:PORT/sap/bc/ui5_ui5/sap/z_courses_ui/index.html
 ## 🎊 **COMPLETION CHECKLIST**
 
 ### **Database Layer**
-- [  ] Table ZCOURSES_TRAIN created and activated (SE11)
+- [  ] Table ZCOURSES created and activated (SE11)
 - [  ] 52 training records loaded (SE38 + SE16 verification)
 - [  ] Data visible in SE16 or SE16N
 

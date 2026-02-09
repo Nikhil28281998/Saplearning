@@ -1,9 +1,6 @@
 {
-  "target": {
-    "url": "https://your-s4hana-server:port",
-    "client": "100",
-    "auth": "basic",
-    "scp": false
+  "deployer": {
+    "destination": "s4hana-dev"
   },
   "app": {
     "name": "Z_COURSES_UI",
