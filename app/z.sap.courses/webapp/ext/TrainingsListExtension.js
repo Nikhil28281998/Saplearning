@@ -1,6 +1,7 @@
 sap.ui.define([
-  "sap/ui/core/mvc/ControllerExtension"
-], function (ControllerExtension) {
+  "sap/ui/core/mvc/ControllerExtension",
+  "z/sap/courses/controller/ImportController"
+], function (ControllerExtension, ImportController) {
   "use strict";
 
   return ControllerExtension.extend("z.sap.courses.ext.TrainingsListExtension", {
@@ -80,6 +81,20 @@ sap.ui.define([
             press: function () {
               var r = appComp && appComp.getRouter && appComp.getRouter();
               if (r && r.navTo) { r.navTo('UsersList'); }
+            }
+          });
+
+          // Import CSV button for Admin
+          if (canHeader) api.addHeaderAction({
+            id: "ImportCSV",
+            text: "Import CSV",
+            icon: "sap-icon://excel-attachment",
+            press: function () {
+              var oView = view;
+              if (!oView._importController) {
+                oView._importController = new ImportController();
+              }
+              oView._importController.openImportDialog(oView);
             }
           });
         }
