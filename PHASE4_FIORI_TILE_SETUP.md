@@ -29,42 +29,38 @@
 1. Open catalog: `Z_LEARNING_CATALOG`
 2. Click **Add → App Launcher - Static**
 
-### Tile Configuration Screen - Complete Guide:
+### ACTUAL Tile Configuration Fields (What You See):
 
-#### Tab 1: GENERAL
+When you click "Add → App Launcher - Static", you'll see these fields in a single form:
 
-**Fields to fill:**
+---
+
+#### Section: GENERAL INFORMATION
 
 ```
 Title (Required):
 SAP Courses
 
-Subtitle:
+Subtitle (Optional):
 Manage learning courses
 
-Information:
-[Leave empty]
+Info (Optional):
+[Leave blank]
 
-Icon:
+Icon (Optional):
 sap-icon://course-book
-
-Supported Devices:
-☑ Desktop
-☑ Tablet  
-☑ Phone
 ```
 
-**How to add icon:**
-- Click search icon (🔍) next to "Icon" field
-- Search: "course" or "book"
-- Select: `sap-icon://course-book`
-- Or manually type: `sap-icon://course-book`
+**To add icon:**
+- Click the icon picker (small icon button)
+- Type "course" or "book" in search
+- Select `sap-icon://course-book`
 
 ---
 
-#### Tab 2: NAVIGATION
+#### Section: NAVIGATION TARGET
 
-**Fields to fill:**
+**This is the most important part!**
 
 ```
 Semantic Object (Required):
@@ -72,132 +68,94 @@ ZLEARNING
 
 Action (Required):
 display
-
-Parameters:
-[Leave empty - no parameters needed]
 ```
 
-**Important:** 
-- Semantic Object must match manifest.json: `ZLEARNING`
-- Action must match manifest.json: `display`
-- Case sensitive!
+**CRITICAL:** These must match your manifest.json exactly:
+- Semantic Object: `ZLEARNING` (all caps)
+- Action: `display` (lowercase)
+
+**DO NOT fill in any URL fields** - the system will auto-resolve from your manifest.json inbound configuration!
 
 ---
 
-#### Tab 3: CONFIGURATION (App ID goes here!)
+#### Section: ADDITIONAL PROPERTIES (If visible - may be collapsed)
 
-**This is where App ID belongs, not "Display" section**
-
-```
-Application Type:
-SAPUI5
-
-SAPUI5 Component Name (Required):
-z.sap.courses
-
-Application URL:
-[Leave empty - will use BSP]
-
-System Alias:
-[Leave empty - uses local system]
-
-SAP System:
-[Leave empty]
-```
-
-**Important:** 
-- "SAPUI5 Component Name" = Your App ID from manifest.json
-- Enter: `z.sap.courses`
-
----
-
-#### Tab 4: TILE ACTIONS
-
-**This section configures what happens when you click tile**
-
-**Option A: Launch Directly (Recommended)**
-
-```
-Target Mapping:
-☑ Use Navigation Target Mapping
-
-[Auto-filled from Navigation tab]
-Semantic Object: ZLEARNING
-Action: display
-```
-
-**Option B: Open Menu**
-
-```
-☐ Use Navigation Target Mapping
-☑ Show Menu
-
-Menu Options:
-[Click Add to add menu items if needed]
-```
-
-**For our use case:** Choose Option A (Use Navigation Target Mapping) ✅
-
-**What each option does:**
-
-| Option | Behavior |
-|--------|----------|
-| Use Navigation Target Mapping | Clicking tile → Opens app directly |
-| Show Menu | Clicking tile → Shows menu with options |
-| No action | Tile is informational only (rare) |
-
----
-
-#### Tab 5: VISUALIZATION (Optional)
-
-**Dynamic tile configuration - skip for now**
-
-```
-Service URL:
-[Leave empty - static tile is fine]
-
-Refresh Interval:
-[Leave empty]
-```
-
-**When to use:**
-- If you want tile to show live data (e.g., "5 New Trainings")
-- Requires OData query configuration
-- Not needed for basic functionality
-
----
-
-#### Tab 6: PROPERTIES (Optional)
-
-**Additional metadata - can skip**
+**You can leave these empty or fill optionally:**
 
 ```
 Keywords:
-training, courses, learning, SAP
+training courses learning
 
-Technical Catalog:
-[Leave empty]
+App ID:
+[Leave empty - auto-resolved from semantic object]
+
+Navigation Provider:
+[Leave empty - uses default]
+
+Device Types:
+[Usually pre-checked: Desktop, Tablet, Phone - leave as is]
 ```
+
+**Important:** App ID is NOT required! The system finds your app using Semantic Object + Action from manifest.json.
 
 ---
 
-### Complete Configuration Summary:
+### What You DON'T Need to Fill:
 
-**Required Fields Only:**
+❌ **SAPUI5 Component Name** - Not in this screen
+❌ **Application URL** - Not needed
+❌ **System Alias** - Not needed  
+❌ **Configuration tab** - Doesn't exist for Static App Launcher
+❌ **Tile Actions** - Auto-configured from Navigation Target
 
-| Tab | Field | Value |
-|-----|-------|-------|
-| GENERAL | Title | SAP Courses |
-| GENERAL | Icon | sap-icon://course-book |
-| NAVIGATION | Semantic Object | ZLEARNING |
-| NAVIGATION | Action | display |
-| CONFIGURATION | SAPUI5 Component Name | z.sap.courses |
-| TILE ACTIONS | Target Mapping | ☑ Use Navigation Target Mapping |
+---
 
-**After filling all fields:**
-1. Click **Save** button (bottom right)
-2. Enter transport or choose "Local Object" ($TMP)
-3. Tile created ✅
+### Minimum Required Fields (Only 4!):
+
+| Field | Value |
+|-------|-------|
+| Title | SAP Courses |
+| Icon | sap-icon://course-book |
+| Semantic Object | ZLEARNING |
+| Action | display |
+
+**That's it!** ✅
+
+---
+
+### After Filling Fields:
+
+1. **Scroll down** to bottom of form
+2. Click **Save** button
+3. **If prompted for transport:**
+   - Choose "Local Object" 
+   - Or enter `$TMP`
+   - Or use your new open transport
+4. Tile is added to catalog ✅
+
+---
+
+### How It Works:
+
+```
+User clicks tile
+    ↓
+System reads: Semantic Object (ZLEARNING) + Action (display)
+    ↓
+Looks in manifest.json for matching inbound:
+    "sap-courses-display": {
+      "semanticObject": "ZLEARNING",
+      "action": "display"
+    }
+    ↓
+Finds app ID: z.sap.courses
+    ↓
+Opens: /sap/bc/ui5_ui5/sap/z_courses_ui/index.html
+    ↓
+App loads! ✅
+```
+
+**No App ID needed** - manifest.json inbound configuration handles everything!
 
 ### 1.3 Create Group (Optional but Recommended)
 
