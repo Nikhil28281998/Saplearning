@@ -67,13 +67,13 @@ sap.ui.define([
                 var useRealService = false; // Set to true only after deploying Z_COURSES_USERCTX_SRV
 
                 if (!useRealService) {
-                    Log.info("UserContext service skipped (Phase 4). Defaulting to 'End User'.");
+                    Log.info("UserContext service skipped (Phase 4). using Hardcoded Admin (nikkumar).");
                     var defaultInfo = {
-                            UserId: "ANONYMOUS",
-                            FullName: "End User",
-                            Email: "",
-                            IsAdmin: false,     // Set to true while testing if needed
-                            IsManager: false,
+                            UserId: "nikkumar",
+                            FullName: "Nikhil Kumar",
+                            Email: "nikhil.kumar@bridgebio.com",
+                            IsAdmin: true,     // Hardcoded for testing
+                            IsManager: true,   // Enabled all features
                             IsEndUser: true,
                             Authorizations: []
                     };
