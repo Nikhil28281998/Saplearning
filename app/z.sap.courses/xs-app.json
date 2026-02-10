@@ -6,27 +6,24 @@
       "source": "^/sap/opu/odata/(.*)$",
       "target": "/sap/opu/odata/$1",
       "destination": "S4_ABAP_DEV",
-      "authenticationType": "xsuaa",
+      "authenticationType": "none",
       "csrfProtection": false
     },
     {
       "source": "^/resources/(.*)$",
       "target": "/resources/$1",
-      "destination": "S4_ABAP_DEV",
       "authenticationType": "none",
       "csrfProtection": false
     },
     {
       "source": "^/test-resources/(.*)$",
       "target": "/test-resources/$1",
-      "destination": "S4_ABAP_DEV",
       "authenticationType": "none",
       "csrfProtection": false
     },
     {
       "source": "^(.*)$",
       "target": "$1",
-      "service": "html5-apps-repo-rt",
       "authenticationType": "xsuaa"
     }
   ]
