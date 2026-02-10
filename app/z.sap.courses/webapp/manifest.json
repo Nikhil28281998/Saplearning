@@ -98,10 +98,6 @@
           "autoExpandSelect": true,
           "earlyRequests": true
         }
-      },
-      "@i18n": {
-        "type": "sap.ui.model.resource.ResourceModel",
-        "uri": "i18n/i18n.properties"
       }
     },
     "resources": {
@@ -119,7 +115,10 @@
         "entitySet": "Trainings",
         "component": {
           "name": "sap.suite.ui.generic.template.ListReport",
-          "list": true
+          "list": true,
+          "settings": {
+            "smartVariantManagement": false
+          }
         },
         "pages": {
           "ObjectPage|Trainings": {
