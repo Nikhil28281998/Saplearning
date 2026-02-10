@@ -1,5 +1,6 @@
 sap.ui.define([
-    "sap/fe/core/AppComponent",
+    "sap/ui/core/UIComponent",
+    "sap/ui/model/odata/v2/ODataModel",
     "sap/m/Button",
     "sap/m/Dialog",
     "sap/m/List",
@@ -9,17 +10,20 @@ sap.ui.define([
     "sap/ui/model/json/JSONModel",
     "sap/base/Log",
     "z/sap/courses/services/UserContext"
-], function (AppComponent, Button, Dialog, List, StandardListItem, TextArea, Bar, JSONModel, Log, UserContext) {
+], function (UIComponent, ODataModel, Button, Dialog, List, StandardListItem, TextArea, Bar, JSONModel, Log, UserContext) {
     "use strict";
 
-    return AppComponent.extend("z.sap.courses.Component", {
+    return UIComponent.extend("z.sap.courses.Component", {
         metadata: { manifest: "json" },
 
         init: function () {
             // Log initialization start for debugging blank page issues
-            Log.info('Component initialization started');
+            Log.info('Component initialization started - OData V2 Compatible');
             
-            AppComponent.prototype.init.apply(this, arguments);
+            UIComponent.prototype.init.apply(this, arguments);
+            
+            // Initialize router
+            this.getRouter().initialize();
             
             // Initialize UserContext service (S/4 authorization adapter)
             this._userContext = new UserContext();
@@ -27,9 +31,7 @@ sap.ui.define([
             // SAP Clean Core: Use Component lifecycle instead of deprecated getCore().attachInit()
             this._diagnosticsInit();
             this._fetchRole();
-            // AI functionality removed for clean core compliance - SAP Expert Team
             this._startupHealthCheck();
-            this._ensureInitialRoute();
             
             Log.info('Component initialization completed');
         },
@@ -58,19 +60,15 @@ sap.ui.define([
             }catch(_){/*noop*/}
         },
 
-        _ensureInitialRoute: function(){
-            try{
-                var r = this.getRouter();
-                if (r && r.initialize) { r.initialize(); }
-                setTimeout(function(){
-                    try{
-                        if (!this._routeStarted && r && r.navTo){
-                            Log.info('Fallback initial navigation to TrainingsList');
-                            r.navTo('TrainingsList');
-                        }
-                    }catch(_){/*noop*/}
-                }.bind(this), 2000);
-            }catch(_){/*noop*/}
+        getContentDensityClass: function() {
+            if (!this._sContentDensityClass) {
+                if (!sap.ui.Device.support.touch) {
+                    this._sContentDensityClass = "sapUiSizeCompact";
+                } else {
+                    this._sContentDensityClass = "sapUiSizeCozy";
+                }
+            }
+            return this._sContentDensityClass;
         },
 
         /**
@@ -120,31 +118,9 @@ sap.ui.define([
         },
 
         _applyRoleUI: function(){
-            var that = this;
-            // hide Create on TrainingAssignments LR for non-managers
-            var tryHide = function(){
-                // SAP Clean Core: Use Component.byId() instead of deprecated getCore().byId()
-                var comp = that.byId('TrainingAssignmentsList');
-                var view = comp && comp.getRootControl && comp.getRootControl();
-                var toolbars = view && view.findAggregatedObjects(true, function(o){ return o && o.getMetadata && o.getMetadata().getName() === 'sap.m.OverflowToolbar'; });
-                if (toolbars && toolbars.length){
-                    toolbars.forEach(function(tb){
-                        var items = tb.getContent && tb.getContent();
-                        (items || []).forEach(function(it){
-                            if (it.getText && it.getText() === 'Create' && that._role === 'User'){
-                                it.setVisible(false);
-                            }
-                        });
-                    });
-                    return true;
-                }
-                return false;
-            };
-            var attempts = 0;
-            var timer = setInterval(function(){
-                attempts++;
-                if (tryHide() || attempts > 10){ clearInterval(timer); }
-            }, 500);
+            // Role-based UI adjustments - for OData V2 standard UI5 app
+            // Role is stored in this._role
+            Log.info('User role applied: ' + this._role);
         },
 
         _startupHealthCheck: function(){
@@ -186,34 +162,20 @@ sap.ui.define([
             });
         },
 
-        // Navigate then trigger Create on TrainingAssignments LR (manager only)
+        // Navigate to TrainingAssignments
         openTrainingAssignmentsAndCreate: function(){
-            var that = this;
             var r = this.getRouter();
-            if (r && r.navTo) r.navTo('TrainingAssignmentsList');
-            var tries = 0;
-            var timer = setInterval(function(){
-                tries++;
-                // SAP Clean Core: Use Component.byId() instead of deprecated getCore().byId()
-                var comp = that.byId('TrainingAssignmentsList');
-                var view = comp && comp.getRootControl && comp.getRootControl();
-                var tbars = view && view.findAggregatedObjects(true, function(o){ return o && o.getMetadata && o.getMetadata().getName() === 'sap.m.OverflowToolbar'; });
-                var fired = false;
-                if (tbars && tbars.length){
-                    tbars.forEach(function(tb){
-                        var items = tb.getContent && tb.getContent();
-                        var createBtn = (items || []).find(function(it){ return it.getText && it.getText() === 'Create'; });
-                        if (createBtn && that._role === 'Manager'){ createBtn.firePress(); fired = true; }
-                    });
-                }
-                if (fired || tries > 10){ clearInterval(timer); }
-            }, 500);
+            if (r && r.navTo) {
+                r.navTo('TrainingAssignmentsList');
+            }
         },
 
-        // optional: navigate to TrainingAssignments LR
+        // Navigate to TrainingAssignments LR
         navigateToTraining: function(){
             var r = this.getRouter();
-            if (r && r.navTo) r.navTo('TrainingAssignmentsList');
+            if (r && r.navTo) {
+                r.navTo('TrainingAssignmentsList');
+            }
         },
 
         // Guided Assign Training dialog (Manager/Admin)
@@ -223,12 +185,12 @@ sap.ui.define([
             var oModel = this.getModel();
             var loadList = function(path){
                 return new Promise(function(resolve, reject){
-                    try{
-                        var b = oModel.bindList(path);
-                        b.requestContexts(0, Infinity).then(function(ctxs){
-                            resolve(ctxs.map(function(c){ return c.getObject(); }));
-                        }).catch(reject);
-                    }catch(e){ reject(e); }
+                    oModel.read(path, {
+                        success: function(data) {
+                            resolve(data.results || []);
+                        },
+                        error: reject
+                    });
                 });
             };
 
@@ -342,16 +304,19 @@ sap.ui.define([
                     };
                     dlgModel.setProperty('/submitting', true);
 
-                    // OData V4 create via list binding
-                    var lb = oModel.bindList('/TrainingAssignments');
-                    var ctx = lb.create(payload);
-                    ctx.created().then(function(){
-                        that.navigateToTraining();
-                        that._assignDlg.close();
-                        dlgModel.setProperty('/submitting', false);
-                    }).catch(function(err){
-                        dlgModel.setProperty('/submitting', false);
-                        dlgModel.setProperty('/error', (err && err.message) || 'Create failed');
+                    // OData V2 create
+                    oModel.create('/TrainingAssignments', payload, {
+                        success: function() {
+                            that.navigateToTraining();
+                            that._assignDlg.close();
+                            dlgModel.setProperty('/submitting', false);
+                            sap.m.MessageToast.show('Training assigned successfully');
+                        },
+                        error: function(err) {
+                            dlgModel.setProperty('/submitting', false);
+                            var msg = (err && err.message) || 'Create failed';
+                            dlgModel.setProperty('/error', msg);
+                        }
                     });
                 };
 

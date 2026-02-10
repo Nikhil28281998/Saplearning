@@ -81,24 +81,14 @@
   "sap.ui5": {
     "flexEnabled": false,
     "dependencies": {
-      "minUI5Version": "1.120.13",
+      "minUI5Version": "1.71.0",
       "libs": {
         "sap.m": {},
         "sap.ui.core": {},
-        "sap.fe.core": {},
-        "sap.fe.macros": {},
-        "sap.f": {}
+        "sap.ui.table": {}
       }
     },
-    "extends": {
-      "extensions": {
-        "sap.ui.controllerExtensions": {
-          "sap.fe.templates.ListReport.ListReportController": {
-            "controllerName": "z.sap.courses.ext.TrainingsListExtension"
-          }
-        }
-      }
-    },
+
     "contentDensities": {
       "compact": true,
       "cozy": true
@@ -114,9 +104,9 @@
         "dataSource": "mainService",
         "preload": true,
         "settings": {
-          "operationMode": "Server",
-          "autoExpandSelect": true,
-          "earlyRequests": true
+          "defaultBindingMode": "TwoWay",
+          "defaultCountMode": "Inline",
+          "useBatch": true
         }
       },
       "@i18n": {
@@ -133,130 +123,41 @@
     },
     "routing": {
       "config": {
-        "flexibleColumnLayout": {
-          "defaultTwoColumnLayoutType": "TwoColumnsBeginExpanded",
-          "defaultThreeColumnLayoutType": "ThreeColumnsMidExpanded"
-        },
-        "routerClass": "sap.f.routing.Router"
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "viewPath": "z.sap.courses.view",
+        "controlId": "app",
+        "controlAggregation": "pages",
+        "async": true
       },
       "routes": [
         {
           "name": "TrainingsList",
-          "pattern": ":?query:",
+          "pattern": "",
           "target": "TrainingsList"
         },
         {
-          "name": "TrainingsObjectPage",
-          "pattern": "Trainings({key})",
-          "target": "TrainingsObjectPage"
-        },
-        {
           "name": "TrainingAssignmentsList",
-          "pattern": "TrainingAssignments",
-          "target": "TrainingAssignmentsList"
-        },
-        {
-          "name": "TrainingAssignmentsObjectPage",
-          "pattern": "TrainingAssignments({key})",
-          "target": "TrainingAssignmentsObjectPage"
-        },
-        {
-          "name": "UsersList",
-          "pattern": "Users",
-          "target": "UsersList"
-        },
-        {
-          "name": "UsersObjectPage",
-          "pattern": "Users({key})",
-          "target": "UsersObjectPage"
-        },
-        {
-          "name": "MyTrainingsList",
-          "pattern": "MyTrainings",
+          "pattern": "assignments",
           "target": "TrainingAssignmentsList"
         }
       ],
       "targets": {
         "TrainingsList": {
-          "type": "Component",
-          "id": "TrainingsList",
-          "name": "sap.fe.templates.ListReport",
-          "options": {
-            "settings": {
-              "entitySet": "Trainings",
-              "navigation": {
-                "Trainings": {
-                  "detail": {
-                    "route": "TrainingsObjectPage"
-                  }
-                }
-              }
-            }
-          },
-          "controlAggregation": "beginColumnPages"
-        },
-        "TrainingsObjectPage": {
-          "type": "Component",
-          "id": "TrainingsObjectPage",
-          "name": "sap.fe.templates.ObjectPage",
-          "options": {
-            "settings": {
-              "entitySet": "Trainings"
-            }
-          },
-          "controlAggregation": "midColumnPages"
+          "viewName": "TrainingsList",
+          "viewLevel": 1
         },
         "TrainingAssignmentsList": {
-          "type": "Component",
-          "id": "TrainingAssignmentsList",
-          "name": "sap.fe.templates.ListReport",
-          "options": {
-            "settings": {
-              "entitySet": "TrainingAssignments"
-            }
-          },
-          "controlAggregation": "beginColumnPages"
-        },
-        "TrainingAssignmentsObjectPage": {
-          "type": "Component",
-          "id": "TrainingAssignmentsObjectPage",
-          "name": "sap.fe.templates.ObjectPage",
-          "options": {
-            "settings": {
-              "entitySet": "TrainingAssignments"
-            }
-          },
-          "controlAggregation": "midColumnPages"
-        },
-        "UsersList": {
-          "type": "Component",
-          "id": "UsersList",
-          "name": "sap.fe.templates.ListReport",
-          "options": {
-            "settings": {
-              "entitySet": "Users"
-            }
-          },
-          "controlAggregation": "beginColumnPages"
-        },
-        "UsersObjectPage": {
-          "type": "Component",
-          "id": "UsersObjectPage",
-          "name": "sap.fe.templates.ObjectPage",
-          "options": {
-            "settings": {
-              "entitySet": "Users"
-            }
-          },
-          "controlAggregation": "midColumnPages"
+          "viewName": "TrainingAssignmentsList",
+          "viewLevel": 1
         }
       }
     },
     "rootView": {
-      "viewName": "sap.fe.templates.RootContainer.view.Fcl",
+      "viewName": "z.sap.courses.view.App",
       "type": "XML",
       "async": true,
-      "id": "appRootView"
+      "id": "app"
     }
   },
   "sap.fiori": {
