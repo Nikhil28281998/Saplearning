@@ -1,35 +1,14 @@
 sap.ui.define([
-    "sap/suite/ui/generic/template/lib/AppComponent",
-    "sap/m/Button",
-    "sap/m/Dialog",
-    "sap/m/List",
-    "sap/m/StandardListItem",
-    "sap/m/TextArea",
-    "sap/m/Bar",
-    "sap/ui/model/json/JSONModel",
-    "sap/base/Log",
-    "z/sap/courses/services/UserContext"
-], function (AppComponent, Button, Dialog, List, StandardListItem, TextArea, Bar, JSONModel, Log, UserContext) {
+    "sap/suite/ui/generic/template/lib/AppComponent"
+], function (AppComponent) {
     "use strict";
 
     return AppComponent.extend("z.sap.courses.Component", {
-        metadata: { manifest: "json" },
-
-        init: function () {
-            // Fiori Elements V2 Init
-            AppComponent.prototype.init.apply(this, arguments);
-            
-            var that = this;
-            
-            // Initialize UserContext service (S/4 authorization adapter)
-            this._userContext = new UserContext();
-            
-            // Custom startup logic attached to checks
-            try{
-               that._fetchRole();
-               that._startupHealthCheck();
-            } catch(e) { Log.error("Custom init error: " + e); }
-        },
+        metadata: {
+            manifest: "json"
+        }
+    });
+});
 
         _diagnosticsInit: function(){
             try{
