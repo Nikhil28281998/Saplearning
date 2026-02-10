@@ -10,22 +10,36 @@
         id="sap-ui-bootstrap"
         src="resources/sap-ui-core.js"
         data-sap-ui-theme="sap_horizon"
+        data-sap-ui-libs="sap.m"
         data-sap-ui-resource-roots='{
             "z.sap.courses": "./"
         }'
-        data-sap-ui-on-init="module:sap/ui/core/ComponentSupport"
         data-sap-ui-compat-version="edge"
         data-sap-ui-async="true"
         data-sap-ui-frame-options="allow"
         data-sap-ui-xx-componentPreload="off"
     ></script>
+    
+    <script>
+        sap.ui.getCore().attachInit(function() {
+            sap.ui.require([
+                "sap/m/Shell",
+                "sap/ui/core/ComponentContainer"
+            ], function(Shell, ComponentContainer) {
+                new Shell({
+                    app: new ComponentContainer({
+                        height: "100%",
+                        name: "z.sap.courses",
+                        settings: {
+                            id: "z.sap.courses"
+                        },
+                        async: true
+                    })
+                }).placeAt("content");
+            });
+        });
+    </script>
 </head>
 <body class="sapUiBody" id="content">
-    <div
-        data-sap-ui-component
-        data-name="z.sap.courses"
-        data-id="container"
-        data-settings='{"id":"z.sap.courses"}'
-    ></div>
 </body>
 </html>
