@@ -35,6 +35,13 @@
 
 ## 📋 Overview
 
+**⚠️ CRITICAL - ESTABLISHED CONFIGURATION (DO NOT CHANGE):**
+- **Package:** Z_COURSES (not ZCOURSE, not $TMP)
+- **Transport:** DS4K905210
+- **Destination:** S4_ABAP_DEV (no direct URL)
+- **App Name:** Z_COURSES_UI
+- **Deployment:** BTP destination-based (ABAP Repository)
+
 Enterprise SAP Fiori application for managing training courses across all SAP modules with CSV bulk import capability.
 
 **Features:**
