@@ -1,7 +1,8 @@
 sap.ui.define([
   "sap/ui/core/mvc/ControllerExtension",
-  "z/sap/courses/controller/ImportController"
-], function (ControllerExtension, ImportController) {
+  "z/sap/courses/controller/ImportController",
+  "sap/base/Log"
+], function (ControllerExtension, ImportController, Log) {
   "use strict";
 
   return ControllerExtension.extend("z.sap.courses.ext.TrainingsListExtension", {
@@ -117,7 +118,8 @@ sap.ui.define([
           });
         }
         } catch(e) {
-          try { jQuery.sap.log.error('Header extension failed to init: ' + (e && e.message)); } catch(_) {}
+          // SAP Clean Core: Use sap/base/Log instead of deprecated jQuery.sap.log
+          try { Log.error('Header extension failed to init: ' + (e && e.message)); } catch(_) {}
         }
       }
     }

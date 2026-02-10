@@ -16,7 +16,6 @@ builder:
       configuration:
         target:
           url: https://vhbrbds4ci.hec.bridgebio.com:44300
-          client: "100"
           scp: false
         app:
           name: Z_COURSES_UI

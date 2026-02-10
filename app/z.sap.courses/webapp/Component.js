@@ -17,18 +17,16 @@ sap.ui.define([
 
         init: function () {
             AppComponent.prototype.init.apply(this, arguments);
-            var that = this;
             
             // Initialize UserContext service (S/4 authorization adapter)
             this._userContext = new UserContext();
             
-            sap.ui.getCore().attachInit(function(){
-                that._diagnosticsInit();
-                that._fetchRole();
-                // AI functionality removed for clean core compliance - SAP Expert Team
-                that._startupHealthCheck();
-                that._ensureInitialRoute();
-            });
+            // SAP Clean Core: Use Component lifecycle instead of deprecated getCore().attachInit()
+            this._diagnosticsInit();
+            this._fetchRole();
+            // AI functionality removed for clean core compliance - SAP Expert Team
+            this._startupHealthCheck();
+            this._ensureInitialRoute();
         },
 
         _diagnosticsInit: function(){
@@ -120,7 +118,8 @@ sap.ui.define([
             var that = this;
             // hide Create on TrainingAssignments LR for non-managers
             var tryHide = function(){
-                var comp = sap.ui.getCore().byId('TrainingAssignmentsList');
+                // SAP Clean Core: Use Component.byId() instead of deprecated getCore().byId()
+                var comp = that.byId('TrainingAssignmentsList');
                 var view = comp && comp.getRootControl && comp.getRootControl();
                 var toolbars = view && view.findAggregatedObjects(true, function(o){ return o && o.getMetadata && o.getMetadata().getName() === 'sap.m.OverflowToolbar'; });
                 if (toolbars && toolbars.length){
@@ -190,7 +189,8 @@ sap.ui.define([
             var tries = 0;
             var timer = setInterval(function(){
                 tries++;
-                var comp = sap.ui.getCore().byId('TrainingAssignmentsList');
+                // SAP Clean Core: Use Component.byId() instead of deprecated getCore().byId()
+                var comp = that.byId('TrainingAssignmentsList');
                 var view = comp && comp.getRootControl && comp.getRootControl();
                 var tbars = view && view.findAggregatedObjects(true, function(o){ return o && o.getMetadata && o.getMetadata().getName() === 'sap.m.OverflowToolbar'; });
                 var fired = false;
