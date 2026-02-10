@@ -60,29 +60,8 @@ sap.ui.define([
                           window.location.hostname !== '127.0.0.1';
 
             if (isS4Hana) {
-                // TEMPORARY FIX: Disable UserContext call until Phase 6 (Security)
-                // The service Z_COURSES_USERCTX_SRV is not yet deployed, causing 403/404 errors.
-                // We default to "End User" permissions immediately.
-                
-                var useRealService = false; // Set to true only after deploying Z_COURSES_USERCTX_SRV
-
-                if (!useRealService) {
-                    Log.info("UserContext service skipped (Phase 4). using Hardcoded Admin (nikkumar).");
-                    var defaultInfo = {
-                            UserId: "nikkumar",
-                            FullName: "Nikhil Kumar",
-                            Email: "nikhil.kumar@bridgebio.com",
-                            IsAdmin: true,     // Hardcoded for testing
-                            IsManager: true,   // Enabled all features
-                            IsEndUser: true,
-                            Authorizations: []
-                    };
-                    that._userInfo = defaultInfo;
-                    that._cacheExpiry = Date.now() + that._cacheTTL;
-                    return Promise.resolve(defaultInfo);
-                }
-
                 // Production S/4HANA: Call ABAP OData service for PFCG role-based authorization
+                // Requires Z_COURSES_USERCTX_SRV deployed with proper PFCG role mapping
                 return fetch("/sap/opu/odata/sap/Z_COURSES_USERCTX_SRV/UserContextSet('ME')", {
                     method: "GET",
                     headers: {
