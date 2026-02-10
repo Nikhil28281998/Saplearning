@@ -183,9 +183,9 @@
           "name": "sap.fe.templates.ListReport",
           "options": {
             "settings": {
-              "entitySet": "Trainings",
+              "entitySet": "TrainingSet",
               "navigation": {
-                "Trainings": {
+                "TrainingSet": {
                   "detail": {
                     "route": "TrainingsObjectPage"
                   }
@@ -201,7 +201,7 @@
           "name": "sap.fe.templates.ObjectPage",
           "options": {
             "settings": {
-              "entitySet": "Trainings"
+              "entitySet": "TrainingSet"
             }
           },
           "controlAggregation": "midColumnPages"
