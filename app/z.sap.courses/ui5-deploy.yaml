@@ -21,9 +21,3 @@ builder:
           description: SAP Learning Courses Application
           package: Z_COURSES
           transport: DS4K905210
-        exclude:
-          - ".git/"
-          - ".gitignore"
-          - "node_modules/"
-          - "test/"
-          - "*.md"
