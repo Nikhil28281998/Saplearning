@@ -157,7 +157,7 @@ sap.ui.define([
                 '/sap/opu/odata/sap/ZCOURSES_SRV/$metadata' : 
                 '/service/SAPLearningService/$metadata';
             var dataPath = isS4Hana ? 
-                '/sap/opu/odata/sap/ZCOURSES_SRV/TrainingSet?$top=1' : 
+                '/sap/opu/odata/sap/ZCOURSES_SRV/Trainings?$top=1' : 
                 '/service/SAPLearningService/Trainings?$top=1';
             
             // Check OData service availability
