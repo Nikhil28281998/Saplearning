@@ -15,9 +15,7 @@ builder:
       afterTask: ui5-task-zipper
       configuration:
         target:
-          url: https://your-s4hana-server:port
-          client: "100"
-          auth: "basic"
+          destination: S4_ABAP_DEV
         app:
           name: Z_COURSES_UI
           description: SAP Learning Courses Application
