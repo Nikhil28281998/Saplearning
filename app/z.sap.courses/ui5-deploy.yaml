@@ -20,5 +20,5 @@ builder:
           name: Z_COURSES_UI
           description: SAP Learning Courses Application
           package: Z_COURSES
-          transport:
+          transport: DS4K905210
 
