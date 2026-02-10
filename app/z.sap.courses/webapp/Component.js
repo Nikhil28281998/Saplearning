@@ -150,11 +150,14 @@ sap.ui.define([
             // Determine service path based on environment
             var isS4Hana = window.location.hostname !== 'localhost' && 
                           window.location.hostname !== '127.0.0.1';
+            
+            // FIXED: Updated service name to match manifest.json (ZCOURSES_SRV)
+            // FIXED: Updated entity set to match manifest.json (Trainings)
             var metadataPath = isS4Hana ? 
-                '/sap/opu/odata/sap/Z_COURSES_MAIN_SRV/$metadata' : 
+                '/sap/opu/odata/sap/ZCOURSES_SRV/$metadata' : 
                 '/service/SAPLearningService/$metadata';
             var dataPath = isS4Hana ? 
-                '/sap/opu/odata/sap/Z_COURSES_MAIN_SRV/TrainingsSet?$top=1' : 
+                '/sap/opu/odata/sap/ZCOURSES_SRV/Trainings?$top=1' : 
                 '/service/SAPLearningService/Trainings?$top=1';
             
             // Check OData service availability
