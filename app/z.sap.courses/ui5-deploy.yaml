@@ -17,9 +17,17 @@ builder:
         target:
           url: https://vhbrbds4ci.hec.bridgebio.com:44300
           scp: false
+        credentials:
+          username: env:ABAP_USERNAME
+          password: env:ABAP_PASSWORD
         app:
           name: Z_COURSES_UI
           description: SAP Learning Courses Application
           package: Z_COURSES
           transport: DS4K905210
-
+        exclude:
+          - ".git/"
+          - ".gitignore"
+          - "node_modules/"
+          - "test/"
+          - "*.md"
