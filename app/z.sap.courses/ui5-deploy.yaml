@@ -14,8 +14,6 @@ builder:
     - name: deploy-to-abap
       afterTask: ui5-task-zipper
       configuration:
-        # NOTE: target.url is NOT needed for SAP BAS deployment
-        # SAP BAS uses destination-based authentication automatically
         target:
           destination: S4_ABAP_DEV
         app:
@@ -23,5 +21,3 @@ builder:
           description: SAP Learning Courses Application
           package: Z_COURSES
           transport: DS4K905210
-        # Specify to deploy from the build output directory
-        dir: dist
