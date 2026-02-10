@@ -1,5 +1,5 @@
 sap.ui.define([
-    "sap/fe/core/AppComponent",
+    "sap/suite/ui/generic/template/lib/AppComponent",
     "sap/m/Button",
     "sap/m/Dialog",
     "sap/m/List",
@@ -16,19 +16,19 @@ sap.ui.define([
         metadata: { manifest: "json" },
 
         init: function () {
+            // Fiori Elements V2 Init
             AppComponent.prototype.init.apply(this, arguments);
+            
             var that = this;
             
             // Initialize UserContext service (S/4 authorization adapter)
             this._userContext = new UserContext();
             
-            sap.ui.getCore().attachInit(function(){
-                that._diagnosticsInit();
-                that._fetchRole();
-                // AI functionality removed for clean core compliance - SAP Expert Team
-                that._startupHealthCheck();
-                that._ensureInitialRoute();
-            });
+            // Custom startup logic attached to checks
+            try{
+               that._fetchRole();
+               that._startupHealthCheck();
+            } catch(e) { Log.error("Custom init error: " + e); }
         },
 
         _diagnosticsInit: function(){

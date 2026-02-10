@@ -131,132 +131,25 @@
         }
       ]
     },
-    "routing": {
-      "config": {
-        "flexibleColumnLayout": {
-          "defaultTwoColumnLayoutType": "TwoColumnsBeginExpanded",
-          "defaultThreeColumnLayoutType": "ThreeColumnsMidExpanded"
-        },
-        "routerClass": "sap.f.routing.Router"
-      },
-      "routes": [
-        {
-          "name": "TrainingsList",
-          "pattern": ":?query:",
-          "target": "TrainingsList"
-        },
-        {
-          "name": "TrainingsObjectPage",
-          "pattern": "Trainings({key})",
-          "target": "TrainingsObjectPage"
-        },
-        {
-          "name": "TrainingAssignmentsList",
-          "pattern": "TrainingAssignments",
-          "target": "TrainingAssignmentsList"
-        },
-        {
-          "name": "TrainingAssignmentsObjectPage",
-          "pattern": "TrainingAssignments({key})",
-          "target": "TrainingAssignmentsObjectPage"
-        },
-        {
-          "name": "UsersList",
-          "pattern": "Users",
-          "target": "UsersList"
-        },
-        {
-          "name": "UsersObjectPage",
-          "pattern": "Users({key})",
-          "target": "UsersObjectPage"
-        },
-        {
-          "name": "MyTrainingsList",
-          "pattern": "MyTrainings",
-          "target": "TrainingAssignmentsList"
-        }
-      ],
-      "targets": {
-        "TrainingsList": {
-          "type": "Component",
-          "id": "TrainingsList",
-          "name": "sap.fe.templates.ListReport",
-          "options": {
-            "settings": {
+    "sap.ui.generic.app": {
+      "_version": "1.3.0",
+      "pages": {
+        "ListReport|Trainings": {
+          "entitySet": "Trainings",
+          "component": {
+            "name": "sap.suite.ui.generic.template.ListReport",
+            "list": true
+          },
+          "pages": {
+            "ObjectPage|Trainings": {
               "entitySet": "Trainings",
-              "navigation": {
-                "Trainings": {
-                  "detail": {
-                    "route": "TrainingsObjectPage"
-                  }
-                }
+              "component": {
+                "name": "sap.suite.ui.generic.template.ObjectPage"
               }
             }
-          },
-          "controlAggregation": "beginColumnPages"
-        },
-        "TrainingsObjectPage": {
-          "type": "Component",
-          "id": "TrainingsObjectPage",
-          "name": "sap.fe.templates.ObjectPage",
-          "options": {
-            "settings": {
-              "entitySet": "Trainings"
-            }
-          },
-          "controlAggregation": "midColumnPages"
-        },
-        "TrainingAssignmentsList": {
-          "type": "Component",
-          "id": "TrainingAssignmentsList",
-          "name": "sap.fe.templates.ListReport",
-          "options": {
-            "settings": {
-              "entitySet": "TrainingAssignments"
-            }
-          },
-          "controlAggregation": "beginColumnPages"
-        },
-        "TrainingAssignmentsObjectPage": {
-          "type": "Component",
-          "id": "TrainingAssignmentsObjectPage",
-          "name": "sap.fe.templates.ObjectPage",
-          "options": {
-            "settings": {
-              "entitySet": "TrainingAssignments"
-            }
-          },
-          "controlAggregation": "midColumnPages"
-        },
-        "UsersList": {
-          "type": "Component",
-          "id": "UsersList",
-          "name": "sap.fe.templates.ListReport",
-          "options": {
-            "settings": {
-              "entitySet": "Users"
-            }
-          },
-          "controlAggregation": "beginColumnPages"
-        },
-        "UsersObjectPage": {
-          "type": "Component",
-          "id": "UsersObjectPage",
-          "name": "sap.fe.templates.ObjectPage",
-          "options": {
-            "settings": {
-              "entitySet": "Users"
-            }
-          },
-          "controlAggregation": "midColumnPages"
+          }
         }
       }
-    },
-    "rootView": {
-      "viewName": "sap.fe.templates.RootContainer.view.Fcl",
-      "type": "XML",
-      "async": true,
-      "id": "appRootView"
     }
   },
   "sap.fiori": {
