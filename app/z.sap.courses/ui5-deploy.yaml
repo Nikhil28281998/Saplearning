@@ -15,7 +15,9 @@ builder:
       afterTask: ui5-task-zipper
       configuration:
         target:
-          destination: S4_ABAP_DEV
+          url: https://vhbrbds4ci.hec.bridgebio.com:44300
+          client: "100"
+          auth: "basic"
         app:
           name: Z_COURSES_UI
           description: SAP Learning Courses Application
