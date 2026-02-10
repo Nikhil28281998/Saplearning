@@ -94,11 +94,12 @@ sap.ui.define([
                         return userInfo;
                     })
                     .catch(function (error) {
-                        Log.error("Error fetching user context from S/4HANA: " + error.message);
+                        // Suppress error in console to avoid confusing users (service not yet implemented in Phase 4)
+                        Log.warning("UserContext service (Z_COURSES_USERCTX_SRV) not reachable. Defaulting to 'User' mode. " + (error.message || ''));
                         // Return minimal default context (read-only user)
                         return {
                             UserId: "ANONYMOUS",
-                            FullName: "",
+                            FullName: "End User",
                             Email: "",
                             IsAdmin: false,
                             IsManager: false,

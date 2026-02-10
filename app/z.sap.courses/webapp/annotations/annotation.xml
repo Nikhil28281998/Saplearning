@@ -6,11 +6,12 @@
         <edmx:Include Alias="Common" Namespace="com.sap.vocabularies.Common.v1"/>
     </edmx:Reference>
     <edmx:Reference Uri="/sap/opu/odata/sap/ZCOURSES_SRV/$metadata">
-        <edmx:Include Alias="SAPLearningService" Namespace="SAPLearningService"/>
+        <edmx:Include Alias="SAPLearningService" Namespace="ZCOURSES_SRV"/>
+        <edmx:Include Alias="OriginalService" Namespace="SAPLearningService"/>
     </edmx:Reference>
     <edmx:DataServices>
         <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="z.sap.courses.annotations">
-            <Annotations Target="SAPLearningService.Trainings">
+            <Annotations Target="ZCOURSES_SRV.Training">
                 <Annotation Term="UI.SelectionFields">
                     <Collection>
                         <PropertyPath>role</PropertyPath>
