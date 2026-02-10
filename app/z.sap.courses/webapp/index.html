@@ -10,6 +10,16 @@
             height: 100%;
         }
     </style>
+    <script>
+        // Enhanced error logging for blank page debugging
+        window.addEventListener('error', function(e) {
+            console.error('[INIT ERROR]', e.message, e.filename, e.lineno, e.error);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('[PROMISE REJECTION]', e.reason);
+        });
+        console.log('[BOOTSTRAP] Starting UI5 application initialization...');
+    </script>
     <script
         id="sap-ui-bootstrap"
         src="resources/sap-ui-core.js"
@@ -24,6 +34,7 @@
         data-sap-ui-frame-options="trusted"
         data-sap-ui-xx-componentPreload="off"
         data-sap-ui-xx-waitForTheme="true"
+        data-sap-ui-log-level="INFO"
     ></script>
 </head>
 <body class="sapUiBody sapUiSizeCompact" id="content">
@@ -34,5 +45,8 @@
         data-settings='{"id" : "z.sap.courses"}'
         data-handle-validation="true"
     ></div>
+    <script>
+        console.log('[BOOTSTRAP] HTML body loaded, waiting for Component initialization...');
+    </script>
 </body>
 </html>

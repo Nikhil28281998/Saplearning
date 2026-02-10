@@ -16,6 +16,9 @@ sap.ui.define([
         metadata: { manifest: "json" },
 
         init: function () {
+            // Log initialization start for debugging blank page issues
+            Log.info('Component initialization started');
+            
             AppComponent.prototype.init.apply(this, arguments);
             
             // Initialize UserContext service (S/4 authorization adapter)
@@ -27,6 +30,8 @@ sap.ui.define([
             // AI functionality removed for clean core compliance - SAP Expert Team
             this._startupHealthCheck();
             this._ensureInitialRoute();
+            
+            Log.info('Component initialization completed');
         },
 
         _diagnosticsInit: function(){

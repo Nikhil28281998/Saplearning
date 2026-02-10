@@ -15,11 +15,7 @@ builder:
       afterTask: ui5-task-zipper
       configuration:
         target:
-          url: https://vhbrbds4ci.hec.bridgebio.com:44300
-          scp: false
-        credentials:
-          username: env:ABAP_USERNAME
-          password: env:ABAP_PASSWORD
+          destination: S4_ABAP_DEV
         app:
           name: Z_COURSES_UI
           description: SAP Learning Courses Application

@@ -1,34 +1,33 @@
 {
   "welcomeFile": "/index.html",
   "authenticationMethod": "route",
-  "logout": {
-    "logoutEndpoint": "/do/logout"
-  },
   "routes": [
     {
-      "source": "^/sap/opu/odata/sap/(.*)$",
-      "target": "/sap/opu/odata/sap/$1",
-      "localDir": ".",
-      "authenticationType": "none",
+      "source": "^/sap/opu/odata/(.*)$",
+      "target": "/sap/opu/odata/$1",
+      "destination": "S4_ABAP_DEV",
+      "authenticationType": "xsuaa",
       "csrfProtection": false
     },
     {
       "source": "^/resources/(.*)$",
       "target": "/resources/$1",
+      "destination": "S4_ABAP_DEV",
       "authenticationType": "none",
       "csrfProtection": false
     },
     {
       "source": "^/test-resources/(.*)$",
       "target": "/test-resources/$1",
+      "destination": "S4_ABAP_DEV",
       "authenticationType": "none",
       "csrfProtection": false
     },
     {
       "source": "^(.*)$",
       "target": "$1",
-      "localDir": ".",
-      "authenticationType": "none"
+      "service": "html5-apps-repo-rt",
+      "authenticationType": "xsuaa"
     }
   ]
 }
