@@ -23,3 +23,5 @@ builder:
           description: SAP Learning Courses Application
           package: Z_COURSES
           transport: DS4K905210
+        # Specify to deploy from the build output directory
+        dir: dist
