@@ -8,7 +8,7 @@ builder:
     - name: ui5-task-zipper
       afterTask: generateCachebusterInfo
       configuration:
-        archiveName: Z_COURSE_UI
+        archiveName: Z_COURSES_UI
         additionalFiles:
           - "xs-app.json"
     - name: deploy-to-abap
@@ -17,7 +17,7 @@ builder:
         target:
           destination: S4_ABAP_DEV
         app:
-          name: Z_COURSE_UI
+          name: Z_COURSES_UI
           description: SAP Learning Courses Application
           package: Z_COURSES
           transport: DS4K905210

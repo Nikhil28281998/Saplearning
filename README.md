@@ -39,7 +39,7 @@
 - **Package:** Z_COURSES (not ZCOURSE, not $TMP)
 - **Transport:** DS4K905210
 - **Destination:** S4_ABAP_DEV (no direct URL)
-- **App Name:** Z_COURSE_UI
+- **App Name:** Z_COURSES_UI
 - **Deployment:** BTP destination-based (ABAP Repository)
 
 Enterprise SAP Fiori application for managing training courses across all SAP modules with CSV bulk import capability.
@@ -233,7 +233,7 @@ All components follow SAP Clean Core principles:
 - **Package:** Z_COURSES
 - **Table:** ZCOURSES (field: SAP_MODULE)
 - **OData Service:** ZCOURSES_SRV_0001
-- **BSP Application:** Z_COURSE_UI
+- **BSP Application:** Z_COURSES_UI
 - **PFCG Roles:** Z_COURSES_ADMIN, Z_COURSES_MANAGER, Z_COURSES_USER
 - **UI5 App:** z.sap.courses
 - **Namespace:** Z (customer-specific)

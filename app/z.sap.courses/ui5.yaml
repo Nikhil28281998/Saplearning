@@ -30,6 +30,6 @@ builder:
     - name: ui5-task-zipper
       afterTask: generateCachebusterInfo
       configuration:
-        archiveName: Z_COURSE_UI
+        archiveName: Z_COURSES_UI
         additionalFiles:
           - "xs-app.json"

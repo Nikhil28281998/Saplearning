@@ -3,7 +3,7 @@
     "destination": "s4hana-dev"
   },
   "app": {
-    "name": "Z_COURSE_UI",
+    "name": "Z_COURSES_UI",
     "description": "SAP Learning Courses UI",
     "package": "Z_COURSES",
     "transport": "DS4K905210"
