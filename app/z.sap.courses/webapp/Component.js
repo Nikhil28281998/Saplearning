@@ -109,19 +109,27 @@ sap.ui.define([
                 }catch(_){ /* ignore */ }
             }
             
+            // TEMPORARY FIX: Hardcode Admin role until Z_COURSES_USERCTX_SRV is implemented
+            // TODO: Remove this when backend service is ready (returns proper PFCG roles)
+            that._role = 'Admin';  // HARDCODED - Change to 'Manager' or 'User' for testing
+            that._applyRoleUI();
+            Log.info('Role hardcoded to Admin - waiting for Z_COURSES_USERCTX_SRV implementation');
+            return;
+            
+            // Original code (will be re-enabled when backend service is ready):
             // Production: Use S/4 UserContext service for PFCG role-based authorization
             // NOTE: This is for UX purposes only - backend enforces actual authorization
-            this._userContext.getCurrentRole()
-                .then(function(role){
-                    that._role = role;
-                    that._applyRoleUI();
-                })
-                .catch(function(error){ 
-                    Log.warning('Failed to fetch role from S/4 UserContext (non-critical): ' + error);
-                    // Default to read-only user role
-                    that._role = 'User'; 
-                    that._applyRoleUI(); 
-                });
+            // this._userContext.getCurrentRole()
+            //     .then(function(role){
+            //         that._role = role;
+            //         that._applyRoleUI();
+            //     })
+            //     .catch(function(error){ 
+            //         Log.warning('Failed to fetch role from S/4 UserContext (non-critical): ' + error);
+            //         // Default to read-only user role
+            //         that._role = 'User'; 
+            //         that._applyRoleUI(); 
+            //     });
         },
 
         _applyRoleUI: function(){
