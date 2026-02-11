@@ -58,11 +58,9 @@
                                     title="{title}"
                                     text="{ID}" />
                                 <Text text="{role}" />
-                                <Text text="{module}" />
+                                <Text text="{sap_module}" />
                                 <Text text="{description}" />
-                                <ObjectNumber
-                                    number="{durationHours}"
-                                    unit="hrs" />
+                                <Text text="{url}" />
                             </cells>
                         </ColumnListItem>
                     </items>
