@@ -15,7 +15,7 @@
                 icon="sap-icon://add"
                 text="Assign Training"
                 press="onAssignTraining"
-                visible="{= ${/role} === 'Manager' || ${/role} === 'Admin' }" />
+                visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
             <Button
                 icon="sap-icon://refresh"
                 text="Refresh"
@@ -24,7 +24,7 @@
         
         <content>
             <VBox class="sapUiSmallMargin">
-                <Text text="Current Role: {/role}" class="sapUiTinyMarginBottom" />
+                <Text text="Current Role: {user>/role}" class="sapUiTinyMarginBottom" />
                 
                 <Table
                     id="trainingsTable"

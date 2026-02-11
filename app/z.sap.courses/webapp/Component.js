@@ -128,6 +128,18 @@ sap.ui.define([
             // Role-based UI adjustments - for OData V2 standard UI5 app
             // Role is stored in this._role
             Log.info('User role applied: ' + this._role);
+            
+            // Create JSON model for role binding in views
+            var roleModel = new JSONModel({
+                role: this._role || 'User'
+            });
+            this.setModel(roleModel, "user");
+            
+            // Also set on root view if available
+            var rootView = this.getRootControl();
+            if (rootView) {
+                rootView.setModel(roleModel, "user");
+            }
         },
 
         _startupHealthCheck: function(){
