@@ -25,13 +25,20 @@ sap.ui.define([
             // Initialize router
             this.getRouter().initialize();
             
-            // Initialize UserContext service (S/4 authorization adapter)
-            this._userContext = new UserContext();
-            
-            // SAP Clean Core: Use Component lifecycle instead of deprecated getCore().attachInit()
-            this._diagnosticsInit();
-            this._fetchRole();
-            this._startupHealthCheck();
+            // Initialize UserContext service (S/4 authorization adapter) - non-blocking
+            try {
+                this._userContext = new UserContext();
+                this._diagnosticsInit();
+                // Fetch role asynchronously without blocking component init
+                setTimeout(function() {
+                    this._fetchRole();
+                    this._startupHealthCheck();
+                }.bind(this), 100);
+            } catch(e) {
+                Log.error('UserContext initialization failed: ' + e.message);
+                // Default role if service fails
+                this._role = 'User';
+            }
             
             Log.info('Component initialization completed');
         },
@@ -110,7 +117,7 @@ sap.ui.define([
                     that._applyRoleUI();
                 })
                 .catch(function(error){ 
-                    Log.error('Failed to fetch role from S/4 UserContext: ' + error);
+                    Log.warning('Failed to fetch role from S/4 UserContext (non-critical): ' + error);
                     // Default to read-only user role
                     that._role = 'User'; 
                     that._applyRoleUI(); 
@@ -140,26 +147,22 @@ sap.ui.define([
                 '/sap/opu/odata/sap/ZCOURSES_SRV/Trainings?$top=1' : 
                 '/service/SAPLearningService/Trainings?$top=1';
             
-            // Check OData service availability
-            var checks = [
-                fetch(metadataPath).then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; }),
-                fetch(dataPath).then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; })
-            ];
-            Promise.all(checks).then(function(){
-                if (!ok){
-                    try{
-                        var serviceType = isS4Hana ? 'S/4 ABAP OData service' : 'CAP service';
-                        var dlg = new Dialog({ 
-                            title: 'Startup Issue', 
-                            content: [ new sap.m.Text({ 
-                                text: serviceType + ' not reachable. Please check system configuration.' 
-                            }) ], 
-                            buttons: [ new Button({ text: 'Close', press: function(){ dlg.close(); } }) ] 
-                        });
-                        dlg.open();
-                    }catch(_){/*noop*/}
-                }
-            });
+            // Check OData service availability - non-blocking
+            setTimeout(function() {
+                var checks = [
+                    fetch(metadataPath).then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; }),
+                    fetch(dataPath).then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; })
+                ];
+                Promise.all(checks).then(function(){
+                    if (!ok){
+                        Log.warning('OData service health check failed - service may not be fully available');
+                    } else {
+                        Log.info('OData service health check passed');
+                    }
+                }).catch(function(err){
+                    Log.warning('Health check error (non-critical): ' + err.message);
+                });
+            }, 500);
         },
 
         // Navigate to TrainingAssignments
