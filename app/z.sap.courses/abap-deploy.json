@@ -1,0 +1,22 @@
+{
+  "deployer": {
+    "destination": "s4hana-dev"
+  },
+  "app": {
+    "name": "Z_COURSES_UI",
+    "description": "SAP Learning Courses UI",
+    "package": "Z_COURSES",
+    "transport": "DS4K905210"
+  },
+  "exclude": [
+    "node_modules/",
+    "test/",
+    "dist-zip/",
+    ".env",
+    ".env.*",
+    "*.md",
+    ".git/",
+    ".vscode/",
+    "package-lock.json"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run SAP Learning Platform",
+      "runtimeExecutable": "npm",
+      "request": "launch",
+      "args": [
+        "run",
+        "watch"
+      ],
+      "console": "internalConsole",
+      "internalConsoleOptions": "openOnSessionStart",
+      "type": "node",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

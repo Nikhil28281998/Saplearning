@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>SAP Learning Courses</title>
+    <style>
+        html, body, body > div, #container, #container-uiarea {
+            height: 100%;
+        }
+    </style>
+    <script>
+        // Enhanced error logging for blank page debugging
+        window.addEventListener('error', function(e) {
+            console.error('[INIT ERROR]', e.message, e.filename, e.lineno, e.error);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('[PROMISE REJECTION]', e.reason);
+        });
+        console.log('[BOOTSTRAP] Starting UI5 application initialization...');
+    </script>
+    <script
+        id="sap-ui-bootstrap"
+        src="resources/sap-ui-core.js"
+        data-sap-ui-theme="sap_horizon"
+        data-sap-ui-libs="sap.m,sap.ui.core,sap.f"
+        data-sap-ui-resource-roots='{
+            "z.sap.courses": "./"
+        }'
+        data-sap-ui-on-init="module:sap/ui/core/ComponentSupport"
+        data-sap-ui-compat-version="edge"
+        data-sap-ui-async="true"
+        data-sap-ui-frame-options="trusted"
+        data-sap-ui-xx-componentPreload="off"
+        data-sap-ui-xx-waitForTheme="true"
+        data-sap-ui-log-level="INFO"
+    ></script>
+</head>
+<body class="sapUiBody sapUiSizeCompact" id="content">
+    <div
+        data-sap-ui-component
+        data-name="z.sap.courses"
+        data-id="container"
+        data-settings='{"id" : "z.sap.courses"}'
+        data-handle-validation="true"
+    ></div>
+    <script>
+        console.log('[BOOTSTRAP] HTML body loaded, waiting for Component initialization...');
+    </script>
+</body>
+</html>

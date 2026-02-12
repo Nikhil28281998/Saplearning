@@ -1,0 +1,81 @@
+<mvc:View
+    controllerName="z.sap.courses.controller.TrainingsList"
+    xmlns="sap.m"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core">
+    
+    <Page
+        id="trainingsListPage"
+        title="SAP Learning - Training Catalog"
+        showNavButton="false">
+        
+        <headerContent>
+            <Button
+                id="assignButton"
+                icon="sap-icon://add"
+                text="Assign Training"
+                press="onAssignTraining"
+                visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
+            <Button
+                icon="sap-icon://refresh"
+                text="Refresh"
+                press="onRefresh" />
+        </headerContent>
+        
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <Text text="Current Role: {user>/role}" class="sapUiTinyMarginBottom" />
+                
+                <Table
+                    id="trainingsTable"
+                    inset="false"
+                    items="{/Trainings}"
+                    growing="true"
+                    growingScrollToLoad="true">
+                    
+                    <columns>
+                        <Column width="12em">
+                            <Text text="Title" />
+                        </Column>
+                        <Column width="8em">
+                            <Text text="Role" />
+                        </Column>
+                        <Column width="10em">
+                            <Text text="Module" />
+                        </Column>
+                        <Column minScreenWidth="Tablet" demandPopin="true">
+                            <Text text="Description" />
+                        </Column>
+                        <Column width="6em" hAlign="End">
+                            <Text text="Duration" />
+                        </Column>
+                    </columns>
+                    
+                    <items>
+                        <ColumnListItem type="Active" press="onItemPress">
+                            <cells>
+                                <ObjectIdentifier
+                                    title="{title}"
+                                    text="{ID}" />
+                                <Text text="{role}" />
+                                <Text text="{sap_module}" />
+                                <Text text="{description}" />
+                                <Text text="{url}" />
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+            </VBox>
+        </content>
+        
+        <footer>
+            <OverflowToolbar>
+                <ToolbarSpacer />
+                <Button
+                    text="View My Assignments"
+                    press="onViewAssignments"
+                    type="Emphasized" />
+            </OverflowToolbar>
+        </footer>
+    </Page>
+</mvc:View>

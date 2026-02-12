@@ -1,0 +1,24 @@
+{
+  "name": "z.sap.courses",
+  "version": "0.0.1",
+  "description": "SAP Courses UI - S/4HANA Embedded",
+  "main": "webapp/index.html",
+  "devDependencies": {
+    "@sap/ux-ui5-tooling": "^1",
+    "@ui5/cli": "^4",
+    "ui5-task-zipper": "^3.1.3",
+    "ui5-middleware-livereload": "^3"
+  },
+  "ui5": {
+    "dependencies": []
+  },
+  "sapux": true,
+  "scripts": {
+    "start": "ui5 serve --port 8080",
+    "start:mock": "ui5 serve --port 8080 --config ui5-mock.yaml",
+    "build": "ui5 build --config=ui5.yaml --clean-dest --dest dist",
+    "deploy": "npm run build && fiori deploy --config ui5-deploy.yaml --yes",
+    "deploy-config": "fiori add deploy-config",
+    "undeploy": "fiori undeploy --config ui5-deploy.yaml"
+  }
+}

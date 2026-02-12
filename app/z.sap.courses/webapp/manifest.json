@@ -1,0 +1,172 @@
+{
+  "_version": "1.60.0",
+  "sap.app": {
+    "id": "z.sap.courses",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "archeType": "transactional",
+    "registrationIds": [
+      "z.sap.courses"
+    ],
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:fpm",
+      "version": "1.20.0",
+      "toolsId": "88f74be8-a6aa-4c10-b1cf-73cb0004ddaf"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/sap/opu/odata/sap/ZCOURSES_SRV/",
+        "type": "OData",
+        "settings": {
+          "annotations": [
+             "annotation"
+          ],
+          "localUri": "localService/metadata.xml",
+          "odataVersion": "2.0"
+        }
+      },
+      "annotation": {
+        "type": "ODataAnnotation",
+        "uri": "annotations/annotation.xml",
+        "settings": {
+          "localUri": "annotations/annotation.xml"
+        }
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "sap-courses-display": {
+          "semanticObject": "ZLEARNING",
+          "action": "display",
+          "title": "{{sap-courses-display.flpTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        },
+        "my-trainings": {
+          "semanticObject": "ZLEARNING",
+          "action": "mytrainings",
+          "title": "{{myTrainingsTileTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "dependencies": {
+      "minUI5Version": "1.71.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.ui.table": {}
+      }
+    },
+
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "z.sap.courses.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {
+          "defaultBindingMode": "TwoWay",
+          "defaultCountMode": "Inline",
+          "useBatch": true
+        }
+      },
+      "@i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "uri": "i18n/i18n.properties"
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "viewPath": "z.sap.courses.view",
+        "controlId": "app",
+        "controlAggregation": "pages",
+        "async": true
+      },
+      "routes": [
+        {
+          "name": "TrainingsList",
+          "pattern": "",
+          "target": "TrainingsList"
+        },
+        {
+          "name": "TrainingAssignmentsList",
+          "pattern": "assignments",
+          "target": "TrainingAssignmentsList"
+        }
+      ],
+      "targets": {
+        "TrainingsList": {
+          "viewName": "TrainingsList",
+          "viewLevel": 1
+        },
+        "TrainingAssignmentsList": {
+          "viewName": "TrainingAssignmentsList",
+          "viewLevel": 1
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "z.sap.courses.view.App",
+      "type": "XML",
+      "async": true,
+      "id": "app"
+    }
+  },
+  "sap.fiori": {
+    "registrationIds": [
+      "F5765"
+    ],
+    "archeType": "transactional"
+  },
+  "sap.platform.cf": {
+    "ui5VersionNumber": "1.120.13"
+  }
+}

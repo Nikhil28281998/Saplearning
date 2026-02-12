@@ -1,0 +1,184 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:l="sap.ui.layout"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:u="sap.ui.unified">
+    
+    <Dialog
+        id="csvImportDialog"
+        title="Import Trainings from CSV"
+        contentWidth="600px"
+        contentHeight="500px"
+        resizable="true"
+        draggable="true">
+        
+        <content>
+            <VBox class="sapUiSmallMargin">
+                
+                <!-- Instructions -->
+                <MessageStrip
+                    text="Upload a CSV file containing training records. The file must have these columns: ID, url, role, title, sap_module, description, lastUpdated, sapHelpLink"
+                    type="Information"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom"/>
+                
+                <!-- File Upload -->
+                <l:VerticalLayout class="sapUiSmallMarginBottom">
+                    <Label text="Select CSV File" required="true"/>
+                    <u:FileUploader
+                        id="fileUploader"
+                        name="csvFile"
+                        uploadUrl=""
+                        tooltip="Upload CSV file"
+                        placeholder="Choose a CSV file..."
+                        fileType="csv"
+                        mimeType="text/csv,application/vnd.ms-excel"
+                        maximumFileSize="5"
+                        change=".onFileChange"
+                        width="100%"
+                        class="sapUiSmallMarginTop"/>
+                    <Text text="Maximum file size: 5 MB" class="sapUiTinyMarginTop"/>
+                </l:VerticalLayout>
+                
+                <!-- Preview Section -->
+                <Panel
+                    id="previewPanel"
+                    headerText="Preview"
+                    expandable="true"
+                    expanded="false"
+                    visible="false"
+                    class="sapUiSmallMarginTop">
+                    <content>
+                        <VBox>
+                            <HBox justifyContent="SpaceBetween" class="sapUiTinyMarginBottom">
+                                <Text text="Records to import:" class="sapUiSmallMarginEnd"/>
+                                <ObjectNumber
+                                    id="recordCount"
+                                    number="0"
+                                    emphasized="true"/>
+                            </HBox>
+                            
+                            <!-- Data Table Preview -->
+                            <Table
+                                id="previewTable"
+                                items="{import>/data}"
+                                growing="true"
+                                growingThreshold="10"
+                                mode="None">
+                                <columns>
+                                    <Column width="8em">
+                                        <Text text="ID"/>
+                                    </Column>
+                                    <Column>
+                                        <Text text="Title"/>
+                                    </Column>
+                                    <Column width="7em">
+                                        <Text text="Role"/>
+                                    </Column>
+                                    <Column width="7em">
+                                        <Text text="Module"/>
+                                    </Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem>
+                                        <cells>
+                                            <Text text="{import>ID}" wrapping="false"/>
+                                            <Text text="{import>title}" wrapping="false"/>
+                                            <Text text="{import>role}"/>
+                                            <Text text="{import>sap_module}"/>
+                                        </cells>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </VBox>
+                    </content>
+                </Panel>
+                
+                <!-- Validation Messages -->
+                <Panel
+                    id="validationPanel"
+                    headerText="Validation Results"
+                    expandable="true"
+                    expanded="true"
+                    visible="false"
+                    class="sapUiSmallMarginTop">
+                    <content>
+                        <List
+                            id="errorList"
+                            items="{import>/errors}"
+                            noDataText="No errors found">
+                            <StandardListItem
+                                title="{import>message}"
+                                icon="sap-icon://error"
+                                type="Inactive"/>
+                        </List>
+                        <List
+                            id="warningList"
+                            items="{import>/warnings}"
+                            noDataText="No warnings"
+                            class="sapUiSmallMarginTop">
+                            <StandardListItem
+                                title="{import>message}"
+                                icon="sap-icon://alert"
+                                type="Inactive"/>
+                        </List>
+                    </content>
+                </Panel>
+                
+                <!-- Progress Indicator -->
+                <VBox
+                    id="progressBox"
+                    visible="false"
+                    class="sapUiSmallMarginTop">
+                    <ProgressIndicator
+                        id="importProgress"
+                        percentValue="0"
+                        displayValue="Importing..."
+                        showValue="true"
+                        state="Information"/>
+                    <Text
+                        id="progressText"
+                        text="Processing records..."
+                        class="sapUiTinyMarginTop"/>
+                </VBox>
+                
+                <!-- Success Message -->
+                <MessageStrip
+                    id="successMessage"
+                    text="Import completed successfully!"
+                    type="Success"
+                    showIcon="true"
+                    visible="false"
+                    class="sapUiSmallMarginTop"/>
+                
+                <!-- Error Message -->
+                <MessageStrip
+                    id="errorMessage"
+                    text=""
+                    type="Error"
+                    showIcon="true"
+                    visible="false"
+                    class="sapUiSmallMarginTop"/>
+                    
+            </VBox>
+        </content>
+        
+        <beginButton>
+            <Button
+                id="importButton"
+                text="Import"
+                type="Emphasized"
+                press=".onImport"
+                enabled="false"/>
+        </beginButton>
+        
+        <endButton>
+            <Button
+                text="Cancel"
+                press=".onCloseImportDialog"/>
+        </endButton>
+        
+    </Dialog>
+    
+</core:FragmentDefinition>

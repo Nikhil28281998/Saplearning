@@ -1,0 +1,9 @@
+<mvc:View
+    controllerName="z.sap.courses.controller.App"
+    displayBlock="true"
+    xmlns="sap.m"
+    xmlns:mvc="sap.ui.core.mvc">
+    <App id="app" class="sapUiSizeCompact">
+        <!-- Pages will be inserted here by router -->
+    </App>
+</mvc:View>

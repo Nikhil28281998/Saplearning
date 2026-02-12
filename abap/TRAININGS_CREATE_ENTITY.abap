@@ -1,0 +1,59 @@
+*&---------------------------------------------------------------------*
+*& Method: TRAININGS_CREATE_ENTITY
+*& Create new training record
+*&---------------------------------------------------------------------*
+METHOD trainings_create_entity.
+  
+  DATA: ls_training TYPE zcourses,
+        ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
+        lv_guid     TYPE guid_16.
+
+  " Read entry data
+  io_data_provider->read_entry_data( IMPORTING es_data = ls_entity ).
+
+  " Validate required fields
+  IF ls_entity-title IS INITIAL OR ls_entity-url IS INITIAL.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid            = /iwbep/cx_mgw_busi_exception=>business_error
+        message           = 'Title and URL are required'
+        http_status_code  = 400.
+  ENDIF.
+
+  " Generate UUID if not provided
+  IF ls_entity-id IS INITIAL.
+    CALL FUNCTION 'GUID_CREATE'
+      IMPORTING
+        ev_guid_16 = lv_guid.
+    ls_entity-id = lv_guid.
+  ENDIF.
+
+  " Set last updated date
+  ls_entity-last_updated = sy-datum.
+
+  " Map to database structure (MANDT handled automatically by compiler)
+  ls_training-id = ls_entity-id.
+  ls_training-url = ls_entity-url.
+  ls_training-role = ls_entity-role.
+  ls_training-title = ls_entity-title.
+  ls_training-sap_module = ls_entity-sap_module.
+  ls_training-description = ls_entity-description.
+  ls_training-last_updated = ls_entity-last_updated.
+  ls_training-sap_help_link = ls_entity-sap_help_link.
+
+  " Insert into database
+  INSERT zcourses FROM @ls_training.
+  
+  IF sy-subrc = 0.
+    COMMIT WORK.
+    er_entity = ls_entity.
+  ELSE.
+    ROLLBACK WORK.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid            = /iwbep/cx_mgw_busi_exception=>business_error
+        message           = 'Failed to create training'
+        http_status_code  = 500.
+  ENDIF.
+
+ENDMETHOD.
