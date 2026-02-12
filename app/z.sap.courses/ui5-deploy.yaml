@@ -21,3 +21,4 @@ builder:
           description: SAP Learning Courses Application
           package: Z_COURSES
           transport: DS4K905210
+        index: true
