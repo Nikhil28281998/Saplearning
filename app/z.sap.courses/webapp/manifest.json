@@ -41,7 +41,7 @@
     },
     "crossNavigation": {
       "inbounds": {
-        "sap-courses-display": {
+        "z-sap-courses-display": {
           "semanticObject": "ZLEARNING",
           "action": "display",
           "title": "{{sap-courses-display.flpTitle}}",
