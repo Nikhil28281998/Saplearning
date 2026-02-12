@@ -47,7 +47,7 @@
                             <Text text="Description" />
                         </Column>
                         <Column width="6em" hAlign="End">
-                            <Text text="Duration" />
+                            <Text text="Link" />
                         </Column>
                     </columns>
                     

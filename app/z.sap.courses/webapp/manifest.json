@@ -81,7 +81,7 @@
   "sap.ui5": {
     "flexEnabled": false,
     "dependencies": {
-      "minUI5Version": "1.71.0",
+      "minUI5Version": "1.108.0",
       "libs": {
         "sap.m": {},
         "sap.ui.core": {},
@@ -108,10 +108,6 @@
           "defaultCountMode": "Inline",
           "useBatch": true
         }
-      },
-      "@i18n": {
-        "type": "sap.ui.model.resource.ResourceModel",
-        "uri": "i18n/i18n.properties"
       }
     },
     "resources": {
@@ -162,11 +158,8 @@
   },
   "sap.fiori": {
     "registrationIds": [
-      "F5765"
+      "z.sap.courses"
     ],
     "archeType": "transactional"
-  },
-  "sap.platform.cf": {
-    "ui5VersionNumber": "1.120.13"
   }
 }

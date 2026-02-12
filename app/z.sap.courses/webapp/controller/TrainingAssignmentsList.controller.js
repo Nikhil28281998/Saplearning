@@ -32,7 +32,7 @@ sap.ui.define([
                 "Training: " + oAssignment.title + "\\n" +
                 "User: " + oAssignment.userId + " - " + oAssignment.userName + "\\n" +
                 "Status: " + oAssignment.status + "\\n" +
-                "Module: " + oAssignment.module,
+                "Module: " + oAssignment.sap_module,
                 {
                     title: "Assignment Details"
                 }

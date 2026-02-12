@@ -9,8 +9,10 @@ sap.ui.define([
     "sap/m/Bar",
     "sap/ui/model/json/JSONModel",
     "sap/base/Log",
+    "sap/ui/Device",
+    "sap/m/MessageToast",
     "z/sap/courses/services/UserContext"
-], function (UIComponent, ODataModel, Button, Dialog, List, StandardListItem, TextArea, Bar, JSONModel, Log, UserContext) {
+], function (UIComponent, ODataModel, Button, Dialog, List, StandardListItem, TextArea, Bar, JSONModel, Log, Device, MessageToast, UserContext) {
     "use strict";
 
     return UIComponent.extend("z.sap.courses.Component", {
@@ -69,7 +71,7 @@ sap.ui.define([
 
         getContentDensityClass: function() {
             if (!this._sContentDensityClass) {
-                if (!sap.ui.Device.support.touch) {
+                if (!Device.support.touch) {
                     this._sContentDensityClass = "sapUiSizeCompact";
                 } else {
                     this._sContentDensityClass = "sapUiSizeCozy";
@@ -317,7 +319,7 @@ sap.ui.define([
                         trainingId: tr.ID,  // Foreign key to Trainings
                         title: tr.title,
                         role: tr.role,
-                        module: tr.module,
+                        sap_module: tr.sap_module,
                         url: tr.url,
                         dueDate: dueIso,
                         status: 'Assigned',
@@ -333,7 +335,7 @@ sap.ui.define([
                             that.navigateToTraining();
                             that._assignDlg.close();
                             dlgModel.setProperty('/submitting', false);
-                            sap.m.MessageToast.show('Training assigned successfully');
+                            MessageToast.show('Training assigned successfully');
                         },
                         error: function(err) {
                             dlgModel.setProperty('/submitting', false);
@@ -359,8 +361,14 @@ sap.ui.define([
                 that._assignDlg.setModel(dlgModel);
                 that._assignDlg.open();
             }).catch(function(err){
-                sap.m.MessageToast.show('Failed to load data for assignment');
-            });
-        }
+                MessageToast.show('Failed to load data for assignment');
+            });        },
+
+        destroy: function() {
+            if (this._assignDlg) {
+                this._assignDlg.destroy();
+                this._assignDlg = null;
+            }
+            UIComponent.prototype.destroy.apply(this, arguments);        }
     });
 });

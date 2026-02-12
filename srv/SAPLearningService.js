@@ -249,7 +249,7 @@ module.exports = (srv) => {
       // Denormalize training fields for performance (search/filter without joins)
       req.data.title = training.title;
       req.data.role = training.role;
-      req.data.module = training.module;
+      req.data.sap_module = training.sap_module;
       req.data.url = training.url;
       
       // Authorization check: @restrict handles Admin/Manager grants

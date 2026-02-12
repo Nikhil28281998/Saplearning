@@ -1,29 +1,15 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
-    "sap/ui/model/json/JSONModel",
     "sap/m/MessageToast",
     "sap/m/MessageBox"
-], function (Controller, JSONModel, MessageToast, MessageBox) {
+], function (Controller, MessageToast, MessageBox) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingsList", {
         
         onInit: function () {
-            // Set view model for UI state
-            var oViewModel = new JSONModel({
-                role: "User"  // Default, will be updated from Component
-            });
-            this.getView().setModel(oViewModel, "view");
-            
-            // Get role from Component
-            var oComponent = this.getOwnerComponent();
-            if (oComponent && oComponent._role) {
-                oViewModel.setProperty("/role", oComponent._role);
-            }
-            
-            // Bind to root for role updates
-            var oModel = this.getOwnerComponent().getModel();
-            this.getView().setModel(oModel);
+            // OData model and "user" role model propagate from Component automatically
+            // No manual model setup needed - Component._applyRoleUI() sets the "user" model
         },
 
         onRefresh: function () {
@@ -39,8 +25,8 @@ sap.ui.define([
             
             MessageBox.information(
                 "Training: " + oTraining.title + "\\n" +
-                "Module: " + oTraining.module + "\\n" +
-                "Duration: " + oTraining.durationHours + " hours\\n\\n" +
+                "Module: " + oTraining.sap_module + "\n" +
+                "Role: " + oTraining.role + "\n\n" +
                 "Description: " + oTraining.description,
                 {
                     title: "Training Details",
