@@ -47,17 +47,17 @@
                         <ColumnListItem type="Active" press="onItemPress">
                             <cells>
                                 <ObjectIdentifier
-                                    title="{title}"
-                                    text="{trainingId}" />
+                                    title="{Title}"
+                                    text="{TrainingId}" />
                                 <VBox>
-                                    <Text text="{userId}" class="sapUiTinyMarginBottom" />
-                                    <Text text="{userName}" />
+                                    <Text text="{UserId}" class="sapUiTinyMarginBottom" />
+                                    <Text text="{UserName}" />
                                 </VBox>
                                 <ObjectStatus
-                                    text="{status}"
-                                    state="{= ${status} === 'Completed' ? 'Success' : ${status} === 'In Progress' ? 'Warning' : 'Information' }" />
-                                <Text text="{path: 'dueDate', type: 'sap.ui.model.type.DateTime', formatOptions: {style: 'medium'}}" />
-                                <Text text="{path: 'completedAt', type: 'sap.ui.model.type.DateTime', formatOptions: {style: 'medium'}}" />
+                                    text="{Status}"
+                                    state="{= ${Status} === 'Completed' ? 'Success' : ${Status} === 'In Progress' ? 'Warning' : 'Information' }" />
+                                <Text text="{path: 'DueDate', type: 'sap.ui.model.type.DateTime', formatOptions: {style: 'medium'}}" />
+                                <Text text="{path: 'CompletionDate', type: 'sap.ui.model.type.DateTime', formatOptions: {style: 'medium'}}" />
                             </cells>
                         </ColumnListItem>
                     </items>

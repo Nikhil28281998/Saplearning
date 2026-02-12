@@ -24,21 +24,21 @@ sap.ui.define([
             var oTraining = oContext.getObject();
             
             MessageBox.information(
-                "Training: " + oTraining.title + "\\n" +
-                "Module: " + oTraining.sap_module + "\n" +
-                "Role: " + oTraining.role + "\n\n" +
-                "Description: " + oTraining.description,
+                "Training: " + oTraining.Title + "\n" +
+                "Module: " + oTraining.SapModule + "\n" +
+                "Role: " + oTraining.Role + "\n\n" +
+                "Description: " + oTraining.Description,
                 {
                     title: "Training Details",
                     actions: [MessageBox.Action.CLOSE],
                     onClose: function() {
-                        if (oTraining.url) {
+                        if (oTraining.Url) {
                             MessageBox.confirm(
                                 "Would you like to open the training material?",
                                 {
                                     onClose: function(sAction) {
                                         if (sAction === MessageBox.Action.OK) {
-                                            window.open(oTraining.url, "_blank");
+                                            window.open(oTraining.Url, "_blank");
                                         }
                                     }
                                 }

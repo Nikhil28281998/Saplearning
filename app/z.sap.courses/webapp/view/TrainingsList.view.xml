@@ -55,12 +55,12 @@
                         <ColumnListItem type="Active" press="onItemPress">
                             <cells>
                                 <ObjectIdentifier
-                                    title="{title}"
-                                    text="{ID}" />
-                                <Text text="{role}" />
-                                <Text text="{sap_module}" />
-                                <Text text="{description}" />
-                                <Text text="{url}" />
+                                    title="{Title}"
+                                    text="{Id}" />
+                                <Text text="{Role}" />
+                                <Text text="{SapModule}" />
+                                <Text text="{Description}" />
+                                <Text text="{Url}" />
                             </cells>
                         </ColumnListItem>
                     </items>

@@ -13,37 +13,37 @@
             <Annotations Target="ZCOURSES_SRV.Training">
                 <Annotation Term="UI.SelectionFields">
                     <Collection>
-                        <PropertyPath>role</PropertyPath>
-                        <PropertyPath>sap_module</PropertyPath>
-                        <PropertyPath>title</PropertyPath>
+                        <PropertyPath>Role</PropertyPath>
+                        <PropertyPath>SapModule</PropertyPath>
+                        <PropertyPath>Title</PropertyPath>
                     </Collection>
                 </Annotation>
                 <Annotation Term="UI.LineItem">
                     <Collection>
                         <Record Type="UI.DataFieldWithUrl">
-                            <PropertyValue Property="Value" Path="title"/>
-                            <PropertyValue Property="Url" Path="url"/>
+                            <PropertyValue Property="Value" Path="Title"/>
+                            <PropertyValue Property="Url" Path="Url"/>
                             <PropertyValue Property="Label" String="Title"/>
                         </Record>
                         <Record Type="UI.DataField">
-                            <PropertyValue Property="Value" Path="description"/>
+                            <PropertyValue Property="Value" Path="Description"/>
                             <PropertyValue Property="Label" String="Description"/>
                         </Record>
                         <Record Type="UI.DataField">
-                            <PropertyValue Property="Value" Path="last_updated"/>
+                            <PropertyValue Property="Value" Path="LastUpdated"/>
                             <PropertyValue Property="Label" String="Last Updated"/>
                         </Record>
                         <Record Type="UI.DataField">
-                            <PropertyValue Property="Value" Path="sap_module"/>
+                            <PropertyValue Property="Value" Path="SapModule"/>
                             <PropertyValue Property="Label" String="Module"/>
                         </Record>
                         <Record Type="UI.DataField">
-                            <PropertyValue Property="Value" Path="role"/>
+                            <PropertyValue Property="Value" Path="Role"/>
                             <PropertyValue Property="Label" String="Role"/>
                         </Record>
                         <Record Type="UI.DataFieldWithUrl">
                             <PropertyValue Property="Value" String="Open SAP Help"/>
-                            <PropertyValue Property="Url" Path="sap_help_link"/>
+                            <PropertyValue Property="Url" Path="SapHelpLink"/>
                             <PropertyValue Property="Label" String="SAP Help"/>
                         </Record>
                         <Record Type="UI.DataFieldForIntentBasedNavigation">
@@ -71,12 +71,12 @@
                         <PropertyValue Property="TypeNamePlural" String="Trainings"/>
                         <PropertyValue Property="Title">
                             <Record Type="UI.DataField">
-                                <PropertyValue Property="Value" Path="title"/>
+                                <PropertyValue Property="Value" Path="Title"/>
                             </Record>
                         </PropertyValue>
                         <PropertyValue Property="Description">
                             <Record Type="UI.DataField">
-                                <PropertyValue Property="Value" Path="sap_module"/>
+                                <PropertyValue Property="Value" Path="SapModule"/>
                             </Record>
                         </PropertyValue>
                     </Record>
@@ -94,33 +94,33 @@
                         <PropertyValue Property="Data">
                             <Collection>
                                 <Record Type="UI.DataField">
-                                    <PropertyValue Property="Value" Path="title"/>
+                                    <PropertyValue Property="Value" Path="Title"/>
                                     <PropertyValue Property="Label" String="Title"/>
                                 </Record>
                                 <Record Type="UI.DataField">
-                                    <PropertyValue Property="Value" Path="description"/>
+                                    <PropertyValue Property="Value" Path="Description"/>
                                     <PropertyValue Property="Label" String="Description"/>
                                 </Record>
                                 <Record Type="UI.DataField">
-                                    <PropertyValue Property="Value" Path="role"/>
+                                    <PropertyValue Property="Value" Path="Role"/>
                                     <PropertyValue Property="Label" String="Role"/>
                                 </Record>
                                 <Record Type="UI.DataField">
-                                    <PropertyValue Property="Value" Path="sap_module"/>
+                                    <PropertyValue Property="Value" Path="SapModule"/>
                                     <PropertyValue Property="Label" String="Module"/>
                                 </Record>
                                 <Record Type="UI.DataField">
-                                    <PropertyValue Property="Value" Path="last_updated"/>
+                                    <PropertyValue Property="Value" Path="LastUpdated"/>
                                     <PropertyValue Property="Label" String="Last Updated"/>
                                 </Record>
                                 <Record Type="UI.DataFieldWithUrl">
-                                    <PropertyValue Property="Value" Path="title"/>
-                                    <PropertyValue Property="Url" Path="url"/>
+                                    <PropertyValue Property="Value" Path="Title"/>
+                                    <PropertyValue Property="Url" Path="Url"/>
                                     <PropertyValue Property="Label" String="Primary Link"/>
                                 </Record>
                                 <Record Type="UI.DataFieldWithUrl">
                                     <PropertyValue Property="Value" String="Open SAP Help"/>
-                                    <PropertyValue Property="Url" Path="sap_help_link"/>
+                                    <PropertyValue Property="Url" Path="SapHelpLink"/>
                                     <PropertyValue Property="Label" String="SAP Help"/>
                                 </Record>
                             </Collection>

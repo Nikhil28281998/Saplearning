@@ -226,7 +226,7 @@ sap.ui.define([
 
                 var dlgModel = new JSONModel({
                     trainings: trainings,
-                    selectedTrainingId: trainings[0] && trainings[0].ID || '',
+                    selectedTrainingId: trainings[0] && trainings[0].Id || '',
                     userId: '',  // Direct SYUNAME input
                     userName: '',  // Optional display name
                     userEmail: '',  // Optional email
@@ -239,7 +239,7 @@ sap.ui.define([
                     width: '100%',
                     items: {
                         path: '/trainings',
-                        template: new sap.ui.core.ListItem({ key: '{ID}', text: '{title}' })
+                        template: new sap.ui.core.ListItem({ key: '{Id}', text: '{Title}' })
                     },
                     selectedKey: '{/selectedTrainingId}'
                 });
@@ -290,7 +290,7 @@ sap.ui.define([
 
                 var onSubmit = function(){
                     var data = dlgModel.getData();
-                    var tr = (data.trainings || []).find(function(t){ return t.ID === data.selectedTrainingId; });
+                    var tr = (data.trainings || []).find(function(t){ return t.Id === data.selectedTrainingId; });
                     
                     // Validate inputs - SAP Expert Team
                     if (!tr) { 
@@ -316,16 +316,16 @@ sap.ui.define([
                     }catch(e){ /* ignore */ }
                     
                     var payload = {
-                        trainingId: tr.ID,  // Foreign key to Trainings
-                        title: tr.title,
-                        role: tr.role,
-                        sap_module: tr.sap_module,
-                        url: tr.url,
-                        dueDate: dueIso,
-                        status: 'Assigned',
-                        userId: userIdUpper,  // SYUNAME from USR21
-                        userName: data.userName || '',
-                        userEmail: data.userEmail || ''
+                        TrainingId: tr.Id,
+                        Title: tr.Title,
+                        Role: tr.Role,
+                        SapModule: tr.SapModule,
+                        Url: tr.Url,
+                        DueDate: dueIso,
+                        Status: 'Assigned',
+                        UserId: userIdUpper,
+                        UserName: data.userName || '',
+                        UserEmail: data.userEmail || ''
                     };
                     dlgModel.setProperty('/submitting', true);
 

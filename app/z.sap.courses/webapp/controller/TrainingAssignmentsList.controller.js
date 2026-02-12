@@ -29,10 +29,10 @@ sap.ui.define([
             var oAssignment = oContext.getObject();
             
             MessageBox.information(
-                "Training: " + oAssignment.title + "\\n" +
-                "User: " + oAssignment.userId + " - " + oAssignment.userName + "\\n" +
-                "Status: " + oAssignment.status + "\\n" +
-                "Module: " + oAssignment.sap_module,
+                "Training: " + oAssignment.Title + "\n" +
+                "User: " + oAssignment.UserId + " - " + oAssignment.UserName + "\n" +
+                "Status: " + oAssignment.Status + "\n" +
+                "Module: " + oAssignment.SapModule,
                 {
                     title: "Assignment Details"
                 }
