@@ -82,7 +82,7 @@
                                     placeholder="All Modules"
                                     width="100%"
                                     items="{filterModel>/modules}"
-                                    selectionChange="onFilterChange">
+                                    selectionChange="onModuleFilterChange">
                                     <core:Item key="{filterModel>key}" text="{filterModel>text}" />
                                 </MultiComboBox>
                             </VBox>
@@ -93,7 +93,7 @@
                                     placeholder="All Roles"
                                     width="100%"
                                     items="{filterModel>/roles}"
-                                    selectionChange="onFilterChange">
+                                    selectionChange="onRoleFilterChange">
                                     <core:Item key="{filterModel>key}" text="{filterModel>text}" />
                                 </MultiComboBox>
                             </VBox>

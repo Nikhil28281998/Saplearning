@@ -27,6 +27,7 @@ sap.ui.define([
             this.getView().setModel(oFilterModel, "filterModel");
 
             // Internal state
+            this._allTrainings = [];
             this._activeRoleFilter = "All";
             this._activeSearchQuery = "";
             this._activeModuleFilters = [];
@@ -49,23 +50,28 @@ sap.ui.define([
         },
 
         _onDataReceived: function () {
-            var oTable = this.byId("trainingsTable");
-            var oBinding = oTable.getBinding("items");
-            if (!oBinding) { return; }
+            // Read full (unfiltered) data for counts and cross-filtering
+            var oDataModel = this.getView().getModel();
+            var that = this;
+            oDataModel.read("/Trainings", {
+                success: function (oData) {
+                    that._allTrainings = oData.results || [];
+                    that._computeFilterCounts();
+                    that._updateAvailableModules();
+                    that._updateAvailableRoles();
+                }
+            });
+        },
 
-            var aContexts = oBinding.getContexts(0, 9999);
+        _computeFilterCounts: function () {
             var oModel = this.getView().getModel("filterModel");
+            var trainings = this._allTrainings || [];
             var counts = { All: 0, DEVELOPER: 0, ADMIN: 0, MANAGER: 0, USER: 0 };
-            var moduleSet = {};
-            var roleSet = {};
 
-            aContexts.forEach(function (ctx) {
-                var obj = ctx.getObject();
+            trainings.forEach(function (obj) {
                 counts.All++;
                 var sRole = (obj.Role || "").toUpperCase();
                 if (counts[sRole] !== undefined) { counts[sRole]++; }
-                if (obj.SapModule) { moduleSet[obj.SapModule] = true; }
-                if (obj.Role) { roleSet[obj.Role] = true; }
             });
 
             oModel.setProperty("/countAll", counts.All);
@@ -73,13 +79,64 @@ sap.ui.define([
             oModel.setProperty("/countAdmin", counts.ADMIN);
             oModel.setProperty("/countManager", counts.MANAGER);
             oModel.setProperty("/countUser", counts.USER);
+        },
+
+        /* ===== Cross-Filter: update modules based on selected roles ===== */
+        _updateAvailableModules: function () {
+            var oModel = this.getView().getModel("filterModel");
+            var trainings = this._allTrainings || [];
+            var activeRoles = [];
+            if (this._activeRoleFilter && this._activeRoleFilter !== "All") {
+                activeRoles.push(this._activeRoleFilter);
+            }
+            this._activeRoleFilters.forEach(function (r) {
+                if (activeRoles.indexOf(r) === -1) { activeRoles.push(r); }
+            });
+
+            var moduleSet = {};
+            trainings.forEach(function (t) {
+                if (!t.SapModule) { return; }
+                if (activeRoles.length === 0 || activeRoles.indexOf(t.Role) > -1) {
+                    moduleSet[t.SapModule] = true;
+                }
+            });
 
             oModel.setProperty("/modules",
                 Object.keys(moduleSet).sort().map(function (m) { return { key: m, text: m }; })
             );
+
+            var oMCB = this.byId("moduleFilter");
+            if (oMCB) {
+                var validKeys = oMCB.getSelectedKeys().filter(function (k) { return moduleSet[k]; });
+                oMCB.setSelectedKeys(validKeys);
+                this._activeModuleFilters = validKeys;
+            }
+        },
+
+        /* ===== Cross-Filter: update roles based on selected modules ===== */
+        _updateAvailableRoles: function () {
+            var oModel = this.getView().getModel("filterModel");
+            var trainings = this._allTrainings || [];
+            var activeModules = this._activeModuleFilters || [];
+
+            var roleSet = {};
+            trainings.forEach(function (t) {
+                if (!t.Role) { return; }
+                if (activeModules.length === 0 || activeModules.indexOf(t.SapModule) > -1) {
+                    roleSet[t.Role] = true;
+                }
+            });
+
             oModel.setProperty("/roles",
                 Object.keys(roleSet).sort().map(function (r) { return { key: r, text: r }; })
             );
+
+            var oMCB = this.byId("roleFilter");
+            if (oMCB) {
+                var validKeys = oMCB.getSelectedKeys().filter(function (k) { return roleSet[k]; });
+                oMCB.setSelectedKeys(validKeys);
+                this._activeRoleFilters = validKeys;
+            }
         },
 
         /* ===== Search ===== */
@@ -96,15 +153,21 @@ sap.ui.define([
         /* ===== IconTabBar Role Filter ===== */
         onFilterSelect: function (oEvent) {
             this._activeRoleFilter = oEvent.getParameter("key");
+            this._updateAvailableModules();
             this._applyFilters();
         },
 
-        /* ===== Advanced Filters (MultiComboBox) ===== */
-        onFilterChange: function () {
-            var aModuleKeys = this.byId("moduleFilter").getSelectedKeys();
-            var aRoleKeys = this.byId("roleFilter").getSelectedKeys();
-            this._activeModuleFilters = aModuleKeys;
-            this._activeRoleFilters = aRoleKeys;
+        /* ===== Advanced Role Filter (MultiComboBox) ===== */
+        onRoleFilterChange: function () {
+            this._activeRoleFilters = this.byId("roleFilter").getSelectedKeys();
+            this._updateAvailableModules();
+            this._applyFilters();
+        },
+
+        /* ===== Advanced Module Filter (MultiComboBox) ===== */
+        onModuleFilterChange: function () {
+            this._activeModuleFilters = this.byId("moduleFilter").getSelectedKeys();
+            this._updateAvailableRoles();
             this._applyFilters();
         },
 

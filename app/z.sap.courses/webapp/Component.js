@@ -206,7 +206,8 @@ sap.ui.define([
         // Guided Assign Training dialog (Manager/Admin)
         openAssignDialog: function(){
             var that = this;
-            if (this._assignDlg) { this._assignDlg.open(); return; }
+            // Always recreate for fresh data
+            if (this._assignDlg) { this._assignDlg.destroy(); this._assignDlg = null; }
             var oModel = this.getModel();
             var loadList = function(path){
                 return new Promise(function(resolve, reject){
@@ -233,8 +234,12 @@ sap.ui.define([
                 var dlgModel = new JSONModel({
                     trainings: trainings,
                     filteredTrainings: trainings,
-                    roles: Object.keys(roleSet).sort().map(function(r) { return { key: r, text: r }; }),
-                    modules: Object.keys(moduleSet).sort().map(function(m) { return { key: m, text: m }; }),
+                    roles: [{ key: '', text: 'All Roles' }].concat(
+                        Object.keys(roleSet).sort().map(function(r) { return { key: r, text: r }; })
+                    ),
+                    modules: [{ key: '', text: 'All Modules' }].concat(
+                        Object.keys(moduleSet).sort().map(function(m) { return { key: m, text: m }; })
+                    ),
                     selectedRoleFilter: "",
                     selectedModuleFilter: "",
                     selectedTrainingId: trainings[0] && trainings[0].Id || '',
@@ -247,44 +252,80 @@ sap.ui.define([
                     error: ''
                 });
 
-                // Filter training list when role/module changes
-                var filterTrainings = function() {
+                // Filter training list + cross-filter between Role and Module
+                var filterTrainings = function(source) {
                     var data = dlgModel.getData();
+                    var selRole = data.selectedRoleFilter;
+                    var selModule = data.selectedModuleFilter;
+
+                    // Filter training list
                     var filtered = data.trainings.filter(function(t) {
-                        var roleMatch = !data.selectedRoleFilter || t.Role === data.selectedRoleFilter;
-                        var moduleMatch = !data.selectedModuleFilter || t.SapModule === data.selectedModuleFilter;
+                        var roleMatch = !selRole || t.Role === selRole;
+                        var moduleMatch = !selModule || t.SapModule === selModule;
                         return roleMatch && moduleMatch;
                     });
                     dlgModel.setProperty('/filteredTrainings', filtered);
+
+                    // Cross-filter: role changed → show only related modules
+                    if (source === 'role') {
+                        var mSet = {};
+                        data.trainings.forEach(function(t) {
+                            if (t.SapModule && (!selRole || t.Role === selRole)) {
+                                mSet[t.SapModule] = true;
+                            }
+                        });
+                        var newModules = [{ key: '', text: 'All Modules' }].concat(
+                            Object.keys(mSet).sort().map(function(m) { return { key: m, text: m }; })
+                        );
+                        dlgModel.setProperty('/modules', newModules);
+                        if (selModule && !mSet[selModule]) {
+                            dlgModel.setProperty('/selectedModuleFilter', '');
+                        }
+                    }
+
+                    // Cross-filter: module changed → show only related roles
+                    if (source === 'module') {
+                        var rSet = {};
+                        data.trainings.forEach(function(t) {
+                            if (t.Role && (!selModule || t.SapModule === selModule)) {
+                                rSet[t.Role] = true;
+                            }
+                        });
+                        var newRoles = [{ key: '', text: 'All Roles' }].concat(
+                            Object.keys(rSet).sort().map(function(r) { return { key: r, text: r }; })
+                        );
+                        dlgModel.setProperty('/roles', newRoles);
+                        if (selRole && !rSet[selRole]) {
+                            dlgModel.setProperty('/selectedRoleFilter', '');
+                        }
+                    }
+
+                    // Update selected training if no longer in filtered list
                     if (filtered.length > 0 && !filtered.some(function(f) { return f.Id === data.selectedTrainingId; })) {
                         dlgModel.setProperty('/selectedTrainingId', filtered[0].Id);
                     }
                 };
 
-                // Step 1: Filter by Role/Module
+                // Filter by Role/Module with cross-filtering
                 var roleFilterSelect = new sap.m.Select({
                     width: '100%',
-                    forceSelection: false,
                     items: {
                         path: '/roles',
                         template: new sap.ui.core.ListItem({ key: '{key}', text: '{text}' })
                     },
                     selectedKey: '{/selectedRoleFilter}',
-                    change: function() { filterTrainings(); }
+                    change: function() { filterTrainings('role'); }
                 });
-                roleFilterSelect.insertItem(new sap.ui.core.ListItem({ key: '', text: 'All Roles' }), 0);
 
                 var moduleFilterSelect = new sap.m.Select({
                     width: '100%',
-                    forceSelection: false,
                     items: {
                         path: '/modules',
                         template: new sap.ui.core.ListItem({ key: '{key}', text: '{text}' })
                     },
                     selectedKey: '{/selectedModuleFilter}',
-                    change: function() { filterTrainings(); }
+                    change: function() { filterTrainings('module'); }
                 });
-                moduleFilterSelect.insertItem(new sap.ui.core.ListItem({ key: '', text: 'All Modules' }), 0);
 
                 // Step 2: Select Training
                 var trainingSelect = new sap.m.Select({
