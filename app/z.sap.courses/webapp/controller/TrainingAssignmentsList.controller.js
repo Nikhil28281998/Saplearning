@@ -71,15 +71,13 @@ sap.ui.define([
             MessageToast.show("Data refreshed");
         },
 
-        /* ===== Nav Back ===== */
+        /* ===== Nav Back – simple router navigation ===== */
         onNavBack: function () {
-            var oHistory = sap.ui.core.routing.History.getInstance();
-            var sPreviousHash = oHistory.getPreviousHash();
-            if (sPreviousHash !== undefined) {
-                window.history.go(-1);
-            } else {
+            try {
                 var oRouter = this.getOwnerComponent().getRouter();
-                oRouter.navTo("TrainingsList", {}, true);
+                oRouter.navTo("TrainingsList", {}, true /* replace hash */);
+            } catch (e) {
+                window.history.back();
             }
         },
 

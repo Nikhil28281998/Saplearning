@@ -137,6 +137,21 @@ sap.ui.define([
         },
 
         /**
+         * Switch user role dynamically (Admin/Manager/User).
+         * Updates the user JSON model — all view bindings auto-refresh.
+         */
+        switchRole: function(sRole) {
+            this._role = sRole;
+            var oModel = this.getModel("user");
+            if (oModel) {
+                oModel.setProperty("/role", sRole);
+            } else {
+                this._applyRoleUI();
+            }
+            Log.info('Role switched to: ' + sRole);
+        },
+
+        /**
          * Fetch user role from S/4 via UserContext service
          * Replaces email-based role lookup with PFCG-based authorization
          */

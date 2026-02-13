@@ -5,6 +5,7 @@
     xmlns:core="sap.ui.core"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:smartTable="sap.ui.comp.smarttable"
+    xmlns:filterBar="sap.ui.comp.filterbar"
     xmlns:mc="sap.suite.ui.microchart">
 
     <Page
@@ -21,11 +22,12 @@
                 </contentLeft>
                 <contentRight>
                     <HBox id="roleBox" alignItems="Center" class="sapUiSmallMarginEnd">
-                        <core:Icon id="roleIcon" src="sap-icon://role" class="sapUiTinyMarginEnd" />
-                        <ObjectStatus
-                            id="roleStatus"
-                            text="{user>/role}"
-                            state="{= ${user>/role} === 'Admin' ? 'Success' : ${user>/role} === 'Manager' ? 'Warning' : 'Information' }" />
+                        <core:Icon id="roleIcon" src="sap-icon://role" size="1rem" class="sapUiTinyMarginEnd headerIcon" />
+                        <Select id="roleSwitcher" selectedKey="{user>/role}" change="onSwitchRole" class="roleSwitcherSelect">
+                            <core:Item id="roleAdmin" key="Admin" text="Admin" />
+                            <core:Item id="roleManager" key="Manager" text="Manager" />
+                            <core:Item id="roleUser" key="User" text="End User" />
+                        </Select>
                     </HBox>
                     <Button
                         id="myAssignmentsBtn"
@@ -106,7 +108,7 @@
                             <core:Icon id="statusChartIcon" src="sap-icon://horizontal-bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
                             <Text id="statusChartTitle" text="Status Distribution" class="chartTitle" />
                         </HBox>
-                        <mc:StackedBarMicroChart id="statusStackedBar" size="M">
+                        <mc:StackedBarMicroChart id="statusStackedBar" size="L" width="100%">
                             <mc:bars>
                                 <mc:StackedBarMicroChartBar id="statusBarAssigned" value="{analyticsModel>/assigned}" valueColor="Critical" displayValue="{analyticsModel>/assigned}" />
                                 <mc:StackedBarMicroChartBar id="statusBarInProgress" value="{analyticsModel>/inProgress}" valueColor="Neutral" displayValue="{analyticsModel>/inProgress}" />
@@ -139,10 +141,7 @@
                 </HBox>
             </Panel>
 
-            <!-- SmartFilterBar: Standard Fiori – only Go + Adapt Filters -->
-            <!-- Adapt Filters (showFilterConfiguration) lets user pick any column as filter -->
-            <!-- No explicit filterGroupItems – SmartFilterBar auto-generates from annotations -->
-            <!-- Role + Module use ControlConfiguration filterType=single for EQ (SEGW) -->
+            <!-- SmartFilterBar: Go + Adapt Filters with explicit Role/Module dropdown filters -->
             <smartFilterBar:SmartFilterBar
                 id="smartFilterBar"
                 entitySet="Trainings"
@@ -155,9 +154,37 @@
                 showFilterConfiguration="true"
                 useDateRangeType="true">
                 <smartFilterBar:controlConfiguration>
-                    <smartFilterBar:ControlConfiguration id="ccRole" key="Role" filterType="single" preventInitialDataFetchInValueHelpDialog="false" />
-                    <smartFilterBar:ControlConfiguration id="ccSapModule" key="SapModule" filterType="single" preventInitialDataFetchInValueHelpDialog="false" />
+                    <smartFilterBar:ControlConfiguration id="ccRole" key="Role" filterType="single" />
+                    <smartFilterBar:ControlConfiguration id="ccSapModule" key="SapModule" filterType="single" />
                 </smartFilterBar:controlConfiguration>
+                <smartFilterBar:filterGroupItems>
+                    <filterBar:FilterGroupItem
+                        id="fgiRole"
+                        name="Role"
+                        label="Role"
+                        groupName="_BASIC"
+                        visibleInFilterBar="true">
+                        <filterBar:control>
+                            <Select id="filterRole" forceSelection="false" selectedKey="" change="onRoleFilterChange"
+                                items="{filterData>/roles}">
+                                <core:Item id="roleItem" key="{filterData>key}" text="{filterData>text}" />
+                            </Select>
+                        </filterBar:control>
+                    </filterBar:FilterGroupItem>
+                    <filterBar:FilterGroupItem
+                        id="fgiModule"
+                        name="SapModule"
+                        label="Module"
+                        groupName="_BASIC"
+                        visibleInFilterBar="true">
+                        <filterBar:control>
+                            <Select id="filterModule" forceSelection="false" selectedKey=""
+                                items="{filterData>/modules}">
+                                <core:Item id="moduleItem" key="{filterData>key}" text="{filterData>text}" />
+                            </Select>
+                        </filterBar:control>
+                    </filterBar:FilterGroupItem>
+                </smartFilterBar:filterGroupItems>
             </smartFilterBar:SmartFilterBar>
 
             <!-- SmartTable: auto-generates columns from annotations

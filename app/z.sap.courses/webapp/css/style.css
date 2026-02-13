@@ -250,12 +250,19 @@ html, body, html.sap-desktop, .sapUiBody {
 .analyticsCardGreen::before { background: var(--sapAccent4); }
 .analyticsCardPurple::before { background: var(--sapAccent5); }
 
-/* Analytics number – large, tabular figures */
+/* Analytics number – large, tabular figures, NO overflow clipping */
 .analyticsCard .sapMObjectNumber {
-    font-size: 2rem !important;
+    font-size: 1.625rem !important;
     font-weight: 800 !important;
     font-feature-settings: "tnum";
     letter-spacing: -0.02em;
+    line-height: 1.3 !important;
+    overflow: visible !important;
+}
+
+.analyticsCard .sapMObjectNumber .sapMObjectNumberText {
+    overflow: visible !important;
+    text-overflow: unset !important;
 }
 
 .analyticsLabel {
@@ -715,4 +722,87 @@ html, body, html.sap-desktop, .sapUiBody {
     width: 1px !important;
     height: 1.5rem !important;
     margin: 0 0.25rem !important;
+}
+
+/* ===== Hide "Hide Filter Bar" link — user only wants Go + Adapt Filters ===== */
+.sapUiCompFilterBarToolbarBtnHideShow,
+.sapUiCompSmartFilter .sapMBarChild.sapUiCompFilterBarToolbarBtnHideShow {
+    display: none !important;
+}
+
+/* ===== Role Switcher in Header ===== */
+.roleSwitcherSelect {
+    min-width: 90px;
+}
+
+.roleSwitcherSelect .sapMSltLabel,
+.roleSwitcherSelect .sapMSltArrow,
+.roleSwitcherSelect .sapMSltLabelState {
+    color: #fff !important;
+}
+
+.roleSwitcherSelect .sapMSlt {
+    background: rgba(255,255,255,0.15) !important;
+    border: 1px solid rgba(255,255,255,0.3) !important;
+    border-radius: var(--sapRadiusSm) !important;
+}
+
+.roleSwitcherSelect .sapMSlt:hover {
+    background: rgba(255,255,255,0.25) !important;
+}
+
+/* Header icon color */
+.headerIcon {
+    color: rgba(255,255,255,0.85) !important;
+}
+
+/* ===== Status Distribution Chart – fuller width ===== */
+.chartCard .sapSuiteSBMC {
+    min-width: 100% !important;
+    width: 100% !important;
+}
+
+/* ===== SmartTable Export/Toolbar – prevent overlap ===== */
+.sapUiCompSmartTable .sapMOvFlwBtn,
+.sapUiCompSmartTable .sapMTB {
+    overflow: visible !important;
+}
+
+.sapUiCompSmartTable .sapMTB .sapMTBShrinkItem {
+    min-width: 0 !important;
+}
+
+/* ===== View Details Dialog – no overlap, proper spacing ===== */
+.sapMDialog .sapMTitle {
+    word-break: break-word !important;
+    white-space: normal !important;
+}
+
+.detailAttrsRow {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.detailAttrsRow .sapMObjStatus {
+    margin-right: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
+/* ===== Filter Select dropdowns in SmartFilterBar ===== */
+.sapUiCompFilterBarCtnrFlt .sapMSlt {
+    border: 1.5px solid var(--sapBorder) !important;
+    border-radius: var(--sapRadiusSm) !important;
+    background: var(--sapSurface) !important;
+    min-width: 140px;
+    transition: border-color var(--sapTransition), box-shadow var(--sapTransition);
+}
+
+.sapUiCompFilterBarCtnrFlt .sapMSlt:focus-within {
+    border-color: var(--sapBorderFocus) !important;
+    box-shadow: 0 0 0 3px rgba(0,112,242,0.12) !important;
+}
+
+/* ===== URL Columns clickable styling (cellClick fallback) ===== */
+.sapUiTableRow td .sapMText {
+    cursor: default;
 }

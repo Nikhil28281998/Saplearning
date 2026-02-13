@@ -25,7 +25,17 @@ sap.ui.define([
             });
             this.getView().setModel(oAnalyticsModel, "analyticsModel");
 
+            // Filter data model for Role/Module dropdowns + cross-filtering
+            var oFilterModel = new JSONModel({
+                roles: [{ key: "", text: "All" }],
+                modules: [{ key: "", text: "All" }],
+                allModules: [{ key: "", text: "All" }],
+                roleModuleMap: {}
+            });
+            this.getView().setModel(oFilterModel, "filterData");
+
             this._loadAnalytics();
+            this._loadFilterData();
         },
 
         _loadAnalytics: function () {
@@ -130,6 +140,93 @@ sap.ui.define([
             });
         },
 
+        /**
+         * Load unique Role and Module values from Trainings for filter dropdowns.
+         * Builds role→module map for cross-filtering.
+         */
+        _loadFilterData: function () {
+            var oModel = this.getOwnerComponent().getModel();
+            var oFilterModel = this.getView().getModel("filterData");
+
+            oModel.read("/Trainings", {
+                success: function (data) {
+                    var results = data.results || [];
+                    var roleSet = {};
+                    var moduleSet = {};
+                    var roleModuleMap = {};
+
+                    results.forEach(function (t) {
+                        if (t.Role) {
+                            roleSet[t.Role] = true;
+                            if (!roleModuleMap[t.Role]) { roleModuleMap[t.Role] = {}; }
+                            if (t.SapModule) { roleModuleMap[t.Role][t.SapModule] = true; }
+                        }
+                        if (t.SapModule) { moduleSet[t.SapModule] = true; }
+                    });
+
+                    var roles = [{ key: "", text: "All" }];
+                    Object.keys(roleSet).sort().forEach(function (r) {
+                        roles.push({ key: r, text: r });
+                    });
+
+                    var modules = [{ key: "", text: "All" }];
+                    Object.keys(moduleSet).sort().forEach(function (m) {
+                        modules.push({ key: m, text: m });
+                    });
+
+                    oFilterModel.setProperty("/roles", roles);
+                    oFilterModel.setProperty("/modules", modules);
+                    oFilterModel.setProperty("/allModules", modules.slice(0));
+                    oFilterModel.setProperty("/roleModuleMap", roleModuleMap);
+                },
+                error: function () {
+                    Log.warning("[FilterData] Failed to load filter data");
+                }
+            });
+        },
+
+        /**
+         * Cross-filtering: when Role changes, filter Module dropdown
+         * to only show modules available for the selected role.
+         */
+        onRoleFilterChange: function (oEvent) {
+            var oItem = oEvent.getParameter("selectedItem");
+            var sRole = oItem ? oItem.getKey() : "";
+            var oFilterModel = this.getView().getModel("filterData");
+            var roleModuleMap = oFilterModel.getProperty("/roleModuleMap") || {};
+            var allModules = oFilterModel.getProperty("/allModules") || [];
+
+            if (!sRole) {
+                oFilterModel.setProperty("/modules", allModules.slice(0));
+            } else {
+                var modulesForRole = roleModuleMap[sRole] || {};
+                var filtered = [{ key: "", text: "All" }];
+                Object.keys(modulesForRole).sort().forEach(function (m) {
+                    filtered.push({ key: m, text: m });
+                });
+                oFilterModel.setProperty("/modules", filtered);
+            }
+            var oModuleSelect = this.byId("filterModule");
+            if (oModuleSelect) { oModuleSelect.setSelectedKey(""); }
+        },
+
+        /**
+         * Role switcher: switch between Admin/Manager/User views.
+         * All UI bindings automatically update via the user JSON model.
+         */
+        onSwitchRole: function (oEvent) {
+            var oItem = oEvent.getParameter("selectedItem");
+            var sNewRole = oItem ? oItem.getKey() : "";
+            if (sNewRole) {
+                var oComponent = this.getOwnerComponent();
+                if (oComponent && oComponent.switchRole) {
+                    oComponent.switchRole(sNewRole);
+                }
+                this._loadAnalytics();
+                MessageToast.show("Switched to " + sNewRole + " view");
+            }
+        },
+
         /* ===== SmartTable initialise: configure GridTable + clickable links ===== */
         onSmartTableInit: function () {
             var that = this;
@@ -148,14 +245,32 @@ sap.ui.define([
                 oTable.setVisibleRowCountMode("Auto");
                 oTable.setMinAutoRowCount(5);
 
-                // Track which columns have been converted to Links (by column key).
-                // Re-apply on EVERY rowsUpdated because SmartTable can re-create
-                // column templates during rebind/personalisation/variant switch.
-                that._linkColumnsApplied = {};
+                // Apply link templates + column menus on every data update
                 oTable.attachRowsUpdated(function () {
                     that._enableColumnMenus(oTable);
-                    that._replaceUrlColumnsWithLinks(oTable);
+                    that._applyLinkTemplates(oTable);
                 });
+
+                // Fallback: cellClick handler opens URLs even if Link templates fail
+                oTable.attachCellClick(function (oEvent) {
+                    var oRow = oEvent.getParameter("rowBindingContext");
+                    var iColIdx = oEvent.getParameter("columnIndex");
+                    if (!oRow) { return; }
+                    var aCols = oTable.getColumns();
+                    if (iColIdx >= 0 && iColIdx < aCols.length) {
+                        var sKey = that._getColumnKey(aCols[iColIdx]);
+                        if (sKey === "Url" || sKey === "SapHelpLink") {
+                            var sUrl = oRow.getProperty(sKey);
+                            if (sUrl) {
+                                window.open(sUrl, "_blank", "noopener,noreferrer");
+                            }
+                        }
+                    }
+                });
+
+                // Delayed fallback for timing issues on S/4HANA
+                setTimeout(function () { that._applyLinkTemplates(oTable); }, 3000);
+                setTimeout(function () { that._applyLinkTemplates(oTable); }, 6000);
             }
         },
 
@@ -189,56 +304,78 @@ sap.ui.define([
         },
 
         /**
-         * Replace Url and SapHelpLink column templates with sap.m.Link controls.
-         * Uses a custom data marker on each column to avoid re-creating templates
-         * on every rowsUpdated event (would lose cell bindings). Only sets template
-         * once per column instance; if SmartTable re-creates columns, the marker
-         * is gone so we re-apply.
+         * Robustly extract OData property name for a GridTable column.
+         * Tries p13nData (leadingProperty, columnKey), then column label text.
          */
-        _replaceUrlColumnsWithLinks: function (oTable) {
+        _getColumnKey: function (oCol) {
+            var aCD = oCol.getCustomData();
+            for (var i = 0; i < aCD.length; i++) {
+                if (aCD[i].getKey() === "p13nData") {
+                    try {
+                        var oP13n = JSON.parse(aCD[i].getValue());
+                        var sKey = oP13n.leadingProperty || oP13n.columnKey || "";
+                        // Strip namespace prefix (e.g. "ZCOURSES_SRV.Training/Url" → "Url")
+                        if (sKey.indexOf("/") >= 0) { sKey = sKey.substring(sKey.lastIndexOf("/") + 1); }
+                        if (sKey.indexOf("::") >= 0) { sKey = sKey.substring(sKey.lastIndexOf("::") + 2); }
+                        return sKey;
+                    } catch (e) { /* ignore */ }
+                }
+            }
+            // Fallback: check column label text
+            var oLabel = oCol.getLabel();
+            if (oLabel && typeof oLabel.getText === "function") {
+                var sText = oLabel.getText();
+                if (sText === "Training Link" || sText === "Url") { return "Url"; }
+                if (sText === "SAP Help" || sText === "SapHelpLink") { return "SapHelpLink"; }
+            }
+            return "";
+        },
+
+        /**
+         * Replace Url and SapHelpLink column templates with sap.m.Link controls.
+         * Uses template type check — only replaces non-Link templates.
+         * Called from rowsUpdated, beforeRebindTable, and delayed fallback.
+         */
+        _applyLinkTemplates: function (oTable) {
             if (!oTable || !oTable.getColumns) { return; }
+            var that = this;
             var aColumns = oTable.getColumns();
+            var bChanged = false;
+
             aColumns.forEach(function (oCol) {
-                // Check if already processed via custom data marker
-                var aCD = oCol.getCustomData();
-                var bAlreadyLinked = false;
-                for (var j = 0; j < aCD.length; j++) {
-                    if (aCD[j].getKey() === "urlLinked") {
-                        bAlreadyLinked = true;
-                        break;
-                    }
-                }
-                if (bAlreadyLinked) { return; }
-
-                var sColumnKey = "";
-                for (var i = 0; i < aCD.length; i++) {
-                    if (aCD[i].getKey() === "p13nData") {
-                        try {
-                            var oP13n = JSON.parse(aCD[i].getValue());
-                            sColumnKey = oP13n.columnKey || oP13n.leadingProperty || "";
-                        } catch (e) { /* ignore */ }
-                        break;
-                    }
+                // Skip if column already has a Link template
+                var oTpl = oCol.getTemplate();
+                if (oTpl && oTpl.getMetadata && oTpl.getMetadata().getName() === "sap.m.Link") {
+                    return;
                 }
 
-                if (sColumnKey === "Url") {
+                var sKey = that._getColumnKey(oCol);
+
+                if (sKey === "Url") {
                     oCol.setTemplate(new Link({
                         text: { path: "Url", formatter: function (v) { return v ? "Open Link" : ""; } },
                         href: "{Url}",
                         target: "_blank",
                         wrapping: false
                     }));
-                    oCol.addCustomData(new sap.ui.core.CustomData({ key: "urlLinked", value: "true" }));
-                } else if (sColumnKey === "SapHelpLink") {
+                    bChanged = true;
+                    Log.info("[URLLinks] Applied Link template for Url column");
+                } else if (sKey === "SapHelpLink") {
                     oCol.setTemplate(new Link({
                         text: { path: "SapHelpLink", formatter: function (v) { return v ? "SAP Help" : ""; } },
                         href: "{SapHelpLink}",
                         target: "_blank",
                         wrapping: false
                     }));
-                    oCol.addCustomData(new sap.ui.core.CustomData({ key: "urlLinked", value: "true" }));
+                    bChanged = true;
+                    Log.info("[URLLinks] Applied Link template for SapHelpLink column");
                 }
             });
+
+            // Force re-render with new templates
+            if (bChanged) {
+                oTable.invalidate();
+            }
         },
 
         /**
@@ -292,6 +429,12 @@ sap.ui.define([
             }
 
             Log.info("[Filter] Total filters: " + mBindingParams.filters.length);
+
+            // Apply link templates before data is bound (handles SmartTable column resets)
+            var oTable = this.byId("smartTable").getTable();
+            if (oTable) {
+                this._applyLinkTemplates(oTable);
+            }
         },
 
         /* ===== Admin CRUD: Create New Training ===== */
@@ -499,41 +642,38 @@ sap.ui.define([
                 this._detailDlg = null;
             }
 
-            // Build rich detail dialog
-            var aContent = [];
+            // Header: Title + metadata in a clean VBox layout (no overlap)
+            var aHeaderItems = [
+                new sap.m.Title({
+                    text: oTraining.Title || "Untitled",
+                    level: "H3",
+                    wrapping: true
+                }).addStyleClass("sapUiSmallMarginBottom")
+            ];
 
-            // Object Header – compact, no overflow
-            var oObjectHeader = new sap.m.ObjectHeader({
-                title: oTraining.Title || "Untitled",
-                number: oTraining.SapModule || "",
-                numberUnit: "Module",
-                condensed: true,
-                responsive: true,
-                attributes: [],
-                statuses: []
-            });
-
+            // Attribute chips in a wrapping row
+            var aAttrs = [];
+            if (oTraining.SapModule) {
+                aAttrs.push(new sap.m.ObjectStatus({ title: "Module", text: oTraining.SapModule, state: "Information" }));
+            }
             if (oTraining.Role) {
-                oObjectHeader.addAttribute(new sap.m.ObjectAttribute({
-                    title: "Role",
-                    text: oTraining.Role
-                }));
+                aAttrs.push(new sap.m.ObjectStatus({ title: "Role", text: oTraining.Role, state: "None" }));
             }
             if (oTraining.LastUpdated) {
                 var sDate = oTraining.LastUpdated;
-                if (sDate instanceof Date) {
-                    sDate = sDate.toLocaleDateString();
-                }
-                oObjectHeader.addAttribute(new sap.m.ObjectAttribute({
-                    title: "Last Updated",
-                    text: sDate + ""
-                }));
+                if (sDate instanceof Date) { sDate = sDate.toLocaleDateString(); }
+                aAttrs.push(new sap.m.ObjectStatus({ title: "Updated", text: sDate + "", state: "None" }));
             }
-            oObjectHeader.addStatus(new sap.m.ObjectStatus({
-                text: oTraining.SapModule || "General",
-                state: "Information"
-            }));
-            aContent.push(oObjectHeader);
+            if (aAttrs.length > 0) {
+                aHeaderItems.push(new sap.m.FlexBox({
+                    wrap: "Wrap",
+                    items: aAttrs
+                }).addStyleClass("sapUiTinyMarginBottom detailAttrsRow"));
+            }
+
+            var aContent = [
+                new sap.m.VBox({ items: aHeaderItems }).addStyleClass("sapUiSmallMargin")
+            ];
 
             // Description section
             if (oTraining.Description) {
@@ -541,11 +681,9 @@ sap.ui.define([
                     headerText: "Description",
                     expandable: false,
                     content: [
-                        new Text({
-                            text: oTraining.Description
-                        }).addStyleClass("sapUiSmallMargin")
+                        new Text({ text: oTraining.Description, wrapping: true }).addStyleClass("sapUiSmallMargin")
                     ]
-                }).addStyleClass("sapUiTinyMarginTop"));
+                }));
             }
 
             // Links section
@@ -557,13 +695,7 @@ sap.ui.define([
                             alignItems: "Center",
                             items: [
                                 new sap.ui.core.Icon({ src: "sap-icon://chain-link", size: "1.25rem", color: "#0070f2" }).addStyleClass("sapUiSmallMarginEnd"),
-                                new Link({
-                                    text: "Open Training Link",
-                                    href: oTraining.Url,
-                                    press: function () {
-                                        sap.m.URLHelper.redirect(oTraining.Url, false);
-                                    }
-                                })
+                                new Link({ text: "Open Training Link", href: oTraining.Url, target: "_blank" })
                             ]
                         }).addStyleClass("sapUiTinyMargin")
                     ]
@@ -576,13 +708,7 @@ sap.ui.define([
                             alignItems: "Center",
                             items: [
                                 new sap.ui.core.Icon({ src: "sap-icon://sys-help", size: "1.25rem", color: "#0854a0" }).addStyleClass("sapUiSmallMarginEnd"),
-                                new Link({
-                                    text: "Open SAP Help",
-                                    href: oTraining.SapHelpLink,
-                                    press: function () {
-                                        sap.m.URLHelper.redirect(oTraining.SapHelpLink, false);
-                                    }
-                                })
+                                new Link({ text: "Open SAP Help", href: oTraining.SapHelpLink, target: "_blank" })
                             ]
                         }).addStyleClass("sapUiTinyMargin")
                     ]
@@ -593,18 +719,14 @@ sap.ui.define([
                     headerText: "Resources",
                     expandable: false,
                     content: [
-                        new sap.m.List({
-                            showSeparators: "Inner",
-                            items: aLinkItems
-                        })
+                        new sap.m.List({ showSeparators: "Inner", items: aLinkItems })
                     ]
-                }).addStyleClass("sapUiTinyMarginTop"));
+                }));
             }
 
             this._detailDlg = new sap.m.Dialog({
                 title: "Training Details",
-                contentWidth: "560px",
-                contentHeight: "auto",
+                contentWidth: "480px",
                 draggable: true,
                 resizable: true,
                 verticalScrolling: true,
@@ -613,7 +735,6 @@ sap.ui.define([
                 content: aContent,
                 endButton: new sap.m.Button({
                     text: "Close",
-                    icon: "sap-icon://decline",
                     press: function () { that._detailDlg.close(); }
                 }),
                 afterClose: function () {
@@ -621,7 +742,7 @@ sap.ui.define([
                     that._detailDlg = null;
                 }
             });
-            this._detailDlg.addStyleClass("sapUiContentPadding sapUiResponsivePadding--content");
+            this._detailDlg.addStyleClass("sapUiContentPadding");
             this._detailDlg.open();
         },
 
