@@ -3,8 +3,11 @@ sap.ui.define([
     "sap/m/MessageToast",
     "sap/m/MessageBox",
     "sap/ui/model/json/JSONModel",
-    "sap/ui/core/routing/History"
-], function (Controller, MessageToast, MessageBox, JSONModel, History) {
+    "sap/ui/core/routing/History",
+    "sap/ui/model/Filter",
+    "sap/ui/model/FilterOperator",
+    "sap/base/Log"
+], function (Controller, MessageToast, MessageBox, JSONModel, History, Filter, FilterOperator, Log) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingAssignmentsList", {
@@ -70,6 +73,49 @@ sap.ui.define([
             }
             this._loadAnalytics();
             MessageToast.show("Data refreshed");
+        },
+
+        /**
+         * beforeRebindTable – handle SmartFilterBar filters for Assignments.
+         * Converts basic search to Title EQ and sanitizes SEGW-incompatible operators.
+         */
+        onBeforeRebindTable: function (oEvent) {
+            var mBindingParams = oEvent.getParameter("bindingParams");
+            var oSmartFilterBar = this.byId("assignSmartFilterBar");
+
+            // SEGW filter sanitizer - convert Contains to EQ for string fields
+            var fnSanitize = function (oFilter) {
+                if (oFilter.aFilters) {
+                    for (var k = 0; k < oFilter.aFilters.length; k++) {
+                        oFilter.aFilters[k] = fnSanitize(oFilter.aFilters[k]);
+                    }
+                    return oFilter;
+                }
+                if ((oFilter.sPath === "Role" || oFilter.sPath === "SapModule" || oFilter.sPath === "Status") &&
+                    oFilter.sOperator && oFilter.sOperator !== FilterOperator.EQ) {
+                    return new Filter(oFilter.sPath, FilterOperator.EQ, oFilter.oValue1);
+                }
+                return oFilter;
+            };
+            for (var i = 0; i < mBindingParams.filters.length; i++) {
+                mBindingParams.filters[i] = fnSanitize(mBindingParams.filters[i]);
+            }
+
+            // Basic search → Title EQ filter
+            var sSearchVal = "";
+            if (oSmartFilterBar && oSmartFilterBar.getBasicSearchValue) {
+                sSearchVal = (oSmartFilterBar.getBasicSearchValue() || "").trim();
+            }
+            if (sSearchVal) {
+                mBindingParams.filters.push(new Filter("Title", FilterOperator.EQ, sSearchVal));
+            }
+
+            // Remove $search parameter
+            if (mBindingParams.parameters && mBindingParams.parameters.custom) {
+                delete mBindingParams.parameters.custom.search;
+            }
+
+            Log.info("[AssignFilter] Total filters: " + mBindingParams.filters.length);
         },
 
         /* ===== Nav Back – robust approach for FLP + standalone ===== */

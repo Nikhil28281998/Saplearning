@@ -196,12 +196,13 @@ html, body, html.sap-desktop, .sapUiBody {
     padding: 0.25rem;
 }
 
-/* Analytics Card – Glassmorphism tiles */
+/* Analytics Card – Glassmorphism tiles (square: equal width & height) */
 .analyticsCard {
-    flex: 1 1 140px;
-    min-width: 128px;
-    max-width: none;
-    padding: 1.25rem 1rem;
+    flex: 1 1 130px;
+    min-width: 130px;
+    max-width: 200px;
+    min-height: 130px;
+    padding: 1rem 0.75rem;
     border-radius: var(--sapRadius);
     background: var(--sapGlass);
     -webkit-backdrop-filter: blur(12px);
@@ -212,6 +213,10 @@ html, body, html.sap-desktop, .sapUiBody {
     box-sizing: border-box;
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Decorative gradient orb behind each card */
@@ -285,9 +290,10 @@ html, body, html.sap-desktop, .sapUiBody {
 
 /* ===== Chart Cards ===== */
 .chartCard {
-    min-width: 220px;
+    min-width: 240px;
     max-width: none;
-    flex: 1 1 220px;
+    flex: 1 1 240px;
+    min-height: 160px;
 }
 
 .chartTitle {
@@ -314,9 +320,28 @@ html, body, html.sap-desktop, .sapUiBody {
     margin-top: 0.375rem;
 }
 
+/* StackedBarMicroChart – make bars BIGGER (taller rectangles) */
 .sapSuiteSBMC {
     margin: 0.375rem 0;
-    min-width: 180px;
+    min-width: 200px;
+    width: 100%;
+}
+
+.chartCard .sapSuiteSBMC {
+    min-height: 48px !important;
+}
+
+/* Make the individual bar segments taller */
+.sapSuiteSBMCBarCntr,
+.sapSuiteSBMCBar {
+    min-height: 36px !important;
+    height: 36px !important;
+}
+
+.sapSuiteSBMCBarCntr .sapSuiteSBMCBarText {
+    font-size: 0.8125rem !important;
+    font-weight: 700 !important;
+    line-height: 36px !important;
 }
 
 /* ===== SmartFilterBar – Modern Frosted Glass ===== */
@@ -789,6 +814,11 @@ html, body, html.sap-desktop, .sapUiBody {
 /* ===== Status Distribution Chart – fuller width ===== */
 .chartCard .sapSuiteSBMC {
     min-width: 100% !important;
+    width: 100% !important;
+}
+
+/* ComparisonMicroChart (Module breakdown) – bigger bars */
+.chartCard .sapSuiteCpMC {
     width: 100% !important;
 }
 

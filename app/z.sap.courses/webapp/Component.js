@@ -390,6 +390,7 @@ sap.ui.define([
                 };
 
                 // Helper: look up user by typed ID and auto-fill fields
+                // Uses dynamic property discovery for email (ABAP entities vary)
                 var lookupUserById = function(val) {
                     if (!val) { return; }
                     var upper = val.toUpperCase().trim();
@@ -399,12 +400,39 @@ sap.ui.define([
                         return (u.UserId || '').toUpperCase().trim() === upper;
                     })[0];
                     if (found) {
-                        dlgModel.setProperty('/firstName', found.FirstName || '');
-                        dlgModel.setProperty('/lastName', found.LastName || '');
-                        dlgModel.setProperty('/userEmail', found.Email || found.EmailAddress || found.SmtpAddr || '');
-                        jQuery.sap.log.info('[AssignDlg] User found: ' + upper + ', Email: ' + (found.Email || found.EmailAddress || found.SmtpAddr || '(empty)'));
+                        // Name: try multiple property name variants
+                        dlgModel.setProperty('/firstName', found.FirstName || found.Firstname || found.FIRSTNAME || found.First_Name || '');
+                        dlgModel.setProperty('/lastName', found.LastName || found.Lastname || found.LASTNAME || found.Last_Name || '');
+
+                        // Email: try known property names first
+                        var email = found.Email || found.EmailAddress || found.SmtpAddr ||
+                                    found.UserEmail || found.Smtp_Addr || found.emailAddress ||
+                                    found.EMAIL || found.SmtpAddress || '';
+
+                        // If still empty, scan ALL properties for email-like field names
+                        if (!email) {
+                            var props = Object.keys(found);
+                            for (var i = 0; i < props.length; i++) {
+                                var pName = props[i].toLowerCase();
+                                if ((pName.indexOf('mail') >= 0 || pName.indexOf('smtp') >= 0) && found[props[i]]) {
+                                    email = found[props[i]];
+                                    Log.info('[AssignDlg] Email found via dynamic scan: ' + props[i] + ' = ' + email);
+                                    break;
+                                }
+                            }
+                        }
+                        dlgModel.setProperty('/userEmail', email);
+
+                        // Debug: log ALL properties so user can verify what ABAP returns
+                        Log.info('[AssignDlg] User found: ' + upper);
+                        Log.info('[AssignDlg] All properties: ' + JSON.stringify(Object.keys(found)));
+                        Log.info('[AssignDlg] Email resolved to: ' + (email || '(empty)'));
+                        Log.info('[AssignDlg] Full user data: ' + JSON.stringify(found));
                     } else {
-                        jQuery.sap.log.warning('[AssignDlg] User NOT found for: ' + upper);
+                        Log.warning('[AssignDlg] User NOT found for: ' + upper + ', Total users loaded: ' + allUsers.length);
+                        if (allUsers.length > 0) {
+                            Log.info('[AssignDlg] Sample user properties: ' + JSON.stringify(Object.keys(allUsers[0])));
+                        }
                     }
                 };
 

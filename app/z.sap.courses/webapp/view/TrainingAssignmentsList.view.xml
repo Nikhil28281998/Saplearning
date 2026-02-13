@@ -84,6 +84,7 @@
                 enableBasicSearch="true"
                 showClearOnFB="false"
                 showRestoreOnFB="false"
+                showGoOnFB="true"
                 filterBarExpanded="true"
                 showFilterConfiguration="true" />
 
@@ -103,7 +104,8 @@
                 persistencyKey="AssignmentsSmartTable"
                 demandPopin="true"
                 enableAutoColumnWidth="true"
-                initialise="onSmartTableInit">
+                initialise="onSmartTableInit"
+                beforeRebindTable="onBeforeRebindTable">
 
                 <smartTable:customToolbar>
                     <OverflowToolbar id="assignTableToolbar">

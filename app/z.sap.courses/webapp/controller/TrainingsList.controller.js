@@ -245,10 +245,11 @@ sap.ui.define([
                 oTable.setVisibleRowCountMode("Auto");
                 oTable.setMinAutoRowCount(5);
 
-                // Apply link templates + column menus on every data update
+                // Apply link templates + column menus + date formatting on every data update
                 oTable.attachRowsUpdated(function () {
                     that._enableColumnMenus(oTable);
                     that._applyLinkTemplates(oTable);
+                    that._formatDateColumns(oTable);
                 });
 
                 // Fallback: cellClick handler opens URLs even if Link templates fail
@@ -299,6 +300,38 @@ sap.ui.define([
                     oCol.setFilterProperty(sProperty);
                     oCol.setShowFilterMenuEntry(true);
                     oCol.setShowSortMenuEntry(true);
+                }
+            });
+        },
+
+        /**
+         * Format date columns to show date only (no time).
+         * Replaces LastUpdated column template with date-only formatter.
+         */
+        _formatDateColumns: function (oTable) {
+            if (!oTable || !oTable.getColumns) { return; }
+            if (this._dateColumnsFormatted) { return; } // only once
+            var that = this;
+            var aColumns = oTable.getColumns();
+            aColumns.forEach(function (oCol) {
+                var sKey = that._getColumnKey(oCol);
+                if (sKey === "LastUpdated") {
+                    oCol.setTemplate(new Text({
+                        text: {
+                            path: "LastUpdated",
+                            formatter: function (v) {
+                                if (!v) { return ""; }
+                                var d = (v instanceof Date) ? v : new Date(v);
+                                if (isNaN(d.getTime())) { return v + ""; }
+                                return d.toLocaleDateString("en-US", {
+                                    year: "numeric", month: "short", day: "numeric"
+                                });
+                            }
+                        },
+                        wrapping: false
+                    }));
+                    that._dateColumnsFormatted = true;
+                    Log.info("[Format] LastUpdated column set to date-only format");
                 }
             });
         },
@@ -389,31 +422,45 @@ sap.ui.define([
          */
         onBeforeRebindTable: function (oEvent) {
             var mBindingParams = oEvent.getParameter("bindingParams");
+            var oSmartFilterBar = this.byId("smartFilterBar");
 
-            // ---- Manual filter injection from Select controls ----
-            // sap.m.Select does not have getValue() so SmartFilterBar cannot extract
-            // the selected value. We must manually read and inject EQ filters.
-            var oRoleSelect = this.byId("filterRole");
-            var oModuleSelect = this.byId("filterModule");
+            // ---- Step 1: Remove any existing Role/SapModule filters ----
+            // SmartFilterBar may generate malformed filters from sap.m.Select controls
+            // (Select lacks getValue()). We strip them and re-inject clean EQ filters.
+            var fnStripRoleModule = function (aFilters) {
+                for (var i = aFilters.length - 1; i >= 0; i--) {
+                    var oF = aFilters[i];
+                    if (oF.aFilters) {
+                        fnStripRoleModule(oF.aFilters);
+                        if (oF.aFilters.length === 0) { aFilters.splice(i, 1); }
+                    } else if (oF.sPath === "Role" || oF.sPath === "SapModule") {
+                        aFilters.splice(i, 1);
+                    }
+                }
+            };
+            fnStripRoleModule(mBindingParams.filters);
 
-            if (oRoleSelect) {
-                var sRole = oRoleSelect.getSelectedKey();
-                if (sRole) {
-                    mBindingParams.filters.push(new Filter("Role", FilterOperator.EQ, sRole));
-                    Log.info("[Filter] Role EQ: " + sRole);
+            // ---- Step 2: Read filter values from FilterGroupItems ----
+            // This is the ONLY reliable way to read sap.m.Select values inside SmartFilterBar.
+            // We iterate the SmartFilterBar's filterGroupItems, get each control, read getSelectedKey().
+            if (oSmartFilterBar && oSmartFilterBar.getFilterGroupItems) {
+                var aFGItems = oSmartFilterBar.getFilterGroupItems();
+                for (var g = 0; g < aFGItems.length; g++) {
+                    var oFGI = aFGItems[g];
+                    var sName = oFGI.getName ? oFGI.getName() : "";
+                    var oControl = oFGI.getControl ? oFGI.getControl() : null;
+                    if (oControl && typeof oControl.getSelectedKey === "function") {
+                        var sKey = oControl.getSelectedKey();
+                        if (sKey) {
+                            mBindingParams.filters.push(new Filter(sName, FilterOperator.EQ, sKey));
+                            Log.info("[Filter] " + sName + " EQ: " + sKey + " (from FilterGroupItem)");
+                        }
+                    }
                 }
             }
-            if (oModuleSelect) {
-                var sModule = oModuleSelect.getSelectedKey();
-                if (sModule) {
-                    mBindingParams.filters.push(new Filter("SapModule", FilterOperator.EQ, sModule));
-                    Log.info("[Filter] SapModule EQ: " + sModule);
-                }
-            }
 
-            // ---- SEGW filter sanitizer ----
-            // SmartFilterBar may generate Contains/substringof for String fields.
-            // SEGW only handles EQ in it_filter_select_options. Recursively convert.
+            // ---- Step 3: SEGW filter sanitizer ----
+            // Convert any remaining Contains/substringof to EQ for SEGW compatibility.
             var fnSanitize = function (oFilter) {
                 if (oFilter.aFilters) {
                     for (var k = 0; k < oFilter.aFilters.length; k++) {
@@ -431,10 +478,7 @@ sap.ui.define([
                 mBindingParams.filters[i] = fnSanitize(mBindingParams.filters[i]);
             }
 
-            // ---- Basic search box → Title EQ filter ----
-            // SmartFilterBar sends basic search as $search param which SEGW ignores.
-            // Convert it to a proper Title EQ filter for our ABAP LIKE matching.
-            var oSmartFilterBar = this.byId("smartFilterBar");
+            // ---- Step 4: Basic search box → Title EQ filter ----
             var sSearchVal = "";
             if (oSmartFilterBar && oSmartFilterBar.getBasicSearchValue) {
                 sSearchVal = (oSmartFilterBar.getBasicSearchValue() || "").trim();
@@ -449,12 +493,19 @@ sap.ui.define([
                 delete mBindingParams.parameters.custom.search;
             }
 
-            Log.info("[Filter] Total filters: " + mBindingParams.filters.length);
+            // Debug: log final filter count and details
+            Log.info("[Filter] Total filters being sent: " + mBindingParams.filters.length);
+            mBindingParams.filters.forEach(function (f, idx) {
+                if (f.sPath) {
+                    Log.info("[Filter]   [" + idx + "] " + f.sPath + " " + f.sOperator + " " + f.oValue1);
+                }
+            });
 
-            // Apply link templates before data is bound (handles SmartTable column resets)
+            // Apply link templates + date formatting before data is bound
             var oTable = this.byId("smartTable").getTable();
             if (oTable) {
                 this._applyLinkTemplates(oTable);
+                this._formatDateColumns(oTable);
             }
         },
 
