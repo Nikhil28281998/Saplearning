@@ -223,6 +223,20 @@ sap.ui.define([
             loadList('/Trainings').then(function(trainings){
                 trainings = trainings || [];
 
+                // Also load users from backend for value help
+                loadList('/Users').then(function(users) {
+                    users = users || [];
+                    _buildDialog(trainings, users);
+                }).catch(function() {
+                    // Users endpoint may fail — still show dialog with manual input
+                    _buildDialog(trainings, []);
+                });
+            }).catch(function(err){
+                MessageToast.show('Failed to load data for assignment');
+            });
+
+            var _buildDialog = function(trainings, users) {
+
                 // Extract unique roles and modules for filter dropdowns
                 var roleSet = {};
                 var moduleSet = {};
@@ -234,6 +248,7 @@ sap.ui.define([
                 var dlgModel = new JSONModel({
                     trainings: trainings,
                     filteredTrainings: trainings,
+                    users: users,
                     roles: [{ key: '', text: 'All Roles' }].concat(
                         Object.keys(roleSet).sort().map(function(r) { return { key: r, text: r }; })
                     ),
@@ -342,14 +357,34 @@ sap.ui.define([
                     showSecondaryValues: true
                 });
 
-                // Step 3: User details
-                var userIdInput = new sap.m.Input({
+                // Step 3: User details — load from /Users entity set
+                var userSelect = new sap.m.ComboBox({
                     width: '100%',
-                    placeholder: 'SAP Username (e.g. JSMITH)',
-                    value: '{/userId}',
-                    required: true,
-                    maxLength: 12,
-                    description: 'SYUNAME, max 12 chars',
+                    placeholder: 'Type or select a user...',
+                    showSecondaryValues: true,
+                    filterSecondaryValues: true,
+                    selectedKey: '{/userId}',
+                    items: {
+                        path: '/users',
+                        template: new sap.ui.core.ListItem({
+                            key: '{UserId}',
+                            text: '{UserId}',
+                            additionalText: '{FirstName} {LastName}'
+                        })
+                    },
+                    selectionChange: function(oEvent) {
+                        var oItem = oEvent.getParameter("selectedItem");
+                        if (oItem) {
+                            var oCtx = oItem.getBindingContext();
+                            if (oCtx) {
+                                var oUser = oCtx.getObject();
+                                dlgModel.setProperty("/userId", oUser.UserId || "");
+                                dlgModel.setProperty("/firstName", oUser.FirstName || "");
+                                dlgModel.setProperty("/lastName", oUser.LastName || "");
+                                dlgModel.setProperty("/userEmail", oUser.Email || "");
+                            }
+                        }
+                    },
                     change: function(oEvent) {
                         var val = oEvent.getParameter("value") || "";
                         dlgModel.setProperty("/userId", val.toUpperCase());
@@ -357,18 +392,21 @@ sap.ui.define([
                 });
                 var firstNameInput = new sap.m.Input({
                     width: '100%',
-                    placeholder: 'First Name',
-                    value: '{/firstName}'
+                    placeholder: 'Auto-filled from user selection',
+                    value: '{/firstName}',
+                    editable: false
                 });
                 var lastNameInput = new sap.m.Input({
                     width: '100%',
-                    placeholder: 'Last Name',
-                    value: '{/lastName}'
+                    placeholder: 'Auto-filled from user selection',
+                    value: '{/lastName}',
+                    editable: false
                 });
                 var userEmailInput = new sap.m.Input({
                     width: '100%',
-                    placeholder: 'Email (optional)',
+                    placeholder: 'Auto-filled from user selection',
                     value: '{/userEmail}',
+                    editable: false,
                     type: 'Email'
                 });
                 var datePicker = new sap.m.DatePicker({
@@ -419,8 +457,8 @@ sap.ui.define([
                             class: "sapUiSmallMarginTop",
                             content: [new sap.m.Title({ text: "Assign To", level: "H5" })]
                         }),
-                        new sap.m.Label({ text: 'User ID (SYUNAME)', required: true }),
-                        userIdInput,
+                        new sap.m.Label({ text: 'User ID', required: true }),
+                        userSelect,
                         new sap.m.HBox({
                             wrap: "Wrap",
                             items: [
@@ -544,9 +582,7 @@ sap.ui.define([
                 });
                 that._assignDlg.setModel(dlgModel);
                 that._assignDlg.open();
-            }).catch(function(err){
-                MessageToast.show('Failed to load data for assignment');
-            });
+            };  // end _buildDialog
         },
 
         destroy: function() {

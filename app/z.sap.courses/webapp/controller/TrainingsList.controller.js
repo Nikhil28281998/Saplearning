@@ -24,16 +24,24 @@ sap.ui.define([
         },
 
         _loadAnalytics: function () {
-            var that = this;
             var oModel = this.getOwnerComponent().getModel();
             var oAnalyticsModel = this.getView().getModel("analyticsModel");
             
-            // Count trainings
-            oModel.read("/Trainings/$count", {
-                success: function (count) {
-                    oAnalyticsModel.setProperty("/totalTrainings", count || 0);
+            // Count trainings via reading the entity set
+            oModel.read("/Trainings", {
+                urlParameters: { "$inlinecount": "allpages", "$top": "1" },
+                success: function (data) {
+                    var count = 0;
+                    if (data && data.__count) {
+                        count = parseInt(data.__count, 10);
+                    } else if (data && data.results) {
+                        count = data.results.length;
+                    }
+                    oAnalyticsModel.setProperty("/totalTrainings", count);
                 },
-                error: function () { /* ignore */ }
+                error: function () {
+                    oAnalyticsModel.setProperty("/totalTrainings", 0);
+                }
             });
             
             // Count assignments by status

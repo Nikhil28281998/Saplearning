@@ -46,6 +46,46 @@
     font-weight: 600;
 }
 
+/* Analytics Card Tiles */
+.analyticsContainer {
+    gap: 0.75rem;
+}
+
+.analyticsCard {
+    min-width: 140px;
+    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    border: 1px solid #e5e5e5;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.analyticsCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.analyticsCardBlue { border-top: 3px solid #0854a0; }
+.analyticsCardOrange { border-top: 3px solid #e76500; }
+.analyticsCardTeal { border-top: 3px solid #0a6ed1; }
+.analyticsCardGreen { border-top: 3px solid #107e3e; }
+.analyticsCardPurple { border-top: 3px solid #6c32a9; }
+
+.analyticsNumber .sapMObjectNumber {
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+}
+
+.analyticsLabel {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #556b82;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+}
+
 /* Analytics Cards */
 .sapMObjectNumber {
     font-size: 1.75rem;

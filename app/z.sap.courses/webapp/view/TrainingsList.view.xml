@@ -36,59 +36,69 @@
         </customHeader>
 
         <content>
-            <!-- Analytics Panel for all users -->
+            <!-- Analytics Dashboard - Modern Tile Cards -->
             <Panel
                 id="analyticsPanel"
                 expandable="true"
                 expanded="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }"
                 headerText="Training Analytics"
                 class="sapUiSmallMarginBottom">
-                <HBox id="analyticsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin">
-                    <VBox id="totalBox" alignItems="Center" class="sapUiSmallMarginEnd">
+                <HBox id="analyticsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin analyticsContainer">
+                    <!-- Total Trainings Card -->
+                    <VBox id="totalBox" alignItems="Center" class="analyticsCard analyticsCardBlue">
+                        <core:Icon id="totalIcon" src="sap-icon://course-book" size="1.5rem" color="#0854a0" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="totalTrainingsCount"
                             number="{analyticsModel>/totalTrainings}"
-                            unit="Trainings"
-                            state="Information" />
-                        <Text id="totalLabel" text="Total Catalog" class="sapUiTinyMarginTop" />
+                            state="Information"
+                            class="analyticsNumber" />
+                        <Text id="totalLabel" text="Total Catalog" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="assignedBox" alignItems="Center" class="sapUiSmallMarginEnd">
+                    <!-- Assigned Card -->
+                    <VBox id="assignedBox" alignItems="Center" class="analyticsCard analyticsCardOrange">
+                        <core:Icon id="assignedIcon" src="sap-icon://pending" size="1.5rem" color="#e76500" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="assignedCount"
                             number="{analyticsModel>/assigned}"
-                            unit="Assigned"
-                            state="Warning" />
-                        <Text id="assignedLabel" text="Pending" class="sapUiTinyMarginTop" />
+                            state="Warning"
+                            class="analyticsNumber" />
+                        <Text id="assignedLabel" text="Assigned" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="inProgressBox" alignItems="Center" class="sapUiSmallMarginEnd">
+                    <!-- In Progress Card -->
+                    <VBox id="inProgressBox" alignItems="Center" class="analyticsCard analyticsCardTeal">
+                        <core:Icon id="inProgressIcon" src="sap-icon://activity-2" size="1.5rem" color="#0a6ed1" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="inProgressCount"
                             number="{analyticsModel>/inProgress}"
-                            unit="In Progress"
-                            state="Warning" />
-                        <Text id="inProgressLabel" text="Learning" class="sapUiTinyMarginTop" />
+                            state="Information"
+                            class="analyticsNumber" />
+                        <Text id="inProgressLabel" text="In Progress" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="completedBox" alignItems="Center" class="sapUiSmallMarginEnd">
+                    <!-- Completed Card -->
+                    <VBox id="completedBox" alignItems="Center" class="analyticsCard analyticsCardGreen">
+                        <core:Icon id="completedIcon" src="sap-icon://accept" size="1.5rem" color="#107e3e" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="completedCount"
                             number="{analyticsModel>/completed}"
-                            unit="Completed"
-                            state="Success" />
-                        <Text id="completedLabel" text="Done" class="sapUiTinyMarginTop" />
+                            state="Success"
+                            class="analyticsNumber" />
+                        <Text id="completedLabel" text="Completed" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="completionRateBox" alignItems="Center">
+                    <!-- Completion Rate Card -->
+                    <VBox id="completionRateBox" alignItems="Center" class="analyticsCard analyticsCardPurple">
+                        <core:Icon id="completionIcon" src="sap-icon://target-group" size="1.5rem" color="#6c32a9" class="sapUiTinyMarginBottom" />
                         <ProgressIndicator
                             id="completionProgress"
                             percentValue="{analyticsModel>/completionPercent}"
                             displayValue="{analyticsModel>/completionPercent}%"
                             state="{= ${analyticsModel>/completionPercent} >= 80 ? 'Success' : ${analyticsModel>/completionPercent} >= 50 ? 'Warning' : 'Error' }"
-                            width="150px" />
-                        <Text id="completionRateLabel" text="Completion Rate" class="sapUiTinyMarginTop" />
+                            width="120px" />
+                        <Text id="completionRateLabel" text="Completion Rate" class="analyticsLabel" />
                     </VBox>
                 </HBox>
             </Panel>
 
-            <!-- SmartFilterBar: filter boxes visible by default -->
+            <!-- SmartFilterBar with explicit filter fields -->
             <smartFilterBar:SmartFilterBar
                 id="smartFilterBar"
                 entitySet="Trainings"
@@ -96,7 +106,34 @@
                 enableBasicSearch="true"
                 showClearOnFB="true"
                 filterBarExpanded="true"
-                showFilterConfiguration="true" />
+                showFilterConfiguration="true">
+                <smartFilterBar:controlConfiguration>
+                    <smartFilterBar:ControlConfiguration
+                        id="filterTitle"
+                        key="Title"
+                        label="Title"
+                        visibleInAdvancedArea="true"
+                        index="0" />
+                    <smartFilterBar:ControlConfiguration
+                        id="filterRole"
+                        key="Role"
+                        label="Role"
+                        visibleInAdvancedArea="true"
+                        index="1" />
+                    <smartFilterBar:ControlConfiguration
+                        id="filterSapModule"
+                        key="SapModule"
+                        label="Module"
+                        visibleInAdvancedArea="true"
+                        index="2" />
+                    <smartFilterBar:ControlConfiguration
+                        id="filterLastUpdated"
+                        key="LastUpdated"
+                        label="Last Updated"
+                        visibleInAdvancedArea="true"
+                        index="3" />
+                </smartFilterBar:controlConfiguration>
+            </smartFilterBar:SmartFilterBar>
 
             <!-- SmartTable: auto-generates columns from annotations
                  Provides: Variant Management, Column Settings, Export to Excel,
