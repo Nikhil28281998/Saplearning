@@ -5,7 +5,6 @@
     xmlns:core="sap.ui.core"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:smartTable="sap.ui.comp.smarttable"
-    xmlns:filterBar="sap.ui.comp.filterbar"
     xmlns:mc="sap.suite.ui.microchart">
 
     <Page
@@ -140,7 +139,9 @@
                 </HBox>
             </Panel>
 
-            <!-- SmartFilterBar: Standard Fiori with Adapt Filters + custom cross-ref dropdowns -->
+            <!-- SmartFilterBar: Standard Fiori Freestyle (auto-generates from UI.SelectionFields annotation) -->
+            <!-- Filter fields for Role, SapModule, LastUpdated are auto-created from annotations -->
+            <!-- Features: Basic Search, Go, Adapt Filters, Clear, Restore -->
             <smartFilterBar:SmartFilterBar
                 id="smartFilterBar"
                 entitySet="Trainings"
@@ -151,51 +152,7 @@
                 showGoOnFB="true"
                 filterBarExpanded="true"
                 showFilterConfiguration="true"
-                useDateRangeType="true"
-                search="onFilterBarSearch">
-                <smartFilterBar:filterGroupItems>
-                    <filterBar:FilterGroupItem
-                        id="filterRole"
-                        groupName="__$INTERNAL$"
-                        name="Role"
-                        label="Role"
-                        visibleInFilterBar="true">
-                        <filterBar:control>
-                            <ComboBox id="filterRoleCombo"
-                                placeholder="All Roles"
-                                selectionChange="onRoleFilterChange"
-                                items="{filterModel>/roles}">
-                                <core:Item id="filterRoleItem" key="{filterModel>key}" text="{filterModel>text}" />
-                            </ComboBox>
-                        </filterBar:control>
-                    </filterBar:FilterGroupItem>
-                    <filterBar:FilterGroupItem
-                        id="filterSapModule"
-                        groupName="__$INTERNAL$"
-                        name="SapModule"
-                        label="Module"
-                        visibleInFilterBar="true">
-                        <filterBar:control>
-                            <ComboBox id="filterModuleCombo"
-                                placeholder="All Modules"
-                                selectionChange="onModuleFilterChange"
-                                items="{filterModel>/modules}">
-                                <core:Item id="filterModuleItem" key="{filterModel>key}" text="{filterModel>text}" />
-                            </ComboBox>
-                        </filterBar:control>
-                    </filterBar:FilterGroupItem>
-                    <filterBar:FilterGroupItem
-                        id="filterLastUpdated"
-                        groupName="__$INTERNAL$"
-                        name="LastUpdated"
-                        label="Last Updated"
-                        visibleInFilterBar="true">
-                        <filterBar:control>
-                            <DatePicker id="filterLastUpdatedPicker" placeholder="Select date" />
-                        </filterBar:control>
-                    </filterBar:FilterGroupItem>
-                </smartFilterBar:filterGroupItems>
-            </smartFilterBar:SmartFilterBar>
+                useDateRangeType="true" />
 
             <!-- SmartTable: auto-generates columns from annotations
                  Provides: Variant Management, Column Settings, Export to Excel,

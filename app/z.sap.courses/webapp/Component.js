@@ -441,11 +441,16 @@ sap.ui.define([
                     },
                     selectionChange: function(oEvent) {
                         var oItem = oEvent.getParameter("selectedItem");
+                        // Always clear fields first to prevent stale data
+                        dlgModel.setProperty("/firstName", "");
+                        dlgModel.setProperty("/lastName", "");
+                        dlgModel.setProperty("/userEmail", "");
                         if (oItem) {
                             var sUserId = oItem.getKey();
                             dlgModel.setProperty("/userId", sUserId || "");
-                            // Use lookupUserById to reliably fill name/email from JSONModel
                             lookupUserById(sUserId);
+                        } else {
+                            dlgModel.setProperty("/userId", "");
                         }
                     },
                     change: function(oEvent) {

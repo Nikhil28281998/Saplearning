@@ -24,133 +24,7 @@ sap.ui.define([
             });
             this.getView().setModel(oAnalyticsModel, "analyticsModel");
 
-            // Filter model for Role/Module cross-reference dropdowns
-            var oFilterModel = new JSONModel({
-                allTrainings: [],       // master data for cross-referencing
-                roles: [],              // [{key:"Developer", text:"Developer"}, ...]
-                modules: [],            // [{key:"FI", text:"FI"}, ...]
-                allRoles: [],           // unfiltered master list of roles
-                allModules: []          // unfiltered master list of modules
-            });
-            oFilterModel.setSizeLimit(5000);
-            this.getView().setModel(oFilterModel, "filterModel");
-
             this._loadAnalytics();
-            this._loadFilterDropdowns();
-        },
-
-        /**
-         * Load training data to populate Role and Module dropdowns
-         */
-        _loadFilterDropdowns: function () {
-            var oModel = this.getOwnerComponent().getModel();
-            var oFilterModel = this.getView().getModel("filterModel");
-
-            oModel.read("/Trainings", {
-                success: function (data) {
-                    var trainings = data.results || [];
-                    oFilterModel.setProperty("/allTrainings", trainings);
-
-                    // Extract unique roles and modules
-                    var roleSet = {};
-                    var moduleSet = {};
-                    trainings.forEach(function (t) {
-                        if (t.Role) { roleSet[t.Role] = true; }
-                        if (t.SapModule) { moduleSet[t.SapModule] = true; }
-                    });
-
-                    var roles = Object.keys(roleSet).sort().map(function (r) {
-                        return { key: r, text: r };
-                    });
-                    var modules = Object.keys(moduleSet).sort().map(function (m) {
-                        return { key: m, text: m };
-                    });
-
-                    oFilterModel.setProperty("/roles", roles);
-                    oFilterModel.setProperty("/modules", modules);
-                    oFilterModel.setProperty("/allRoles", roles.slice());
-                    oFilterModel.setProperty("/allModules", modules.slice());
-                },
-                error: function () { /* ignore */ }
-            });
-        },
-
-        /**
-         * Cross-reference: Role selected → filter Module dropdown to show only related modules
-         */
-        onRoleFilterChange: function (oEvent) {
-            var oFilterModel = this.getView().getModel("filterModel");
-            var oCombo = oEvent.getSource();
-            var sSelectedRole = oCombo.getSelectedKey();
-
-            if (!sSelectedRole) {
-                // "All Roles" or cleared → restore full module list
-                oFilterModel.setProperty("/modules", oFilterModel.getProperty("/allModules").slice());
-                return;
-            }
-
-            // Filter modules: only those that have trainings with the selected role
-            var trainings = oFilterModel.getProperty("/allTrainings") || [];
-            var moduleSet = {};
-            trainings.forEach(function (t) {
-                if (t.Role === sSelectedRole && t.SapModule) {
-                    moduleSet[t.SapModule] = true;
-                }
-            });
-
-            var filteredModules = Object.keys(moduleSet).sort().map(function (m) {
-                return { key: m, text: m };
-            });
-            oFilterModel.setProperty("/modules", filteredModules);
-
-            // If currently selected module is no longer valid, clear it
-            var oModuleCombo = this.byId("filterModuleCombo");
-            if (oModuleCombo) {
-                var sCurModule = oModuleCombo.getSelectedKey();
-                if (sCurModule && !moduleSet[sCurModule]) {
-                    oModuleCombo.setSelectedKey("");
-                    oModuleCombo.setValue("");
-                }
-            }
-        },
-
-        /**
-         * Cross-reference: Module selected → filter Role dropdown to show only related roles
-         */
-        onModuleFilterChange: function (oEvent) {
-            var oFilterModel = this.getView().getModel("filterModel");
-            var oCombo = oEvent.getSource();
-            var sSelectedModule = oCombo.getSelectedKey();
-
-            if (!sSelectedModule) {
-                // Cleared → restore full role list
-                oFilterModel.setProperty("/roles", oFilterModel.getProperty("/allRoles").slice());
-                return;
-            }
-
-            // Filter roles: only those that have trainings with the selected module
-            var trainings = oFilterModel.getProperty("/allTrainings") || [];
-            var roleSet = {};
-            trainings.forEach(function (t) {
-                if (t.SapModule === sSelectedModule && t.Role) {
-                    roleSet[t.Role] = true;
-                }
-            });
-
-            var filteredRoles = Object.keys(roleSet).sort().map(function (r) {
-                return { key: r, text: r };
-            });
-            oFilterModel.setProperty("/roles", filteredRoles);
-
-            // If currently selected role is no longer valid, clear it
-            var oRoleCombo = this.byId("filterRoleCombo");
-            if (oRoleCombo) {
-                var sCurRole = oRoleCombo.getSelectedKey();
-                if (sCurRole && !roleSet[sCurRole]) {
-                    oRoleCombo.setSelectedKey("");
-                    oRoleCombo.setValue("");
-                }
-            }
         },
 
         _loadAnalytics: function () {
@@ -342,78 +216,37 @@ sap.ui.define([
         },
 
         /**
-         * SmartFilterBar search event — triggered when Go button is pressed.
-         * We let SmartTable handle the rebind; this is used for any custom search logic.
-         */
-        onFilterBarSearch: function () {
-            // SmartTable with smartFilterId automatically rebinds on search.
-            // Cross-reference dropdowns update live via selectionChange events.
-            Log.info("[FilterBar] Go pressed — SmartTable will rebind");
-        },
-
-        /**
-         * CRITICAL: beforeRebindTable — intercept binding and inject SEGW-compatible filters.
-         *
-         * Strategy:
-         * 1. Basic search box → Title EQ filter (ABAP does LIKE matching)
-         * 2. Role ComboBox → Role EQ filter
-         * 3. Module ComboBox → SapModule EQ filter
-         * 4. LastUpdated DatePicker → LastUpdated GE filter
-         *
-         * We CLEAR SmartFilterBar's auto-generated filters because SEGW doesn't support
-         * substringof/contains for Edm.String properties. Only explicit EQ/GE filters.
+         * beforeRebindTable — Standard Fiori approach.
+         * 
+         * SmartFilterBar auto-generates proper EQ filters for Role, SapModule, LastUpdated
+         * from UI.SelectionFields annotation. These pass through natively to SEGW.
+         * 
+         * We only intercept the Basic Search to convert it to a Title EQ filter
+         * (SEGW doesn't support $search; ABAP does LIKE matching on Title).
          */
         onBeforeRebindTable: function (oEvent) {
             var mBindingParams = oEvent.getParameter("bindingParams");
-            var aFilters = [];
 
-            // ---- Basic search box → Title filter ----
+            // ---- Basic search box → Title EQ filter ----
+            // SmartFilterBar sends basic search as $search param which SEGW ignores.
+            // Convert it to a proper Title EQ filter for our ABAP LIKE matching.
             var oSmartFilterBar = this.byId("smartFilterBar");
             var sSearchVal = "";
             if (oSmartFilterBar && oSmartFilterBar.getBasicSearchValue) {
                 sSearchVal = (oSmartFilterBar.getBasicSearchValue() || "").trim();
             }
             if (sSearchVal) {
-                aFilters.push(new Filter("Title", FilterOperator.EQ, sSearchVal));
+                mBindingParams.filters.push(new Filter("Title", FilterOperator.EQ, sSearchVal));
                 Log.info("[Filter] Title EQ (from basic search): " + sSearchVal);
             }
 
-            // ---- Custom cross-reference dropdowns ----
-            var oRoleCombo  = this.byId("filterRoleCombo");
-            var oModuleCombo = this.byId("filterModuleCombo");
-            var oDatePicker = this.byId("filterLastUpdatedPicker");
-
-            // Role: exact match
-            var sRoleVal = oRoleCombo ? (oRoleCombo.getSelectedKey() || "") : "";
-            if (sRoleVal) {
-                aFilters.push(new Filter("Role", FilterOperator.EQ, sRoleVal));
-                Log.info("[Filter] Role EQ: " + sRoleVal);
+            // Remove $search parameter that SEGW doesn't support
+            if (mBindingParams.parameters && mBindingParams.parameters.custom) {
+                delete mBindingParams.parameters.custom.search;
             }
 
-            // Module: exact match
-            var sModuleVal = oModuleCombo ? (oModuleCombo.getSelectedKey() || "") : "";
-            if (sModuleVal) {
-                aFilters.push(new Filter("SapModule", FilterOperator.EQ, sModuleVal));
-                Log.info("[Filter] SapModule EQ: " + sModuleVal);
-            }
-
-            // LastUpdated: date >= selected date
-            if (oDatePicker && oDatePicker.getDateValue()) {
-                aFilters.push(new Filter("LastUpdated", FilterOperator.GE, oDatePicker.getDateValue()));
-                Log.info("[Filter] LastUpdated GE: " + oDatePicker.getDateValue());
-            }
-
-            // CLEAR SmartFilterBar's auto-generated filters.
-            // SEGW doesn't support substringof/contains — use only our explicit EQ/GE.
-            mBindingParams.filters = [];
-
-            if (aFilters.length > 0) {
-                var oCombinedFilter = new Filter({ filters: aFilters, and: true });
-                mBindingParams.filters.push(oCombinedFilter);
-                Log.info("[Filter] Applied " + aFilters.length + " SEGW-compatible filter(s)");
-            } else {
-                Log.info("[Filter] No filters — showing all records");
-            }
+            // Log all filters that SmartFilterBar is sending
+            Log.info("[Filter] Total filters: " + mBindingParams.filters.length);
 
             // Reset columns flag so menus + links get re-applied after new data
             this._columnsConfigured = false;
@@ -425,7 +258,6 @@ sap.ui.define([
                 oSmartTable.rebindTable(true);
             }
             this._loadAnalytics();
-            this._loadFilterDropdowns();
             MessageToast.show("Data refreshed");
         },
 
