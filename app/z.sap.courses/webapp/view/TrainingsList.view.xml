@@ -5,6 +5,7 @@
     xmlns:core="sap.ui.core"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:smartTable="sap.ui.comp.smarttable"
+    xmlns:filterBar="sap.ui.comp.filterbar"
     xmlns:mc="sap.suite.ui.microchart">
 
     <Page
@@ -137,41 +138,58 @@
                 </HBox>
             </Panel>
 
-            <!-- SmartFilterBar with explicit filter fields -->
+            <!-- SmartFilterBar: fixed filter boxes in header bar -->
             <smartFilterBar:SmartFilterBar
                 id="smartFilterBar"
                 entitySet="Trainings"
                 persistencyKey="TrainingsSmartFilter"
                 enableBasicSearch="true"
                 showClearOnFB="true"
+                showGoOnFB="true"
                 filterBarExpanded="true"
-                showFilterConfiguration="true">
-                <smartFilterBar:controlConfiguration>
-                    <smartFilterBar:ControlConfiguration
+                showFilterConfiguration="false">
+                <smartFilterBar:filterGroupItems>
+                    <filterBar:FilterGroupItem
                         id="filterTitle"
-                        key="Title"
+                        groupName="__$INTERNAL$"
+                        name="Title"
                         label="Title"
-                        visibleInAdvancedArea="true"
-                        index="0" />
-                    <smartFilterBar:ControlConfiguration
+                        visibleInFilterBar="true">
+                        <filterBar:control>
+                            <Input id="filterTitleInput" placeholder="Search title..." />
+                        </filterBar:control>
+                    </filterBar:FilterGroupItem>
+                    <filterBar:FilterGroupItem
                         id="filterRole"
-                        key="Role"
+                        groupName="__$INTERNAL$"
+                        name="Role"
                         label="Role"
-                        visibleInAdvancedArea="true"
-                        index="1" />
-                    <smartFilterBar:ControlConfiguration
+                        visibleInFilterBar="true">
+                        <filterBar:control>
+                            <Input id="filterRoleInput" placeholder="e.g. Developer" />
+                        </filterBar:control>
+                    </filterBar:FilterGroupItem>
+                    <filterBar:FilterGroupItem
                         id="filterSapModule"
-                        key="SapModule"
+                        groupName="__$INTERNAL$"
+                        name="SapModule"
                         label="Module"
-                        visibleInAdvancedArea="true"
-                        index="2" />
-                    <smartFilterBar:ControlConfiguration
+                        visibleInFilterBar="true">
+                        <filterBar:control>
+                            <Input id="filterModuleInput" placeholder="e.g. FI, MM" />
+                        </filterBar:control>
+                    </filterBar:FilterGroupItem>
+                    <filterBar:FilterGroupItem
                         id="filterLastUpdated"
-                        key="LastUpdated"
+                        groupName="__$INTERNAL$"
+                        name="LastUpdated"
                         label="Last Updated"
-                        visibleInAdvancedArea="true"
-                        index="3" />
-                </smartFilterBar:controlConfiguration>
+                        visibleInFilterBar="true">
+                        <filterBar:control>
+                            <DatePicker id="filterLastUpdatedPicker" placeholder="Select date" />
+                        </filterBar:control>
+                    </filterBar:FilterGroupItem>
+                </smartFilterBar:filterGroupItems>
             </smartFilterBar:SmartFilterBar>
 
             <!-- SmartTable: auto-generates columns from annotations

@@ -209,9 +209,10 @@ sap.ui.define([
             // Always recreate for fresh data
             if (this._assignDlg) { this._assignDlg.destroy(); this._assignDlg = null; }
             var oModel = this.getModel();
-            var loadList = function(path){
+            var loadList = function(path, params){
                 return new Promise(function(resolve, reject){
                     oModel.read(path, {
+                        urlParameters: params || {},
                         success: function(data) {
                             resolve(data.results || []);
                         },
@@ -223,12 +224,11 @@ sap.ui.define([
             loadList('/Trainings').then(function(trainings){
                 trainings = trainings || [];
 
-                // Also load users from backend for value help
-                loadList('/Users').then(function(users) {
+                // Load ALL users (bypass default paging limit)
+                loadList('/Users', { "$top": "9999" }).then(function(users) {
                     users = users || [];
                     _buildDialog(trainings, users);
                 }).catch(function() {
-                    // Users endpoint may fail — still show dialog with manual input
                     _buildDialog(trainings, []);
                 });
             }).catch(function(err){
@@ -266,6 +266,7 @@ sap.ui.define([
                     submitting: false,
                     error: ''
                 });
+                dlgModel.setSizeLimit(10000);
 
                 // Filter training list + cross-filter between Role and Module
                 var filterTrainings = function(source) {
@@ -273,7 +274,6 @@ sap.ui.define([
                     var selRole = data.selectedRoleFilter;
                     var selModule = data.selectedModuleFilter;
 
-                    // Filter training list
                     var filtered = data.trainings.filter(function(t) {
                         var roleMatch = !selRole || t.Role === selRole;
                         var moduleMatch = !selModule || t.SapModule === selModule;
@@ -281,7 +281,6 @@ sap.ui.define([
                     });
                     dlgModel.setProperty('/filteredTrainings', filtered);
 
-                    // Cross-filter: role changed → show only related modules
                     if (source === 'role') {
                         var mSet = {};
                         data.trainings.forEach(function(t) {
@@ -298,7 +297,6 @@ sap.ui.define([
                         }
                     }
 
-                    // Cross-filter: module changed → show only related roles
                     if (source === 'module') {
                         var rSet = {};
                         data.trainings.forEach(function(t) {
@@ -315,13 +313,27 @@ sap.ui.define([
                         }
                     }
 
-                    // Update selected training if no longer in filtered list
                     if (filtered.length > 0 && !filtered.some(function(f) { return f.Id === data.selectedTrainingId; })) {
                         dlgModel.setProperty('/selectedTrainingId', filtered[0].Id);
                     }
                 };
 
-                // Filter by Role/Module with cross-filtering
+                // Helper: look up user by typed ID and auto-fill fields
+                var lookupUserById = function(val) {
+                    if (!val) { return; }
+                    var upper = val.toUpperCase();
+                    var allUsers = dlgModel.getProperty('/users') || [];
+                    var found = allUsers.filter(function(u) {
+                        return u.UserId === upper;
+                    })[0];
+                    if (found) {
+                        dlgModel.setProperty('/firstName', found.FirstName || '');
+                        dlgModel.setProperty('/lastName', found.LastName || '');
+                        dlgModel.setProperty('/userEmail', found.Email || '');
+                    }
+                };
+
+                // --- Build controls ---
                 var roleFilterSelect = new sap.m.Select({
                     width: '100%',
                     items: {
@@ -342,7 +354,6 @@ sap.ui.define([
                     change: function() { filterTrainings('module'); }
                 });
 
-                // Step 2: Select Training
                 var trainingSelect = new sap.m.Select({
                     width: '100%',
                     items: {
@@ -357,7 +368,7 @@ sap.ui.define([
                     showSecondaryValues: true
                 });
 
-                // Step 3: User details — load from /Users entity set
+                // User ComboBox — supports type-ahead for ALL users
                 var userSelect = new sap.m.ComboBox({
                     width: '100%',
                     placeholder: 'Type or select a user...',
@@ -387,24 +398,28 @@ sap.ui.define([
                     },
                     change: function(oEvent) {
                         var val = oEvent.getParameter("value") || "";
-                        dlgModel.setProperty("/userId", val.toUpperCase());
+                        var upper = val.toUpperCase();
+                        dlgModel.setProperty("/userId", upper);
+                        // Auto-fill from loaded users when user types manually
+                        lookupUserById(upper);
                     }
                 });
+
                 var firstNameInput = new sap.m.Input({
                     width: '100%',
-                    placeholder: 'Auto-filled from user selection',
+                    placeholder: 'Auto-filled',
                     value: '{/firstName}',
                     editable: false
                 });
                 var lastNameInput = new sap.m.Input({
                     width: '100%',
-                    placeholder: 'Auto-filled from user selection',
+                    placeholder: 'Auto-filled',
                     value: '{/lastName}',
                     editable: false
                 });
                 var userEmailInput = new sap.m.Input({
                     width: '100%',
-                    placeholder: 'Auto-filled from user selection',
+                    placeholder: 'Auto-filled',
                     value: '{/userEmail}',
                     editable: false,
                     type: 'Email'
@@ -417,171 +432,166 @@ sap.ui.define([
                     placeholder: 'Select due date'
                 });
 
-                // Build form with sections
-                var form = new sap.m.VBox({
-                    width: '100%',
-                    items: [
-                        // Section: Training Filters
-                        new sap.m.Toolbar({ content: [new sap.m.Title({ text: "Filter Training", level: "H5" })] }),
-                        new sap.m.HBox({
-                            wrap: "Wrap",
-                            items: [
-                                new sap.m.VBox({
-                                    width: "48%",
-                                    class: "sapUiSmallMarginEnd",
-                                    items: [
-                                        new sap.m.Label({ text: 'Role', labelFor: roleFilterSelect }),
-                                        roleFilterSelect
-                                    ]
-                                }),
-                                new sap.m.VBox({
-                                    width: "48%",
-                                    items: [
-                                        new sap.m.Label({ text: 'Module', labelFor: moduleFilterSelect }),
-                                        moduleFilterSelect
-                                    ]
-                                })
-                            ]
-                        }),
+                // Build form with spacious layout using SimpleForm
+                sap.ui.require(["sap/ui/layout/form/SimpleForm"], function(SimpleForm) {
 
-                        // Section: Training Selection
-                        new sap.m.Toolbar({
-                            class: "sapUiSmallMarginTop",
-                            content: [new sap.m.Title({ text: "Select Training", level: "H5" })]
-                        }),
-                        new sap.m.Label({ text: 'Training', required: true }),
-                        trainingSelect,
+                    var form = new SimpleForm({
+                        editable: true,
+                        layout: "ResponsiveGridLayout",
+                        labelSpanXL: 4, labelSpanL: 4, labelSpanM: 4, labelSpanS: 12,
+                        emptySpanXL: 0, emptySpanL: 0, emptySpanM: 0,
+                        columnsXL: 1, columnsL: 1, columnsM: 1,
+                        adjustLabelSpan: false,
+                        content: [
+                            // Section 1: Filter Training
+                            new sap.ui.core.Title({ text: "Filter Training" }),
+                            new sap.m.Label({ text: "Role" }),
+                            roleFilterSelect,
+                            new sap.m.Label({ text: "Module" }),
+                            moduleFilterSelect,
 
-                        // Section: User Information
-                        new sap.m.Toolbar({
-                            class: "sapUiSmallMarginTop",
-                            content: [new sap.m.Title({ text: "Assign To", level: "H5" })]
-                        }),
-                        new sap.m.Label({ text: 'User ID', required: true }),
-                        userSelect,
-                        new sap.m.HBox({
-                            wrap: "Wrap",
-                            items: [
-                                new sap.m.VBox({
-                                    width: "48%",
-                                    class: "sapUiSmallMarginEnd",
-                                    items: [
-                                        new sap.m.Label({ text: 'First Name' }),
-                                        firstNameInput
-                                    ]
-                                }),
-                                new sap.m.VBox({
-                                    width: "48%",
-                                    items: [
-                                        new sap.m.Label({ text: 'Last Name' }),
-                                        lastNameInput
-                                    ]
-                                })
-                            ]
-                        }),
-                        new sap.m.Label({ text: 'Email' }),
-                        userEmailInput,
+                            // Section 2: Select Training
+                            new sap.ui.core.Title({ text: "Select Training" }),
+                            new sap.m.Label({ text: "Training", required: true }),
+                            trainingSelect,
 
-                        // Section: Schedule
-                        new sap.m.Toolbar({
-                            class: "sapUiSmallMarginTop",
-                            content: [new sap.m.Title({ text: "Schedule", level: "H5" })]
-                        }),
-                        new sap.m.Label({ text: 'Due Date' }),
-                        datePicker,
+                            // Section 3: Assign To
+                            new sap.ui.core.Title({ text: "Assign To" }),
+                            new sap.m.Label({ text: "User ID", required: true }),
+                            userSelect,
+                            new sap.m.Label({ text: "First Name" }),
+                            firstNameInput,
+                            new sap.m.Label({ text: "Last Name" }),
+                            lastNameInput,
+                            new sap.m.Label({ text: "Email" }),
+                            userEmailInput,
 
-                        // Error message
-                        new sap.m.MessageStrip({
-                            text: '{/error}',
-                            visible: '{= !!${/error} }',
-                            type: 'Error',
-                            showIcon: true,
-                            class: "sapUiSmallMarginTop"
-                        })
-                    ]
-                });
-
-                var onSubmit = function(){
-                    var data = dlgModel.getData();
-                    var tr = (data.filteredTrainings || []).find(function(t){ return t.Id === data.selectedTrainingId; });
-
-                    if (!tr) {
-                        dlgModel.setProperty('/error', 'Please select a training');
-                        return;
-                    }
-                    if (!data.userId || data.userId.trim() === '') {
-                        dlgModel.setProperty('/error', 'User ID (SYUNAME) is required');
-                        return;
-                    }
-                    var userIdUpper = data.userId.toUpperCase();
-                    if (!/^[A-Z0-9_]{1,12}$/.test(userIdUpper)) {
-                        dlgModel.setProperty('/error', 'Invalid User ID format. Must be uppercase alphanumeric/underscore, max 12 chars');
-                        return;
-                    }
-                    dlgModel.setProperty('/error', '');
-
-                    var dueIso = null;
-                    try{
-                        if (data.dueDate) {
-                            dueIso = new Date(data.dueDate + 'T00:00:00').toISOString();
-                        }
-                    }catch(e){ /* ignore */ }
-
-                    // Build full name from first + last
-                    var fullName = ((data.firstName || '') + ' ' + (data.lastName || '')).trim();
-
-                    var payload = {
-                        TrainingId: tr.Id,
-                        Title: tr.Title,
-                        Role: tr.Role,
-                        SapModule: tr.SapModule,
-                        Url: tr.Url,
-                        DueDate: dueIso,
-                        Status: 'Assigned',
-                        UserId: userIdUpper,
-                        UserName: fullName,
-                        UserEmail: data.userEmail || ''
-                    };
-                    dlgModel.setProperty('/submitting', true);
-
-                    oModel.create('/TrainingAssignments', payload, {
-                        success: function() {
-                            that.navigateToTraining();
-                            that._assignDlg.close();
-                            dlgModel.setProperty('/submitting', false);
-                            dlgModel.setProperty('/error', '');
-                            MessageToast.show('Training assigned successfully');
-                        },
-                        error: function(err) {
-                            dlgModel.setProperty('/submitting', false);
-                            var msg = (err && err.message) || 'Create failed';
-                            dlgModel.setProperty('/error', msg);
-                        }
+                            // Section 4: Schedule
+                            new sap.ui.core.Title({ text: "Schedule" }),
+                            new sap.m.Label({ text: "Due Date" }),
+                            datePicker
+                        ]
                     });
-                };
 
-                that._assignDlg = new Dialog({
-                    title: 'Assign Training',
-                    contentWidth: '540px',
-                    contentHeight: 'auto',
-                    verticalScrolling: true,
-                    draggable: true,
-                    resizable: true,
-                    content: [form],
-                    beginButton: new Button({
-                        text: 'Assign',
-                        type: 'Emphasized',
-                        icon: 'sap-icon://accept',
-                        enabled: '{= !${/submitting} }',
-                        press: onSubmit
-                    }),
-                    endButton: new Button({
-                        text: 'Cancel',
-                        press: function(){ that._assignDlg.close(); }
-                    })
-                });
-                that._assignDlg.setModel(dlgModel);
-                that._assignDlg.open();
+                    // Error strip below the form
+                    var errorStrip = new sap.m.MessageStrip({
+                        text: '{/error}',
+                        visible: '{= !!${/error} }',
+                        type: 'Error',
+                        showIcon: true
+                    });
+                    errorStrip.addStyleClass("sapUiSmallMarginTop");
+
+                    var dialogContent = new sap.m.VBox({
+                        items: [form, errorStrip]
+                    });
+                    dialogContent.addStyleClass("sapUiSmallMargin");
+
+                    var onSubmit = function(){
+                        var data = dlgModel.getData();
+                        var tr = (data.filteredTrainings || []).find(function(t){ return t.Id === data.selectedTrainingId; });
+
+                        if (!tr) {
+                            dlgModel.setProperty('/error', 'Please select a training');
+                            return;
+                        }
+                        if (!data.userId || data.userId.trim() === '') {
+                            dlgModel.setProperty('/error', 'User ID (SYUNAME) is required');
+                            return;
+                        }
+                        var userIdUpper = data.userId.toUpperCase();
+                        if (!/^[A-Z0-9_]{1,12}$/.test(userIdUpper)) {
+                            dlgModel.setProperty('/error', 'Invalid User ID format');
+                            return;
+                        }
+                        dlgModel.setProperty('/error', '');
+
+                        // Build due date as JS Date object (OData V2 needs Date, not ISO string)
+                        var dueDate = null;
+                        try {
+                            if (data.dueDate) {
+                                dueDate = new Date(data.dueDate + 'T00:00:00');
+                            }
+                        } catch(e) { /* ignore */ }
+
+                        var fullName = ((data.firstName || '') + ' ' + (data.lastName || '')).trim();
+
+                        var payload = {
+                            TrainingId: tr.Id || '',
+                            Title: tr.Title || '',
+                            Role: tr.Role || '',
+                            SapModule: tr.SapModule || '',
+                            Url: tr.Url || '',
+                            Status: 'Assigned',
+                            UserId: userIdUpper,
+                            UserName: fullName || userIdUpper,
+                            UserEmail: data.userEmail || ''
+                        };
+                        // Only include DueDate if set (avoid sending null to ABAP)
+                        if (dueDate) {
+                            payload.DueDate = dueDate;
+                        }
+
+                        dlgModel.setProperty('/submitting', true);
+
+                        // Ensure CSRF token is fetched first
+                        oModel.refreshSecurityToken(function() {
+                            oModel.create('/TrainingAssignments', payload, {
+                                success: function() {
+                                    that.navigateToTraining();
+                                    that._assignDlg.close();
+                                    dlgModel.setProperty('/submitting', false);
+                                    dlgModel.setProperty('/error', '');
+                                    MessageToast.show('Training assigned successfully');
+                                },
+                                error: function(err) {
+                                    dlgModel.setProperty('/submitting', false);
+                                    var msg = 'Create failed';
+                                    try {
+                                        if (err && err.responseText) {
+                                            var parsed = JSON.parse(err.responseText);
+                                            msg = parsed.error.message.value || msg;
+                                        } else if (err && err.message) {
+                                            msg = err.message;
+                                        }
+                                    } catch(e) {
+                                        msg = (err && err.message) || msg;
+                                    }
+                                    dlgModel.setProperty('/error', msg);
+                                    Log.error('Assignment create failed: ' + msg);
+                                }
+                            });
+                        }, function(tokenErr) {
+                            dlgModel.setProperty('/submitting', false);
+                            dlgModel.setProperty('/error', 'Security token refresh failed. Please reload the app.');
+                            Log.error('CSRF token refresh failed: ' + tokenErr);
+                        });
+                    };
+
+                    that._assignDlg = new Dialog({
+                        title: 'Assign Training',
+                        contentWidth: '620px',
+                        contentHeight: 'auto',
+                        verticalScrolling: true,
+                        draggable: true,
+                        resizable: true,
+                        content: [dialogContent],
+                        beginButton: new Button({
+                            text: 'Assign',
+                            type: 'Emphasized',
+                            icon: 'sap-icon://accept',
+                            enabled: '{= !${/submitting} }',
+                            press: onSubmit
+                        }),
+                        endButton: new Button({
+                            text: 'Cancel',
+                            press: function(){ that._assignDlg.close(); }
+                        })
+                    });
+                    that._assignDlg.addStyleClass("assignTrainingDialog");
+                    that._assignDlg.setModel(dlgModel);
+                    that._assignDlg.open();
+                }); // end sap.ui.require SimpleForm
             };  // end _buildDialog
         },
 

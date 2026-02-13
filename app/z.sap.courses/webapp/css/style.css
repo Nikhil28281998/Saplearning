@@ -97,45 +97,61 @@
 }
 
 /* ===== Assign Dialog - Modern 2026 Style ===== */
-.sapMDialog {
+.assignTrainingDialog {
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 
-.sapMDialog .sapMDialogTitle {
+.assignTrainingDialog .sapMDialogTitle {
     font-weight: 600;
     font-size: 1.125rem;
 }
 
-.sapMDialog .sapMToolbar {
-    background: transparent;
-    padding-left: 0;
-}
-
-.sapMDialog .sapMLabel {
-    padding-top: 0.25rem;
-    font-weight: 500;
-}
-
-/* Dialog section titles */
-.sapMDialog .sapMTitle.sapMTitleStyleH5 {
+/* SimpleForm section titles inside dialog */
+.assignTrainingDialog .sapUiFormTitle {
     color: #0a6ed1;
-    font-size: 0.9375rem;
     font-weight: 600;
-    padding: 0.5rem 0;
     border-bottom: 2px solid #0a6ed1;
-    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    margin-top: 0.75rem;
 }
 
-/* Input fields - modern rounded */
-.sapMDialog .sapMInput,
-.sapMDialog .sapMSelect,
-.sapMDialog .sapMDatePicker {
+/* Form label spacing */
+.assignTrainingDialog .sapMLabel {
+    font-weight: 500;
+    padding-top: 0.125rem;
+}
+
+/* Input / Select / DatePicker inside dialog */
+.assignTrainingDialog .sapMInputBaseInner,
+.assignTrainingDialog .sapMSltArrow,
+.assignTrainingDialog .sapMSltLabel {
     border-radius: 6px;
 }
 
-.sapMDialog .sapMInputBaseInner {
+.assignTrainingDialog .sapMInput,
+.assignTrainingDialog .sapMSelect,
+.assignTrainingDialog .sapMDatePicker,
+.assignTrainingDialog .sapMComboBoxTextField {
     border-radius: 6px;
+}
+
+/* Give fields breathing room */
+.assignTrainingDialog .sapUiRespGridMedia {
+    padding: 0.25rem 0;
+}
+
+/* ===== SmartFilterBar filter boxes always visible ===== */
+.sapUiCompFilterBarCtnrFlt .sapUiCompFilterBarGroup {
+    padding: 0.25rem 0.5rem;
+}
+
+/* Filter input boxes - clear borders */
+.sapUiCompFilterBarCtnrFlt .sapMInput,
+.sapUiCompFilterBarCtnrFlt .sapMDatePicker {
+    border: 1px solid #bfbfbf;
+    border-radius: 4px;
+    background: #fff;
 }
 
 /* ===== Small Screen Adjustments ===== */
