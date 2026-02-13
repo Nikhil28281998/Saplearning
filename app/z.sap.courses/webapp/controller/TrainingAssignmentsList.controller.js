@@ -2,8 +2,9 @@ sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/m/MessageToast",
     "sap/m/MessageBox",
-    "sap/ui/model/json/JSONModel"
-], function (Controller, MessageToast, MessageBox, JSONModel) {
+    "sap/ui/model/json/JSONModel",
+    "sap/ui/core/routing/History"
+], function (Controller, MessageToast, MessageBox, JSONModel, History) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingAssignmentsList", {
@@ -71,13 +72,41 @@ sap.ui.define([
             MessageToast.show("Data refreshed");
         },
 
-        /* ===== Nav Back – simple router navigation ===== */
+        /* ===== Nav Back – robust approach for FLP + standalone ===== */
         onNavBack: function () {
+            // Method 1: Check UI5 navigation history
+            var oHistory = History.getInstance();
+            var sPreviousHash = oHistory.getPreviousHash();
+
+            if (sPreviousHash !== undefined) {
+                // Browser back (works in FLP when user navigated forward)
+                window.history.go(-1);
+                return;
+            }
+
+            // Method 2: Use HashChanger to set app hash to root
+            try {
+                var oHashChanger = sap.ui.core.routing.HashChanger.getInstance();
+                oHashChanger.setHash("");
+                return;
+            } catch (e) {
+                // ignore
+            }
+
+            // Method 3: Router navTo
             try {
                 var oRouter = this.getOwnerComponent().getRouter();
-                oRouter.navTo("TrainingsList", {}, true /* replace hash */);
-            } catch (e) {
-                window.history.back();
+                oRouter.navTo("TrainingsList", {}, true);
+            } catch (e2) {
+                // Method 4: Direct hash manipulation for FLP
+                var sHash = window.location.hash || "";
+                // Strip the app-internal part (&/assignments)
+                var sNewHash = sHash.replace(/&\/assignments.*$/, "");
+                if (sNewHash !== sHash) {
+                    window.location.hash = sNewHash;
+                } else {
+                    window.history.go(-1);
+                }
             }
         },
 

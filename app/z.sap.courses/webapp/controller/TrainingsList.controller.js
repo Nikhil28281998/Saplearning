@@ -390,6 +390,27 @@ sap.ui.define([
         onBeforeRebindTable: function (oEvent) {
             var mBindingParams = oEvent.getParameter("bindingParams");
 
+            // ---- Manual filter injection from Select controls ----
+            // sap.m.Select does not have getValue() so SmartFilterBar cannot extract
+            // the selected value. We must manually read and inject EQ filters.
+            var oRoleSelect = this.byId("filterRole");
+            var oModuleSelect = this.byId("filterModule");
+
+            if (oRoleSelect) {
+                var sRole = oRoleSelect.getSelectedKey();
+                if (sRole) {
+                    mBindingParams.filters.push(new Filter("Role", FilterOperator.EQ, sRole));
+                    Log.info("[Filter] Role EQ: " + sRole);
+                }
+            }
+            if (oModuleSelect) {
+                var sModule = oModuleSelect.getSelectedKey();
+                if (sModule) {
+                    mBindingParams.filters.push(new Filter("SapModule", FilterOperator.EQ, sModule));
+                    Log.info("[Filter] SapModule EQ: " + sModule);
+                }
+            }
+
             // ---- SEGW filter sanitizer ----
             // SmartFilterBar may generate Contains/substringof for String fields.
             // SEGW only handles EQ in it_filter_select_options. Recursively convert.
@@ -675,53 +696,42 @@ sap.ui.define([
                 new sap.m.VBox({ items: aHeaderItems }).addStyleClass("sapUiSmallMargin")
             ];
 
-            // Description section
+            // Description section — use simple VBox with header, no Panel overflow issues
             if (oTraining.Description) {
-                aContent.push(new sap.m.Panel({
-                    headerText: "Description",
-                    expandable: false,
-                    content: [
+                aContent.push(new sap.m.VBox({
+                    items: [
+                        new sap.m.Label({ text: "Description", design: "Bold" }).addStyleClass("sapUiSmallMarginBegin sapUiTinyMarginTop"),
                         new Text({ text: oTraining.Description, wrapping: true }).addStyleClass("sapUiSmallMargin")
                     ]
-                }));
+                }).addStyleClass("detailSection"));
             }
 
-            // Links section
-            var aLinkItems = [];
+            // Links section — simple VBox layout, no Panel
+            var aLinkRows = [];
             if (oTraining.Url) {
-                aLinkItems.push(new sap.m.CustomListItem({
-                    content: [
-                        new sap.m.HBox({
-                            alignItems: "Center",
-                            items: [
-                                new sap.ui.core.Icon({ src: "sap-icon://chain-link", size: "1.25rem", color: "#0070f2" }).addStyleClass("sapUiSmallMarginEnd"),
-                                new Link({ text: "Open Training Link", href: oTraining.Url, target: "_blank" })
-                            ]
-                        }).addStyleClass("sapUiTinyMargin")
+                aLinkRows.push(new sap.m.HBox({
+                    alignItems: "Center",
+                    items: [
+                        new sap.ui.core.Icon({ src: "sap-icon://chain-link", size: "1.25rem", color: "#0070f2" }).addStyleClass("sapUiSmallMarginEnd"),
+                        new Link({ text: "Open Training Link", href: oTraining.Url, target: "_blank" })
                     ]
-                }));
+                }).addStyleClass("sapUiTinyMargin"));
             }
             if (oTraining.SapHelpLink) {
-                aLinkItems.push(new sap.m.CustomListItem({
-                    content: [
-                        new sap.m.HBox({
-                            alignItems: "Center",
-                            items: [
-                                new sap.ui.core.Icon({ src: "sap-icon://sys-help", size: "1.25rem", color: "#0854a0" }).addStyleClass("sapUiSmallMarginEnd"),
-                                new Link({ text: "Open SAP Help", href: oTraining.SapHelpLink, target: "_blank" })
-                            ]
-                        }).addStyleClass("sapUiTinyMargin")
+                aLinkRows.push(new sap.m.HBox({
+                    alignItems: "Center",
+                    items: [
+                        new sap.ui.core.Icon({ src: "sap-icon://sys-help", size: "1.25rem", color: "#0854a0" }).addStyleClass("sapUiSmallMarginEnd"),
+                        new Link({ text: "Open SAP Help", href: oTraining.SapHelpLink, target: "_blank" })
                     ]
-                }));
+                }).addStyleClass("sapUiTinyMargin"));
             }
-            if (aLinkItems.length > 0) {
-                aContent.push(new sap.m.Panel({
-                    headerText: "Resources",
-                    expandable: false,
-                    content: [
-                        new sap.m.List({ showSeparators: "Inner", items: aLinkItems })
-                    ]
-                }));
+            if (aLinkRows.length > 0) {
+                aContent.push(new sap.m.VBox({
+                    items: [
+                        new sap.m.Label({ text: "Resources", design: "Bold" }).addStyleClass("sapUiSmallMarginBegin sapUiTinyMarginTop")
+                    ].concat(aLinkRows)
+                }).addStyleClass("detailSection"));
             }
 
             this._detailDlg = new sap.m.Dialog({

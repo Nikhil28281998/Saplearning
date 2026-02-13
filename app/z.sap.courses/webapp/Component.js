@@ -392,15 +392,19 @@ sap.ui.define([
                 // Helper: look up user by typed ID and auto-fill fields
                 var lookupUserById = function(val) {
                     if (!val) { return; }
-                    var upper = val.toUpperCase();
+                    var upper = val.toUpperCase().trim();
                     var allUsers = dlgModel.getProperty('/users') || [];
                     var found = allUsers.filter(function(u) {
-                        return u.UserId === upper;
+                        // Case-insensitive comparison for robustness
+                        return (u.UserId || '').toUpperCase().trim() === upper;
                     })[0];
                     if (found) {
                         dlgModel.setProperty('/firstName', found.FirstName || '');
                         dlgModel.setProperty('/lastName', found.LastName || '');
-                        dlgModel.setProperty('/userEmail', found.Email || '');
+                        dlgModel.setProperty('/userEmail', found.Email || found.EmailAddress || found.SmtpAddr || '');
+                        jQuery.sap.log.info('[AssignDlg] User found: ' + upper + ', Email: ' + (found.Email || found.EmailAddress || found.SmtpAddr || '(empty)'));
+                    } else {
+                        jQuery.sap.log.warning('[AssignDlg] User NOT found for: ' + upper);
                     }
                 };
 
@@ -469,9 +473,17 @@ sap.ui.define([
                         }
                     },
                     change: function(oEvent) {
+                        // Only handle manual typing, not dropdown selection
+                        // (selectionChange already handled dropdown picks)
+                        var oSource = oEvent.getSource();
+                        if (oSource.getSelectedItem()) { return; }
                         var val = oEvent.getParameter("value") || "";
-                        var upper = val.toUpperCase();
+                        var upper = val.toUpperCase().trim();
                         dlgModel.setProperty("/userId", upper);
+                        // Clear stale data first
+                        dlgModel.setProperty("/firstName", "");
+                        dlgModel.setProperty("/lastName", "");
+                        dlgModel.setProperty("/userEmail", "");
                         // Auto-fill from loaded users when user types manually
                         lookupUserById(upper);
                     }

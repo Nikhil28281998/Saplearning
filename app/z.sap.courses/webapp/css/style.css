@@ -589,7 +589,7 @@ html, body, html.sap-desktop, .sapUiBody {
     width: 100% !important;
 }
 
-/* ===== View Details Dialog: no overflow ===== */
+/* ===== View Details Dialog: proper display ===== */
 .sapMDialog .sapMObjH {
     white-space: normal !important;
     word-break: break-word !important;
@@ -601,14 +601,28 @@ html, body, html.sap-desktop, .sapUiBody {
     text-overflow: ellipsis;
 }
 
+/* Allow dialog panel content to scroll/expand (no clip) */
 .sapMDialog .sapMPanelContent {
-    overflow: hidden !important;
+    overflow: visible !important;
     word-break: break-word !important;
 }
 
 .sapMDialog .sapMText {
     word-break: break-word !important;
     white-space: pre-wrap !important;
+}
+
+/* Detail section inside View Details dialog (replaces Panel) */
+.detailSection {
+    border-top: 1px solid var(--sapBorder, #d9d9d9);
+    padding-top: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.detailSection .sapMLabel {
+    font-weight: 700;
+    color: var(--sapTitleColor, #333);
+    font-size: 0.875rem;
 }
 
 /* ===== Responsive Breakpoints ===== */
@@ -735,9 +749,10 @@ html, body, html.sap-desktop, .sapUiBody {
     min-width: 90px;
 }
 
-.roleSwitcherSelect .sapMSltLabel,
-.roleSwitcherSelect .sapMSltArrow,
-.roleSwitcherSelect .sapMSltLabelState {
+/* White text only for the INLINE label in the header bar (not the popup) */
+.sapMBar .roleSwitcherSelect .sapMSltLabel,
+.sapMBar .roleSwitcherSelect .sapMSltArrow,
+.sapMBar .roleSwitcherSelect .sapMSltLabelState {
     color: #fff !important;
 }
 
@@ -749,6 +764,21 @@ html, body, html.sap-desktop, .sapUiBody {
 
 .roleSwitcherSelect .sapMSlt:hover {
     background: rgba(255,255,255,0.25) !important;
+}
+
+/* Ensure role switcher dropdown popup items are dark text on white bg */
+.sapMSltPicker .sapMSelectListItem,
+.sapMSltPicker .sapMSelectListItemBase,
+.sapMSelectList .sapMSelectListItem,
+.sapMSelectList .sapMSelectListItemBase {
+    color: var(--sapTextColor, #333) !important;
+    background: var(--sapSurface, #fff) !important;
+}
+.sapMSltPicker .sapMSelectListItem:hover,
+.sapMSltPicker .sapMSelectListItemBase:hover,
+.sapMSelectList .sapMSelectListItem:hover,
+.sapMSelectList .sapMSelectListItemBase:hover {
+    background: var(--sapHighlightColor, #e8f0fe) !important;
 }
 
 /* Header icon color */
