@@ -3,9 +3,11 @@ sap.ui.define([
     "sap/m/MessageToast",
     "sap/m/MessageBox",
     "sap/ui/model/json/JSONModel",
+    "sap/ui/model/Filter",
+    "sap/ui/model/FilterOperator",
     "sap/m/Link",
     "sap/m/Text"
-], function (Controller, MessageToast, MessageBox, JSONModel, Link, Text) {
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingsList", {
@@ -251,15 +253,47 @@ sap.ui.define([
                 oTable.setAlternateRowColors(true);
                 oTable.setEnableColumnFreeze(true);
                 oTable.setEnableColumnReordering(true);
+                oTable.setEnableCellFilter(true);
+                oTable.setEnableGrouping(true);
 
                 // Fit-to-screen: auto-fill available height like standard Fiori
                 oTable.setVisibleRowCountMode("Auto");
                 oTable.setMinAutoRowCount(5);
 
                 setTimeout(function () {
+                    that._enableColumnMenus(oTable);
                     that._replaceUrlColumnsWithLinks(oTable);
-                }, 300);
+                }, 500);
             }
+        },
+
+        /**
+         * Enable Sort Ascending / Sort Descending / Filter on every column header menu.
+         * Standard Fiori GridTable behavior — requires sortProperty and filterProperty.
+         */
+        _enableColumnMenus: function (oTable) {
+            if (!oTable || !oTable.getColumns) { return; }
+            var aColumns = oTable.getColumns();
+            aColumns.forEach(function (oCol) {
+                var sProperty = "";
+                var aCustomData = oCol.getCustomData();
+                for (var i = 0; i < aCustomData.length; i++) {
+                    if (aCustomData[i].getKey() === "p13nData") {
+                        try {
+                            var oP13n = JSON.parse(aCustomData[i].getValue());
+                            sProperty = oP13n.columnKey || oP13n.leadingProperty || "";
+                        } catch (e) { /* ignore */ }
+                        break;
+                    }
+                }
+                if (sProperty) {
+                    // Enable sort and filter on column header dropdown menu
+                    oCol.setSortProperty(sProperty);
+                    oCol.setFilterProperty(sProperty);
+                    oCol.setShowFilterMenuEntry(true);
+                    oCol.setShowSortMenuEntry(true);
+                }
+            });
         },
 
         /**
@@ -301,12 +335,51 @@ sap.ui.define([
 
         onBeforeRebindTable: function (oEvent) {
             var that = this;
+            var mBindingParams = oEvent.getParameter("bindingParams");
+
+            // ---- Inject filter values from custom SmartFilterBar controls ----
+            var oTitleInput = this.byId("filterTitleInput");
+            var oRoleCombo  = this.byId("filterRoleCombo");
+            var oModuleCombo = this.byId("filterModuleCombo");
+            var oDatePicker = this.byId("filterLastUpdatedPicker");
+
+            // Title: substring / contains filter
+            if (oTitleInput && oTitleInput.getValue()) {
+                mBindingParams.filters.push(
+                    new Filter("Title", FilterOperator.Contains, oTitleInput.getValue())
+                );
+            }
+
+            // Role: exact match
+            if (oRoleCombo && oRoleCombo.getSelectedKey()) {
+                mBindingParams.filters.push(
+                    new Filter("Role", FilterOperator.EQ, oRoleCombo.getSelectedKey())
+                );
+            }
+
+            // Module: exact match
+            if (oModuleCombo && oModuleCombo.getSelectedKey()) {
+                mBindingParams.filters.push(
+                    new Filter("SapModule", FilterOperator.EQ, oModuleCombo.getSelectedKey())
+                );
+            }
+
+            // LastUpdated: date >= selected date
+            if (oDatePicker && oDatePicker.getDateValue()) {
+                mBindingParams.filters.push(
+                    new Filter("LastUpdated", FilterOperator.GE, oDatePicker.getDateValue())
+                );
+            }
+
+            // ---- Re-apply column menus + URL links after data loads ----
             setTimeout(function () {
                 var oSmartTable = that.byId("smartTable");
                 if (oSmartTable) {
-                    that._replaceUrlColumnsWithLinks(oSmartTable.getTable());
+                    var oTable = oSmartTable.getTable();
+                    that._enableColumnMenus(oTable);
+                    that._replaceUrlColumnsWithLinks(oTable);
                 }
-            }, 200);
+            }, 300);
         },
 
         onRefresh: function () {
