@@ -6,8 +6,9 @@ sap.ui.define([
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
     "sap/m/Link",
-    "sap/m/Text"
-], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text) {
+    "sap/m/Text",
+    "sap/base/Log"
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingsList", {
@@ -333,42 +334,63 @@ sap.ui.define([
             });
         },
 
+        /**
+         * CRITICAL: beforeRebindTable — inject OData $filter from custom filterGroupItems.
+         * Uses FilterOperator.EQ for exact match (SEGW standard).
+         * For Title: uses EQ with wildcard — ABAP backend does LIKE matching.
+         * Per SAP SDK: https://ui5.sap.com/#/api/sap.ui.comp.smarttable.SmartTable%23events/beforeRebindTable
+         */
         onBeforeRebindTable: function (oEvent) {
             var that = this;
             var mBindingParams = oEvent.getParameter("bindingParams");
+            var aFilters = [];
 
-            // ---- Inject filter values from custom SmartFilterBar controls ----
+            // ---- Read values from custom SmartFilterBar controls ----
             var oTitleInput = this.byId("filterTitleInput");
             var oRoleCombo  = this.byId("filterRoleCombo");
             var oModuleCombo = this.byId("filterModuleCombo");
             var oDatePicker = this.byId("filterLastUpdatedPicker");
 
-            // Title: substring / contains filter
-            if (oTitleInput && oTitleInput.getValue()) {
-                mBindingParams.filters.push(
-                    new Filter("Title", FilterOperator.Contains, oTitleInput.getValue())
-                );
+            // Title: EQ filter — ABAP backend handles partial match via LIKE
+            var sTitleVal = oTitleInput ? oTitleInput.getValue().trim() : "";
+            if (sTitleVal) {
+                aFilters.push(new Filter("Title", FilterOperator.EQ, sTitleVal));
+                Log.info("[Filter] Title EQ: " + sTitleVal);
             }
 
-            // Role: exact match
-            if (oRoleCombo && oRoleCombo.getSelectedKey()) {
-                mBindingParams.filters.push(
-                    new Filter("Role", FilterOperator.EQ, oRoleCombo.getSelectedKey())
-                );
+            // Role: exact match — use getSelectedKey() OR getValue() for typed text
+            var sRoleVal = "";
+            if (oRoleCombo) {
+                sRoleVal = oRoleCombo.getSelectedKey() || "";
+            }
+            if (sRoleVal) {
+                aFilters.push(new Filter("Role", FilterOperator.EQ, sRoleVal));
+                Log.info("[Filter] Role EQ: " + sRoleVal);
             }
 
             // Module: exact match
-            if (oModuleCombo && oModuleCombo.getSelectedKey()) {
-                mBindingParams.filters.push(
-                    new Filter("SapModule", FilterOperator.EQ, oModuleCombo.getSelectedKey())
-                );
+            var sModuleVal = "";
+            if (oModuleCombo) {
+                sModuleVal = oModuleCombo.getSelectedKey() || "";
+            }
+            if (sModuleVal) {
+                aFilters.push(new Filter("SapModule", FilterOperator.EQ, sModuleVal));
+                Log.info("[Filter] SapModule EQ: " + sModuleVal);
             }
 
             // LastUpdated: date >= selected date
             if (oDatePicker && oDatePicker.getDateValue()) {
-                mBindingParams.filters.push(
-                    new Filter("LastUpdated", FilterOperator.GE, oDatePicker.getDateValue())
-                );
+                aFilters.push(new Filter("LastUpdated", FilterOperator.GE, oDatePicker.getDateValue()));
+                Log.info("[Filter] LastUpdated GE: " + oDatePicker.getDateValue());
+            }
+
+            // Combine all as AND filters and add to binding
+            if (aFilters.length > 0) {
+                var oCombinedFilter = new Filter({ filters: aFilters, and: true });
+                mBindingParams.filters.push(oCombinedFilter);
+                Log.info("[Filter] Applied " + aFilters.length + " filter(s) to table binding");
+            } else {
+                Log.info("[Filter] No filters applied — showing all records");
             }
 
             // ---- Re-apply column menus + URL links after data loads ----

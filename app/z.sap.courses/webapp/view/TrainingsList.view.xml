@@ -12,7 +12,7 @@
         id="trainingsListPage"
         showNavButton="false"
         enableScrolling="false"
-        class="sapUiResponsivePadding--header sapUiResponsivePadding--content sapFitToScreen">
+        class="sapUiResponsivePadding--header sapUiResponsivePadding--content">
 
         <!-- Page Header: Title + Role badge + My Assignments -->
         <customHeader>
@@ -220,8 +220,10 @@
                 useVariantManagement="true"
                 useTablePersonalisation="true"
                 persistencyKey="TrainingsSmartTable"
+                demandPopin="true"
                 initialise="onSmartTableInit"
-                beforeRebindTable="onBeforeRebindTable">
+                beforeRebindTable="onBeforeRebindTable"
+                fitContainer="true">
 
                 <!-- Custom buttons added to SmartTable toolbar alongside auto-generated ones -->
                 <smartTable:customToolbar>

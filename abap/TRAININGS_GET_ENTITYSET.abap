@@ -19,6 +19,7 @@ METHOD trainings_get_entityset.
         lv_module      TYPE char50,
         lv_title       TYPE char255,
         lv_title_pat   TYPE char255,
+        lv_title_up    TYPE char255,
         lv_upd_date    TYPE sydatum,
         lv_skip        TYPE i,
         lv_top         TYPE i.
@@ -116,7 +117,7 @@ METHOD trainings_get_entityset.
     TRANSLATE lv_title TO UPPER CASE.
     CONCATENATE '%' lv_title '%' INTO lv_title_pat.
     LOOP AT lt_training INTO ls_training.
-      DATA lv_title_up TYPE char255.
+      CLEAR lv_title_up.
       lv_title_up = ls_training-title.
       TRANSLATE lv_title_up TO UPPER CASE.
       IF lv_title_up NP lv_title_pat.

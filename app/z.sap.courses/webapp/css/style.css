@@ -1,30 +1,36 @@
 /* Clean Core Compliant Styles – SmartControl Edition 2026 */
 
-/* ===== Fit-to-Screen Layout (Standard Fiori Behavior) ===== */
-/* Page content becomes flex column so SmartTable fills remaining height */
-.sapFitToScreen > section {
+/* ===== Fit-to-Screen Layout (Standard SAP Fiori Pattern) ===== */
+/* SAP Reference: https://experience.sap.com/fiori-design-web/smart-table/ */
+/* Shell + App + Page chain must pass 100% height down to SmartTable */
+
+/* Root view fills Shell */
+html.sap-desktop .sapUiBody,
+.sapMShell .sapMShellContent {
+    height: 100%;
+}
+
+/* Page content area: flex column so SmartTable gets remaining space */
+.sapMPage > section.sapMPageEnableScrolling,
+.sapMPage > section {
     display: flex !important;
     flex-direction: column !important;
+    height: 100% !important;
     overflow: hidden !important;
 }
 
-/* Analytics panel and SmartFilterBar don't grow - keep natural height */
-.sapFitToScreen .sapMPanel,
-.sapFitToScreen .sapUiCompSmartFilter {
+/* Non-table elements (Panel, SmartFilterBar) keep natural height */
+.sapMPage > section > .sapMPanel,
+.sapMPage > section > .sapUiCompSmartFilter {
     flex: 0 0 auto !important;
     overflow: visible !important;
 }
 
-/* SmartTable fills ALL remaining vertical space */
-.sapFitToScreen .sapUiCompSmartTable {
-    flex: 1 1 auto !important;
+/* SmartTable with fitContainer fills all remaining height */
+.sapMPage > section > .sapUiCompSmartTable {
+    flex: 1 1 0 !important;
     overflow: hidden !important;
-    min-height: 200px;
-}
-
-/* GridTable inside SmartTable takes full height */
-.sapFitToScreen .sapUiCompSmartTable .sapUiTable {
-    height: 100% !important;
+    min-height: 200px !important;
 }
 
 /* ===== Page Layout ===== */
