@@ -5,7 +5,6 @@
     xmlns:core="sap.ui.core"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:smartTable="sap.ui.comp.smarttable"
-    xmlns:filterBar="sap.ui.comp.filterbar"
     xmlns:mc="sap.suite.ui.microchart">
 
     <Page
@@ -18,7 +17,7 @@
         <customHeader>
             <Bar id="headerBar">
                 <contentLeft>
-                    <Title id="pageTitle" text="SAP Learning - Training Catalog" level="H2" />
+                    <Title id="pageTitle" text="SAP Learning Courses" level="H2" />
                 </contentLeft>
                 <contentRight>
                     <HBox id="roleBox" alignItems="Center" class="sapUiSmallMarginEnd">
@@ -65,7 +64,7 @@
                             number="{analyticsModel>/assigned}"
                             state="Warning"
                             class="analyticsNumber" />
-                        <Text id="assignedLabel" text="{= ${user>/role} === 'Admin' || ${user>/role} === 'Manager' ? 'Assigned (Org)' : 'My Assigned'}" class="analyticsLabel" />
+                        <Text id="assignedLabel" text="Assigned" class="analyticsLabel" />
                     </VBox>
                     <!-- In Progress Card -->
                     <VBox id="inProgressBox" alignItems="Center" class="analyticsCard analyticsCardTeal">
@@ -75,7 +74,7 @@
                             number="{analyticsModel>/inProgress}"
                             state="Information"
                             class="analyticsNumber" />
-                        <Text id="inProgressLabel" text="{= ${user>/role} === 'Admin' || ${user>/role} === 'Manager' ? 'In Progress (Org)' : 'My In Progress'}" class="analyticsLabel" />
+                        <Text id="inProgressLabel" text="In Progress" class="analyticsLabel" />
                     </VBox>
                     <!-- Completed Card -->
                     <VBox id="completedBox" alignItems="Center" class="analyticsCard analyticsCardGreen">
@@ -85,7 +84,7 @@
                             number="{analyticsModel>/completed}"
                             state="Success"
                             class="analyticsNumber" />
-                        <Text id="completedLabel" text="{= ${user>/role} === 'Admin' || ${user>/role} === 'Manager' ? 'Completed (Org)' : 'My Completed'}" class="analyticsLabel" />
+                        <Text id="completedLabel" text="Completed" class="analyticsLabel" />
                     </VBox>
                     <!-- Completion Rate Card -->
                     <VBox id="completionRateBox" alignItems="Center" class="analyticsCard analyticsCardPurple">
@@ -140,56 +139,25 @@
                 </HBox>
             </Panel>
 
-            <!-- SmartFilterBar: F1520 Pattern with explicit filter inputs -->
-            <!-- Role + Module: Input fields with ControlConfiguration forcing EQ filters -->
-            <!-- ControlConfiguration ensures SEGW-compatible EQ operator (no substringof) -->
+            <!-- SmartFilterBar: Standard Fiori – only Go + Adapt Filters -->
+            <!-- Adapt Filters (showFilterConfiguration) lets user pick any column as filter -->
+            <!-- No explicit filterGroupItems – SmartFilterBar auto-generates from annotations -->
+            <!-- Role + Module use ControlConfiguration filterType=single for EQ (SEGW) -->
             <smartFilterBar:SmartFilterBar
                 id="smartFilterBar"
                 entitySet="Trainings"
                 persistencyKey="TrainingsSmartFilter"
                 enableBasicSearch="true"
-                showClearOnFB="true"
-                showRestoreOnFB="true"
+                showClearOnFB="false"
+                showRestoreOnFB="false"
                 showGoOnFB="true"
                 filterBarExpanded="true"
                 showFilterConfiguration="true"
                 useDateRangeType="true">
                 <smartFilterBar:controlConfiguration>
-                    <smartFilterBar:ControlConfiguration id="ccRole" key="Role" filterType="single" />
-                    <smartFilterBar:ControlConfiguration id="ccSapModule" key="SapModule" filterType="single" />
+                    <smartFilterBar:ControlConfiguration id="ccRole" key="Role" filterType="single" preventInitialDataFetchInValueHelpDialog="false" />
+                    <smartFilterBar:ControlConfiguration id="ccSapModule" key="SapModule" filterType="single" preventInitialDataFetchInValueHelpDialog="false" />
                 </smartFilterBar:controlConfiguration>
-                <smartFilterBar:filterGroupItems>
-                    <filterBar:FilterGroupItem
-                        id="fgiRole"
-                        name="Role"
-                        label="Role"
-                        groupName="_BASIC"
-                        visibleInFilterBar="true">
-                        <filterBar:control>
-                            <Input id="filterRole" placeholder="e.g. Developer" />
-                        </filterBar:control>
-                    </filterBar:FilterGroupItem>
-                    <filterBar:FilterGroupItem
-                        id="fgiSapModule"
-                        name="SapModule"
-                        label="Module"
-                        groupName="_BASIC"
-                        visibleInFilterBar="true">
-                        <filterBar:control>
-                            <Input id="filterModule" placeholder="e.g. FI, MM" />
-                        </filterBar:control>
-                    </filterBar:FilterGroupItem>
-                    <filterBar:FilterGroupItem
-                        id="fgiLastUpdated"
-                        name="LastUpdated"
-                        label="Last Updated"
-                        groupName="_BASIC"
-                        visibleInFilterBar="true">
-                        <filterBar:control>
-                            <DatePicker id="filterLastUpdated" placeholder="From date..." />
-                        </filterBar:control>
-                    </filterBar:FilterGroupItem>
-                </smartFilterBar:filterGroupItems>
             </smartFilterBar:SmartFilterBar>
 
             <!-- SmartTable: auto-generates columns from annotations
@@ -232,14 +200,12 @@
                             type="Reject"
                             press="onDeleteTraining"
                             visible="{= ${user>/role} === 'Admin' }" />
-                        <ToolbarSeparator id="tbSep1" visible="{= ${user>/role} === 'Admin' }" />
                         <ToolbarSpacer id="toolbarSpacer" />
                         <Button
                             id="detailsButton"
                             icon="sap-icon://detail-view"
                             text="View Details"
                             press="onViewDetails" />
-                        <ToolbarSeparator id="tbSep2" />
                         <Button
                             id="assignButton"
                             icon="sap-icon://person-placeholder"
@@ -247,7 +213,6 @@
                             type="Attention"
                             press="onAssignTraining"
                             visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
-                        <ToolbarSeparator id="tbSep3" />
                         <Button
                             id="refreshButton"
                             icon="sap-icon://refresh"

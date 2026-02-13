@@ -148,16 +148,13 @@ sap.ui.define([
                 oTable.setVisibleRowCountMode("Auto");
                 oTable.setMinAutoRowCount(5);
 
-                // Configure column menus and URL links AFTER first data render.
-                // rowsUpdated fires reliably when columns are fully created and data is rendered.
-                // Flag prevents re-processing on every scroll; reset in onBeforeRebindTable.
-                that._columnsConfigured = false;
+                // Track which columns have been converted to Links (by column key).
+                // Re-apply on EVERY rowsUpdated because SmartTable can re-create
+                // column templates during rebind/personalisation/variant switch.
+                that._linkColumnsApplied = {};
                 oTable.attachRowsUpdated(function () {
-                    if (!that._columnsConfigured) {
-                        that._enableColumnMenus(oTable);
-                        that._replaceUrlColumnsWithLinks(oTable);
-                        that._columnsConfigured = true;
-                    }
+                    that._enableColumnMenus(oTable);
+                    that._replaceUrlColumnsWithLinks(oTable);
                 });
             }
         },
@@ -192,18 +189,32 @@ sap.ui.define([
         },
 
         /**
-         * Replace Url and SapHelpLink column templates with sap.m.Link controls
+         * Replace Url and SapHelpLink column templates with sap.m.Link controls.
+         * Uses a custom data marker on each column to avoid re-creating templates
+         * on every rowsUpdated event (would lose cell bindings). Only sets template
+         * once per column instance; if SmartTable re-creates columns, the marker
+         * is gone so we re-apply.
          */
         _replaceUrlColumnsWithLinks: function (oTable) {
             if (!oTable || !oTable.getColumns) { return; }
             var aColumns = oTable.getColumns();
             aColumns.forEach(function (oCol) {
+                // Check if already processed via custom data marker
+                var aCD = oCol.getCustomData();
+                var bAlreadyLinked = false;
+                for (var j = 0; j < aCD.length; j++) {
+                    if (aCD[j].getKey() === "urlLinked") {
+                        bAlreadyLinked = true;
+                        break;
+                    }
+                }
+                if (bAlreadyLinked) { return; }
+
                 var sColumnKey = "";
-                var aCustomData = oCol.getCustomData();
-                for (var i = 0; i < aCustomData.length; i++) {
-                    if (aCustomData[i].getKey() === "p13nData") {
+                for (var i = 0; i < aCD.length; i++) {
+                    if (aCD[i].getKey() === "p13nData") {
                         try {
-                            var oP13n = JSON.parse(aCustomData[i].getValue());
+                            var oP13n = JSON.parse(aCD[i].getValue());
                             sColumnKey = oP13n.columnKey || oP13n.leadingProperty || "";
                         } catch (e) { /* ignore */ }
                         break;
@@ -214,24 +225,18 @@ sap.ui.define([
                     oCol.setTemplate(new Link({
                         text: { path: "Url", formatter: function (v) { return v ? "Open Link" : ""; } },
                         href: "{Url}",
-                        press: function (oEvent) {
-                            var oCtx = oEvent.getSource().getBindingContext();
-                            var sUrl = oCtx ? oCtx.getProperty("Url") : "";
-                            if (sUrl) { sap.m.URLHelper.redirect(sUrl, false); }
-                        },
+                        target: "_blank",
                         wrapping: false
                     }));
+                    oCol.addCustomData(new sap.ui.core.CustomData({ key: "urlLinked", value: "true" }));
                 } else if (sColumnKey === "SapHelpLink") {
                     oCol.setTemplate(new Link({
                         text: { path: "SapHelpLink", formatter: function (v) { return v ? "SAP Help" : ""; } },
                         href: "{SapHelpLink}",
-                        press: function (oEvent) {
-                            var oCtx = oEvent.getSource().getBindingContext();
-                            var sUrl = oCtx ? oCtx.getProperty("SapHelpLink") : "";
-                            if (sUrl) { sap.m.URLHelper.redirect(sUrl, false); }
-                        },
+                        target: "_blank",
                         wrapping: false
                     }));
+                    oCol.addCustomData(new sap.ui.core.CustomData({ key: "urlLinked", value: "true" }));
                 }
             });
         },
@@ -287,9 +292,6 @@ sap.ui.define([
             }
 
             Log.info("[Filter] Total filters: " + mBindingParams.filters.length);
-
-            // Reset columns flag so menus + links get re-applied after new data
-            this._columnsConfigured = false;
         },
 
         /* ===== Admin CRUD: Create New Training ===== */
@@ -500,13 +502,13 @@ sap.ui.define([
             // Build rich detail dialog
             var aContent = [];
 
-            // Object Header
+            // Object Header – compact, no overflow
             var oObjectHeader = new sap.m.ObjectHeader({
                 title: oTraining.Title || "Untitled",
                 number: oTraining.SapModule || "",
                 numberUnit: "Module",
+                condensed: true,
                 responsive: true,
-                fullScreenOptimized: true,
                 attributes: [],
                 statuses: []
             });
@@ -601,10 +603,13 @@ sap.ui.define([
 
             this._detailDlg = new sap.m.Dialog({
                 title: "Training Details",
-                contentWidth: "640px",
+                contentWidth: "560px",
+                contentHeight: "auto",
                 draggable: true,
                 resizable: true,
                 verticalScrolling: true,
+                horizontalScrolling: false,
+                stretch: sap.ui.Device.system.phone,
                 content: aContent,
                 endButton: new sap.m.Button({
                     text: "Close",
@@ -616,7 +621,7 @@ sap.ui.define([
                     that._detailDlg = null;
                 }
             });
-            this._detailDlg.addStyleClass("sapUiContentPadding");
+            this._detailDlg.addStyleClass("sapUiContentPadding sapUiResponsivePadding--content");
             this._detailDlg.open();
         },
 

@@ -559,9 +559,49 @@ html, body, html.sap-desktop, .sapUiBody {
 .sapMPage,
 .sapMPage > section,
 .sapUiCompSmartTable,
-.sapUiCompSmartFilter {
+.sapUiCompSmartFilter,
+.sapUiTable,
+.sapUiTableCCnt,
+.sapUiTableCtrlScr {
     width: 100% !important;
+    max-width: 100% !important;
     box-sizing: border-box !important;
+}
+
+/* Ensure SmartTable fills container width */
+.sapUiCompSmartTable .sapUiTableHSb {
+    width: 100% !important;
+}
+
+/* Remove any shell/canvas max-width constraints */
+.sapUShellCntnt,
+.sapUShellContent,
+.sapMShellContent,
+.sapMShell .sapMShellAhead {
+    max-width: none !important;
+    width: 100% !important;
+}
+
+/* ===== View Details Dialog: no overflow ===== */
+.sapMDialog .sapMObjH {
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+.sapMDialog .sapMObjHTitle {
+    max-width: 100% !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sapMDialog .sapMPanelContent {
+    overflow: hidden !important;
+    word-break: break-word !important;
+}
+
+.sapMDialog .sapMText {
+    word-break: break-word !important;
+    white-space: pre-wrap !important;
 }
 
 /* ===== Responsive Breakpoints ===== */

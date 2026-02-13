@@ -8,20 +8,19 @@
 
     <Page
         id="assignmentsListPage"
-        showNavButton="true"
-        navButtonPress="onNavBack"
+        showNavButton="false"
         class="sapUiResponsivePadding--header sapUiResponsivePadding--content">
 
         <customHeader>
             <Bar id="assignHeaderBar">
                 <contentLeft>
-                    <Button id="navBackBtn" icon="sap-icon://nav-back" press="onNavBack" type="Back" />
+                    <Button id="navBackBtn" icon="sap-icon://nav-back" press="onNavBack" type="Back" tooltip="Back to Courses" />
                     <Title id="assignPageTitle" text="Training Assignments" level="H2" />
                 </contentLeft>
                 <contentRight>
                     <Button
                         id="backToCatalogBtn"
-                        text="Back to Catalog"
+                        text="Back to Courses"
                         icon="sap-icon://learning-assistant"
                         press="onNavBack" />
                 </contentRight>
@@ -77,13 +76,14 @@
                 </HBox>
             </Panel>
 
-            <!-- SmartFilterBar for Assignments - expanded with filter boxes -->
+            <!-- SmartFilterBar for Assignments - standard Fiori Go + Adapt Filters -->
             <smartFilterBar:SmartFilterBar
                 id="assignSmartFilterBar"
                 entitySet="TrainingAssignments"
                 persistencyKey="AssignmentsSmartFilter"
                 enableBasicSearch="true"
-                showClearOnFB="true"
+                showClearOnFB="false"
+                showRestoreOnFB="false"
                 filterBarExpanded="true"
                 showFilterConfiguration="true" />
 
