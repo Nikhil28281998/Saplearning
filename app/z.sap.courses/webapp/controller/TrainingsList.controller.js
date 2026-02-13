@@ -261,10 +261,17 @@ sap.ui.define([
                 oTable.setVisibleRowCountMode("Auto");
                 oTable.setMinAutoRowCount(5);
 
-                setTimeout(function () {
-                    that._enableColumnMenus(oTable);
-                    that._replaceUrlColumnsWithLinks(oTable);
-                }, 500);
+                // Configure column menus and URL links AFTER first data render.
+                // rowsUpdated fires reliably when columns are fully created and data is rendered.
+                // Flag prevents re-processing on every scroll; reset in onBeforeRebindTable.
+                that._columnsConfigured = false;
+                oTable.attachRowsUpdated(function () {
+                    if (!that._columnsConfigured) {
+                        that._enableColumnMenus(oTable);
+                        that._replaceUrlColumnsWithLinks(oTable);
+                        that._columnsConfigured = true;
+                    }
+                });
             }
         },
 
@@ -337,11 +344,14 @@ sap.ui.define([
         /**
          * CRITICAL: beforeRebindTable — inject OData $filter from custom filterGroupItems.
          * Uses FilterOperator.EQ for exact match (SEGW standard).
-         * For Title: uses EQ with wildcard — ABAP backend does LIKE matching.
-         * Per SAP SDK: https://ui5.sap.com/#/api/sap.ui.comp.smarttable.SmartTable%23events/beforeRebindTable
+         * For Title: uses EQ — ABAP backend does LIKE matching for partial text.
+         *
+         * IMPORTANT: We CLEAR mBindingParams.filters first to remove SmartFilterBar's
+         * auto-generated filters. SmartFilterBar may create substringof/contains filters
+         * for Edm.String properties which SEGW backends do NOT support.
+         * Only our explicit EQ/GE filters are sent to the OData service.
          */
         onBeforeRebindTable: function (oEvent) {
-            var that = this;
             var mBindingParams = oEvent.getParameter("bindingParams");
             var aFilters = [];
 
@@ -358,21 +368,15 @@ sap.ui.define([
                 Log.info("[Filter] Title EQ: " + sTitleVal);
             }
 
-            // Role: exact match — use getSelectedKey() OR getValue() for typed text
-            var sRoleVal = "";
-            if (oRoleCombo) {
-                sRoleVal = oRoleCombo.getSelectedKey() || "";
-            }
+            // Role: exact match
+            var sRoleVal = oRoleCombo ? (oRoleCombo.getSelectedKey() || "") : "";
             if (sRoleVal) {
                 aFilters.push(new Filter("Role", FilterOperator.EQ, sRoleVal));
                 Log.info("[Filter] Role EQ: " + sRoleVal);
             }
 
             // Module: exact match
-            var sModuleVal = "";
-            if (oModuleCombo) {
-                sModuleVal = oModuleCombo.getSelectedKey() || "";
-            }
+            var sModuleVal = oModuleCombo ? (oModuleCombo.getSelectedKey() || "") : "";
             if (sModuleVal) {
                 aFilters.push(new Filter("SapModule", FilterOperator.EQ, sModuleVal));
                 Log.info("[Filter] SapModule EQ: " + sModuleVal);
@@ -384,24 +388,20 @@ sap.ui.define([
                 Log.info("[Filter] LastUpdated GE: " + oDatePicker.getDateValue());
             }
 
-            // Combine all as AND filters and add to binding
+            // CLEAR SmartFilterBar's auto-generated filters (may contain unsupported
+            // substringof/contains for Edm.String). Replace with our explicit filters only.
+            mBindingParams.filters = [];
+
             if (aFilters.length > 0) {
                 var oCombinedFilter = new Filter({ filters: aFilters, and: true });
                 mBindingParams.filters.push(oCombinedFilter);
-                Log.info("[Filter] Applied " + aFilters.length + " filter(s) to table binding");
+                Log.info("[Filter] Applied " + aFilters.length + " manual EQ/GE filter(s)");
             } else {
-                Log.info("[Filter] No filters applied — showing all records");
+                Log.info("[Filter] No filters — showing all records");
             }
 
-            // ---- Re-apply column menus + URL links after data loads ----
-            setTimeout(function () {
-                var oSmartTable = that.byId("smartTable");
-                if (oSmartTable) {
-                    var oTable = oSmartTable.getTable();
-                    that._enableColumnMenus(oTable);
-                    that._replaceUrlColumnsWithLinks(oTable);
-                }
-            }, 300);
+            // Reset columns flag so menus + links get re-applied after new data
+            this._columnsConfigured = false;
         },
 
         onRefresh: function () {

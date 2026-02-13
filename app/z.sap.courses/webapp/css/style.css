@@ -2,20 +2,53 @@
 
 /* ===== Fit-to-Screen Layout (Standard SAP Fiori Pattern) ===== */
 /* SAP Reference: https://experience.sap.com/fiori-design-web/smart-table/ */
-/* Shell + App + Page chain must pass 100% height down to SmartTable */
+/* Complete height chain: html → body → UIArea → View → App → Page → section → SmartTable */
 
-/* Root view fills Shell */
-html.sap-desktop .sapUiBody,
+/* Root height chain */
+html, body, html.sap-desktop, .sapUiBody {
+    height: 100% !important;
+    margin: 0;
+    padding: 0;
+}
+
+/* UI5 UI Area container */
+#content, #canvas {
+    height: 100% !important;
+}
+
+/* View → App → NavContainer chain */
+.sapUiView {
+    display: block !important;
+    height: 100% !important;
+}
+
+.sapMApp, .sapMNavContainer, .sapMNavContent {
+    height: 100% !important;
+}
+
 .sapMShell .sapMShellContent {
     height: 100%;
+}
+
+/* sap.m.Page: flex column so content section fills remaining space */
+.sapMPage {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+}
+
+/* Page header: fixed height */
+.sapMPage > .sapMPageHeader,
+.sapMPage > header {
+    flex: 0 0 auto !important;
 }
 
 /* Page content area: flex column so SmartTable gets remaining space */
 .sapMPage > section.sapMPageEnableScrolling,
 .sapMPage > section {
+    flex: 1 1 0 !important;
     display: flex !important;
     flex-direction: column !important;
-    height: 100% !important;
     overflow: hidden !important;
 }
 

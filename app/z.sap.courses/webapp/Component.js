@@ -442,14 +442,10 @@ sap.ui.define([
                     selectionChange: function(oEvent) {
                         var oItem = oEvent.getParameter("selectedItem");
                         if (oItem) {
-                            var oCtx = oItem.getBindingContext();
-                            if (oCtx) {
-                                var oUser = oCtx.getObject();
-                                dlgModel.setProperty("/userId", oUser.UserId || "");
-                                dlgModel.setProperty("/firstName", oUser.FirstName || "");
-                                dlgModel.setProperty("/lastName", oUser.LastName || "");
-                                dlgModel.setProperty("/userEmail", oUser.Email || "");
-                            }
+                            var sUserId = oItem.getKey();
+                            dlgModel.setProperty("/userId", sUserId || "");
+                            // Use lookupUserById to reliably fill name/email from JSONModel
+                            lookupUserById(sUserId);
                         }
                     },
                     change: function(oEvent) {
