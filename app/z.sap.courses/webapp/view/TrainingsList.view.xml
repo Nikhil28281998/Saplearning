@@ -56,7 +56,7 @@
                             class="analyticsNumber" />
                         <Text id="totalLabel" text="Total Catalog" class="analyticsLabel" />
                     </VBox>
-                    <!-- Assigned Card -->
+                    <!-- Assigned Card (Manager/Admin: org-wide | User: my assignments) -->
                     <VBox id="assignedBox" alignItems="Center" class="analyticsCard analyticsCardOrange">
                         <core:Icon id="assignedIcon" src="sap-icon://pending" size="1.5rem" color="#e76500" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
@@ -64,7 +64,7 @@
                             number="{analyticsModel>/assigned}"
                             state="Warning"
                             class="analyticsNumber" />
-                        <Text id="assignedLabel" text="Assigned" class="analyticsLabel" />
+                        <Text id="assignedLabel" text="{= ${user>/role} === 'Admin' || ${user>/role} === 'Manager' ? 'Assigned (Org)' : 'My Assigned'}" class="analyticsLabel" />
                     </VBox>
                     <!-- In Progress Card -->
                     <VBox id="inProgressBox" alignItems="Center" class="analyticsCard analyticsCardTeal">
@@ -74,7 +74,7 @@
                             number="{analyticsModel>/inProgress}"
                             state="Information"
                             class="analyticsNumber" />
-                        <Text id="inProgressLabel" text="In Progress" class="analyticsLabel" />
+                        <Text id="inProgressLabel" text="{= ${user>/role} === 'Admin' || ${user>/role} === 'Manager' ? 'In Progress (Org)' : 'My In Progress'}" class="analyticsLabel" />
                     </VBox>
                     <!-- Completed Card -->
                     <VBox id="completedBox" alignItems="Center" class="analyticsCard analyticsCardGreen">
@@ -84,7 +84,7 @@
                             number="{analyticsModel>/completed}"
                             state="Success"
                             class="analyticsNumber" />
-                        <Text id="completedLabel" text="Completed" class="analyticsLabel" />
+                        <Text id="completedLabel" text="{= ${user>/role} === 'Admin' || ${user>/role} === 'Manager' ? 'Completed (Org)' : 'My Completed'}" class="analyticsLabel" />
                     </VBox>
                     <!-- Completion Rate Card -->
                     <VBox id="completionRateBox" alignItems="Center" class="analyticsCard analyticsCardPurple">
@@ -97,8 +97,9 @@
                         <Text id="completionRateLabel" text="Completion Rate" class="analyticsLabel" />
                     </VBox>
                 </HBox>
-                <!-- Charts Row - Status + Module Breakdown (Manager/Admin Analytics) -->
-                <HBox id="chartsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin">
+                <!-- Charts Row - Status + Module Breakdown (Manager/Admin Only) -->
+                <HBox id="chartsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin"
+                    visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }">
                     <!-- Status Distribution Chart -->
                     <VBox id="statusChartBox" class="analyticsCard analyticsCardBlue chartCard">
                         <HBox id="statusChartHeader" alignItems="Center" class="sapUiTinyMarginBottom">
@@ -166,7 +167,12 @@
                         label="Role"
                         visibleInFilterBar="true">
                         <filterBar:control>
-                            <Input id="filterRoleInput" placeholder="e.g. Developer" />
+                            <ComboBox id="filterRoleCombo"
+                                placeholder="All Roles"
+                                selectionChange="onRoleFilterChange"
+                                items="{filterModel>/roles}">
+                                <core:Item id="filterRoleItem" key="{filterModel>key}" text="{filterModel>text}" />
+                            </ComboBox>
                         </filterBar:control>
                     </filterBar:FilterGroupItem>
                     <filterBar:FilterGroupItem
@@ -176,7 +182,12 @@
                         label="Module"
                         visibleInFilterBar="true">
                         <filterBar:control>
-                            <Input id="filterModuleInput" placeholder="e.g. FI, MM" />
+                            <ComboBox id="filterModuleCombo"
+                                placeholder="All Modules"
+                                selectionChange="onModuleFilterChange"
+                                items="{filterModel>/modules}">
+                                <core:Item id="filterModuleItem" key="{filterModel>key}" text="{filterModel>text}" />
+                            </ComboBox>
                         </filterBar:control>
                     </filterBar:FilterGroupItem>
                     <filterBar:FilterGroupItem

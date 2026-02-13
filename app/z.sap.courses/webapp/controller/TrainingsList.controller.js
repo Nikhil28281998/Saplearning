@@ -20,7 +20,134 @@ sap.ui.define([
                 completionPercent: 0
             });
             this.getView().setModel(oAnalyticsModel, "analyticsModel");
+
+            // Filter model for Role/Module cross-reference dropdowns
+            var oFilterModel = new JSONModel({
+                allTrainings: [],       // master data for cross-referencing
+                roles: [],              // [{key:"Developer", text:"Developer"}, ...]
+                modules: [],            // [{key:"FI", text:"FI"}, ...]
+                allRoles: [],           // unfiltered master list of roles
+                allModules: []          // unfiltered master list of modules
+            });
+            oFilterModel.setSizeLimit(5000);
+            this.getView().setModel(oFilterModel, "filterModel");
+
             this._loadAnalytics();
+            this._loadFilterDropdowns();
+        },
+
+        /**
+         * Load training data to populate Role and Module dropdowns
+         */
+        _loadFilterDropdowns: function () {
+            var oModel = this.getOwnerComponent().getModel();
+            var oFilterModel = this.getView().getModel("filterModel");
+
+            oModel.read("/Trainings", {
+                success: function (data) {
+                    var trainings = data.results || [];
+                    oFilterModel.setProperty("/allTrainings", trainings);
+
+                    // Extract unique roles and modules
+                    var roleSet = {};
+                    var moduleSet = {};
+                    trainings.forEach(function (t) {
+                        if (t.Role) { roleSet[t.Role] = true; }
+                        if (t.SapModule) { moduleSet[t.SapModule] = true; }
+                    });
+
+                    var roles = Object.keys(roleSet).sort().map(function (r) {
+                        return { key: r, text: r };
+                    });
+                    var modules = Object.keys(moduleSet).sort().map(function (m) {
+                        return { key: m, text: m };
+                    });
+
+                    oFilterModel.setProperty("/roles", roles);
+                    oFilterModel.setProperty("/modules", modules);
+                    oFilterModel.setProperty("/allRoles", roles.slice());
+                    oFilterModel.setProperty("/allModules", modules.slice());
+                },
+                error: function () { /* ignore */ }
+            });
+        },
+
+        /**
+         * Cross-reference: Role selected → filter Module dropdown to show only related modules
+         */
+        onRoleFilterChange: function (oEvent) {
+            var oFilterModel = this.getView().getModel("filterModel");
+            var oCombo = oEvent.getSource();
+            var sSelectedRole = oCombo.getSelectedKey();
+
+            if (!sSelectedRole) {
+                // "All Roles" or cleared → restore full module list
+                oFilterModel.setProperty("/modules", oFilterModel.getProperty("/allModules").slice());
+                return;
+            }
+
+            // Filter modules: only those that have trainings with the selected role
+            var trainings = oFilterModel.getProperty("/allTrainings") || [];
+            var moduleSet = {};
+            trainings.forEach(function (t) {
+                if (t.Role === sSelectedRole && t.SapModule) {
+                    moduleSet[t.SapModule] = true;
+                }
+            });
+
+            var filteredModules = Object.keys(moduleSet).sort().map(function (m) {
+                return { key: m, text: m };
+            });
+            oFilterModel.setProperty("/modules", filteredModules);
+
+            // If currently selected module is no longer valid, clear it
+            var oModuleCombo = this.byId("filterModuleCombo");
+            if (oModuleCombo) {
+                var sCurModule = oModuleCombo.getSelectedKey();
+                if (sCurModule && !moduleSet[sCurModule]) {
+                    oModuleCombo.setSelectedKey("");
+                    oModuleCombo.setValue("");
+                }
+            }
+        },
+
+        /**
+         * Cross-reference: Module selected → filter Role dropdown to show only related roles
+         */
+        onModuleFilterChange: function (oEvent) {
+            var oFilterModel = this.getView().getModel("filterModel");
+            var oCombo = oEvent.getSource();
+            var sSelectedModule = oCombo.getSelectedKey();
+
+            if (!sSelectedModule) {
+                // Cleared → restore full role list
+                oFilterModel.setProperty("/roles", oFilterModel.getProperty("/allRoles").slice());
+                return;
+            }
+
+            // Filter roles: only those that have trainings with the selected module
+            var trainings = oFilterModel.getProperty("/allTrainings") || [];
+            var roleSet = {};
+            trainings.forEach(function (t) {
+                if (t.SapModule === sSelectedModule && t.Role) {
+                    roleSet[t.Role] = true;
+                }
+            });
+
+            var filteredRoles = Object.keys(roleSet).sort().map(function (r) {
+                return { key: r, text: r };
+            });
+            oFilterModel.setProperty("/roles", filteredRoles);
+
+            // If currently selected role is no longer valid, clear it
+            var oRoleCombo = this.byId("filterRoleCombo");
+            if (oRoleCombo) {
+                var sCurRole = oRoleCombo.getSelectedKey();
+                if (sCurRole && !roleSet[sCurRole]) {
+                    oRoleCombo.setSelectedKey("");
+                    oRoleCombo.setValue("");
+                }
+            }
         },
 
         _loadAnalytics: function () {
@@ -118,15 +245,12 @@ sap.ui.define([
             var oSmartTable = this.byId("smartTable");
             var oTable = oSmartTable.getTable();
             if (oTable) {
-                // GridTable (sap.ui.table.Table) configuration
                 oTable.setSelectionMode("Single");
                 oTable.setSelectionBehavior("RowOnly");
                 oTable.setAlternateRowColors(true);
                 oTable.setEnableColumnFreeze(true);
                 oTable.setEnableColumnReordering(true);
 
-                // Replace URL column templates with clickable Links
-                // Use short delay to ensure SmartTable has generated columns
                 setTimeout(function () {
                     that._replaceUrlColumnsWithLinks(oTable);
                 }, 300);
@@ -135,7 +259,6 @@ sap.ui.define([
 
         /**
          * Replace Url and SapHelpLink column templates with sap.m.Link controls
-         * that open in a new browser tab (target="_blank")
          */
         _replaceUrlColumnsWithLinks: function (oTable) {
             if (!oTable || !oTable.getColumns) { return; }
@@ -148,27 +271,21 @@ sap.ui.define([
                         try {
                             var oP13n = JSON.parse(aCustomData[i].getValue());
                             sColumnKey = oP13n.columnKey || oP13n.leadingProperty || "";
-                        } catch (e) { /* ignore parse errors */ }
+                        } catch (e) { /* ignore */ }
                         break;
                     }
                 }
 
                 if (sColumnKey === "Url") {
                     oCol.setTemplate(new Link({
-                        text: {
-                            path: "Url",
-                            formatter: function (v) { return v ? "Open Link" : ""; }
-                        },
+                        text: { path: "Url", formatter: function (v) { return v ? "Open Link" : ""; } },
                         href: "{Url}",
                         target: "_blank",
                         wrapping: false
                     }));
                 } else if (sColumnKey === "SapHelpLink") {
                     oCol.setTemplate(new Link({
-                        text: {
-                            path: "SapHelpLink",
-                            formatter: function (v) { return v ? "SAP Help" : ""; }
-                        },
+                        text: { path: "SapHelpLink", formatter: function (v) { return v ? "SAP Help" : ""; } },
                         href: "{SapHelpLink}",
                         target: "_blank",
                         wrapping: false
@@ -177,7 +294,6 @@ sap.ui.define([
             });
         },
 
-        /* ===== Re-apply link templates after variant changes ===== */
         onBeforeRebindTable: function (oEvent) {
             var that = this;
             setTimeout(function () {
@@ -188,17 +304,16 @@ sap.ui.define([
             }, 200);
         },
 
-        /* ===== Refresh via SmartTable rebind ===== */
         onRefresh: function () {
             var oSmartTable = this.byId("smartTable");
             if (oSmartTable) {
                 oSmartTable.rebindTable(true);
             }
             this._loadAnalytics();
+            this._loadFilterDropdowns();
             MessageToast.show("Data refreshed");
         },
 
-        /* ===== View details of the selected row ===== */
         onViewDetails: function () {
             var oSmartTable = this.byId("smartTable");
             var oTable = oSmartTable.getTable();
@@ -212,12 +327,8 @@ sap.ui.define([
             var oTraining = oContext.getObject();
 
             var aActions = [];
-            if (oTraining.Url) {
-                aActions.push("Open Training Link");
-            }
-            if (oTraining.SapHelpLink) {
-                aActions.push("Open SAP Help");
-            }
+            if (oTraining.Url) { aActions.push("Open Training Link"); }
+            if (oTraining.SapHelpLink) { aActions.push("Open SAP Help"); }
             aActions.push(MessageBox.Action.CLOSE);
 
             MessageBox.show(
@@ -241,7 +352,6 @@ sap.ui.define([
             );
         },
 
-        /* ===== Navigation ===== */
         onAssignTraining: function () {
             var oComponent = this.getOwnerComponent();
             if (oComponent && oComponent.openAssignDialog) {
