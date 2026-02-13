@@ -1,5 +1,32 @@
 /* Clean Core Compliant Styles – SmartControl Edition 2026 */
 
+/* ===== Fit-to-Screen Layout (Standard Fiori Behavior) ===== */
+/* Page content becomes flex column so SmartTable fills remaining height */
+.sapFitToScreen > section {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+/* Analytics panel and SmartFilterBar don't grow - keep natural height */
+.sapFitToScreen .sapMPanel,
+.sapFitToScreen .sapUiCompSmartFilter {
+    flex: 0 0 auto !important;
+    overflow: visible !important;
+}
+
+/* SmartTable fills ALL remaining vertical space */
+.sapFitToScreen .sapUiCompSmartTable {
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+    min-height: 200px;
+}
+
+/* GridTable inside SmartTable takes full height */
+.sapFitToScreen .sapUiCompSmartTable .sapUiTable {
+    height: 100% !important;
+}
+
 /* ===== Page Layout ===== */
 .sapUiResponsivePadding--header,
 .sapUiResponsivePadding--content {

@@ -11,7 +11,8 @@
     <Page
         id="trainingsListPage"
         showNavButton="false"
-        class="sapUiResponsivePadding--header sapUiResponsivePadding--content">
+        enableScrolling="false"
+        class="sapUiResponsivePadding--header sapUiResponsivePadding--content sapFitToScreen">
 
         <!-- Page Header: Title + Role badge + My Assignments -->
         <customHeader>

@@ -180,8 +180,9 @@ sap.ui.define([
                 }
             });
 
-            // Count assignments by status
-            oModel.read("/TrainingAssignments", {
+            // Count assignments by status (use detected entity set name)
+            var sAssignEntitySet = this.getOwnerComponent().getAssignmentEntitySet();
+            oModel.read("/" + sAssignEntitySet, {
                 success: function (data) {
                     var results = data.results || [];
                     var assigned = 0, inProgress = 0, completed = 0;
@@ -250,6 +251,10 @@ sap.ui.define([
                 oTable.setAlternateRowColors(true);
                 oTable.setEnableColumnFreeze(true);
                 oTable.setEnableColumnReordering(true);
+
+                // Fit-to-screen: auto-fill available height like standard Fiori
+                oTable.setVisibleRowCountMode("Auto");
+                oTable.setMinAutoRowCount(5);
 
                 setTimeout(function () {
                     that._replaceUrlColumnsWithLinks(oTable);

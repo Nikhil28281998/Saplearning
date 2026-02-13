@@ -27,6 +27,10 @@ sap.ui.define([
             // Initialize router
             this.getRouter().initialize();
             
+            // Detect entity set names from OData $metadata (handles SEGW naming variations)
+            this._assignmentEntitySet = 'TrainingAssignments'; // default
+            this._detectEntitySets();
+            
             // Initialize UserContext service (S/4 authorization adapter) - non-blocking
             try {
                 this._userContext = new UserContext();
@@ -78,6 +82,58 @@ sap.ui.define([
                 }
             }
             return this._sContentDensityClass;
+        },
+
+        /**
+         * Detect entity set names from OData $metadata document.
+         * Handles SEGW naming variations (TrainingAssignment, TrainingAssignments,
+         * TrainingAssignmentSet, etc.)
+         */
+        _detectEntitySets: function() {
+            var that = this;
+            var oModel = this.getModel();
+            if (!oModel) { return; }
+
+            var fnResolve = function() {
+                try {
+                    var oMeta = oModel.getServiceMetadata();
+                    if (!oMeta) { return; }
+                    var aSchemas = oMeta.dataServices.schema || [];
+                    for (var si = 0; si < aSchemas.length; si++) {
+                        var aContainers = aSchemas[si].entityContainer || [];
+                        for (var ci = 0; ci < aContainers.length; ci++) {
+                            var aSets = aContainers[ci].entitySet || [];
+                            var aNames = [];
+                            for (var ei = 0; ei < aSets.length; ei++) {
+                                aNames.push(aSets[ei].name);
+                                if (aSets[ei].entityType &&
+                                    aSets[ei].entityType.indexOf('TrainingAssignment') >= 0) {
+                                    that._assignmentEntitySet = aSets[ei].name;
+                                }
+                            }
+                            Log.info('OData entity sets detected: ' + aNames.join(', '));
+                        }
+                    }
+                    Log.info('Assignment entity set resolved to: ' + that._assignmentEntitySet);
+                } catch (e) {
+                    Log.warning('Entity set detection failed: ' + e.message);
+                }
+            };
+
+            // Try immediately (metadata may already be loaded)
+            if (oModel.getServiceMetadata()) {
+                fnResolve();
+            } else if (oModel.attachMetadataLoaded) {
+                oModel.attachMetadataLoaded(fnResolve);
+            }
+        },
+
+        /**
+         * Get the resolved entity set name for TrainingAssignment.
+         * Can be called from controllers: this.getOwnerComponent().getAssignmentEntitySet()
+         */
+        getAssignmentEntitySet: function() {
+            return this._assignmentEntitySet || 'TrainingAssignments';
         },
 
         /**
@@ -534,9 +590,13 @@ sap.ui.define([
 
                         dlgModel.setProperty('/submitting', true);
 
+                        // Use entity set name detected from $metadata (handles SEGW naming)
+                        var sEntitySet = that._assignmentEntitySet || 'TrainingAssignments';
+                        Log.info('Creating assignment via /' + sEntitySet + ' payload: ' + JSON.stringify(payload));
+
                         // Ensure CSRF token is fetched first
                         oModel.refreshSecurityToken(function() {
-                            oModel.create('/TrainingAssignments', payload, {
+                            oModel.create('/' + sEntitySet, payload, {
                                 success: function() {
                                     that.navigateToTraining();
                                     that._assignDlg.close();
