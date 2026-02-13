@@ -36,39 +36,43 @@
                 expanded="true"
                 headerText="My Learning Progress"
                 class="sapUiSmallMarginBottom">
-                <HBox id="myProgressHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin">
-                    <VBox id="myAssignedBox" alignItems="Center" class="sapUiSmallMarginEnd">
+                <HBox id="myProgressHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin analyticsContainer">
+                    <VBox id="myAssignedBox" alignItems="Center" class="analyticsCard analyticsCardOrange">
+                        <core:Icon id="myAssignedIcon" src="sap-icon://pending" size="1.5rem" color="#e76500" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="myAssignedCount"
                             number="{assignAnalytics>/assigned}"
-                            unit="Pending"
-                            state="Warning" />
-                        <Text id="myAssignedLabel" text="To Start" class="sapUiTinyMarginTop" />
+                            state="Warning"
+                            class="analyticsNumber" />
+                        <Text id="myAssignedLabel" text="To Start" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="myInProgressBox" alignItems="Center" class="sapUiSmallMarginEnd">
+                    <VBox id="myInProgressBox" alignItems="Center" class="analyticsCard analyticsCardTeal">
+                        <core:Icon id="myInProgressIcon" src="sap-icon://activity-2" size="1.5rem" color="#0a6ed1" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="myInProgressCount"
                             number="{assignAnalytics>/inProgress}"
-                            unit="Learning"
-                            state="Warning" />
-                        <Text id="myInProgressLabel" text="In Progress" class="sapUiTinyMarginTop" />
+                            state="Information"
+                            class="analyticsNumber" />
+                        <Text id="myInProgressLabel" text="In Progress" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="myCompletedBox" alignItems="Center" class="sapUiSmallMarginEnd">
+                    <VBox id="myCompletedBox" alignItems="Center" class="analyticsCard analyticsCardGreen">
+                        <core:Icon id="myCompletedIcon" src="sap-icon://accept" size="1.5rem" color="#107e3e" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="myCompletedCount"
                             number="{assignAnalytics>/completed}"
-                            unit="Done"
-                            state="Success" />
-                        <Text id="myCompletedLabel" text="Completed" class="sapUiTinyMarginTop" />
+                            state="Success"
+                            class="analyticsNumber" />
+                        <Text id="myCompletedLabel" text="Completed" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="myProgressBox" alignItems="Center">
+                    <VBox id="myProgressBox" alignItems="Center" class="analyticsCard analyticsCardPurple">
+                        <core:Icon id="myProgressIcon" src="sap-icon://target-group" size="1.5rem" color="#6c32a9" class="sapUiTinyMarginBottom" />
                         <ProgressIndicator
                             id="myProgress"
                             percentValue="{assignAnalytics>/completionPercent}"
                             displayValue="{assignAnalytics>/completionPercent}%"
                             state="{= ${assignAnalytics>/completionPercent} >= 80 ? 'Success' : ${assignAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Error' }"
-                            width="150px" />
-                        <Text id="myProgressLabel" text="My Progress" class="sapUiTinyMarginTop" />
+                            width="120px" />
+                        <Text id="myProgressLabel" text="My Progress" class="analyticsLabel" />
                     </VBox>
                 </HBox>
             </Panel>

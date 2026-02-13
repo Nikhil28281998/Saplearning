@@ -52,15 +52,13 @@
                             <PropertyValue Property="Label" String="Last Updated"/>
                             <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/Low"/>
                         </Record>
-                        <Record Type="UI.DataFieldWithUrl">
-                            <PropertyValue Property="Value" String="Open Link"/>
-                            <PropertyValue Property="Url" Path="Url"/>
+                        <Record Type="UI.DataField">
+                            <PropertyValue Property="Value" Path="Url"/>
                             <PropertyValue Property="Label" String="Training Link"/>
                             <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/Medium"/>
                         </Record>
-                        <Record Type="UI.DataFieldWithUrl">
-                            <PropertyValue Property="Value" String="SAP Help"/>
-                            <PropertyValue Property="Url" Path="SapHelpLink"/>
+                        <Record Type="UI.DataField">
+                            <PropertyValue Property="Value" Path="SapHelpLink"/>
                             <PropertyValue Property="Label" String="SAP Help"/>
                             <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/Low"/>
                         </Record>
@@ -123,14 +121,12 @@
                                     <PropertyValue Property="Value" Path="LastUpdated"/>
                                     <PropertyValue Property="Label" String="Last Updated"/>
                                 </Record>
-                                <Record Type="UI.DataFieldWithUrl">
-                                    <PropertyValue Property="Value" Path="Title"/>
-                                    <PropertyValue Property="Url" Path="Url"/>
+                                <Record Type="UI.DataField">
+                                    <PropertyValue Property="Value" Path="Url"/>
                                     <PropertyValue Property="Label" String="Primary Link"/>
                                 </Record>
-                                <Record Type="UI.DataFieldWithUrl">
-                                    <PropertyValue Property="Value" String="Open SAP Help"/>
-                                    <PropertyValue Property="Url" Path="SapHelpLink"/>
+                                <Record Type="UI.DataField">
+                                    <PropertyValue Property="Value" Path="SapHelpLink"/>
                                     <PropertyValue Property="Label" String="SAP Help"/>
                                 </Record>
                             </Collection>

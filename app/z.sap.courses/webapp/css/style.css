@@ -165,3 +165,92 @@
     color: #0854a0;
     text-decoration: underline;
 }
+
+/* ===== Chart Cards - Analytics 2026 ===== */
+.chartCard {
+    min-width: 240px;
+    max-width: 400px;
+    flex: 1;
+}
+
+.chartTitle {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #354a5f;
+}
+
+.chartLegendText {
+    font-size: 0.6875rem;
+    color: #556b82;
+}
+
+.chartLegendRow {
+    gap: 0.5rem;
+}
+
+/* RadialMicroChart sizing */
+.sapSuiteRMC {
+    margin: 0.25rem 0;
+}
+
+/* ComparisonMicroChart styling */
+.sapSuiteCpMC {
+    margin-top: 0.25rem;
+}
+
+/* StackedBarMicroChart sizing */
+.sapSuiteSBMC {
+    margin: 0.25rem 0;
+    min-width: 180px;
+}
+
+/* ===== GridTable (sap.ui.table) - 2026 Polish ===== */
+.sapUiTable {
+    border-radius: 4px;
+}
+
+.sapUiTableHdr {
+    font-weight: 600;
+}
+
+/* Column header menus */
+.sapUiTableCol {
+    font-weight: 600;
+}
+
+/* Alternate row colors */
+.sapUiTableRowAlternate > td {
+    background-color: #fafbfc !important;
+}
+
+/* Selected row highlight */
+.sapUiTableRowSel > td {
+    background-color: #e8f0fe !important;
+}
+
+/* ===== Empty State ===== */
+.sapUiTableCtrlEmpty {
+    text-align: center;
+    padding: 2rem;
+    color: #556b82;
+    font-style: italic;
+}
+
+/* ===== 2026 Typography & Spacing ===== */
+.sapMTitle {
+    letter-spacing: -0.01em;
+}
+
+.sapMObjectNumber .sapMObjectNumberText {
+    font-feature-settings: "tnum";
+}
+
+/* Toolbar button spacing */
+.sapMTBStandard .sapMBtn {
+    margin-left: 0.25rem;
+}
+
+/* Panel expand/collapse smooth */
+.sapMPanel .sapMPanelContent {
+    transition: max-height 0.3s ease;
+}

@@ -4,7 +4,8 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns:core="sap.ui.core"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
-    xmlns:smartTable="sap.ui.comp.smarttable">
+    xmlns:smartTable="sap.ui.comp.smarttable"
+    xmlns:mc="sap.suite.ui.microchart">
 
     <Page
         id="trainingsListPage"
@@ -87,13 +88,51 @@
                     <!-- Completion Rate Card -->
                     <VBox id="completionRateBox" alignItems="Center" class="analyticsCard analyticsCardPurple">
                         <core:Icon id="completionIcon" src="sap-icon://target-group" size="1.5rem" color="#6c32a9" class="sapUiTinyMarginBottom" />
-                        <ProgressIndicator
-                            id="completionProgress"
-                            percentValue="{analyticsModel>/completionPercent}"
-                            displayValue="{analyticsModel>/completionPercent}%"
-                            state="{= ${analyticsModel>/completionPercent} >= 80 ? 'Success' : ${analyticsModel>/completionPercent} >= 50 ? 'Warning' : 'Error' }"
-                            width="120px" />
+                        <mc:RadialMicroChart
+                            id="completionRadial"
+                            percentage="{analyticsModel>/completionPercent}"
+                            valueColor="{= ${analyticsModel>/completionPercent} >= 80 ? 'Good' : ${analyticsModel>/completionPercent} >= 50 ? 'Critical' : 'Error' }"
+                            size="S" />
                         <Text id="completionRateLabel" text="Completion Rate" class="analyticsLabel" />
+                    </VBox>
+                </HBox>
+                <!-- Charts Row - Status + Module Breakdown (Manager/Admin Analytics) -->
+                <HBox id="chartsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin">
+                    <!-- Status Distribution Chart -->
+                    <VBox id="statusChartBox" class="analyticsCard analyticsCardBlue chartCard">
+                        <HBox id="statusChartHeader" alignItems="Center" class="sapUiTinyMarginBottom">
+                            <core:Icon id="statusChartIcon" src="sap-icon://horizontal-bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
+                            <Text id="statusChartTitle" text="Status Distribution" class="chartTitle" />
+                        </HBox>
+                        <mc:StackedBarMicroChart id="statusStackedBar" size="M">
+                            <mc:bars>
+                                <mc:StackedBarMicroChartBar id="statusBarAssigned" value="{analyticsModel>/assigned}" valueColor="Critical" displayValue="{analyticsModel>/assigned}" />
+                                <mc:StackedBarMicroChartBar id="statusBarInProgress" value="{analyticsModel>/inProgress}" valueColor="Neutral" displayValue="{analyticsModel>/inProgress}" />
+                                <mc:StackedBarMicroChartBar id="statusBarCompleted" value="{analyticsModel>/completed}" valueColor="Good" displayValue="{analyticsModel>/completed}" />
+                            </mc:bars>
+                        </mc:StackedBarMicroChart>
+                        <HBox id="statusLegendBox" justifyContent="SpaceBetween" class="sapUiTinyMarginTop chartLegendRow">
+                            <HBox id="legendAssignedBox" alignItems="Center">
+                                <core:Icon id="legendDotAssigned" src="sap-icon://circle-task-2" size="0.625rem" color="#bb0000" class="sapUiTinyMarginEnd" />
+                                <Text id="legendAssigned" text="Assigned" class="chartLegendText" />
+                            </HBox>
+                            <HBox id="legendInProgressBox" alignItems="Center">
+                                <core:Icon id="legendDotInProgress" src="sap-icon://circle-task-2" size="0.625rem" color="#5b738b" class="sapUiTinyMarginEnd" />
+                                <Text id="legendInProgress" text="In Progress" class="chartLegendText" />
+                            </HBox>
+                            <HBox id="legendCompletedBox" alignItems="Center">
+                                <core:Icon id="legendDotCompleted" src="sap-icon://circle-task-2" size="0.625rem" color="#107e3e" class="sapUiTinyMarginEnd" />
+                                <Text id="legendCompleted" text="Completed" class="chartLegendText" />
+                            </HBox>
+                        </HBox>
+                    </VBox>
+                    <!-- Module Distribution Chart (built by controller) -->
+                    <VBox id="moduleChartBox" class="analyticsCard analyticsCardTeal chartCard">
+                        <HBox id="moduleChartHeader" alignItems="Center" class="sapUiTinyMarginBottom">
+                            <core:Icon id="moduleChartIcon" src="sap-icon://bar-chart" size="1rem" color="#0a6ed1" class="sapUiTinyMarginEnd" />
+                            <Text id="moduleChartTitle" text="Top Modules" class="chartTitle" />
+                        </HBox>
+                        <VBox id="moduleChartContainer" />
                     </VBox>
                 </HBox>
             </Panel>
@@ -142,7 +181,7 @@
                 id="smartTable"
                 entitySet="Trainings"
                 smartFilterId="smartFilterBar"
-                tableType="ResponsiveTable"
+                tableType="Table"
                 header="Trainings"
                 showRowCount="true"
                 enableAutoBinding="true"
@@ -151,8 +190,6 @@
                 useVariantManagement="true"
                 useTablePersonalisation="true"
                 persistencyKey="TrainingsSmartTable"
-                demandPopin="true"
-                enableAutoColumnWidth="true"
                 initialise="onSmartTableInit"
                 beforeRebindTable="onBeforeRebindTable">
 
@@ -160,6 +197,11 @@
                 <smartTable:customToolbar>
                     <OverflowToolbar id="tableToolbar">
                         <ToolbarSpacer id="toolbarSpacer" />
+                        <Button
+                            id="detailsButton"
+                            icon="sap-icon://detail-view"
+                            text="View Details"
+                            press="onViewDetails" />
                         <Button
                             id="assignButton"
                             icon="sap-icon://add"
