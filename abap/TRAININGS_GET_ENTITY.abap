@@ -1,13 +1,6 @@
-*&---------------------------------------------------------------------*
-*& Method:  TRAININGS_GET_ENTITY
-*& Purpose: Retrieves a single training record by its ID key.
-*&          Called when the Fiori app navigates to a training detail
-*&          page, e.g. GET /Trainings('uuid-here'). Reads the key
-*&          from the URI, fetches from ZCOURSES, maps to OData entity.
-*& Class:   ZCL_ZCOURSES_DPC_EXT  (Redefine in SE24)
-*&---------------------------------------------------------------------*
-*& REVIEWED BY SAP EXPERT TEAM  |  2026-02-13  |  Classic ABAP Syntax
-*&---------------------------------------------------------------------*
+*& Method: TRAININGS_GET_ENTITY
+*& Gets a single training record by ID key
+*& Class: ZCL_ZCOURSES_DPC_EXT (Redefine in SE24)
 METHOD trainings_get_entity.
 
 * -- Local variables (explicit - no inline DATA) ----------------------

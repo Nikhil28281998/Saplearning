@@ -1,0 +1,66 @@
+{
+	"name": "sap-learning-courses",
+	"version": "1.0.0",
+	"description": "SAP Learning Courses Platform - S4HANA On-Premise",
+	"repository": "https://github.com/Nikhil28281998/Saplearning",
+	"license": "UNLICENSED",
+	"dependencies": {
+		"@sap/cds": "^8",
+		"cors": "^2.8.6",
+		"express": "^4",
+		"express-rate-limit": "^7.5.1",
+		"sqlite3": "^5.1.7"
+	},
+	"devDependencies": {
+		"@sap/cds-dk": "^8"
+	},
+	"scripts": {
+		"start": "cds-serve",
+		"watch": "cds watch",
+		"build": "cds build --production"
+	},
+	"cds": {
+		"requires": {
+			"db": {
+				"kind": "sql",
+				"[production]": {
+					"kind": "hana",
+					"credentials": {
+						"schema": "${env.HDI_SCHEMA}"
+					}
+				}
+			},
+			"auth": {
+				"[production]": {
+					"kind": "dummy-auth"
+				},
+				"[development]": {
+					"kind": "dummy",
+					"users": {
+						"admin@test.com": {
+							"password": "admin",
+							"roles": ["Z_COURSES_ADMIN"],
+							"attr": { "sapUsername": "ADMIN001" }
+						},
+						"manager@test.com": {
+							"password": "manager",
+							"roles": ["Z_COURSES_MANAGER"],
+							"attr": { "sapUsername": "MGR001" }
+						},
+						"user@test.com": {
+							"password": "user",
+							"roles": ["Z_COURSES_USER"],
+							"attr": { "sapUsername": "USER001" }
+						}
+					}
+				}
+			}
+		},
+		"features": {
+			"serve_on_root": false
+		}
+	},
+	"sapux": [
+		"app/z.sap.courses"
+	]
+}

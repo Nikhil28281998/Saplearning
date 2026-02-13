@@ -1,13 +1,6 @@
-*&---------------------------------------------------------------------*
-*& Method:  TRAININGS_DELETE_ENTITY
-*& Purpose: Deletes a training record from ZCOURSES by its ID key.
-*&          Called when user clicks "Delete" action in the Fiori app.
-*&          Reads the key from the OData URI, verifies the record
-*&          exists, then removes it from the database table.
-*& Class:   ZCL_ZCOURSES_DPC_EXT  (Redefine in SE24)
-*&---------------------------------------------------------------------*
-*& REVIEWED BY SAP EXPERT TEAM  |  2026-02-13  |  Classic ABAP Syntax
-*&---------------------------------------------------------------------*
+*& Method: TRAININGS_DELETE_ENTITY
+*& Deletes a training record from ZCOURSES by ID key
+*& Class: ZCL_ZCOURSES_DPC_EXT (Redefine in SE24)
 METHOD trainings_delete_entity.
 
 * -- Local variables (explicit - no inline DATA) ----------------------

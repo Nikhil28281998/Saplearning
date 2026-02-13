@@ -1,14 +1,6 @@
-*&---------------------------------------------------------------------*
-*& Method:  TRAININGS_CREATE_ENTITY
-*& Purpose: Creates a new training record in ZCOURSES table.
-*&          Called when user clicks "Add Training" in the Fiori app
-*&          and submits the form. Receives training data via OData POST,
-*&          validates required fields, generates a UUID key, and
-*&          inserts into custom table ZCOURSES.
-*& Class:   ZCL_ZCOURSES_DPC_EXT  (Redefine in SE24)
-*&---------------------------------------------------------------------*
-*& REVIEWED BY SAP EXPERT TEAM  |  2026-02-13  |  Classic ABAP Syntax
-*&---------------------------------------------------------------------*
+*& Method: TRAININGS_CREATE_ENTITY
+*& Creates a new training record in ZCOURSES via OData POST
+*& Class: ZCL_ZCOURSES_DPC_EXT (Redefine in SE24)
 METHOD trainings_create_entity.
 
 * -- Local variables --------------------------------------------------

@@ -1,0 +1,18 @@
+# Database artifacts
+*.db
+*.sqlite
+*.log
+
+# HDI deployment artifacts
+src/gen/
+.env
+
+# HANA specific
+undeploy.json
+
+# Local development
+.hdiconfig
+
+# Sensitive data
+*credentials*
+*password*

@@ -1,13 +1,6 @@
-*&---------------------------------------------------------------------*
-*& Method:  TRAININGS_UPDATE_ENTITY
-*& Purpose: Updates an existing training record in ZCOURSES.
-*&          Called when user edits a training in the Fiori app and
-*&          submits. Uses PATCH/PUT semantics - only non-initial
-*&          fields are overwritten so partial updates work.
-*& Class:   ZCL_ZCOURSES_DPC_EXT  (Redefine in SE24)
-*&---------------------------------------------------------------------*
-*& REVIEWED BY SAP EXPERT TEAM  |  2026-02-13  |  Classic ABAP Syntax
-*&---------------------------------------------------------------------*
+*& Method: TRAININGS_UPDATE_ENTITY
+*& Updates an existing training record in ZCOURSES (partial update)
+*& Class: ZCL_ZCOURSES_DPC_EXT (Redefine in SE24)
 METHOD trainings_update_entity.
 
 * -- Local variables (explicit - no inline DATA) ----------------------

@@ -1,11 +1,5 @@
-*&---------------------------------------------------------------------*
-*& Report:  ZLOAD_TRAINING_DATA
-*& Purpose: Bulk-loads 52 SAP training course records into custom
-*&          table ZCOURSES. Run once in SE38 to seed initial data.
-*&          Safe to re-run: deletes existing data first.
-*&---------------------------------------------------------------------*
-*& REVIEWED BY SAP EXPERT TEAM  |  2026-02-13  |  Classic ABAP Syntax
-*&---------------------------------------------------------------------*
+*& Report: ZLOAD_TRAINING_DATA
+*& Bulk-loads 52 training records into ZCOURSES. Safe to re-run.
 REPORT zload_training_data.
 
 * Note: ty_training TYPE removed (was dead code - never used)

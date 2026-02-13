@@ -1,12 +1,6 @@
-*&---------------------------------------------------------------------*
-*& Method:  TRAININGS_GET_ENTITYSET
-*& Purpose: Returns all training records from ZCOURSES table with
-*&          optional filtering by Role and SapModule, plus $top/$skip
-*&          pagination. Called when the Fiori SmartTable loads data.
-*& Class:   ZCL_ZCOURSES_DPC_EXT  (Redefine in SE24)
-*&---------------------------------------------------------------------*
-*& REVIEWED BY SAP EXPERT TEAM  |  2026-02-13  |  Classic ABAP Syntax
-*&---------------------------------------------------------------------*
+*& Method: TRAININGS_GET_ENTITYSET
+*& Returns all trainings with optional Role/Module filter + pagination
+*& Class: ZCL_ZCOURSES_DPC_EXT (Redefine in SE24)
 METHOD trainings_get_entityset.
 
 * -- Local variables (explicit - no inline DATA) ----------------------
