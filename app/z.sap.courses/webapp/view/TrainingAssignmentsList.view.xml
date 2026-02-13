@@ -13,13 +13,14 @@
         class="sapUiResponsivePadding--header sapUiResponsivePadding--content">
 
         <customHeader>
-            <Bar>
+            <Bar id="assignHeaderBar">
                 <contentLeft>
-                    <Button icon="sap-icon://nav-back" press="onNavBack" type="Back" />
-                    <Title text="Training Assignments" level="H2" />
+                    <Button id="navBackBtn" icon="sap-icon://nav-back" press="onNavBack" type="Back" />
+                    <Title id="assignPageTitle" text="Training Assignments" level="H2" />
                 </contentLeft>
                 <contentRight>
                     <Button
+                        id="backToCatalogBtn"
                         text="Back to Catalog"
                         icon="sap-icon://learning-assistant"
                         press="onNavBack" />
@@ -35,39 +36,39 @@
                 expanded="true"
                 headerText="My Learning Progress"
                 class="sapUiSmallMarginBottom">
-                <HBox justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin">
-                    <VBox alignItems="Center" class="sapUiSmallMarginEnd">
+                <HBox id="myProgressHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin">
+                    <VBox id="myAssignedBox" alignItems="Center" class="sapUiSmallMarginEnd">
                         <ObjectNumber
                             id="myAssignedCount"
                             number="{assignAnalytics>/assigned}"
                             unit="Pending"
                             state="Warning" />
-                        <Text text="To Start" class="sapUiTinyMarginTop" />
+                        <Text id="myAssignedLabel" text="To Start" class="sapUiTinyMarginTop" />
                     </VBox>
-                    <VBox alignItems="Center" class="sapUiSmallMarginEnd">
+                    <VBox id="myInProgressBox" alignItems="Center" class="sapUiSmallMarginEnd">
                         <ObjectNumber
                             id="myInProgressCount"
                             number="{assignAnalytics>/inProgress}"
                             unit="Learning"
                             state="Warning" />
-                        <Text text="In Progress" class="sapUiTinyMarginTop" />
+                        <Text id="myInProgressLabel" text="In Progress" class="sapUiTinyMarginTop" />
                     </VBox>
-                    <VBox alignItems="Center" class="sapUiSmallMarginEnd">
+                    <VBox id="myCompletedBox" alignItems="Center" class="sapUiSmallMarginEnd">
                         <ObjectNumber
                             id="myCompletedCount"
                             number="{assignAnalytics>/completed}"
                             unit="Done"
                             state="Success" />
-                        <Text text="Completed" class="sapUiTinyMarginTop" />
+                        <Text id="myCompletedLabel" text="Completed" class="sapUiTinyMarginTop" />
                     </VBox>
-                    <VBox alignItems="Center">
+                    <VBox id="myProgressBox" alignItems="Center">
                         <ProgressIndicator
                             id="myProgress"
                             percentValue="{assignAnalytics>/completionPercent}"
                             displayValue="{assignAnalytics>/completionPercent}%"
                             state="{= ${assignAnalytics>/completionPercent} >= 80 ? 'Success' : ${assignAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Error' }"
                             width="150px" />
-                        <Text text="My Progress" class="sapUiTinyMarginTop" />
+                        <Text id="myProgressLabel" text="My Progress" class="sapUiTinyMarginTop" />
                     </VBox>
                 </HBox>
             </Panel>
@@ -92,7 +93,7 @@
                 showRowCount="true"
                 enableAutoBinding="true"
                 showFullScreenButton="true"
-                useExportToExcel="true"
+                enableExport="true"
                 useVariantManagement="true"
                 useTablePersonalisation="true"
                 persistencyKey="AssignmentsSmartTable"
@@ -101,9 +102,10 @@
                 initialise="onSmartTableInit">
 
                 <smartTable:customToolbar>
-                    <OverflowToolbar>
-                        <ToolbarSpacer />
+                    <OverflowToolbar id="assignTableToolbar">
+                        <ToolbarSpacer id="assignToolbarSpacer" />
                         <Button
+                            id="assignRefreshBtn"
                             icon="sap-icon://refresh"
                             tooltip="Refresh Data"
                             press="onRefresh" />

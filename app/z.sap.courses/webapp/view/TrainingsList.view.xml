@@ -13,18 +13,20 @@
 
         <!-- Page Header: Title + Role badge + My Assignments -->
         <customHeader>
-            <Bar>
+            <Bar id="headerBar">
                 <contentLeft>
-                    <Title text="SAP Learning - Training Catalog" level="H2" />
+                    <Title id="pageTitle" text="SAP Learning - Training Catalog" level="H2" />
                 </contentLeft>
                 <contentRight>
-                    <HBox alignItems="Center" class="sapUiSmallMarginEnd">
-                        <core:Icon src="sap-icon://role" class="sapUiTinyMarginEnd" />
+                    <HBox id="roleBox" alignItems="Center" class="sapUiSmallMarginEnd">
+                        <core:Icon id="roleIcon" src="sap-icon://role" class="sapUiTinyMarginEnd" />
                         <ObjectStatus
+                            id="roleStatus"
                             text="{user>/role}"
                             state="{= ${user>/role} === 'Admin' ? 'Success' : ${user>/role} === 'Manager' ? 'Warning' : 'Information' }" />
                     </HBox>
                     <Button
+                        id="myAssignmentsBtn"
                         text="My Assignments"
                         icon="sap-icon://task"
                         press="onViewAssignments"
@@ -41,47 +43,47 @@
                 expanded="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }"
                 headerText="Training Analytics"
                 class="sapUiSmallMarginBottom">
-                <HBox justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin">
-                    <VBox alignItems="Center" class="sapUiSmallMarginEnd">
+                <HBox id="analyticsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin">
+                    <VBox id="totalBox" alignItems="Center" class="sapUiSmallMarginEnd">
                         <ObjectNumber
                             id="totalTrainingsCount"
                             number="{analyticsModel>/totalTrainings}"
                             unit="Trainings"
                             state="Information" />
-                        <Text text="Total Catalog" class="sapUiTinyMarginTop" />
+                        <Text id="totalLabel" text="Total Catalog" class="sapUiTinyMarginTop" />
                     </VBox>
-                    <VBox alignItems="Center" class="sapUiSmallMarginEnd">
+                    <VBox id="assignedBox" alignItems="Center" class="sapUiSmallMarginEnd">
                         <ObjectNumber
                             id="assignedCount"
                             number="{analyticsModel>/assigned}"
                             unit="Assigned"
                             state="Warning" />
-                        <Text text="Pending" class="sapUiTinyMarginTop" />
+                        <Text id="assignedLabel" text="Pending" class="sapUiTinyMarginTop" />
                     </VBox>
-                    <VBox alignItems="Center" class="sapUiSmallMarginEnd">
+                    <VBox id="inProgressBox" alignItems="Center" class="sapUiSmallMarginEnd">
                         <ObjectNumber
                             id="inProgressCount"
                             number="{analyticsModel>/inProgress}"
                             unit="In Progress"
                             state="Warning" />
-                        <Text text="Learning" class="sapUiTinyMarginTop" />
+                        <Text id="inProgressLabel" text="Learning" class="sapUiTinyMarginTop" />
                     </VBox>
-                    <VBox alignItems="Center" class="sapUiSmallMarginEnd">
+                    <VBox id="completedBox" alignItems="Center" class="sapUiSmallMarginEnd">
                         <ObjectNumber
                             id="completedCount"
                             number="{analyticsModel>/completed}"
                             unit="Completed"
                             state="Success" />
-                        <Text text="Done" class="sapUiTinyMarginTop" />
+                        <Text id="completedLabel" text="Done" class="sapUiTinyMarginTop" />
                     </VBox>
-                    <VBox alignItems="Center">
+                    <VBox id="completionRateBox" alignItems="Center">
                         <ProgressIndicator
                             id="completionProgress"
                             percentValue="{analyticsModel>/completionPercent}"
                             displayValue="{analyticsModel>/completionPercent}%"
                             state="{= ${analyticsModel>/completionPercent} >= 80 ? 'Success' : ${analyticsModel>/completionPercent} >= 50 ? 'Warning' : 'Error' }"
                             width="150px" />
-                        <Text text="Completion Rate" class="sapUiTinyMarginTop" />
+                        <Text id="completionRateLabel" text="Completion Rate" class="sapUiTinyMarginTop" />
                     </VBox>
                 </HBox>
             </Panel>
@@ -108,7 +110,7 @@
                 showRowCount="true"
                 enableAutoBinding="true"
                 showFullScreenButton="true"
-                useExportToExcel="true"
+                enableExport="true"
                 useVariantManagement="true"
                 useTablePersonalisation="true"
                 persistencyKey="TrainingsSmartTable"
@@ -119,8 +121,8 @@
 
                 <!-- Custom buttons added to SmartTable toolbar alongside auto-generated ones -->
                 <smartTable:customToolbar>
-                    <OverflowToolbar>
-                        <ToolbarSpacer />
+                    <OverflowToolbar id="tableToolbar">
+                        <ToolbarSpacer id="toolbarSpacer" />
                         <Button
                             id="assignButton"
                             icon="sap-icon://add"
@@ -129,6 +131,7 @@
                             press="onAssignTraining"
                             visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
                         <Button
+                            id="refreshButton"
                             icon="sap-icon://refresh"
                             tooltip="Refresh Data"
                             press="onRefresh" />

@@ -2,9 +2,8 @@ sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/m/MessageToast",
     "sap/m/MessageBox",
-    "sap/ui/model/json/JSONModel",
-    "sap/ui/core/library"
-], function (Controller, MessageToast, MessageBox, JSONModel, coreLibrary) {
+    "sap/ui/model/json/JSONModel"
+], function (Controller, MessageToast, MessageBox, JSONModel) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingsList", {
