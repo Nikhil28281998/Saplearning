@@ -2,143 +2,68 @@
     controllerName="z.sap.courses.controller.TrainingAssignmentsList"
     xmlns="sap.m"
     xmlns:mvc="sap.ui.core.mvc"
-    xmlns:core="sap.ui.core">
+    xmlns:core="sap.ui.core"
+    xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
+    xmlns:smartTable="sap.ui.comp.smarttable">
 
     <Page
         id="assignmentsListPage"
         showNavButton="true"
         navButtonPress="onNavBack"
-        class="sapUiResponsivePadding--header sapUiResponsivePadding--content sapUiResponsivePadding--footer">
+        class="sapUiResponsivePadding--header sapUiResponsivePadding--content">
 
-        <!-- Header Bar with Search -->
         <customHeader>
             <Bar>
                 <contentLeft>
-                    <Button icon="sap-icon://nav-back" press="onNavBack" tooltip="Back" type="Back" />
+                    <Button icon="sap-icon://nav-back" press="onNavBack" type="Back" />
                     <Title text="Training Assignments" level="H2" />
                 </contentLeft>
-                <contentMiddle>
-                    <SearchField
-                        id="assignSearchField"
-                        placeholder="Search assignments..."
-                        width="100%"
-                        search="onSearch"
-                        liveChange="onSearchLive" />
-                </contentMiddle>
                 <contentRight>
                     <Button
-                        icon="sap-icon://refresh"
-                        tooltip="Refresh Data"
-                        press="onRefresh" />
+                        text="Back to Catalog"
+                        icon="sap-icon://learning-assistant"
+                        press="onNavBack" />
                 </contentRight>
             </Bar>
         </customHeader>
 
         <content>
-            <VBox>
-                <!-- Status Quick Filter Tabs -->
-                <IconTabBar
-                    id="statusTabBar"
-                    select="onStatusFilterSelect"
-                    selectedKey="All"
-                    class="sapUiSmallMarginTop sapUiNoMarginBottom"
-                    headerMode="Inline">
-                    <items>
-                        <IconTabFilter key="All" text="All" count="{assignFilterModel>/countAll}" />
-                        <IconTabSeparator />
-                        <IconTabFilter key="Assigned" icon="sap-icon://task" iconColor="Neutral" text="Assigned" count="{assignFilterModel>/countAssigned}" />
-                        <IconTabFilter key="In Progress" icon="sap-icon://pending" iconColor="Critical" text="In Progress" count="{assignFilterModel>/countInProgress}" />
-                        <IconTabFilter key="Completed" icon="sap-icon://accept" iconColor="Positive" text="Completed" count="{assignFilterModel>/countCompleted}" />
-                        <IconTabFilter key="Overdue" icon="sap-icon://alert" iconColor="Negative" text="Overdue" count="{assignFilterModel>/countOverdue}" />
-                    </items>
-                </IconTabBar>
+            <!-- SmartFilterBar for Assignments -->
+            <smartFilterBar:SmartFilterBar
+                id="assignSmartFilterBar"
+                entitySet="TrainingAssignments"
+                persistencyKey="AssignmentsSmartFilter"
+                enableBasicSearch="true"
+                showClearOnFB="true" />
 
-                <!-- Assignments Table -->
-                <Table
-                    id="assignmentsTable"
-                    inset="false"
-                    items="{
-                        path: '/TrainingAssignments',
-                        sorter: { path: 'DueDate', descending: false }
-                    }"
-                    growing="true"
-                    growingThreshold="20"
-                    growingScrollToLoad="true"
-                    sticky="ColumnHeaders,HeaderToolbar"
-                    alternateRowColors="true"
-                    mode="SingleSelectMaster"
-                    itemPress="onItemPress">
+            <!-- SmartTable for Assignments -->
+            <smartTable:SmartTable
+                id="assignSmartTable"
+                entitySet="TrainingAssignments"
+                smartFilterId="assignSmartFilterBar"
+                tableType="ResponsiveTable"
+                header="Assignments"
+                showRowCount="true"
+                enableAutoBinding="true"
+                showFullScreenButton="true"
+                useExportToExcel="true"
+                useVariantManagement="true"
+                useTablePersonalisation="true"
+                persistencyKey="AssignmentsSmartTable"
+                demandPopin="true"
+                enableAutoColumnWidth="true"
+                initialise="onSmartTableInit">
 
-                    <headerToolbar>
-                        <OverflowToolbar>
-                            <Title text="Assignments" level="H3" />
-                            <ToolbarSpacer />
-                            <Button
-                                icon="sap-icon://sort"
-                                tooltip="Sort"
-                                press="onSort" />
-                            <Button
-                                icon="sap-icon://group-2"
-                                tooltip="Group"
-                                press="onGroup" />
-                        </OverflowToolbar>
-                    </headerToolbar>
-
-                    <infoToolbar>
-                        <OverflowToolbar id="assignInfoToolbar" visible="false">
-                            <Label id="assignInfoLabel" text="" />
-                        </OverflowToolbar>
-                    </infoToolbar>
-
-                    <columns>
-                        <Column mergeDuplicates="false">
-                            <Text text="Training" />
-                        </Column>
-                        <Column width="10em" minScreenWidth="Small" demandPopin="true" popinDisplay="Inline">
-                            <Text text="User" />
-                        </Column>
-                        <Column width="7em" minScreenWidth="Small" demandPopin="true" popinDisplay="Inline" hAlign="Center">
-                            <Text text="Status" />
-                        </Column>
-                        <Column width="9em" minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline">
-                            <Text text="Due Date" />
-                        </Column>
-                        <Column width="9em" minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline">
-                            <Text text="Completed" />
-                        </Column>
-                    </columns>
-
-                    <items>
-                        <ColumnListItem type="Navigation">
-                            <cells>
-                                <ObjectIdentifier
-                                    title="{Title}"
-                                    text="Module: {SapModule}" />
-                                <VBox>
-                                    <Text text="{UserId}" class="sapUiTinyMarginBottom" />
-                                    <ObjectStatus text="{UserName}" inverted="false" />
-                                </VBox>
-                                <ObjectStatus
-                                    text="{Status}"
-                                    state="{= ${Status} === 'Completed' ? 'Success' : ${Status} === 'In Progress' ? 'Warning' : ${Status} === 'Overdue' ? 'Error' : 'Information' }"
-                                    icon="{= ${Status} === 'Completed' ? 'sap-icon://accept' : ${Status} === 'In Progress' ? 'sap-icon://pending' : ${Status} === 'Overdue' ? 'sap-icon://alert' : 'sap-icon://task' }" />
-                                <Text text="{path: 'DueDate', type: 'sap.ui.model.type.DateTime', formatOptions: {style: 'medium'}}" />
-                                <Text text="{path: 'CompletionDate', type: 'sap.ui.model.type.DateTime', formatOptions: {style: 'medium'}}" />
-                            </cells>
-                        </ColumnListItem>
-                    </items>
-                </Table>
-            </VBox>
+                <smartTable:customToolbar>
+                    <OverflowToolbar>
+                        <ToolbarSpacer />
+                        <Button
+                            icon="sap-icon://refresh"
+                            tooltip="Refresh Data"
+                            press="onRefresh" />
+                    </OverflowToolbar>
+                </smartTable:customToolbar>
+            </smartTable:SmartTable>
         </content>
-
-        <footer>
-            <OverflowToolbar>
-                <ToolbarSpacer />
-                <Button
-                    text="Back to Catalog"
-                    press="onNavBack"
-                    icon="sap-icon://learning-assistant" />
-            </OverflowToolbar>
-        </footer>
     </Page>
 </mvc:View>

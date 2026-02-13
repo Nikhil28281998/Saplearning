@@ -10,61 +10,69 @@
     </edmx:Reference>
     <edmx:DataServices>
         <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="z.sap.courses.annotations">
+
+            <!-- ========== Training Entity ========== -->
             <Annotations Target="ZCOURSES_SRV.Training">
+
+                <!-- SmartFilterBar: which fields appear as filter inputs (rectangles) -->
                 <Annotation Term="UI.SelectionFields">
                     <Collection>
+                        <PropertyPath>Title</PropertyPath>
                         <PropertyPath>Role</PropertyPath>
                         <PropertyPath>SapModule</PropertyPath>
-                        <PropertyPath>Title</PropertyPath>
+                        <PropertyPath>LastUpdated</PropertyPath>
                     </Collection>
                 </Annotation>
+
+                <!-- SmartTable: columns and their responsive importance -->
                 <Annotation Term="UI.LineItem">
                     <Collection>
-                        <Record Type="UI.DataFieldWithUrl">
+                        <Record Type="UI.DataField">
                             <PropertyValue Property="Value" Path="Title"/>
-                            <PropertyValue Property="Url" Path="Url"/>
                             <PropertyValue Property="Label" String="Title"/>
-                        </Record>
-                        <Record Type="UI.DataField">
-                            <PropertyValue Property="Value" Path="Description"/>
-                            <PropertyValue Property="Label" String="Description"/>
-                        </Record>
-                        <Record Type="UI.DataField">
-                            <PropertyValue Property="Value" Path="LastUpdated"/>
-                            <PropertyValue Property="Label" String="Last Updated"/>
-                        </Record>
-                        <Record Type="UI.DataField">
-                            <PropertyValue Property="Value" Path="SapModule"/>
-                            <PropertyValue Property="Label" String="Module"/>
+                            <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/High"/>
                         </Record>
                         <Record Type="UI.DataField">
                             <PropertyValue Property="Value" Path="Role"/>
                             <PropertyValue Property="Label" String="Role"/>
+                            <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/High"/>
+                        </Record>
+                        <Record Type="UI.DataField">
+                            <PropertyValue Property="Value" Path="SapModule"/>
+                            <PropertyValue Property="Label" String="Module"/>
+                            <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/High"/>
+                        </Record>
+                        <Record Type="UI.DataField">
+                            <PropertyValue Property="Value" Path="Description"/>
+                            <PropertyValue Property="Label" String="Description"/>
+                            <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/Medium"/>
+                        </Record>
+                        <Record Type="UI.DataField">
+                            <PropertyValue Property="Value" Path="LastUpdated"/>
+                            <PropertyValue Property="Label" String="Last Updated"/>
+                            <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/Low"/>
                         </Record>
                         <Record Type="UI.DataFieldWithUrl">
-                            <PropertyValue Property="Value" String="Open SAP Help"/>
+                            <PropertyValue Property="Value" String="Open Link"/>
+                            <PropertyValue Property="Url" Path="Url"/>
+                            <PropertyValue Property="Label" String="Training Link"/>
+                            <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/Medium"/>
+                        </Record>
+                        <Record Type="UI.DataFieldWithUrl">
+                            <PropertyValue Property="Value" String="SAP Help"/>
                             <PropertyValue Property="Url" Path="SapHelpLink"/>
                             <PropertyValue Property="Label" String="SAP Help"/>
-                        </Record>
-                        <Record Type="UI.DataFieldForIntentBasedNavigation">
-                            <PropertyValue Property="Label" String="My Assignments"/>
-                            <PropertyValue Property="SemanticObject" String="ZLearningMyTrainings"/>
-                            <PropertyValue Property="Action" String="display"/>
-                            <PropertyValue Property="RequiresContext" Bool="false"/>
-                        </Record>
-                        <Record Type="UI.DataFieldForIntentBasedNavigation">
-                            <PropertyValue Property="Label" String="User Management"/>
-                            <PropertyValue Property="SemanticObject" String="ZLearningUsers"/>
-                            <PropertyValue Property="Action" String="display"/>
-                            <PropertyValue Property="RequiresContext" Bool="false"/>
+                            <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/Low"/>
                         </Record>
                     </Collection>
                 </Annotation>
+
                 <Annotation Term="Capabilities.DeleteRestrictions">
                     <Record>
                         <PropertyValue Property="Deletable" Bool="true"/>
                     </Record>
                 </Annotation>
+
                 <Annotation Term="UI.HeaderInfo">
                     <Record>
                         <PropertyValue Property="TypeName" String="Training"/>
@@ -81,6 +89,7 @@
                         </PropertyValue>
                     </Record>
                 </Annotation>
+
                 <Annotation Term="UI.Facets">
                     <Collection>
                         <Record Type="UI.ReferenceFacet">
@@ -89,6 +98,7 @@
                         </Record>
                     </Collection>
                 </Annotation>
+
                 <Annotation Term="UI.FieldGroup" Qualifier="Main">
                     <Record>
                         <PropertyValue Property="Data">
@@ -128,6 +138,77 @@
                     </Record>
                 </Annotation>
             </Annotations>
+
+            <!-- ========== TrainingAssignment Entity ========== -->
+            <Annotations Target="ZCOURSES_SRV.TrainingAssignment">
+
+                <Annotation Term="UI.SelectionFields">
+                    <Collection>
+                        <PropertyPath>Status</PropertyPath>
+                        <PropertyPath>UserId</PropertyPath>
+                        <PropertyPath>Title</PropertyPath>
+                        <PropertyPath>SapModule</PropertyPath>
+                    </Collection>
+                </Annotation>
+
+                <Annotation Term="UI.LineItem">
+                    <Collection>
+                        <Record Type="UI.DataField">
+                            <PropertyValue Property="Value" Path="Title"/>
+                            <PropertyValue Property="Label" String="Training"/>
+                            <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/High"/>
+                        </Record>
+                        <Record Type="UI.DataField">
+                            <PropertyValue Property="Value" Path="SapModule"/>
+                            <PropertyValue Property="Label" String="Module"/>
+                            <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/High"/>
+                        </Record>
+                        <Record Type="UI.DataField">
+                            <PropertyValue Property="Value" Path="UserId"/>
+                            <PropertyValue Property="Label" String="User ID"/>
+                            <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/High"/>
+                        </Record>
+                        <Record Type="UI.DataField">
+                            <PropertyValue Property="Value" Path="UserName"/>
+                            <PropertyValue Property="Label" String="User Name"/>
+                            <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/Medium"/>
+                        </Record>
+                        <Record Type="UI.DataField">
+                            <PropertyValue Property="Value" Path="Status"/>
+                            <PropertyValue Property="Label" String="Status"/>
+                            <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/High"/>
+                        </Record>
+                        <Record Type="UI.DataField">
+                            <PropertyValue Property="Value" Path="DueDate"/>
+                            <PropertyValue Property="Label" String="Due Date"/>
+                            <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/Medium"/>
+                        </Record>
+                        <Record Type="UI.DataField">
+                            <PropertyValue Property="Value" Path="CompletionDate"/>
+                            <PropertyValue Property="Label" String="Completed"/>
+                            <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/Low"/>
+                        </Record>
+                    </Collection>
+                </Annotation>
+
+                <Annotation Term="UI.HeaderInfo">
+                    <Record>
+                        <PropertyValue Property="TypeName" String="Assignment"/>
+                        <PropertyValue Property="TypeNamePlural" String="Assignments"/>
+                        <PropertyValue Property="Title">
+                            <Record Type="UI.DataField">
+                                <PropertyValue Property="Value" Path="Title"/>
+                            </Record>
+                        </PropertyValue>
+                        <PropertyValue Property="Description">
+                            <Record Type="UI.DataField">
+                                <PropertyValue Property="Value" Path="Status"/>
+                            </Record>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
+            </Annotations>
+
         </Schema>
     </edmx:DataServices>
 </edmx:Edmx>

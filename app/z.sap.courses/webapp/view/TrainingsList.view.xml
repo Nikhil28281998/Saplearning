@@ -2,195 +2,86 @@
     controllerName="z.sap.courses.controller.TrainingsList"
     xmlns="sap.m"
     xmlns:mvc="sap.ui.core.mvc"
-    xmlns:core="sap.ui.core">
+    xmlns:core="sap.ui.core"
+    xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
+    xmlns:smartTable="sap.ui.comp.smarttable">
 
     <Page
         id="trainingsListPage"
         showNavButton="false"
-        class="sapUiResponsivePadding--header sapUiResponsivePadding--content sapUiResponsivePadding--footer">
+        class="sapUiResponsivePadding--header sapUiResponsivePadding--content">
 
-        <!-- Header Bar with Search -->
+        <!-- Page Header: Title + Role badge + My Assignments -->
         <customHeader>
             <Bar>
                 <contentLeft>
                     <Title text="SAP Learning - Training Catalog" level="H2" />
                 </contentLeft>
-                <contentMiddle>
-                    <SearchField
-                        id="searchField"
-                        placeholder="Search trainings..."
-                        width="100%"
-                        search="onSearch"
-                        liveChange="onSearchLive" />
-                </contentMiddle>
                 <contentRight>
+                    <HBox alignItems="Center" class="sapUiSmallMarginEnd">
+                        <core:Icon src="sap-icon://role" class="sapUiTinyMarginEnd" />
+                        <ObjectStatus
+                            text="{user>/role}"
+                            state="{= ${user>/role} === 'Admin' ? 'Success' : ${user>/role} === 'Manager' ? 'Warning' : 'Information' }" />
+                    </HBox>
                     <Button
-                        id="assignButton"
-                        icon="sap-icon://add"
-                        text="Assign Training"
-                        type="Emphasized"
-                        press="onAssignTraining"
-                        visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
-                    <Button
-                        icon="sap-icon://refresh"
-                        tooltip="Refresh Data"
-                        press="onRefresh" />
+                        text="My Assignments"
+                        icon="sap-icon://task"
+                        press="onViewAssignments"
+                        type="Emphasized" />
                 </contentRight>
             </Bar>
         </customHeader>
 
         <content>
-            <VBox>
-                <!-- Role Info Strip -->
-                <HBox class="sapUiSmallMarginStart sapUiSmallMarginTop" alignItems="Center">
-                    <core:Icon src="sap-icon://role" class="sapUiTinyMarginEnd" />
-                    <ObjectStatus
-                        text="Role: {user>/role}"
-                        state="{= ${user>/role} === 'Admin' ? 'Success' : ${user>/role} === 'Manager' ? 'Warning' : 'Information' }" />
-                </HBox>
+            <!-- SmartFilterBar: auto-generates filter fields from annotations
+                 Provides: Go button, Adapt Filters, Hide/Show Filters, Clear -->
+            <smartFilterBar:SmartFilterBar
+                id="smartFilterBar"
+                entitySet="Trainings"
+                persistencyKey="TrainingsSmartFilter"
+                enableBasicSearch="true"
+                showClearOnFB="true" />
 
-                <!-- Role Quick Filter Tabs -->
-                <IconTabBar
-                    id="filterTabBar"
-                    select="onFilterSelect"
-                    selectedKey="All"
-                    class="sapUiSmallMarginTop sapUiNoMarginBottom"
-                    headerMode="Inline">
-                    <items>
-                        <IconTabFilter key="All" text="All" count="{filterModel>/countAll}" />
-                        <IconTabSeparator />
-                        <IconTabFilter key="DEVELOPER" icon="sap-icon://source-code" text="Developer" count="{filterModel>/countDeveloper}" />
-                        <IconTabFilter key="ADMIN" icon="sap-icon://settings" text="Admin" count="{filterModel>/countAdmin}" />
-                        <IconTabFilter key="MANAGER" icon="sap-icon://manager" text="Manager" count="{filterModel>/countManager}" />
-                        <IconTabFilter key="USER" icon="sap-icon://person-placeholder" text="User" count="{filterModel>/countUser}" />
-                    </items>
-                </IconTabBar>
+            <!-- SmartTable: auto-generates columns from annotations
+                 Provides: Variant Management, Column Settings, Export to Excel,
+                 auto-column width, responsive popin, row count, full screen -->
+            <smartTable:SmartTable
+                id="smartTable"
+                entitySet="Trainings"
+                smartFilterId="smartFilterBar"
+                tableType="ResponsiveTable"
+                header="Trainings"
+                showRowCount="true"
+                enableAutoBinding="true"
+                showFullScreenButton="true"
+                useExportToExcel="true"
+                useVariantManagement="true"
+                useTablePersonalisation="true"
+                persistencyKey="TrainingsSmartTable"
+                demandPopin="true"
+                enableAutoColumnWidth="true"
+                initialise="onSmartTableInit"
+                beforeRebindTable="onBeforeRebindTable">
 
-                <!-- Advanced Filters Panel -->
-                <Panel
-                    id="filterPanel"
-                    headerText="Filters"
-                    expandable="true"
-                    expanded="false"
-                    class="sapUiNoMarginTop">
-                    <content>
-                        <HBox wrap="Wrap" class="sapUiSmallMargin">
-                            <VBox class="sapUiSmallMarginEnd" width="15rem">
-                                <Label text="Module" />
-                                <MultiComboBox
-                                    id="moduleFilter"
-                                    placeholder="All Modules"
-                                    width="100%"
-                                    items="{filterModel>/modules}"
-                                    selectionChange="onModuleFilterChange">
-                                    <core:Item key="{filterModel>key}" text="{filterModel>text}" />
-                                </MultiComboBox>
-                            </VBox>
-                            <VBox class="sapUiSmallMarginEnd" width="15rem">
-                                <Label text="Role" />
-                                <MultiComboBox
-                                    id="roleFilter"
-                                    placeholder="All Roles"
-                                    width="100%"
-                                    items="{filterModel>/roles}"
-                                    selectionChange="onRoleFilterChange">
-                                    <core:Item key="{filterModel>key}" text="{filterModel>text}" />
-                                </MultiComboBox>
-                            </VBox>
-                        </HBox>
-                    </content>
-                </Panel>
-
-                <!-- Trainings Table with Toolbar -->
-                <Table
-                    id="trainingsTable"
-                    inset="false"
-                    items="{
-                        path: '/Trainings',
-                        sorter: { path: 'Title', descending: false }
-                    }"
-                    growing="true"
-                    growingThreshold="20"
-                    growingScrollToLoad="true"
-                    sticky="ColumnHeaders,HeaderToolbar"
-                    alternateRowColors="true"
-                    mode="SingleSelectMaster"
-                    itemPress="onItemPress">
-
-                    <headerToolbar>
-                        <OverflowToolbar>
-                            <Title text="Trainings" level="H3" />
-                            <ToolbarSpacer />
-                            <ToggleButton
-                                icon="sap-icon://filter"
-                                tooltip="Toggle Filters"
-                                pressed="false"
-                                press="onToggleFilter" />
-                            <Button
-                                icon="sap-icon://sort"
-                                tooltip="Sort"
-                                press="onSort" />
-                            <Button
-                                icon="sap-icon://group-2"
-                                tooltip="Group"
-                                press="onGroup" />
-                        </OverflowToolbar>
-                    </headerToolbar>
-
-                    <infoToolbar>
-                        <OverflowToolbar id="infoToolbar" visible="false">
-                            <Label id="infoFilterLabel" text="" />
-                        </OverflowToolbar>
-                    </infoToolbar>
-
-                    <columns>
-                        <Column mergeDuplicates="false">
-                            <Text text="Title" />
-                        </Column>
-                        <Column width="8em" minScreenWidth="Small" demandPopin="true" popinDisplay="Inline">
-                            <Text text="Role" />
-                        </Column>
-                        <Column width="8em" minScreenWidth="Small" demandPopin="true" popinDisplay="Inline">
-                            <Text text="Module" />
-                        </Column>
-                        <Column minScreenWidth="Tablet" demandPopin="true" popinDisplay="Block">
-                            <Text text="Description" />
-                        </Column>
-                        <Column width="6em" hAlign="End" minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline">
-                            <Text text="Link" />
-                        </Column>
-                    </columns>
-
-                    <items>
-                        <ColumnListItem type="Navigation">
-                            <cells>
-                                <ObjectIdentifier
-                                    title="{Title}"
-                                    text="ID: {Id}" />
-                                <ObjectStatus
-                                    text="{Role}"
-                                    state="{= ${Role} === 'ADMIN' ? 'Success' : ${Role} === 'MANAGER' ? 'Warning' : ${Role} === 'DEVELOPER' ? 'Information' : 'None' }" />
-                                <ObjectStatus
-                                    text="{SapModule}"
-                                    inverted="true" />
-                                <Text text="{Description}" maxLines="2" />
-                                <Link text="Open" href="{Url}" target="_blank" />
-                            </cells>
-                        </ColumnListItem>
-                    </items>
-                </Table>
-            </VBox>
+                <!-- Custom buttons added to SmartTable toolbar alongside auto-generated ones -->
+                <smartTable:customToolbar>
+                    <OverflowToolbar>
+                        <ToolbarSpacer />
+                        <Button
+                            id="assignButton"
+                            icon="sap-icon://add"
+                            text="Assign Training"
+                            type="Emphasized"
+                            press="onAssignTraining"
+                            visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
+                        <Button
+                            icon="sap-icon://refresh"
+                            tooltip="Refresh Data"
+                            press="onRefresh" />
+                    </OverflowToolbar>
+                </smartTable:customToolbar>
+            </smartTable:SmartTable>
         </content>
-
-        <footer>
-            <OverflowToolbar>
-                <ToolbarSpacer />
-                <Button
-                    text="View My Assignments"
-                    press="onViewAssignments"
-                    type="Emphasized"
-                    icon="sap-icon://task" />
-            </OverflowToolbar>
-        </footer>
     </Page>
 </mvc:View>
