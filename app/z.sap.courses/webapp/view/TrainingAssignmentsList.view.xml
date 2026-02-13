@@ -1,61 +1,127 @@
 <mvc:View
     controllerName="z.sap.courses.controller.TrainingAssignmentsList"
     xmlns="sap.m"
-    xmlns:mvc="sap.ui.core.mvc">
-    
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core">
+
     <Page
         id="assignmentsListPage"
-        title="Training Assignments"
         showNavButton="true"
-        navButtonPress="onNavBack">
-        
-        <headerContent>
-            <Button
-                icon="sap-icon://refresh"
-                text="Refresh"
-                press="onRefresh" />
-        </headerContent>
-        
+        navButtonPress="onNavBack"
+        class="sapUiResponsivePadding--header sapUiResponsivePadding--content sapUiResponsivePadding--footer">
+
+        <!-- Header Bar with Search -->
+        <customHeader>
+            <Bar>
+                <contentLeft>
+                    <Button icon="sap-icon://nav-back" press="onNavBack" tooltip="Back" type="Back" />
+                    <Title text="Training Assignments" level="H2" />
+                </contentLeft>
+                <contentMiddle>
+                    <SearchField
+                        id="assignSearchField"
+                        placeholder="Search assignments..."
+                        width="100%"
+                        search="onSearch"
+                        liveChange="onSearchLive" />
+                </contentMiddle>
+                <contentRight>
+                    <Button
+                        icon="sap-icon://refresh"
+                        tooltip="Refresh Data"
+                        press="onRefresh" />
+                </contentRight>
+            </Bar>
+        </customHeader>
+
         <content>
-            <VBox class="sapUiSmallMargin">
+            <VBox>
+                <!-- Status Quick Filter Tabs -->
+                <IconTabBar
+                    id="statusTabBar"
+                    select="onStatusFilterSelect"
+                    selectedKey="All"
+                    class="sapUiSmallMarginTop sapUiNoMarginBottom"
+                    headerMode="Inline">
+                    <items>
+                        <IconTabFilter key="All" text="All" count="{assignFilterModel>/countAll}" />
+                        <IconTabSeparator />
+                        <IconTabFilter key="Assigned" icon="sap-icon://task" iconColor="Neutral" text="Assigned" count="{assignFilterModel>/countAssigned}" />
+                        <IconTabFilter key="In Progress" icon="sap-icon://pending" iconColor="Critical" text="In Progress" count="{assignFilterModel>/countInProgress}" />
+                        <IconTabFilter key="Completed" icon="sap-icon://accept" iconColor="Positive" text="Completed" count="{assignFilterModel>/countCompleted}" />
+                        <IconTabFilter key="Overdue" icon="sap-icon://alert" iconColor="Negative" text="Overdue" count="{assignFilterModel>/countOverdue}" />
+                    </items>
+                </IconTabBar>
+
+                <!-- Assignments Table -->
                 <Table
                     id="assignmentsTable"
                     inset="false"
-                    items="{/TrainingAssignments}"
+                    items="{
+                        path: '/TrainingAssignments',
+                        sorter: { path: 'DueDate', descending: false }
+                    }"
                     growing="true"
-                    growingScrollToLoad="true">
-                    
+                    growingThreshold="20"
+                    growingScrollToLoad="true"
+                    sticky="ColumnHeaders,HeaderToolbar"
+                    alternateRowColors="true"
+                    mode="SingleSelectMaster"
+                    itemPress="onItemPress">
+
+                    <headerToolbar>
+                        <OverflowToolbar>
+                            <Title text="Assignments" level="H3" />
+                            <ToolbarSpacer />
+                            <Button
+                                icon="sap-icon://sort"
+                                tooltip="Sort"
+                                press="onSort" />
+                            <Button
+                                icon="sap-icon://group-2"
+                                tooltip="Group"
+                                press="onGroup" />
+                        </OverflowToolbar>
+                    </headerToolbar>
+
+                    <infoToolbar>
+                        <OverflowToolbar id="assignInfoToolbar" visible="false">
+                            <Label id="assignInfoLabel" text="" />
+                        </OverflowToolbar>
+                    </infoToolbar>
+
                     <columns>
-                        <Column width="12em">
+                        <Column mergeDuplicates="false">
                             <Text text="Training" />
                         </Column>
-                        <Column width="10em">
+                        <Column width="10em" minScreenWidth="Small" demandPopin="true" popinDisplay="Inline">
                             <Text text="User" />
                         </Column>
-                        <Column width="8em">
+                        <Column width="7em" minScreenWidth="Small" demandPopin="true" popinDisplay="Inline" hAlign="Center">
                             <Text text="Status" />
                         </Column>
-                        <Column width="10em" minScreenWidth="Tablet" demandPopin="true">
+                        <Column width="9em" minScreenWidth="Tablet" demandPopin="true" popinDisplay="Inline">
                             <Text text="Due Date" />
                         </Column>
-                        <Column width="10em" minScreenWidth="Tablet" demandPopin="true">
+                        <Column width="9em" minScreenWidth="Desktop" demandPopin="true" popinDisplay="Inline">
                             <Text text="Completed" />
                         </Column>
                     </columns>
-                    
+
                     <items>
-                        <ColumnListItem type="Active" press="onItemPress">
+                        <ColumnListItem type="Navigation">
                             <cells>
                                 <ObjectIdentifier
                                     title="{Title}"
-                                    text="{TrainingId}" />
+                                    text="Module: {SapModule}" />
                                 <VBox>
                                     <Text text="{UserId}" class="sapUiTinyMarginBottom" />
-                                    <Text text="{UserName}" />
+                                    <ObjectStatus text="{UserName}" inverted="false" />
                                 </VBox>
                                 <ObjectStatus
                                     text="{Status}"
-                                    state="{= ${Status} === 'Completed' ? 'Success' : ${Status} === 'In Progress' ? 'Warning' : 'Information' }" />
+                                    state="{= ${Status} === 'Completed' ? 'Success' : ${Status} === 'In Progress' ? 'Warning' : ${Status} === 'Overdue' ? 'Error' : 'Information' }"
+                                    icon="{= ${Status} === 'Completed' ? 'sap-icon://accept' : ${Status} === 'In Progress' ? 'sap-icon://pending' : ${Status} === 'Overdue' ? 'sap-icon://alert' : 'sap-icon://task' }" />
                                 <Text text="{path: 'DueDate', type: 'sap.ui.model.type.DateTime', formatOptions: {style: 'medium'}}" />
                                 <Text text="{path: 'CompletionDate', type: 'sap.ui.model.type.DateTime', formatOptions: {style: 'medium'}}" />
                             </cells>
@@ -64,5 +130,15 @@
                 </Table>
             </VBox>
         </content>
+
+        <footer>
+            <OverflowToolbar>
+                <ToolbarSpacer />
+                <Button
+                    text="Back to Catalog"
+                    press="onNavBack"
+                    icon="sap-icon://learning-assistant" />
+            </OverflowToolbar>
+        </footer>
     </Page>
 </mvc:View>

@@ -1,12 +1,91 @@
-/* Clean Core Compliant Styles - No AI Features */
-/* Application-specific styles only */
+/* Clean Core Compliant Styles */
 
-/* Improve table readability */
-.sapUiTable {
+/* ===== Responsive Layout ===== */
+.sapUiResponsivePadding--header,
+.sapUiResponsivePadding--content,
+.sapUiResponsivePadding--footer {
+    padding: 0;
+}
+
+/* ===== Header ===== */
+.sapMBar .sapMTitle {
+    font-weight: 600;
+}
+
+/* Search field in header - limit width on large screens */
+.sapMBar .sapMSF {
+    max-width: 36rem;
+}
+
+/* ===== IconTabBar - Compact Filter Tabs ===== */
+.sapMITBHead {
+    background: transparent;
+}
+
+/* ===== Table Enhancements ===== */
+/* Better readability for table rows */
+.sapMListTbl .sapMListTblRow {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+/* Object Identifier in table - tighter */
+.sapMListTbl .sapMObjectIdentifier .sapMObjectIdentifierTitle {
+    font-weight: 600;
     font-size: 0.875rem;
 }
 
-/* Header emphasis */
-.sapMTitle {
+/* ObjectStatus badges in table */
+.sapMListTbl .sapMObjectStatus {
+    font-size: 0.8125rem;
+}
+
+/* ===== Filter Panel ===== */
+.sapMPanel > .sapMPanelContent {
+    padding: 0.5rem 1rem;
+}
+
+/* ===== Info Toolbar - Active Filters ===== */
+.sapMITB + .sapMListInfoTBar {
+    background-color: #eaf4ff;
+}
+
+/* ===== Assign Dialog ===== */
+.sapMDialog .sapMToolbar {
+    background: transparent;
+    padding-left: 0;
+}
+
+.sapMDialog .sapMLabel {
+    padding-top: 0.25rem;
+}
+
+/* Dialog section titles */
+.sapMDialog .sapMTitle.sapMTitleStyleH5 {
+    color: #346187;
+    font-size: 0.875rem;
     font-weight: 600;
+}
+
+/* ===== Small Screen Adjustments ===== */
+@media (max-width: 600px) {
+    .sapMBar .sapMSF {
+        max-width: 100%;
+    }
+
+    /* Stack filter boxes vertically on phone */
+    .sapMFlexBox.sapMHBox {
+        flex-direction: column;
+    }
+
+    .sapMFlexBox.sapMHBox > .sapMFlexItem {
+        width: 100% !important;
+        margin-right: 0 !important;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* ===== Focus Indicator for Accessibility ===== */
+.sapMListTbl .sapMListTblRow:focus {
+    outline: 2px solid #0070b1;
+    outline-offset: -2px;
 }
