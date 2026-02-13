@@ -5,6 +5,7 @@
     xmlns:core="sap.ui.core"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:smartTable="sap.ui.comp.smarttable"
+    xmlns:filterBar="sap.ui.comp.filterbar"
     xmlns:mc="sap.suite.ui.microchart">
 
     <Page
@@ -139,9 +140,9 @@
                 </HBox>
             </Panel>
 
-            <!-- SmartFilterBar: Standard Fiori Freestyle (auto-generates from UI.SelectionFields annotation) -->
-            <!-- Filter fields for Role, SapModule, LastUpdated are auto-created from annotations -->
-            <!-- Features: Basic Search, Go, Adapt Filters, Clear, Restore -->
+            <!-- SmartFilterBar: F1520 Pattern with explicit filter inputs -->
+            <!-- Role + Module: Input fields with ControlConfiguration forcing EQ filters -->
+            <!-- ControlConfiguration ensures SEGW-compatible EQ operator (no substringof) -->
             <smartFilterBar:SmartFilterBar
                 id="smartFilterBar"
                 entitySet="Trainings"
@@ -152,7 +153,44 @@
                 showGoOnFB="true"
                 filterBarExpanded="true"
                 showFilterConfiguration="true"
-                useDateRangeType="true" />
+                useDateRangeType="true">
+                <smartFilterBar:controlConfiguration>
+                    <smartFilterBar:ControlConfiguration id="ccRole" key="Role" filterType="single" />
+                    <smartFilterBar:ControlConfiguration id="ccSapModule" key="SapModule" filterType="single" />
+                </smartFilterBar:controlConfiguration>
+                <smartFilterBar:filterGroupItems>
+                    <filterBar:FilterGroupItem
+                        id="fgiRole"
+                        name="Role"
+                        label="Role"
+                        groupName="_BASIC"
+                        visibleInFilterBar="true">
+                        <filterBar:control>
+                            <Input id="filterRole" placeholder="e.g. Developer" />
+                        </filterBar:control>
+                    </filterBar:FilterGroupItem>
+                    <filterBar:FilterGroupItem
+                        id="fgiSapModule"
+                        name="SapModule"
+                        label="Module"
+                        groupName="_BASIC"
+                        visibleInFilterBar="true">
+                        <filterBar:control>
+                            <Input id="filterModule" placeholder="e.g. FI, MM" />
+                        </filterBar:control>
+                    </filterBar:FilterGroupItem>
+                    <filterBar:FilterGroupItem
+                        id="fgiLastUpdated"
+                        name="LastUpdated"
+                        label="Last Updated"
+                        groupName="_BASIC"
+                        visibleInFilterBar="true">
+                        <filterBar:control>
+                            <DatePicker id="filterLastUpdated" placeholder="From date..." />
+                        </filterBar:control>
+                    </filterBar:FilterGroupItem>
+                </smartFilterBar:filterGroupItems>
+            </smartFilterBar:SmartFilterBar>
 
             <!-- SmartTable: auto-generates columns from annotations
                  Provides: Variant Management, Column Settings, Export to Excel,
@@ -180,6 +218,13 @@
                 <!-- Custom buttons added to SmartTable toolbar alongside auto-generated ones -->
                 <smartTable:customToolbar>
                     <OverflowToolbar id="tableToolbar">
+                        <Button
+                            id="createTrainingBtn"
+                            icon="sap-icon://add"
+                            text="Create"
+                            type="Emphasized"
+                            press="onCreateTraining"
+                            visible="{= ${user>/role} === 'Admin' }" />
                         <ToolbarSpacer id="toolbarSpacer" />
                         <Button
                             id="detailsButton"
@@ -187,10 +232,15 @@
                             text="View Details"
                             press="onViewDetails" />
                         <Button
+                            id="deleteTrainingBtn"
+                            icon="sap-icon://delete"
+                            text="Delete"
+                            press="onDeleteTraining"
+                            visible="{= ${user>/role} === 'Admin' }" />
+                        <Button
                             id="assignButton"
-                            icon="sap-icon://add"
+                            icon="sap-icon://person-placeholder"
                             text="Assign Training"
-                            type="Emphasized"
                             press="onAssignTraining"
                             visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
                         <Button

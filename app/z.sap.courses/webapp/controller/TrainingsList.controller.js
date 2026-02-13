@@ -201,14 +201,22 @@ sap.ui.define([
                     oCol.setTemplate(new Link({
                         text: { path: "Url", formatter: function (v) { return v ? "Open Link" : ""; } },
                         href: "{Url}",
-                        target: "_blank",
+                        press: function (oEvent) {
+                            var oCtx = oEvent.getSource().getBindingContext();
+                            var sUrl = oCtx ? oCtx.getProperty("Url") : "";
+                            if (sUrl) { sap.m.URLHelper.redirect(sUrl, false); }
+                        },
                         wrapping: false
                     }));
                 } else if (sColumnKey === "SapHelpLink") {
                     oCol.setTemplate(new Link({
                         text: { path: "SapHelpLink", formatter: function (v) { return v ? "SAP Help" : ""; } },
                         href: "{SapHelpLink}",
-                        target: "_blank",
+                        press: function (oEvent) {
+                            var oCtx = oEvent.getSource().getBindingContext();
+                            var sUrl = oCtx ? oCtx.getProperty("SapHelpLink") : "";
+                            if (sUrl) { sap.m.URLHelper.redirect(sUrl, false); }
+                        },
                         wrapping: false
                     }));
                 }
@@ -226,6 +234,26 @@ sap.ui.define([
          */
         onBeforeRebindTable: function (oEvent) {
             var mBindingParams = oEvent.getParameter("bindingParams");
+
+            // ---- SEGW filter sanitizer ----
+            // SmartFilterBar may generate Contains/substringof for String fields.
+            // SEGW only handles EQ in it_filter_select_options. Recursively convert.
+            var fnSanitize = function (oFilter) {
+                if (oFilter.aFilters) {
+                    for (var k = 0; k < oFilter.aFilters.length; k++) {
+                        oFilter.aFilters[k] = fnSanitize(oFilter.aFilters[k]);
+                    }
+                    return oFilter;
+                }
+                if ((oFilter.sPath === "Role" || oFilter.sPath === "SapModule") &&
+                    oFilter.sOperator && oFilter.sOperator !== FilterOperator.EQ) {
+                    return new Filter(oFilter.sPath, FilterOperator.EQ, oFilter.oValue1);
+                }
+                return oFilter;
+            };
+            for (var i = 0; i < mBindingParams.filters.length; i++) {
+                mBindingParams.filters[i] = fnSanitize(mBindingParams.filters[i]);
+            }
 
             // ---- Basic search box → Title EQ filter ----
             // SmartFilterBar sends basic search as $search param which SEGW ignores.
@@ -245,11 +273,187 @@ sap.ui.define([
                 delete mBindingParams.parameters.custom.search;
             }
 
-            // Log all filters that SmartFilterBar is sending
             Log.info("[Filter] Total filters: " + mBindingParams.filters.length);
 
             // Reset columns flag so menus + links get re-applied after new data
             this._columnsConfigured = false;
+        },
+
+        /* ===== Admin CRUD: Create New Training ===== */
+        onCreateTraining: function () {
+            var that = this;
+            var oModel = this.getOwnerComponent().getModel();
+            if (this._createDlg) {
+                this._createDlg.destroy();
+                this._createDlg = null;
+            }
+
+            var oDlgModel = new JSONModel({
+                title: "",
+                description: "",
+                role: "",
+                sapModule: "",
+                url: "",
+                sapHelpLink: "",
+                submitting: false,
+                error: ""
+            });
+
+            sap.ui.require(["sap/ui/layout/form/SimpleForm"], function (SimpleForm) {
+                var oForm = new SimpleForm({
+                    editable: true,
+                    layout: "ResponsiveGridLayout",
+                    labelSpanXL: 3, labelSpanL: 3, labelSpanM: 4, labelSpanS: 12,
+                    columnsXL: 1, columnsL: 1, columnsM: 1,
+                    content: [
+                        new sap.m.Label({ text: "Title", required: true }),
+                        new sap.m.Input({ value: "{/title}", placeholder: "Training title" }),
+                        new sap.m.Label({ text: "Role" }),
+                        new sap.m.Input({ value: "{/role}", placeholder: "e.g. Developer, Consultant" }),
+                        new sap.m.Label({ text: "Module" }),
+                        new sap.m.Input({ value: "{/sapModule}", placeholder: "e.g. FI, MM, SD" }),
+                        new sap.m.Label({ text: "Description" }),
+                        new sap.m.TextArea({ value: "{/description}", rows: 3, placeholder: "Brief description" }),
+                        new sap.m.Label({ text: "URL", required: true }),
+                        new sap.m.Input({ value: "{/url}", type: "Url", placeholder: "https://learning.sap.com/..." }),
+                        new sap.m.Label({ text: "SAP Help Link" }),
+                        new sap.m.Input({ value: "{/sapHelpLink}", type: "Url", placeholder: "https://help.sap.com/..." })
+                    ]
+                });
+
+                var oErrorStrip = new sap.m.MessageStrip({
+                    text: "{/error}",
+                    visible: "{= !!${/error} }",
+                    type: "Error",
+                    showIcon: true
+                });
+                oErrorStrip.addStyleClass("sapUiSmallMarginTop");
+
+                var oContent = new sap.m.VBox({ items: [oForm, oErrorStrip] });
+                oContent.addStyleClass("sapUiSmallMargin");
+
+                that._createDlg = new sap.m.Dialog({
+                    title: "Create New Training",
+                    contentWidth: "560px",
+                    draggable: true,
+                    resizable: true,
+                    content: [oContent],
+                    beginButton: new sap.m.Button({
+                        text: "Create",
+                        type: "Emphasized",
+                        icon: "sap-icon://save",
+                        enabled: "{= !${/submitting} }",
+                        press: function () {
+                            var data = oDlgModel.getData();
+                            if (!data.title || !data.title.trim()) {
+                                oDlgModel.setProperty("/error", "Title is required");
+                                return;
+                            }
+                            if (!data.url || !data.url.trim()) {
+                                oDlgModel.setProperty("/error", "URL is required");
+                                return;
+                            }
+                            oDlgModel.setProperty("/error", "");
+                            oDlgModel.setProperty("/submitting", true);
+
+                            var payload = {
+                                Title: data.title.trim(),
+                                Description: (data.description || "").trim(),
+                                Role: (data.role || "").trim(),
+                                SapModule: (data.sapModule || "").trim(),
+                                Url: data.url.trim(),
+                                SapHelpLink: (data.sapHelpLink || "").trim()
+                            };
+
+                            oModel.refreshSecurityToken(function () {
+                                oModel.create("/Trainings", payload, {
+                                    success: function () {
+                                        that._createDlg.close();
+                                        oDlgModel.setProperty("/submitting", false);
+                                        MessageToast.show("Training created successfully");
+                                        that.byId("smartTable").rebindTable(true);
+                                        that._loadAnalytics();
+                                    },
+                                    error: function (err) {
+                                        oDlgModel.setProperty("/submitting", false);
+                                        var msg = "Create failed";
+                                        try {
+                                            var parsed = JSON.parse(err.responseText);
+                                            msg = parsed.error.message.value || msg;
+                                        } catch (e) {
+                                            msg = (err && err.message) || msg;
+                                        }
+                                        oDlgModel.setProperty("/error", msg);
+                                    }
+                                });
+                            }, function () {
+                                oDlgModel.setProperty("/submitting", false);
+                                oDlgModel.setProperty("/error", "Security token refresh failed");
+                            });
+                        }
+                    }),
+                    endButton: new sap.m.Button({
+                        text: "Cancel",
+                        press: function () { that._createDlg.close(); }
+                    }),
+                    afterClose: function () {
+                        that._createDlg.destroy();
+                        that._createDlg = null;
+                    }
+                });
+                that._createDlg.setModel(oDlgModel);
+                that._createDlg.open();
+            });
+        },
+
+        /* ===== Admin CRUD: Delete Training ===== */
+        onDeleteTraining: function () {
+            var that = this;
+            var oSmartTable = this.byId("smartTable");
+            var oTable = oSmartTable.getTable();
+            var iIndex = oTable.getSelectedIndex();
+            if (iIndex < 0) {
+                MessageToast.show("Please select a training to delete");
+                return;
+            }
+            var oContext = oTable.getContextByIndex(iIndex);
+            if (!oContext) { return; }
+            var oTraining = oContext.getObject();
+
+            MessageBox.confirm(
+                "Delete training \"" + (oTraining.Title || "") + "\"?\n\nThis action cannot be undone.",
+                {
+                    title: "Confirm Delete",
+                    emphasizedAction: MessageBox.Action.CANCEL,
+                    onClose: function (sAction) {
+                        if (sAction === MessageBox.Action.OK) {
+                            var sPath = oContext.getPath();
+                            var oModel = that.getOwnerComponent().getModel();
+                            oModel.refreshSecurityToken(function () {
+                                oModel.remove(sPath, {
+                                    success: function () {
+                                        MessageToast.show("Training deleted");
+                                        oSmartTable.rebindTable(true);
+                                        that._loadAnalytics();
+                                    },
+                                    error: function (err) {
+                                        var msg = "Delete failed";
+                                        try {
+                                            var parsed = JSON.parse(err.responseText);
+                                            msg = parsed.error.message.value || msg;
+                                        } catch (e) {
+                                            msg = (err && err.message) || msg;
+                                        }
+                                        MessageBox.error(msg);
+                                    }
+                                });
+                            }, function () {
+                                MessageBox.error("Security token refresh failed");
+                            });
+                        }
+                    }
+                }
+            );
         },
 
         onRefresh: function () {
@@ -290,9 +494,9 @@ sap.ui.define([
                     emphasizedAction: aActions[0],
                     onClose: function (sAction) {
                         if (sAction === "Open Training Link" && oTraining.Url) {
-                            window.open(oTraining.Url, "_blank", "noopener,noreferrer");
+                            sap.m.URLHelper.redirect(oTraining.Url, false);
                         } else if (sAction === "Open SAP Help" && oTraining.SapHelpLink) {
-                            window.open(oTraining.SapHelpLink, "_blank", "noopener,noreferrer");
+                            sap.m.URLHelper.redirect(oTraining.SapHelpLink, false);
                         }
                     }
                 }
