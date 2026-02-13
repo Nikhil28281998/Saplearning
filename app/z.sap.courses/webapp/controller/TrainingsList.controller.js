@@ -342,31 +342,46 @@ sap.ui.define([
         },
 
         /**
-         * CRITICAL: beforeRebindTable — inject OData $filter from custom filterGroupItems.
-         * Uses FilterOperator.EQ for exact match (SEGW standard).
-         * For Title: uses EQ — ABAP backend does LIKE matching for partial text.
+         * SmartFilterBar search event — triggered when Go button is pressed.
+         * We let SmartTable handle the rebind; this is used for any custom search logic.
+         */
+        onFilterBarSearch: function () {
+            // SmartTable with smartFilterId automatically rebinds on search.
+            // Cross-reference dropdowns update live via selectionChange events.
+            Log.info("[FilterBar] Go pressed — SmartTable will rebind");
+        },
+
+        /**
+         * CRITICAL: beforeRebindTable — intercept binding and inject SEGW-compatible filters.
          *
-         * IMPORTANT: We CLEAR mBindingParams.filters first to remove SmartFilterBar's
-         * auto-generated filters. SmartFilterBar may create substringof/contains filters
-         * for Edm.String properties which SEGW backends do NOT support.
-         * Only our explicit EQ/GE filters are sent to the OData service.
+         * Strategy:
+         * 1. Basic search box → Title EQ filter (ABAP does LIKE matching)
+         * 2. Role ComboBox → Role EQ filter
+         * 3. Module ComboBox → SapModule EQ filter
+         * 4. LastUpdated DatePicker → LastUpdated GE filter
+         *
+         * We CLEAR SmartFilterBar's auto-generated filters because SEGW doesn't support
+         * substringof/contains for Edm.String properties. Only explicit EQ/GE filters.
          */
         onBeforeRebindTable: function (oEvent) {
             var mBindingParams = oEvent.getParameter("bindingParams");
             var aFilters = [];
 
-            // ---- Read values from custom SmartFilterBar controls ----
-            var oTitleInput = this.byId("filterTitleInput");
+            // ---- Basic search box → Title filter ----
+            var oSmartFilterBar = this.byId("smartFilterBar");
+            var sSearchVal = "";
+            if (oSmartFilterBar && oSmartFilterBar.getBasicSearchValue) {
+                sSearchVal = (oSmartFilterBar.getBasicSearchValue() || "").trim();
+            }
+            if (sSearchVal) {
+                aFilters.push(new Filter("Title", FilterOperator.EQ, sSearchVal));
+                Log.info("[Filter] Title EQ (from basic search): " + sSearchVal);
+            }
+
+            // ---- Custom cross-reference dropdowns ----
             var oRoleCombo  = this.byId("filterRoleCombo");
             var oModuleCombo = this.byId("filterModuleCombo");
             var oDatePicker = this.byId("filterLastUpdatedPicker");
-
-            // Title: EQ filter — ABAP backend handles partial match via LIKE
-            var sTitleVal = oTitleInput ? oTitleInput.getValue().trim() : "";
-            if (sTitleVal) {
-                aFilters.push(new Filter("Title", FilterOperator.EQ, sTitleVal));
-                Log.info("[Filter] Title EQ: " + sTitleVal);
-            }
 
             // Role: exact match
             var sRoleVal = oRoleCombo ? (oRoleCombo.getSelectedKey() || "") : "";
@@ -388,14 +403,14 @@ sap.ui.define([
                 Log.info("[Filter] LastUpdated GE: " + oDatePicker.getDateValue());
             }
 
-            // CLEAR SmartFilterBar's auto-generated filters (may contain unsupported
-            // substringof/contains for Edm.String). Replace with our explicit filters only.
+            // CLEAR SmartFilterBar's auto-generated filters.
+            // SEGW doesn't support substringof/contains — use only our explicit EQ/GE.
             mBindingParams.filters = [];
 
             if (aFilters.length > 0) {
                 var oCombinedFilter = new Filter({ filters: aFilters, and: true });
                 mBindingParams.filters.push(oCombinedFilter);
-                Log.info("[Filter] Applied " + aFilters.length + " manual EQ/GE filter(s)");
+                Log.info("[Filter] Applied " + aFilters.length + " SEGW-compatible filter(s)");
             } else {
                 Log.info("[Filter] No filters — showing all records");
             }

@@ -15,9 +15,10 @@
             <Annotations Target="ZCOURSES_SRV.Training">
 
                 <!-- SmartFilterBar: which fields appear as filter inputs (rectangles) -->
+                <!-- Title removed: basic search box handles title search -->
+                <!-- Role + SapModule: custom filterGroupItems with cross-reference dropdowns -->
                 <Annotation Term="UI.SelectionFields">
                     <Collection>
-                        <PropertyPath>Title</PropertyPath>
                         <PropertyPath>Role</PropertyPath>
                         <PropertyPath>SapModule</PropertyPath>
                         <PropertyPath>LastUpdated</PropertyPath>

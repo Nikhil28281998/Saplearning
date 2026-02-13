@@ -140,27 +140,20 @@
                 </HBox>
             </Panel>
 
-            <!-- SmartFilterBar: fixed filter boxes in header bar -->
+            <!-- SmartFilterBar: Standard Fiori with Adapt Filters + custom cross-ref dropdowns -->
             <smartFilterBar:SmartFilterBar
                 id="smartFilterBar"
                 entitySet="Trainings"
                 persistencyKey="TrainingsSmartFilter"
                 enableBasicSearch="true"
                 showClearOnFB="true"
+                showRestoreOnFB="true"
                 showGoOnFB="true"
                 filterBarExpanded="true"
-                showFilterConfiguration="false">
+                showFilterConfiguration="true"
+                useDateRangeType="true"
+                search="onFilterBarSearch">
                 <smartFilterBar:filterGroupItems>
-                    <filterBar:FilterGroupItem
-                        id="filterTitle"
-                        groupName="__$INTERNAL$"
-                        name="Title"
-                        label="Title"
-                        visibleInFilterBar="true">
-                        <filterBar:control>
-                            <Input id="filterTitleInput" placeholder="Search title..." />
-                        </filterBar:control>
-                    </filterBar:FilterGroupItem>
                     <filterBar:FilterGroupItem
                         id="filterRole"
                         groupName="__$INTERNAL$"
@@ -223,7 +216,9 @@
                 demandPopin="true"
                 initialise="onSmartTableInit"
                 beforeRebindTable="onBeforeRebindTable"
-                fitContainer="true">
+                fitContainer="true"
+                ignoredFields="Id"
+                requestAtLeastFields="Id,Url,SapHelpLink">
 
                 <!-- Custom buttons added to SmartTable toolbar alongside auto-generated ones -->
                 <smartTable:customToolbar>
