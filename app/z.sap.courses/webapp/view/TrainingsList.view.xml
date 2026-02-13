@@ -34,14 +34,67 @@
         </customHeader>
 
         <content>
-            <!-- SmartFilterBar: auto-generates filter fields from annotations
-                 Provides: Go button, Adapt Filters, Hide/Show Filters, Clear -->
+            <!-- Analytics Panel for all users -->
+            <Panel
+                id="analyticsPanel"
+                expandable="true"
+                expanded="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }"
+                headerText="Training Analytics"
+                class="sapUiSmallMarginBottom">
+                <HBox justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin">
+                    <VBox alignItems="Center" class="sapUiSmallMarginEnd">
+                        <ObjectNumber
+                            id="totalTrainingsCount"
+                            number="{analyticsModel>/totalTrainings}"
+                            unit="Trainings"
+                            state="Information" />
+                        <Text text="Total Catalog" class="sapUiTinyMarginTop" />
+                    </VBox>
+                    <VBox alignItems="Center" class="sapUiSmallMarginEnd">
+                        <ObjectNumber
+                            id="assignedCount"
+                            number="{analyticsModel>/assigned}"
+                            unit="Assigned"
+                            state="Warning" />
+                        <Text text="Pending" class="sapUiTinyMarginTop" />
+                    </VBox>
+                    <VBox alignItems="Center" class="sapUiSmallMarginEnd">
+                        <ObjectNumber
+                            id="inProgressCount"
+                            number="{analyticsModel>/inProgress}"
+                            unit="In Progress"
+                            state="Warning" />
+                        <Text text="Learning" class="sapUiTinyMarginTop" />
+                    </VBox>
+                    <VBox alignItems="Center" class="sapUiSmallMarginEnd">
+                        <ObjectNumber
+                            id="completedCount"
+                            number="{analyticsModel>/completed}"
+                            unit="Completed"
+                            state="Success" />
+                        <Text text="Done" class="sapUiTinyMarginTop" />
+                    </VBox>
+                    <VBox alignItems="Center">
+                        <ProgressIndicator
+                            id="completionProgress"
+                            percentValue="{analyticsModel>/completionPercent}"
+                            displayValue="{analyticsModel>/completionPercent}%"
+                            state="{= ${analyticsModel>/completionPercent} >= 80 ? 'Success' : ${analyticsModel>/completionPercent} >= 50 ? 'Warning' : 'Error' }"
+                            width="150px" />
+                        <Text text="Completion Rate" class="sapUiTinyMarginTop" />
+                    </VBox>
+                </HBox>
+            </Panel>
+
+            <!-- SmartFilterBar: filter boxes visible by default -->
             <smartFilterBar:SmartFilterBar
                 id="smartFilterBar"
                 entitySet="Trainings"
                 persistencyKey="TrainingsSmartFilter"
                 enableBasicSearch="true"
-                showClearOnFB="true" />
+                showClearOnFB="true"
+                filterBarExpanded="true"
+                showFilterConfiguration="true" />
 
             <!-- SmartTable: auto-generates columns from annotations
                  Provides: Variant Management, Column Settings, Export to Excel,

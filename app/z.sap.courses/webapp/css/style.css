@@ -1,4 +1,4 @@
-/* Clean Core Compliant Styles – SmartControl Edition */
+/* Clean Core Compliant Styles – SmartControl Edition 2026 */
 
 /* ===== Page Layout ===== */
 .sapUiResponsivePadding--header,
@@ -11,9 +11,15 @@
     font-weight: 600;
 }
 
-/* ===== SmartFilterBar ===== */
+/* ===== SmartFilterBar - Modern 2026 Look ===== */
 .sapUiCompSmartFilter {
     border-bottom: 1px solid #d9d9d9;
+    background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 100%);
+}
+
+/* Filter Bar Fields - Rectangular boxes */
+.sapUiCompFilterBarCtnrFlt {
+    padding: 0.5rem 0;
 }
 
 /* ===== SmartTable ===== */
@@ -27,7 +33,40 @@
     outline-offset: -2px;
 }
 
-/* ===== Assign Dialog ===== */
+/* ===== Analytics Panel - Modern Dashboard Style ===== */
+.sapMPanel {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.sapMPanel > .sapMPanelHdr {
+    background: linear-gradient(90deg, #354a5f 0%, #0a6ed1 100%);
+    color: #fff;
+    border-radius: 8px 8px 0 0;
+    font-weight: 600;
+}
+
+/* Analytics Cards */
+.sapMObjectNumber {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.sapMProgressIndicator {
+    border-radius: 4px;
+}
+
+/* ===== Assign Dialog - Modern 2026 Style ===== */
+.sapMDialog {
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.sapMDialog .sapMDialogTitle {
+    font-weight: 600;
+    font-size: 1.125rem;
+}
+
 .sapMDialog .sapMToolbar {
     background: transparent;
     padding-left: 0;
@@ -35,13 +74,28 @@
 
 .sapMDialog .sapMLabel {
     padding-top: 0.25rem;
+    font-weight: 500;
 }
 
 /* Dialog section titles */
 .sapMDialog .sapMTitle.sapMTitleStyleH5 {
-    color: #346187;
-    font-size: 0.875rem;
+    color: #0a6ed1;
+    font-size: 0.9375rem;
     font-weight: 600;
+    padding: 0.5rem 0;
+    border-bottom: 2px solid #0a6ed1;
+    margin-bottom: 0.5rem;
+}
+
+/* Input fields - modern rounded */
+.sapMDialog .sapMInput,
+.sapMDialog .sapMSelect,
+.sapMDialog .sapMDatePicker {
+    border-radius: 6px;
+}
+
+.sapMDialog .sapMInputBaseInner {
+    border-radius: 6px;
 }
 
 /* ===== Small Screen Adjustments ===== */
@@ -55,4 +109,19 @@
         margin-right: 0 !important;
         margin-bottom: 0.5rem;
     }
+    
+    .sapMObjectNumber {
+        font-size: 1.25rem;
+    }
+}
+
+/* ===== URL Link Columns - Make them stand out ===== */
+.sapMLink {
+    color: #0a6ed1;
+    font-weight: 500;
+}
+
+.sapMLink:hover {
+    color: #0854a0;
+    text-decoration: underline;
 }

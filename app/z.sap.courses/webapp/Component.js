@@ -11,8 +11,10 @@ sap.ui.define([
     "sap/base/Log",
     "sap/ui/Device",
     "sap/m/MessageToast",
+    "sap/m/Wizard",
+    "sap/m/WizardStep",
     "z/sap/courses/services/UserContext"
-], function (UIComponent, ODataModel, Button, Dialog, List, StandardListItem, TextArea, Bar, JSONModel, Log, Device, MessageToast, UserContext) {
+], function (UIComponent, ODataModel, Button, Dialog, List, StandardListItem, TextArea, Bar, JSONModel, Log, Device, MessageToast, Wizard, WizardStep, UserContext) {
     "use strict";
 
     return UIComponent.extend("z.sap.courses.Component", {

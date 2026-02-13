@@ -86,7 +86,8 @@
         "sap.m": {},
         "sap.ui.core": {},
         "sap.ui.comp": {},
-        "sap.ui.layout": {}
+        "sap.ui.layout": {},
+        "sap.suite.ui.microchart": {}
       }
     },
 

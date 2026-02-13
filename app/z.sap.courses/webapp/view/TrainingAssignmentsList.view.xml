@@ -28,13 +28,59 @@
         </customHeader>
 
         <content>
-            <!-- SmartFilterBar for Assignments -->
+            <!-- My Progress Analytics Panel -->
+            <Panel
+                id="myProgressPanel"
+                expandable="true"
+                expanded="true"
+                headerText="My Learning Progress"
+                class="sapUiSmallMarginBottom">
+                <HBox justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin">
+                    <VBox alignItems="Center" class="sapUiSmallMarginEnd">
+                        <ObjectNumber
+                            id="myAssignedCount"
+                            number="{assignAnalytics>/assigned}"
+                            unit="Pending"
+                            state="Warning" />
+                        <Text text="To Start" class="sapUiTinyMarginTop" />
+                    </VBox>
+                    <VBox alignItems="Center" class="sapUiSmallMarginEnd">
+                        <ObjectNumber
+                            id="myInProgressCount"
+                            number="{assignAnalytics>/inProgress}"
+                            unit="Learning"
+                            state="Warning" />
+                        <Text text="In Progress" class="sapUiTinyMarginTop" />
+                    </VBox>
+                    <VBox alignItems="Center" class="sapUiSmallMarginEnd">
+                        <ObjectNumber
+                            id="myCompletedCount"
+                            number="{assignAnalytics>/completed}"
+                            unit="Done"
+                            state="Success" />
+                        <Text text="Completed" class="sapUiTinyMarginTop" />
+                    </VBox>
+                    <VBox alignItems="Center">
+                        <ProgressIndicator
+                            id="myProgress"
+                            percentValue="{assignAnalytics>/completionPercent}"
+                            displayValue="{assignAnalytics>/completionPercent}%"
+                            state="{= ${assignAnalytics>/completionPercent} >= 80 ? 'Success' : ${assignAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Error' }"
+                            width="150px" />
+                        <Text text="My Progress" class="sapUiTinyMarginTop" />
+                    </VBox>
+                </HBox>
+            </Panel>
+
+            <!-- SmartFilterBar for Assignments - expanded with filter boxes -->
             <smartFilterBar:SmartFilterBar
                 id="assignSmartFilterBar"
                 entitySet="TrainingAssignments"
                 persistencyKey="AssignmentsSmartFilter"
                 enableBasicSearch="true"
-                showClearOnFB="true" />
+                showClearOnFB="true"
+                filterBarExpanded="true"
+                showFilterConfiguration="true" />
 
             <!-- SmartTable for Assignments -->
             <smartTable:SmartTable
