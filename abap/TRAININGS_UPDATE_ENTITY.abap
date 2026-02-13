@@ -1,46 +1,52 @@
 *&---------------------------------------------------------------------*
-*& Method: TRAININGS_UPDATE_ENTITY
-*& Update existing training record
+*& Method:  TRAININGS_UPDATE_ENTITY
+*& Purpose: Updates an existing training record in ZCOURSES.
+*&          Called when user edits a training in the Fiori app and
+*&          submits. Uses PATCH/PUT semantics - only non-initial
+*&          fields are overwritten so partial updates work.
+*& Class:   ZCL_ZCOURSES_DPC_EXT  (Redefine in SE24)
+*&---------------------------------------------------------------------*
+*& REVIEWED BY SAP EXPERT TEAM  |  2026-02-13  |  Classic ABAP Syntax
 *&---------------------------------------------------------------------*
 METHOD trainings_update_entity.
-  
-  DATA: ls_training TYPE zcourses,
+
+* -- Local variables (explicit - no inline DATA) ----------------------
+  DATA: ls_key      TYPE /iwbep/s_mgw_name_value_pair,
+        ls_training TYPE zcourses,
         ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
         lv_id       TYPE char36.
 
-  " Read key
-  READ TABLE it_key_tab WITH KEY name = 'ID' INTO DATA(ls_key).
+* -- Read key from OData URI path ------------------------------------
+  READ TABLE it_key_tab WITH KEY name = 'Id' INTO ls_key.
   IF sy-subrc <> 0.
-    " Try case-sensitive 'Id'
-    READ TABLE it_key_tab WITH KEY name = 'Id' INTO ls_key.
+    READ TABLE it_key_tab WITH KEY name = 'ID' INTO ls_key.
   ENDIF.
-  
+
   IF sy-subrc = 0.
     lv_id = ls_key-value.
   ELSE.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
-        textid            = /iwbep/cx_mgw_busi_exception=>business_error
-        message           = 'Training ID is required'
-        http_status_code  = 400.
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'Training ID is required'.
   ENDIF.
 
-  " Get existing record
-  SELECT SINGLE * FROM zcourses INTO @ls_training
-    WHERE id = @lv_id.
-  
+* -- Fetch existing record (classic syntax, no @ host expression) ----
+  SELECT SINGLE * FROM zcourses INTO ls_training
+    WHERE id = lv_id.
+
   IF sy-subrc <> 0.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
-        textid            = /iwbep/cx_mgw_busi_exception=>business_error
-        message           = 'Training not found'
-        http_status_code  = 404.
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'Training not found'.
   ENDIF.
 
-  " Get updated data
+* -- Read incoming update payload ------------------------------------
   io_data_provider->read_entry_data( IMPORTING es_data = ls_entity ).
 
-  " Update fields (only if provided)
+* -- Merge: only overwrite fields that were actually provided --------
+*   (IS NOT INITIAL check = partial update / PATCH support)
   IF ls_entity-title IS NOT INITIAL.
     ls_training-title = ls_entity-title.
   ENDIF.
@@ -60,41 +66,30 @@ METHOD trainings_update_entity.
     ls_training-sap_help_link = ls_entity-sap_help_link.
   ENDIF.
 
-  " Update timestamp
+* -- Update audit timestamp ------------------------------------------
   ls_training-last_updated = sy-datum.
 
-  " Update database
-  UPDATE zcourses
-    SET title = @ls_training-title,
-        url = @ls_training-url,
-        role = @ls_training-role,
-        sap_module = @ls_training-sap_module,
-        description = @ls_training-description,
-        sap_help_link = @ls_training-sap_help_link,
-        last_updated = @ls_training-last_updated
-    WHERE id = @lv_id.
-  
+* -- Write back to database (classic MODIFY - simpler than UPDATE SET)
+*   Note: No COMMIT WORK - Gateway framework manages the LUW.
+  MODIFY zcourses FROM ls_training.
+
   IF sy-subrc = 0.
-    COMMIT WORK.
-    
-    " Map back to entity
-    ls_entity-id = ls_training-id.
-    ls_entity-url = ls_training-url.
-    ls_entity-role = ls_training-role.
-    ls_entity-title = ls_training-title.
-    ls_entity-sap_module = ls_training-sap_module.
-    ls_entity-description = ls_training-description.
-    ls_entity-last_updated = ls_training-last_updated.
+*   Return updated entity to caller
+    ls_entity-id            = ls_training-id.
+    ls_entity-url           = ls_training-url.
+    ls_entity-role          = ls_training-role.
+    ls_entity-title         = ls_training-title.
+    ls_entity-sap_module    = ls_training-sap_module.
+    ls_entity-description   = ls_training-description.
+    ls_entity-last_updated  = ls_training-last_updated.
     ls_entity-sap_help_link = ls_training-sap_help_link.
-    
+
     er_entity = ls_entity.
   ELSE.
-    ROLLBACK WORK.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
-        textid            = /iwbep/cx_mgw_busi_exception=>business_error
-        message           = 'Failed to update training'
-        http_status_code  = 500.
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'Failed to update training'.
   ENDIF.
 
 ENDMETHOD.

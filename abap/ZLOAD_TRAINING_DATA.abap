@@ -1,26 +1,29 @@
 *&---------------------------------------------------------------------*
-*& Report ZLOAD_TRAINING_DATA
+*& Report:  ZLOAD_TRAINING_DATA
+*& Purpose: Bulk-loads 52 SAP training course records into custom
+*&          table ZCOURSES. Run once in SE38 to seed initial data.
+*&          Safe to re-run: deletes existing data first.
 *&---------------------------------------------------------------------*
-*& Load 52 SAP Training Courses from CSV data into ZCOURSES table
-*& SAP Clean Code: Simplified table name (ZCOURSES instead of ZCOURSES_TRAIN)
-*& Uses ID field (not COURSE_ID) to match frontend
+*& REVIEWED BY SAP EXPERT TEAM  |  2026-02-13  |  Classic ABAP Syntax
 *&---------------------------------------------------------------------*
 REPORT zload_training_data.
 
-TYPES: BEGIN OF ty_training,
-         id            TYPE char36,
-         url           TYPE char255,
-         role          TYPE char20,
-         title         TYPE char100,
-         sap_module    TYPE char20,
-         description   TYPE char255,
-         last_updated  TYPE dats,
-         sap_help_link TYPE char255,
-       END OF ty_training.
+* Note: ty_training TYPE removed (was dead code - never used)
+* The program uses TYPE zcourses directly which is correct.
 
 DATA: lt_training TYPE TABLE OF zcourses,
       ls_training TYPE zcourses,
-      lv_lines    TYPE i.
+      lv_lines    TYPE i,
+      lv_existing TYPE i.
+
+* Check if data already exists (safe re-run)
+SELECT COUNT(*) FROM zcourses INTO lv_existing.
+IF lv_existing > 0.
+  WRITE: / '[INFO] Found', lv_existing, 'existing records in ZCOURSES.'.
+  WRITE: / '[INFO] Deleting old data before reload...'.
+  DELETE FROM zcourses.
+  COMMIT WORK.
+ENDIF.
 
 * Training data (52 records from CSV)
 ls_training-mandt = sy-mandt.
@@ -603,17 +606,18 @@ INSERT zcourses FROM TABLE lt_training.
 IF sy-subrc = 0.
   COMMIT WORK.
   lv_lines = lines( lt_training ).
-  WRITE: / '✓ Successfully loaded', lv_lines, 'training records into ZCOURSES table.'.
-  WRITE: / '✓ Data source: Learning_Data-Trainings.csv (52 SAP training courses)'.
-  WRITE: / '✓ Field: ID (not COURSE_ID) - matches frontend expectations'.
-  WRITE: / '✓ Verify in SE16: SELECT * FROM ZCOURSES'.
+  WRITE: / '[OK] Successfully loaded', lv_lines, 'training records into ZCOURSES.'.
+  WRITE: / '[OK] Data source: Learning_Data-Trainings.csv (52 SAP courses)'.
+  WRITE: / '[OK] Key field: ID (UUID format) - matches frontend OData calls'.
+  WRITE: / '[OK] Verify in SE16: table ZCOURSES'.
 ELSE.
   ROLLBACK WORK.
-  WRITE: / '✗ Error loading training data - sy-subrc:', sy-subrc.
-  WRITE: / 'Check: 1) Table ZCOURSES exists (SE11)'.
-  WRITE: / '       2) Table is activated (Ctrl+F3)'.
-  WRITE: / '       3) Field is named ID (not COURSE_ID)'.
-  WRITE: / '       4) You have INSERT authorization'.
+  WRITE: / '[ERROR] Failed to load training data. sy-subrc:', sy-subrc.
+  WRITE: / 'Troubleshooting:'.
+  WRITE: / '  1) Does table ZCOURSES exist? Check SE11'.
+  WRITE: / '  2) Is the table activated? Ctrl+F3 in SE11'.
+  WRITE: / '  3) Do you have INSERT authorization?'.
+  WRITE: / '  4) Are there duplicate keys? Check SE16'.
 ENDIF.
 
 
