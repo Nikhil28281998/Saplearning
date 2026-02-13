@@ -225,24 +225,29 @@
                             type="Emphasized"
                             press="onCreateTraining"
                             visible="{= ${user>/role} === 'Admin' }" />
+                        <Button
+                            id="deleteTrainingBtn"
+                            icon="sap-icon://delete"
+                            text="Delete"
+                            type="Reject"
+                            press="onDeleteTraining"
+                            visible="{= ${user>/role} === 'Admin' }" />
+                        <ToolbarSeparator id="tbSep1" visible="{= ${user>/role} === 'Admin' }" />
                         <ToolbarSpacer id="toolbarSpacer" />
                         <Button
                             id="detailsButton"
                             icon="sap-icon://detail-view"
                             text="View Details"
                             press="onViewDetails" />
-                        <Button
-                            id="deleteTrainingBtn"
-                            icon="sap-icon://delete"
-                            text="Delete"
-                            press="onDeleteTraining"
-                            visible="{= ${user>/role} === 'Admin' }" />
+                        <ToolbarSeparator id="tbSep2" />
                         <Button
                             id="assignButton"
                             icon="sap-icon://person-placeholder"
                             text="Assign Training"
+                            type="Attention"
                             press="onAssignTraining"
                             visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
+                        <ToolbarSeparator id="tbSep3" />
                         <Button
                             id="refreshButton"
                             icon="sap-icon://refresh"

@@ -1,22 +1,51 @@
-/* Clean Core Compliant Styles – SmartControl Edition 2026 */
+/* ===================================================================
+   SAP Learning – Modern Fiori Horizon 2026 Design System
+   Premium UI with glassmorphism, micro-animations, modern shadows
+   =================================================================== */
+
+/* ===== CSS Custom Properties (Design Tokens) ===== */
+:root {
+    /* SAP Horizon palette */
+    --sapBrand:        #0070f2;
+    --sapBrandDark:    #0054b5;
+    --sapBrandLight:   #ebf5ff;
+    --sapAccent1:      #0854a0;
+    --sapAccent2:      #e76500;
+    --sapAccent3:      #0a6ed1;
+    --sapAccent4:      #107e3e;
+    --sapAccent5:      #6c32a9;
+    --sapAccent6:      #d4e3f5;
+    --sapNeutral:      #556b82;
+    --sapNeutralLight: #f5f6f7;
+    --sapBg:           #f5f6fa;
+    --sapSurface:      #ffffff;
+    --sapBorder:       #e0e0e0;
+    --sapBorderFocus:  #0070f2;
+    --sapText:         #1d2d3e;
+    --sapTextLight:    #556b82;
+    --sapShadowSm:     0 1px 4px rgba(0,0,0,0.06);
+    --sapShadowMd:     0 4px 16px rgba(0,0,0,0.08);
+    --sapShadowLg:     0 8px 32px rgba(0,0,0,0.12);
+    --sapShadowHover:  0 8px 24px rgba(0,112,242,0.15);
+    --sapRadius:       12px;
+    --sapRadiusSm:     8px;
+    --sapTransition:   0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --sapGlass:        rgba(255,255,255,0.72);
+    --sapGlassBorder:  rgba(255,255,255,0.3);
+}
 
 /* ===== Fit-to-Screen Layout (Standard SAP Fiori Pattern) ===== */
-/* SAP Reference: https://experience.sap.com/fiori-design-web/smart-table/ */
-/* Complete height chain: html → body → UIArea → View → App → Page → section → SmartTable */
-
-/* Root height chain */
 html, body, html.sap-desktop, .sapUiBody {
     height: 100% !important;
     margin: 0;
     padding: 0;
+    background: var(--sapBg) !important;
 }
 
-/* UI5 UI Area container */
 #content, #canvas {
     height: 100% !important;
 }
 
-/* View → App → NavContainer chain */
 .sapUiView {
     display: block !important;
     height: 100% !important;
@@ -30,20 +59,18 @@ html, body, html.sap-desktop, .sapUiBody {
     height: 100%;
 }
 
-/* sap.m.Page: flex column so content section fills remaining space */
 .sapMPage {
     display: flex !important;
     flex-direction: column !important;
     height: 100% !important;
+    background: var(--sapBg) !important;
 }
 
-/* Page header: fixed height */
 .sapMPage > .sapMPageHeader,
 .sapMPage > header {
     flex: 0 0 auto !important;
 }
 
-/* Page content area: flex column so SmartTable gets remaining space */
 .sapMPage > section.sapMPageEnableScrolling,
 .sapMPage > section {
     flex: 1 1 0 !important;
@@ -52,180 +79,483 @@ html, body, html.sap-desktop, .sapUiBody {
     overflow: hidden !important;
 }
 
-/* Non-table elements (Panel, SmartFilterBar) keep natural height */
 .sapMPage > section > .sapMPanel,
 .sapMPage > section > .sapUiCompSmartFilter {
     flex: 0 0 auto !important;
     overflow: visible !important;
 }
 
-/* SmartTable with fitContainer fills all remaining height */
 .sapMPage > section > .sapUiCompSmartTable {
     flex: 1 1 0 !important;
     overflow: hidden !important;
     min-height: 200px !important;
 }
 
-/* ===== Page Layout ===== */
-.sapUiResponsivePadding--header,
-.sapUiResponsivePadding--content {
-    padding: 0;
+/* ===== Modern Header Bar ===== */
+.sapMPage > .sapMPageHeader .sapMBar,
+.sapMPage > header .sapMBar {
+    background: linear-gradient(135deg, #1a2c42 0%, #0854a0 60%, #0a6ed1 100%) !important;
+    border-bottom: none !important;
+    box-shadow: 0 2px 12px rgba(8,84,160,0.18);
+    min-height: 3rem;
 }
 
-/* ===== Header Bar ===== */
-.sapMBar .sapMTitle {
+.sapMPage > .sapMPageHeader .sapMBar .sapMTitle,
+.sapMPage > header .sapMBar .sapMTitle {
+    color: #fff !important;
+    font-weight: 700;
+    font-size: 1.125rem;
+    letter-spacing: -0.01em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+
+.sapMPage > .sapMPageHeader .sapMBar .sapMBtn,
+.sapMPage > header .sapMBar .sapMBtn {
+    color: #fff !important;
+}
+
+.sapMPage > .sapMPageHeader .sapMBar .sapUiIcon,
+.sapMPage > header .sapMBar .sapUiIcon {
+    color: rgba(255,255,255,0.85) !important;
+}
+
+/* Role badge in header – pill style */
+.sapMPage > .sapMPageHeader .sapMBar .sapMObjStatus,
+.sapMPage > header .sapMBar .sapMObjStatus {
+    background: rgba(255,255,255,0.18) !important;
+    border-radius: 20px;
+    padding: 0.15rem 0.75rem !important;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.25);
+}
+
+.sapMPage > .sapMPageHeader .sapMBar .sapMObjStatusText,
+.sapMPage > header .sapMBar .sapMObjStatusText {
+    color: #fff !important;
     font-weight: 600;
+    font-size: 0.8125rem;
 }
 
-/* ===== SmartFilterBar - Modern 2026 Look ===== */
-.sapUiCompSmartFilter {
-    border-bottom: 1px solid #d9d9d9;
-    background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 100%);
+/* My Assignments button in header */
+.sapMPage > .sapMPageHeader .sapMBar .sapMBtnEmphasized,
+.sapMPage > header .sapMBar .sapMBtnEmphasized {
+    background: rgba(255,255,255,0.2) !important;
+    border: 1px solid rgba(255,255,255,0.35) !important;
+    border-radius: 8px !important;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    transition: var(--sapTransition);
 }
 
-/* Filter Bar Fields - Rectangular boxes */
-.sapUiCompFilterBarCtnrFlt {
-    padding: 0.5rem 0;
+.sapMPage > .sapMPageHeader .sapMBar .sapMBtnEmphasized:hover {
+    background: rgba(255,255,255,0.3) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
-/* ===== SmartTable ===== */
-.sapUiCompSmartTable .sapMTitle {
-    font-weight: 600;
+.sapMPage > .sapMPageHeader .sapMBar .sapMBtnEmphasized .sapMBtnContent,
+.sapMPage > header .sapMBar .sapMBtnEmphasized .sapMBtnContent {
+    color: #fff !important;
 }
 
-/* Focus Indicator for Accessibility */
-.sapMListTbl .sapMListTblRow:focus {
-    outline: 2px solid #0070b1;
-    outline-offset: -2px;
-}
-
-/* ===== Analytics Panel - Modern Dashboard Style ===== */
+/* ===== Analytics Panel – Glassmorphism Dashboard ===== */
 .sapMPanel {
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-radius: var(--sapRadius) !important;
+    box-shadow: var(--sapShadowMd);
+    border: 1px solid var(--sapBorder);
+    overflow: hidden;
+    background: var(--sapSurface) !important;
 }
 
 .sapMPanel > .sapMPanelHdr {
-    background: linear-gradient(90deg, #354a5f 0%, #0a6ed1 100%);
-    color: #fff;
-    border-radius: 8px 8px 0 0;
-    font-weight: 600;
+    background: linear-gradient(135deg, #1a2c42 0%, #0854a0 50%, #0a6ed1 100%) !important;
+    color: #fff !important;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    letter-spacing: 0.02em;
+    padding: 0.75rem 1rem !important;
+    border-radius: 0 !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
 }
 
-/* Analytics Card Tiles */
+/* Panel expand icon */
+.sapMPanel > .sapMPanelHdr .sapUiIcon {
+    color: rgba(255,255,255,0.85) !important;
+}
+
+.sapMPanel .sapMPanelContent {
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0.5rem !important;
+}
+
+/* Analytics Container */
 .analyticsContainer {
-    gap: 0.75rem;
+    gap: 1rem;
     width: 100%;
     box-sizing: border-box;
+    padding: 0.25rem;
 }
 
+/* Analytics Card – Glassmorphism tiles */
 .analyticsCard {
-    flex: 1 1 130px;
-    min-width: 120px;
+    flex: 1 1 140px;
+    min-width: 128px;
     max-width: none;
-    padding: 1rem 1.25rem;
-    border-radius: 10px;
-    border: 1px solid #e5e5e5;
-    background: #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    transition: transform 0.15s, box-shadow 0.15s;
+    padding: 1.25rem 1rem;
+    border-radius: var(--sapRadius);
+    background: var(--sapGlass);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--sapBorder);
+    box-shadow: var(--sapShadowSm);
+    transition: all var(--sapTransition);
     box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Decorative gradient orb behind each card */
+.analyticsCard::before {
+    content: '';
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    opacity: 0.08;
+    pointer-events: none;
+    transition: opacity var(--sapTransition);
 }
 
 .analyticsCard:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    transform: translateY(-4px);
+    box-shadow: var(--sapShadowHover);
+    border-color: var(--sapBorderFocus);
 }
 
-.analyticsCardBlue { border-top: 3px solid #0854a0; }
-.analyticsCardOrange { border-top: 3px solid #e76500; }
-.analyticsCardTeal { border-top: 3px solid #0a6ed1; }
-.analyticsCardGreen { border-top: 3px solid #107e3e; }
-.analyticsCardPurple { border-top: 3px solid #6c32a9; }
+.analyticsCard:hover::before {
+    opacity: 0.14;
+}
 
-.analyticsNumber .sapMObjectNumber {
+.analyticsCardBlue  { border-top: 3px solid var(--sapAccent1); }
+.analyticsCardOrange { border-top: 3px solid var(--sapAccent2); }
+.analyticsCardTeal  { border-top: 3px solid var(--sapAccent3); }
+.analyticsCardGreen { border-top: 3px solid var(--sapAccent4); }
+.analyticsCardPurple { border-top: 3px solid var(--sapAccent5); }
+
+.analyticsCardBlue::before  { background: var(--sapAccent1); }
+.analyticsCardOrange::before { background: var(--sapAccent2); }
+.analyticsCardTeal::before  { background: var(--sapAccent3); }
+.analyticsCardGreen::before { background: var(--sapAccent4); }
+.analyticsCardPurple::before { background: var(--sapAccent5); }
+
+/* Analytics number – large, tabular figures */
+.analyticsCard .sapMObjectNumber {
     font-size: 2rem !important;
-    font-weight: 700 !important;
+    font-weight: 800 !important;
+    font-feature-settings: "tnum";
+    letter-spacing: -0.02em;
 }
 
 .analyticsLabel {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: #556b82;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--sapNeutral);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 0.25rem;
+    letter-spacing: 0.6px;
+    margin-top: 0.375rem;
 }
 
-/* Analytics Cards */
-.sapMObjectNumber {
-    font-size: 1.75rem;
+/* Analytics icon pulse on hover */
+.analyticsCard .sapUiIcon {
+    transition: transform var(--sapTransition);
+}
+
+.analyticsCard:hover .sapUiIcon {
+    transform: scale(1.15);
+}
+
+/* ===== Chart Cards ===== */
+.chartCard {
+    min-width: 220px;
+    max-width: none;
+    flex: 1 1 220px;
+}
+
+.chartTitle {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--sapText);
+}
+
+.chartLegendText {
+    font-size: 0.6875rem;
+    color: var(--sapNeutral);
+    font-weight: 500;
+}
+
+.chartLegendRow {
+    gap: 0.75rem;
+}
+
+.sapSuiteRMC {
+    margin: 0.375rem 0;
+}
+
+.sapSuiteCpMC {
+    margin-top: 0.375rem;
+}
+
+.sapSuiteSBMC {
+    margin: 0.375rem 0;
+    min-width: 180px;
+}
+
+/* ===== SmartFilterBar – Modern Frosted Glass ===== */
+.sapUiCompSmartFilter {
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9fc 100%) !important;
+    border-bottom: 1px solid var(--sapBorder) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.sapUiCompFilterBarCtnrFlt {
+    padding: 0.625rem 0;
+}
+
+/* Filter group labels */
+.sapUiCompFilterBarCtnrFlt .sapUiCompFilterBarGroup {
+    padding: 0.25rem 0.5rem;
+}
+
+/* Filter input boxes – modern rounded */
+.sapUiCompFilterBarCtnrFlt .sapMInput,
+.sapUiCompFilterBarCtnrFlt .sapMDatePicker,
+.sapUiCompFilterBarCtnrFlt .sapMComboBox {
+    border: 1.5px solid var(--sapBorder) !important;
+    border-radius: var(--sapRadiusSm) !important;
+    background: var(--sapSurface) !important;
+    transition: border-color var(--sapTransition), box-shadow var(--sapTransition);
+}
+
+.sapUiCompFilterBarCtnrFlt .sapMInput:focus-within,
+.sapUiCompFilterBarCtnrFlt .sapMDatePicker:focus-within {
+    border-color: var(--sapBorderFocus) !important;
+    box-shadow: 0 0 0 3px rgba(0,112,242,0.12) !important;
+}
+
+/* SmartFilterBar Go button accent */
+.sapUiCompSmartFilter .sapMBtnEmphasized {
+    border-radius: var(--sapRadiusSm) !important;
+    font-weight: 600;
+}
+
+/* Adapt Filters link */
+.sapUiCompSmartFilter .sapMLnk {
+    font-weight: 600;
+    color: var(--sapBrand);
+}
+
+/* ===== SmartTable ===== */
+.sapUiCompSmartTable {
+    background: var(--sapSurface);
+    border-radius: 0 0 var(--sapRadiusSm) var(--sapRadiusSm);
+}
+
+.sapUiCompSmartTable .sapMTitle {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--sapText);
+}
+
+/* SmartTable Toolbar – subtle top border */
+.sapUiCompSmartTable .sapMTB {
+    border-bottom: 1px solid var(--sapBorder);
+    background: var(--sapNeutralLight) !important;
+    min-height: 2.75rem;
+}
+
+/* ===== Toolbar Buttons – Modern Pill Style ===== */
+.sapMTBStandard .sapMBtn {
+    margin-left: 0.375rem;
+    transition: all var(--sapTransition);
+}
+
+.sapMTBStandard .sapMBtn .sapMBtnInner {
+    border-radius: var(--sapRadiusSm) !important;
+    font-weight: 600;
+    font-size: 0.8125rem;
+}
+
+/* Emphasized button (Create) */
+.sapMTBStandard .sapMBtnEmphasized .sapMBtnInner {
+    background: linear-gradient(135deg, var(--sapBrand) 0%, var(--sapBrandDark) 100%) !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(0,112,242,0.25);
+    transition: all var(--sapTransition);
+}
+
+.sapMTBStandard .sapMBtnEmphasized:hover .sapMBtnInner {
+    box-shadow: 0 4px 16px rgba(0,112,242,0.35);
+    transform: translateY(-1px);
+}
+
+/* Transparent buttons (View Details, Delete, etc.) */
+.sapMTBStandard .sapMBtnTransparent .sapMBtnInner:hover {
+    background: var(--sapBrandLight) !important;
+    border-radius: var(--sapRadiusSm) !important;
+}
+
+/* ===== GridTable – Premium 2026 ===== */
+.sapUiTable {
+    width: 100% !important;
+    border-radius: var(--sapRadiusSm);
+}
+
+/* Column Headers – bold, clean */
+.sapUiTableCol {
+    font-weight: 700 !important;
+    font-size: 0.8125rem;
+    color: var(--sapText);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.sapUiTableColHdrCnt {
+    background: linear-gradient(180deg, #f8f9fc 0%, #f0f2f5 100%) !important;
+    border-bottom: 2px solid var(--sapBorder) !important;
+}
+
+/* Row hover effect */
+.sapUiTableRow:hover > td {
+    background-color: var(--sapBrandLight) !important;
+    transition: background-color 0.15s ease;
+}
+
+/* Alternate row colors */
+.sapUiTableRowAlternate > td {
+    background-color: #fafbfd !important;
+}
+
+/* Selected row – stronger highlight */
+.sapUiTableRowSel > td {
+    background-color: #dae8fc !important;
+    border-left: 3px solid var(--sapBrand);
+}
+
+/* Cell text */
+.sapUiTableCell {
+    font-size: 0.8125rem;
+    color: var(--sapText);
+}
+
+/* Row separator */
+.sapUiTableRow > td {
+    border-bottom: 1px solid #eef0f3 !important;
+}
+
+.sapUiTableHdr {
     font-weight: 700;
 }
 
-.sapMProgressIndicator {
-    border-radius: 4px;
-}
-
-/* ===== Assign Dialog - Modern 2026 Style ===== */
-.assignTrainingDialog {
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-}
-
-.assignTrainingDialog .sapMDialogTitle {
+/* ===== URL Link Columns ===== */
+.sapUiTable .sapMLink {
+    color: var(--sapBrand) !important;
     font-weight: 600;
+    font-size: 0.8125rem;
+    text-decoration: none;
+    position: relative;
+    transition: color var(--sapTransition);
+}
+
+.sapUiTable .sapMLink::after {
+    content: ' \2197';
+    font-size: 0.7rem;
+    opacity: 0.5;
+}
+
+.sapUiTable .sapMLink:hover {
+    color: var(--sapBrandDark) !important;
+}
+
+/* ===== Dialogs – Modern Card Style ===== */
+.sapMDialog {
+    border-radius: var(--sapRadius) !important;
+    box-shadow: var(--sapShadowLg) !important;
+    border: 1px solid var(--sapBorder);
+}
+
+.sapMDialogTitle {
+    font-weight: 700 !important;
     font-size: 1.125rem;
+    color: var(--sapText);
 }
 
-/* SimpleForm section titles inside dialog */
+.sapMDialog .sapMDialogSection {
+    background: var(--sapSurface);
+}
+
+/* Dialog header bar */
+.sapMDialog > .sapMBar {
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9fc 100%) !important;
+    border-bottom: 1px solid var(--sapBorder) !important;
+}
+
+/* Dialog footer bar */
+.sapMDialog .sapMDialogFooter {
+    background: var(--sapNeutralLight) !important;
+    border-top: 1px solid var(--sapBorder) !important;
+    border-radius: 0 0 var(--sapRadius) var(--sapRadius);
+}
+
+/* Assign dialog specifics */
 .assignTrainingDialog .sapUiFormTitle {
-    color: #0a6ed1;
-    font-weight: 600;
-    border-bottom: 2px solid #0a6ed1;
-    padding-bottom: 0.25rem;
+    color: var(--sapBrand);
+    font-weight: 700;
+    border-bottom: 2px solid var(--sapBrand);
+    padding-bottom: 0.375rem;
     margin-top: 0.75rem;
 }
 
-/* Form label spacing */
 .assignTrainingDialog .sapMLabel {
-    font-weight: 500;
-    padding-top: 0.125rem;
-}
-
-/* Input / Select / DatePicker inside dialog */
-.assignTrainingDialog .sapMInputBaseInner,
-.assignTrainingDialog .sapMSltArrow,
-.assignTrainingDialog .sapMSltLabel {
-    border-radius: 6px;
+    font-weight: 600;
+    color: var(--sapNeutral);
+    font-size: 0.8125rem;
 }
 
 .assignTrainingDialog .sapMInput,
 .assignTrainingDialog .sapMSelect,
 .assignTrainingDialog .sapMDatePicker,
 .assignTrainingDialog .sapMComboBoxTextField {
-    border-radius: 6px;
+    border-radius: var(--sapRadiusSm) !important;
+    border: 1.5px solid var(--sapBorder) !important;
+    transition: border-color var(--sapTransition), box-shadow var(--sapTransition);
 }
 
-/* Give fields breathing room */
+.assignTrainingDialog .sapMInput:focus-within,
+.assignTrainingDialog .sapMSelect:focus-within,
+.assignTrainingDialog .sapMDatePicker:focus-within,
+.assignTrainingDialog .sapMComboBox:focus-within {
+    border-color: var(--sapBorderFocus) !important;
+    box-shadow: 0 0 0 3px rgba(0,112,242,0.1) !important;
+}
+
 .assignTrainingDialog .sapUiRespGridMedia {
     padding: 0.25rem 0;
 }
 
-/* ===== SmartFilterBar filter boxes always visible ===== */
-.sapUiCompFilterBarCtnrFlt .sapUiCompFilterBarGroup {
-    padding: 0.25rem 0.5rem;
+/* ===== Focus Indicators (Accessibility) ===== */
+.sapMListTbl .sapMListTblRow:focus {
+    outline: 2px solid var(--sapBorderFocus);
+    outline-offset: -2px;
 }
 
-/* Filter input boxes - clear borders */
-.sapUiCompFilterBarCtnrFlt .sapMInput,
-.sapUiCompFilterBarCtnrFlt .sapMDatePicker {
-    border: 1px solid #bfbfbf;
-    border-radius: 4px;
-    background: #fff;
+.sapMBtn:focus .sapMBtnInner {
+    outline: 2px solid var(--sapBorderFocus);
+    outline-offset: 2px;
 }
 
-/* ===== Responsive Width: ensure full-width at all breakpoints ===== */
+/* ===== Responsive Width ===== */
 .sapMPage,
 .sapMPage > section,
 .sapUiCompSmartTable,
@@ -234,11 +564,7 @@ html, body, html.sap-desktop, .sapUiBody {
     box-sizing: border-box !important;
 }
 
-.sapUiTable {
-    width: 100% !important;
-}
-
-/* ===== Small Screen Adjustments ===== */
+/* ===== Responsive Breakpoints ===== */
 @media (max-width: 600px) {
     .analyticsContainer {
         flex-direction: column;
@@ -253,12 +579,15 @@ html, body, html.sap-desktop, .sapUiBody {
         min-width: 100% !important;
     }
 
-    .sapMObjectNumber {
-        font-size: 1.25rem;
+    .analyticsCard .sapMObjectNumber {
+        font-size: 1.5rem !important;
+    }
+
+    .sapMPage > .sapMPageHeader .sapMBar .sapMTitle {
+        font-size: 0.9375rem;
     }
 }
 
-/* Medium screens: 2 cards per row */
 @media (min-width: 601px) and (max-width: 1024px) {
     .analyticsCard {
         flex: 1 1 calc(50% - 1rem);
@@ -266,110 +595,84 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 }
 
-/* Large screens: cards stretch evenly */
 @media (min-width: 1025px) {
     .analyticsCard {
         flex: 1 1 0;
-        min-width: 120px;
+        min-width: 128px;
     }
 }
 
-/* ===== URL Link Columns - Make them stand out ===== */
-.sapMLink {
-    color: #0a6ed1;
-    font-weight: 500;
+/* ===== Custom Scrollbar (Modern) ===== */
+.sapUiTableCCnt::-webkit-scrollbar,
+.sapMPanel .sapMPanelContent::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
 }
 
-.sapMLink:hover {
-    color: #0854a0;
-    text-decoration: underline;
+.sapUiTableCCnt::-webkit-scrollbar-track,
+.sapMPanel .sapMPanelContent::-webkit-scrollbar-track {
+    background: transparent;
 }
 
-/* ===== Chart Cards - Analytics 2026 ===== */
-.chartCard {
-    min-width: 200px;
-    max-width: none;
-    flex: 1 1 200px;
+.sapUiTableCCnt::-webkit-scrollbar-thumb,
+.sapMPanel .sapMPanelContent::-webkit-scrollbar-thumb {
+    background: #c4c4c4;
+    border-radius: 3px;
 }
 
-.chartTitle {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #354a5f;
-}
-
-.chartLegendText {
-    font-size: 0.6875rem;
-    color: #556b82;
-}
-
-.chartLegendRow {
-    gap: 0.5rem;
-}
-
-/* RadialMicroChart sizing */
-.sapSuiteRMC {
-    margin: 0.25rem 0;
-}
-
-/* ComparisonMicroChart styling */
-.sapSuiteCpMC {
-    margin-top: 0.25rem;
-}
-
-/* StackedBarMicroChart sizing */
-.sapSuiteSBMC {
-    margin: 0.25rem 0;
-    min-width: 180px;
-}
-
-/* ===== GridTable (sap.ui.table) - 2026 Polish ===== */
-.sapUiTable {
-    border-radius: 4px;
-}
-
-.sapUiTableHdr {
-    font-weight: 600;
-}
-
-/* Column header menus */
-.sapUiTableCol {
-    font-weight: 600;
-}
-
-/* Alternate row colors */
-.sapUiTableRowAlternate > td {
-    background-color: #fafbfc !important;
-}
-
-/* Selected row highlight */
-.sapUiTableRowSel > td {
-    background-color: #e8f0fe !important;
+.sapUiTableCCnt::-webkit-scrollbar-thumb:hover,
+.sapMPanel .sapMPanelContent::-webkit-scrollbar-thumb:hover {
+    background: #999;
 }
 
 /* ===== Empty State ===== */
 .sapUiTableCtrlEmpty {
     text-align: center;
-    padding: 2rem;
-    color: #556b82;
-    font-style: italic;
+    padding: 3rem 2rem;
+    color: var(--sapNeutral);
+    font-style: normal;
+    font-size: 0.9375rem;
 }
 
-/* ===== 2026 Typography & Spacing ===== */
+/* ===== Typography ===== */
 .sapMTitle {
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
 }
 
 .sapMObjectNumber .sapMObjectNumberText {
     font-feature-settings: "tnum";
 }
 
-/* Toolbar button spacing */
-.sapMTBStandard .sapMBtn {
-    margin-left: 0.25rem;
+/* ===== InfoLabel Status Badges ===== */
+.sapMPage > .sapMPageHeader .sapTntInfoLbl {
+    font-weight: 700;
+    font-size: 0.75rem;
 }
 
-/* Panel expand/collapse smooth */
-.sapMPanel .sapMPanelContent {
-    transition: max-height 0.3s ease;
+/* ===== Loading Skeleton Pulse (for analytics) ===== */
+@keyframes skeletonPulse {
+    0%   { opacity: 1; }
+    50%  { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+.analyticsCard--loading .sapMObjectNumber,
+.analyticsCard--loading .sapUiIcon {
+    animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
+/* ===== Subtle Page Background Pattern ===== */
+.sapMPage > section {
+    background:
+        radial-gradient(ellipse at 20% 0%, rgba(0,112,242,0.03) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(107,50,169,0.02) 0%, transparent 50%),
+        var(--sapBg) !important;
+}
+
+/* ===== ToolbarSeparator ===== */
+.sapMTBSeparator {
+    background: var(--sapBorder) !important;
+    width: 1px !important;
+    height: 1.5rem !important;
+    margin: 0 0.25rem !important;
 }

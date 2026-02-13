@@ -7,8 +7,9 @@ sap.ui.define([
     "sap/ui/model/FilterOperator",
     "sap/m/Link",
     "sap/m/Text",
-    "sap/base/Log"
-], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log) {
+    "sap/base/Log",
+    "sap/ui/core/BusyIndicator"
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, BusyIndicator) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingsList", {
@@ -31,6 +32,15 @@ sap.ui.define([
             var oModel = this.getOwnerComponent().getModel();
             var oAnalyticsModel = this.getView().getModel("analyticsModel");
             var that = this;
+            var iPending = 2; // two reads
+            BusyIndicator.show(0);
+
+            var fnDone = function () {
+                iPending--;
+                if (iPending <= 0) {
+                    BusyIndicator.hide();
+                }
+            };
 
             // Load all trainings for count + module distribution chart
             oModel.read("/Trainings", {
@@ -51,9 +61,11 @@ sap.ui.define([
                     }).sort(function (a, b) { return b.count - a.count; }).slice(0, 5);
 
                     that._buildModuleChart(moduleArr);
+                    fnDone();
                 },
                 error: function () {
                     oAnalyticsModel.setProperty("/totalTrainings", 0);
+                    fnDone();
                 }
             });
 
@@ -75,8 +87,9 @@ sap.ui.define([
                     oAnalyticsModel.setProperty("/inProgress", inProgress);
                     oAnalyticsModel.setProperty("/completed", completed);
                     oAnalyticsModel.setProperty("/completionPercent", pct);
+                    fnDone();
                 },
-                error: function () { /* ignore */ }
+                error: function () { fnDone(); }
             });
         },
 
@@ -466,6 +479,7 @@ sap.ui.define([
         },
 
         onViewDetails: function () {
+            var that = this;
             var oSmartTable = this.byId("smartTable");
             var oTable = oSmartTable.getTable();
             var iIndex = oTable.getSelectedIndex();
@@ -477,30 +491,133 @@ sap.ui.define([
             if (!oContext) { return; }
             var oTraining = oContext.getObject();
 
-            var aActions = [];
-            if (oTraining.Url) { aActions.push("Open Training Link"); }
-            if (oTraining.SapHelpLink) { aActions.push("Open SAP Help"); }
-            aActions.push(MessageBox.Action.CLOSE);
+            // Destroy previous dialog
+            if (this._detailDlg) {
+                this._detailDlg.destroy();
+                this._detailDlg = null;
+            }
 
-            MessageBox.show(
-                "Title: " + (oTraining.Title || "") + "\n" +
-                "Module: " + (oTraining.SapModule || "") + "\n" +
-                "Role: " + (oTraining.Role || "") + "\n\n" +
-                (oTraining.Description || ""),
-                {
-                    title: "Training Details",
-                    icon: MessageBox.Icon.INFORMATION,
-                    actions: aActions,
-                    emphasizedAction: aActions[0],
-                    onClose: function (sAction) {
-                        if (sAction === "Open Training Link" && oTraining.Url) {
-                            sap.m.URLHelper.redirect(oTraining.Url, false);
-                        } else if (sAction === "Open SAP Help" && oTraining.SapHelpLink) {
-                            sap.m.URLHelper.redirect(oTraining.SapHelpLink, false);
-                        }
-                    }
+            // Build rich detail dialog
+            var aContent = [];
+
+            // Object Header
+            var oObjectHeader = new sap.m.ObjectHeader({
+                title: oTraining.Title || "Untitled",
+                number: oTraining.SapModule || "",
+                numberUnit: "Module",
+                responsive: true,
+                fullScreenOptimized: true,
+                attributes: [],
+                statuses: []
+            });
+
+            if (oTraining.Role) {
+                oObjectHeader.addAttribute(new sap.m.ObjectAttribute({
+                    title: "Role",
+                    text: oTraining.Role
+                }));
+            }
+            if (oTraining.LastUpdated) {
+                var sDate = oTraining.LastUpdated;
+                if (sDate instanceof Date) {
+                    sDate = sDate.toLocaleDateString();
                 }
-            );
+                oObjectHeader.addAttribute(new sap.m.ObjectAttribute({
+                    title: "Last Updated",
+                    text: sDate + ""
+                }));
+            }
+            oObjectHeader.addStatus(new sap.m.ObjectStatus({
+                text: oTraining.SapModule || "General",
+                state: "Information"
+            }));
+            aContent.push(oObjectHeader);
+
+            // Description section
+            if (oTraining.Description) {
+                aContent.push(new sap.m.Panel({
+                    headerText: "Description",
+                    expandable: false,
+                    content: [
+                        new Text({
+                            text: oTraining.Description
+                        }).addStyleClass("sapUiSmallMargin")
+                    ]
+                }).addStyleClass("sapUiTinyMarginTop"));
+            }
+
+            // Links section
+            var aLinkItems = [];
+            if (oTraining.Url) {
+                aLinkItems.push(new sap.m.CustomListItem({
+                    content: [
+                        new sap.m.HBox({
+                            alignItems: "Center",
+                            items: [
+                                new sap.ui.core.Icon({ src: "sap-icon://chain-link", size: "1.25rem", color: "#0070f2" }).addStyleClass("sapUiSmallMarginEnd"),
+                                new Link({
+                                    text: "Open Training Link",
+                                    href: oTraining.Url,
+                                    press: function () {
+                                        sap.m.URLHelper.redirect(oTraining.Url, false);
+                                    }
+                                })
+                            ]
+                        }).addStyleClass("sapUiTinyMargin")
+                    ]
+                }));
+            }
+            if (oTraining.SapHelpLink) {
+                aLinkItems.push(new sap.m.CustomListItem({
+                    content: [
+                        new sap.m.HBox({
+                            alignItems: "Center",
+                            items: [
+                                new sap.ui.core.Icon({ src: "sap-icon://sys-help", size: "1.25rem", color: "#0854a0" }).addStyleClass("sapUiSmallMarginEnd"),
+                                new Link({
+                                    text: "Open SAP Help",
+                                    href: oTraining.SapHelpLink,
+                                    press: function () {
+                                        sap.m.URLHelper.redirect(oTraining.SapHelpLink, false);
+                                    }
+                                })
+                            ]
+                        }).addStyleClass("sapUiTinyMargin")
+                    ]
+                }));
+            }
+            if (aLinkItems.length > 0) {
+                aContent.push(new sap.m.Panel({
+                    headerText: "Resources",
+                    expandable: false,
+                    content: [
+                        new sap.m.List({
+                            showSeparators: "Inner",
+                            items: aLinkItems
+                        })
+                    ]
+                }).addStyleClass("sapUiTinyMarginTop"));
+            }
+
+            this._detailDlg = new sap.m.Dialog({
+                title: "Training Details",
+                contentWidth: "640px",
+                draggable: true,
+                resizable: true,
+                verticalScrolling: true,
+                content: aContent,
+                endButton: new sap.m.Button({
+                    text: "Close",
+                    icon: "sap-icon://decline",
+                    press: function () { that._detailDlg.close(); }
+                }),
+                afterClose: function () {
+                    that._detailDlg.destroy();
+                    that._detailDlg = null;
+                }
+            });
+            this._detailDlg.addStyleClass("sapUiContentPadding");
+            this._detailDlg.open();
         },
 
         onAssignTraining: function () {
