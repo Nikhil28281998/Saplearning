@@ -8,6 +8,16 @@ METHOD trainings_delete_entity.
         lv_id     TYPE char36,
         lv_check  TYPE char36.
 
+* -- Authorization check: Delete (ACTVT 06) --------------------------
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
+    ID 'ACTVT' FIELD '06'.
+  IF sy-subrc <> 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'No authorization to delete trainings'.
+  ENDIF.
+
 * -- Read key from OData URI path (e.g. Trainings('xxx')) ------------
   READ TABLE it_key_tab WITH KEY name = 'Id' INTO ls_key.
   IF sy-subrc <> 0.

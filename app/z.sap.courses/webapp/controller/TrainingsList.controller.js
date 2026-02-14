@@ -8,13 +8,16 @@ sap.ui.define([
     "sap/m/Link",
     "sap/m/Text",
     "sap/base/Log",
-    "sap/ui/core/BusyIndicator"
-], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, BusyIndicator) {
+    "sap/m/URLHelper",
+    "z/sap/courses/services/AnalyticsService"
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, URLHelper, AnalyticsService) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingsList", {
 
         onInit: function () {
+            this._analyticsService = new AnalyticsService();
+
             // Analytics model for dashboard + charts
             var oAnalyticsModel = new JSONModel({
                 totalTrainings: 0,
@@ -38,103 +41,46 @@ sap.ui.define([
         },
 
         /**
-         * Consolidated data loader: single Trainings read + single Assignments read.
-         * Feeds analytics model, filter dropdowns, and module chart from one data fetch.
-         * Fixes audit #8 (was 3 separate OData calls loading same data).
+         * Consolidated data loader using AnalyticsService.
+         * Training stats: single read with $inlinecount for total + module chart + filter dropdowns.
+         * Assignment stats: 3 lightweight $top=0 $inlinecount calls (server-side counting).
          */
         _loadAllData: function () {
             var oModel = this.getOwnerComponent().getModel();
             var oAnalyticsModel = this.getView().getModel("analyticsModel");
             var oFilterModel = this.getView().getModel("filterData");
             var that = this;
-            var iPending = 2; // two reads
-            BusyIndicator.show(0);
+            var sEntitySet = this.getOwnerComponent().getAssignmentEntitySet();
 
-            var fnDone = function () {
-                iPending--;
-                if (iPending <= 0) {
-                    BusyIndicator.hide();
-                }
-            };
+            // Set analytics panel busy during load
+            var oPanel = this.byId("analyticsPanel");
+            if (oPanel) { oPanel.setBusy(true); }
 
-            // Single read: all trainings → analytics + filter dropdowns + chart
-            oModel.read("/Trainings", {
-                success: function (data) {
-                    var results = data.results || [];
-                    var count = data.__count ? parseInt(data.__count, 10) : results.length;
-                    oAnalyticsModel.setProperty("/totalTrainings", count);
+            // Training stats: total count + module chart + filter dropdowns
+            var pTrainings = this._analyticsService.getTrainingStats(oModel).then(function (oStats) {
+                oAnalyticsModel.setProperty("/totalTrainings", oStats.totalTrainings);
+                that._buildModuleChart(oStats.moduleDistribution);
 
-                    // Build module distribution for chart
-                    var moduleMap = {};
-                    results.forEach(function (t) {
-                        if (t.SapModule) {
-                            moduleMap[t.SapModule] = (moduleMap[t.SapModule] || 0) + 1;
-                        }
-                    });
-                    var moduleArr = Object.keys(moduleMap).map(function (m) {
-                        return { label: m, count: moduleMap[m] };
-                    }).sort(function (a, b) { return b.count - a.count; }).slice(0, 5);
-                    that._buildModuleChart(moduleArr);
-
-                    // Also build filter dropdowns from this same data (eliminates duplicate read)
-                    var roleSet = {};
-                    var moduleSet = {};
-                    var roleModuleMap = {};
-                    results.forEach(function (t) {
-                        if (t.Role) {
-                            roleSet[t.Role] = true;
-                            if (!roleModuleMap[t.Role]) { roleModuleMap[t.Role] = {}; }
-                            if (t.SapModule) { roleModuleMap[t.Role][t.SapModule] = true; }
-                        }
-                        if (t.SapModule) { moduleSet[t.SapModule] = true; }
-                    });
-                    var roles = [{ key: "", text: "All" }];
-                    Object.keys(roleSet).sort().forEach(function (r) {
-                        roles.push({ key: r, text: r });
-                    });
-                    var modules = [{ key: "", text: "All" }];
-                    Object.keys(moduleSet).sort().forEach(function (m) {
-                        modules.push({ key: m, text: m });
-                    });
-                    oFilterModel.setProperty("/roles", roles);
-                    oFilterModel.setProperty("/modules", modules);
-                    oFilterModel.setProperty("/allModules", modules.slice(0));
-                    oFilterModel.setProperty("/roleModuleMap", roleModuleMap);
-
-                    fnDone();
-                },
-                error: function (err) {
-                    oAnalyticsModel.setProperty("/totalTrainings", 0);
-                    Log.error("[Analytics] Failed to load trainings: " + (err && err.message || ""));
-                    MessageToast.show("Failed to load training data");
-                    fnDone();
-                }
+                oFilterModel.setProperty("/roles", oStats.roles);
+                oFilterModel.setProperty("/modules", oStats.modules);
+                oFilterModel.setProperty("/allModules", oStats.modules.slice(0));
+                oFilterModel.setProperty("/roleModuleMap", oStats.roleModuleMap);
+            }).catch(function () {
+                oAnalyticsModel.setProperty("/totalTrainings", 0);
+                MessageToast.show(that.getView().getModel("i18n").getResourceBundle().getText("loadFailed"));
             });
 
-            // Single read: all assignments → status counts
-            var sAssignEntitySet = this.getOwnerComponent().getAssignmentEntitySet();
-            oModel.read("/" + sAssignEntitySet, {
-                success: function (data) {
-                    var results = data.results || [];
-                    var assigned = 0, inProgress = 0, completed = 0;
-                    results.forEach(function (a) {
-                        if (a.Status === "Assigned") { assigned++; }
-                        else if (a.Status === "In Progress") { inProgress++; }
-                        else if (a.Status === "Completed") { completed++; }
-                    });
-                    var total = results.length || 1;
-                    var pct = Math.round((completed / total) * 100);
+            // Assignment stats: 3 lightweight server-side count requests
+            var pAssignments = this._analyticsService.getAssignmentStats(oModel, sEntitySet).then(function (oStats) {
+                oAnalyticsModel.setProperty("/assigned", oStats.assigned);
+                oAnalyticsModel.setProperty("/inProgress", oStats.inProgress);
+                oAnalyticsModel.setProperty("/completed", oStats.completed);
+                oAnalyticsModel.setProperty("/completionPercent", oStats.completionPercent);
+            });
 
-                    oAnalyticsModel.setProperty("/assigned", assigned);
-                    oAnalyticsModel.setProperty("/inProgress", inProgress);
-                    oAnalyticsModel.setProperty("/completed", completed);
-                    oAnalyticsModel.setProperty("/completionPercent", pct);
-                    fnDone();
-                },
-                error: function (err) {
-                    Log.error("[Analytics] Failed to load assignments: " + (err && err.message || ""));
-                    fnDone();
-                }
+            // Clear busy when both complete
+            Promise.all([pTrainings, pAssignments]).finally(function () {
+                if (oPanel) { oPanel.setBusy(false); }
             });
         },
 
@@ -266,8 +212,11 @@ sap.ui.define([
                         var sKey = that._getColumnKey(aCols[iColIdx]);
                         if (sKey === "Url" || sKey === "SapHelpLink") {
                             var sUrl = oRow.getProperty(sKey);
-                            if (sUrl) {
-                                window.open(sUrl, "_blank", "noopener,noreferrer");
+                            if (sUrl && /^https?:\/\//i.test(sUrl)) {
+                                URLHelper.redirect(sUrl, true);
+                            } else if (sUrl) {
+                                Log.warning("[Security] Blocked non-HTTP URL: " + sUrl);
+                                MessageToast.show("Invalid URL protocol — only HTTP/HTTPS links are allowed");
                             }
                         }
                     }
@@ -520,6 +469,7 @@ sap.ui.define([
         onCreateTraining: function () {
             var that = this;
             var oModel = this.getOwnerComponent().getModel();
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
             if (this._createDlg) {
                 this._createDlg.destroy();
                 this._createDlg = null;
@@ -543,17 +493,17 @@ sap.ui.define([
                     labelSpanXL: 3, labelSpanL: 3, labelSpanM: 4, labelSpanS: 12,
                     columnsXL: 1, columnsL: 1, columnsM: 1,
                     content: [
-                        new sap.m.Label({ text: "Title", required: true }),
+                        new sap.m.Label({ text: i18n.getText("titleLabel"), required: true }),
                         new sap.m.Input({ value: "{/title}", placeholder: "Training title" }),
-                        new sap.m.Label({ text: "Role" }),
+                        new sap.m.Label({ text: i18n.getText("roleLabel") }),
                         new sap.m.Input({ value: "{/role}", placeholder: "e.g. Developer, Consultant" }),
-                        new sap.m.Label({ text: "Module" }),
+                        new sap.m.Label({ text: i18n.getText("moduleLabel") }),
                         new sap.m.Input({ value: "{/sapModule}", placeholder: "e.g. FI, MM, SD" }),
-                        new sap.m.Label({ text: "Description" }),
+                        new sap.m.Label({ text: i18n.getText("descriptionLabel") }),
                         new sap.m.TextArea({ value: "{/description}", rows: 3, placeholder: "Brief description" }),
                         new sap.m.Label({ text: "URL", required: true }),
                         new sap.m.Input({ value: "{/url}", type: "Url", placeholder: "https://learning.sap.com/..." }),
-                        new sap.m.Label({ text: "SAP Help Link" }),
+                        new sap.m.Label({ text: i18n.getText("sapHelpLabel") }),
                         new sap.m.Input({ value: "{/sapHelpLink}", type: "Url", placeholder: "https://help.sap.com/..." })
                     ]
                 });
@@ -570,24 +520,24 @@ sap.ui.define([
                 oContent.addStyleClass("sapUiSmallMargin");
 
                 that._createDlg = new sap.m.Dialog({
-                    title: "Create New Training",
+                    title: i18n.getText("createTrainingTitle"),
                     contentWidth: "560px",
                     draggable: true,
                     resizable: true,
                     content: [oContent],
                     beginButton: new sap.m.Button({
-                        text: "Create",
+                        text: i18n.getText("createBtn"),
                         type: "Emphasized",
                         icon: "sap-icon://save",
                         enabled: "{= !${/submitting} }",
                         press: function () {
                             var data = oDlgModel.getData();
                             if (!data.title || !data.title.trim()) {
-                                oDlgModel.setProperty("/error", "Title is required");
+                                oDlgModel.setProperty("/error", i18n.getText("titleRequired"));
                                 return;
                             }
                             if (!data.url || !data.url.trim()) {
-                                oDlgModel.setProperty("/error", "URL is required");
+                                oDlgModel.setProperty("/error", i18n.getText("urlRequired"));
                                 return;
                             }
                             oDlgModel.setProperty("/error", "");
@@ -607,13 +557,13 @@ sap.ui.define([
                                     success: function () {
                                         that._createDlg.close();
                                         oDlgModel.setProperty("/submitting", false);
-                                        MessageToast.show("Training created successfully");
+                                        MessageToast.show(i18n.getText("trainingCreated"));
                                         that.byId("smartTable").rebindTable(true);
                                         that._loadAnalytics();
                                     },
                                     error: function (err) {
                                         oDlgModel.setProperty("/submitting", false);
-                                        var msg = "Create failed";
+                                        var msg = i18n.getText("createFailed");
                                         try {
                                             var parsed = JSON.parse(err.responseText);
                                             msg = parsed.error.message.value || msg;
@@ -625,12 +575,12 @@ sap.ui.define([
                                 });
                             }, function () {
                                 oDlgModel.setProperty("/submitting", false);
-                                oDlgModel.setProperty("/error", "Security token refresh failed");
+                                oDlgModel.setProperty("/error", i18n.getText("securityTokenFailed"));
                             });
                         }
                     }),
                     endButton: new sap.m.Button({
-                        text: "Cancel",
+                        text: i18n.getText("cancelButton"),
                         press: function () { that._createDlg.close(); }
                     }),
                     afterClose: function () {
@@ -649,8 +599,9 @@ sap.ui.define([
             var oSmartTable = this.byId("smartTable");
             var oTable = oSmartTable.getTable();
             var iIndex = oTable.getSelectedIndex();
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
             if (iIndex < 0) {
-                MessageToast.show("Please select a training to delete");
+                MessageToast.show(i18n.getText("selectTrainingToDelete"));
                 return;
             }
             var oContext = oTable.getContextByIndex(iIndex);
@@ -660,7 +611,7 @@ sap.ui.define([
             MessageBox.confirm(
                 "Delete training \"" + (oTraining.Title || "") + "\"?\n\nThis action cannot be undone.",
                 {
-                    title: "Confirm Delete",
+                    title: i18n.getText("confirmDeleteTitle"),
                     emphasizedAction: MessageBox.Action.CANCEL,
                     onClose: function (sAction) {
                         if (sAction === MessageBox.Action.OK) {
@@ -669,12 +620,12 @@ sap.ui.define([
                             oModel.refreshSecurityToken(function () {
                                 oModel.remove(sPath, {
                                     success: function () {
-                                        MessageToast.show("Training deleted");
+                                        MessageToast.show(i18n.getText("dataRefreshed"));
                                         oSmartTable.rebindTable(true);
                                         that._loadAnalytics();
                                     },
                                     error: function (err) {
-                                        var msg = "Delete failed";
+                                        var msg = i18n.getText("deleteFailed");
                                         try {
                                             var parsed = JSON.parse(err.responseText);
                                             msg = parsed.error.message.value || msg;
@@ -685,7 +636,7 @@ sap.ui.define([
                                     }
                                 });
                             }, function () {
-                                MessageBox.error("Security token refresh failed");
+                                MessageBox.error(i18n.getText("securityTokenFailed"));
                             });
                         }
                     }
@@ -699,7 +650,7 @@ sap.ui.define([
                 oSmartTable.rebindTable(true);
             }
             this._loadAnalytics();
-            MessageToast.show("Data refreshed");
+            MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("dataRefreshed"));
         },
 
         onViewDetails: function () {
@@ -707,8 +658,9 @@ sap.ui.define([
             var oSmartTable = this.byId("smartTable");
             var oTable = oSmartTable.getTable();
             var iIndex = oTable.getSelectedIndex();
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
             if (iIndex < 0) {
-                MessageToast.show("Please select a training first");
+                MessageToast.show(i18n.getText("selectTrainingFirst"));
                 return;
             }
             var oContext = oTable.getContextByIndex(iIndex);
@@ -733,15 +685,15 @@ sap.ui.define([
             // Attribute chips in a wrapping row
             var aAttrs = [];
             if (oTraining.SapModule) {
-                aAttrs.push(new sap.m.ObjectStatus({ title: "Module", text: oTraining.SapModule, state: "Information" }));
+                aAttrs.push(new sap.m.ObjectStatus({ title: i18n.getText("moduleLabel"), text: oTraining.SapModule, state: "Information" }));
             }
             if (oTraining.Role) {
-                aAttrs.push(new sap.m.ObjectStatus({ title: "Role", text: oTraining.Role, state: "None" }));
+                aAttrs.push(new sap.m.ObjectStatus({ title: i18n.getText("roleLabel"), text: oTraining.Role, state: "None" }));
             }
             if (oTraining.LastUpdated) {
                 var sDate = oTraining.LastUpdated;
                 if (sDate instanceof Date) { sDate = sDate.toLocaleDateString(); }
-                aAttrs.push(new sap.m.ObjectStatus({ title: "Updated", text: sDate + "", state: "None" }));
+                aAttrs.push(new sap.m.ObjectStatus({ title: i18n.getText("updatedLabel"), text: sDate + "", state: "None" }));
             }
             if (aAttrs.length > 0) {
                 aHeaderItems.push(new sap.m.FlexBox({
@@ -758,7 +710,7 @@ sap.ui.define([
             if (oTraining.Description) {
                 aContent.push(new sap.m.VBox({
                     items: [
-                        new sap.m.Label({ text: "Description", design: "Bold" }).addStyleClass("sapUiSmallMarginBegin sapUiTinyMarginTop"),
+                        new sap.m.Label({ text: i18n.getText("descriptionLabel"), design: "Bold" }).addStyleClass("sapUiSmallMarginBegin sapUiTinyMarginTop"),
                         new Text({ text: oTraining.Description, wrapping: true }).addStyleClass("sapUiSmallMargin")
                     ]
                 }).addStyleClass("detailSection"));
@@ -771,7 +723,7 @@ sap.ui.define([
                     alignItems: "Center",
                     items: [
                         new sap.ui.core.Icon({ src: "sap-icon://chain-link", size: "1.25rem", color: "#0070f2" }).addStyleClass("sapUiSmallMarginEnd"),
-                        new Link({ text: "Open Training Link", href: oTraining.Url, target: "_blank" })
+                        new Link({ text: i18n.getText("openTrainingLink"), href: oTraining.Url, target: "_blank" })
                     ]
                 }).addStyleClass("sapUiTinyMargin"));
             }
@@ -780,20 +732,20 @@ sap.ui.define([
                     alignItems: "Center",
                     items: [
                         new sap.ui.core.Icon({ src: "sap-icon://sys-help", size: "1.25rem", color: "#0854a0" }).addStyleClass("sapUiSmallMarginEnd"),
-                        new Link({ text: "Open SAP Help", href: oTraining.SapHelpLink, target: "_blank" })
+                        new Link({ text: i18n.getText("openSapHelp"), href: oTraining.SapHelpLink, target: "_blank" })
                     ]
                 }).addStyleClass("sapUiTinyMargin"));
             }
             if (aLinkRows.length > 0) {
                 aContent.push(new sap.m.VBox({
                     items: [
-                        new sap.m.Label({ text: "Resources", design: "Bold" }).addStyleClass("sapUiSmallMarginBegin sapUiTinyMarginTop")
+                        new sap.m.Label({ text: i18n.getText("resourcesLabel"), design: "Bold" }).addStyleClass("sapUiSmallMarginBegin sapUiTinyMarginTop")
                     ].concat(aLinkRows)
                 }).addStyleClass("detailSection"));
             }
 
             this._detailDlg = new sap.m.Dialog({
-                title: "Training Details",
+                title: i18n.getText("trainingDetails"),
                 contentWidth: "480px",
                 draggable: true,
                 resizable: true,
@@ -802,7 +754,7 @@ sap.ui.define([
                 stretch: sap.ui.Device.system.phone,
                 content: aContent,
                 endButton: new sap.m.Button({
-                    text: "Close",
+                    text: i18n.getText("closeButton"),
                     press: function () { that._detailDlg.close(); }
                 }),
                 afterClose: function () {

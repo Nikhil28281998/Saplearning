@@ -2,97 +2,101 @@
  * ============================================================================
  * SAP Learning Courses - Server Configuration (Production Ready)
  * ============================================================================
- * SAP EXPERT TEAM:
- * - Dr. Hans Mueller, Principal SAP Architect
- * - Priya Sharma, Senior Node.js Developer  
- * - Thomas Weber, SAP Security Consultant
  * 
- * SECURITY ENHANCEMENTS:
- * ✅ Rate limiting (DoS prevention)
- * ✅ CORS whitelist (development only)
- * ✅ Request size limits
- * ✅ Health check endpoint
+ * SECURITY:
+ * ✅ Helmet (HTTP security headers)
+ * ✅ Rate limiting (DoS prevention) — ON by default, disabled only in dev
+ * ✅ Health check endpoint (no version/env leak in production)
+ * ✅ CSRF via CAP auth middleware
+ * ✅ No CORS middleware (Web Dispatcher handles prod; ui5 proxy handles dev)
  * ============================================================================
  */
 
 const cds = require('@sap/cds');
+const LOG = cds.log('sap-learning-server');
 
-// CDS server customization
 cds.on('bootstrap', (app) => {
-  const isLocal = process.env.NODE_ENV !== 'production' && !process.env.VCAP_APPLICATION;
-  
+  const isDev = (cds.env.profiles || []).includes('development');
+
   // ========================================================================
-  // SECURITY: Rate Limiting (Production)
-  // Team: Thomas Weber (Security Consultant)
+  // SECURITY: Helmet — HTTP security headers
   // ========================================================================
-  if (!isLocal) {
+  try {
+    const helmet = require('helmet');
+    app.use(helmet());
+    LOG.info('Helmet security headers enabled');
+  } catch (err) {
+    LOG.warn('helmet not installed — skipping HTTP security headers');
+  }
+
+  // ========================================================================
+  // SECURITY: Rate Limiting — ON by default, disabled only in dev profile
+  // ========================================================================
+  if (!isDev) {
     try {
       const rateLimit = require('express-rate-limit');
-      
-      const limiter = rateLimit({
-        windowMs: 15 * 60 * 1000, // 15 minutes
-        max: 100, // 100 requests per window
+
+      // Read-heavy limit (GET/HEAD/OPTIONS)
+      const readLimiter = rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 200,
+        standardHeaders: true,
+        legacyHeaders: false,
         message: 'Too many requests, please try again later.',
-        skip: (req) => req.method === 'GET' || req.method === 'OPTIONS'
+        skip: (req) => req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'OPTIONS'
       });
-      
-      app.use('/service/', limiter);
-      cds.log('security').info('Rate limiting enabled');
+
+      // Write limit (POST/PUT/PATCH/DELETE)
+      const writeLimiter = rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 50,
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: 'Too many write requests, please try again later.',
+        skip: (req) => req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS'
+      });
+
+      app.use('/service/', readLimiter);
+      app.use('/service/', writeLimiter);
+      LOG.info('Rate limiting enabled (GET: 200/15min, write: 50/15min)');
     } catch (err) {
-      cds.log('warn', 'express-rate-limit not installed, skipping rate limiting');
+      LOG.warn('express-rate-limit not installed — skipping rate limiting');
     }
+  } else {
+    LOG.info('Rate limiting disabled (development profile)');
   }
-  
-  // Request size limits (prevent payload attacks)
-  app.use(require('express').json({ limit: '1mb' }));
-  app.use(require('express').urlencoded({ extended: true, limit: '1mb' }));
-  
+
   // ========================================================================
-  // CORS Configuration (Development Only)
-  // Team: Priya Sharma (Senior Developer)
-  // ========================================================================
-  if (isLocal) {
-    const cors = require('cors');
-    
-    // Whitelist specific origins (not wildcard)
-    const allowedOrigins = [
-      'http://localhost:5000',
-      'http://localhost:4004',
-      'http://localhost:3000',
-      'http://127.0.0.1:5000',
-      'http://127.0.0.1:4004'
-    ];
-    
-    app.use(cors({
-      origin: function(origin, callback) {
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-          callback(null, true);
-        } else {
-          cds.log('security').warn('Blocked CORS:', origin);
-          callback(new Error('Not allowed by CORS'));
-        }
-      },
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-Token']
-    }));
-    
-    cds.log('info', 'CORS enabled for development');
-  }
-  
-  // ========================================================================
-  // Health Check Endpoint
-  // Team: Dr. Hans Mueller (Architect)
+  // Health Check Endpoint — no version/env disclosure in production
   // ========================================================================
   app.get('/health', (req, res) => {
-    res.status(200).json({
+    const body = {
       status: 'UP',
-      service: 'SAP Learning Courses',
-      version: '2.0.0-clean-core',
-      environment: isLocal ? 'development' : 'production',
       timestamp: new Date().toISOString()
-    });
+    };
+    if (isDev) {
+      body.service = 'SAP Learning Courses';
+      body.version = '2.0.0-clean-core';
+      body.environment = 'development';
+    }
+    res.status(200).json(body);
   });
+});
+
+// ========================================================================
+// SECURITY GUARD: Prevent dummy/mocked auth in production
+// ========================================================================
+cds.on('served', () => {
+  if (process.env.NODE_ENV === 'production') {
+    const authKind = cds.env.requires?.auth?.kind;
+    if (authKind === 'dummy' || authKind === 'mocked') {
+      LOG.error(
+        'FATAL: Production is using "' + authKind + '" authentication. ' +
+        'Configure [production].auth.kind = "basic" or "xsuaa".'
+      );
+      process.exit(1);
+    }
+  }
 });
 
 module.exports = cds.server;

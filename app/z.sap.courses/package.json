@@ -16,6 +16,8 @@
   "scripts": {
     "start": "ui5 serve --port 8080",
     "start:mock": "ui5 serve --port 8080 --config ui5-mock.yaml",
+    "test": "ui5 serve --open test/unit/unitTests.qunit.html",
+    "test:integration": "ui5 serve --open test/integration/opaTests.qunit.html",
     "build": "ui5 build --config=ui5.yaml --clean-dest --dest dist",
     "deploy": "npm run build && fiori deploy --config ui5-deploy.yaml --yes",
     "deploy-config": "fiori add deploy-config",

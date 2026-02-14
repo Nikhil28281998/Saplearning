@@ -9,6 +9,16 @@ METHOD trainings_get_entity.
         ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
         lv_id       TYPE char36.
 
+* -- Authorization check: Display (ACTVT 03) -------------------------
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
+    ID 'ACTVT' FIELD '03'.
+  IF sy-subrc <> 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'No authorization to read trainings'.
+  ENDIF.
+
 * -- Read key from OData URI path ------------------------------------
   READ TABLE it_key_tab WITH KEY name = 'Id' INTO ls_key.
   IF sy-subrc <> 0.

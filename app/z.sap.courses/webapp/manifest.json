@@ -9,7 +9,6 @@
     },
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
-    "resources": "resources.json",
     "archeType": "transactional",
     "registrationIds": [
       "z.sap.courses"
@@ -27,7 +26,6 @@
           "annotations": [
              "annotation"
           ],
-          "localUri": "localService/metadata.xml",
           "odataVersion": "2.0"
         }
       },
@@ -107,7 +105,7 @@
         "dataSource": "mainService",
         "preload": true,
         "settings": {
-          "defaultBindingMode": "TwoWay",
+          "defaultBindingMode": "OneWay",
           "defaultCountMode": "Inline",
           "useBatch": true
         }
@@ -127,7 +125,10 @@
         "viewPath": "z.sap.courses.view",
         "controlId": "app",
         "controlAggregation": "pages",
-        "async": true
+        "async": true,
+        "bypassed": {
+          "target": "notFound"
+        }
       },
       "routes": [
         {
@@ -149,6 +150,10 @@
         "TrainingAssignmentsList": {
           "viewName": "TrainingAssignmentsList",
           "viewLevel": 2
+        },
+        "notFound": {
+          "viewName": "NotFound",
+          "viewLevel": 3
         }
       }
     },

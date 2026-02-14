@@ -7,52 +7,53 @@
     
     <Dialog
         id="csvImportDialog"
-        title="Import Trainings from CSV"
+        title="{i18n>importTitle}"
         contentWidth="600px"
         contentHeight="500px"
         resizable="true"
         draggable="true">
         
         <content>
-            <VBox class="sapUiSmallMargin">
+            <VBox id="importContentBox" class="sapUiSmallMargin">
                 
                 <!-- Instructions -->
                 <MessageStrip
-                    text="Upload a CSV file containing training records. The file must have these columns: ID, url, role, title, sap_module, description, lastUpdated, sapHelpLink"
+                    id="csvInstructions"
+                    text="{i18n>csvInstructions}"
                     type="Information"
                     showIcon="true"
                     class="sapUiSmallMarginBottom"/>
                 
                 <!-- File Upload -->
-                <l:VerticalLayout class="sapUiSmallMarginBottom">
-                    <Label text="Select CSV File" required="true"/>
+                <l:VerticalLayout id="fileUploadLayout" class="sapUiSmallMarginBottom">
+                    <Label id="csvFileLabel" text="{i18n>selectCsvFile}" required="true"/>
                     <u:FileUploader
                         id="fileUploader"
                         name="csvFile"
                         uploadUrl=""
                         tooltip="Upload CSV file"
-                        placeholder="Choose a CSV file..."
+                        placeholder="{i18n>csvFilePlaceholder}"
                         fileType="csv"
                         mimeType="text/csv,application/vnd.ms-excel"
                         maximumFileSize="5"
                         change=".onFileChange"
                         width="100%"
                         class="sapUiSmallMarginTop"/>
-                    <Text text="Maximum file size: 5 MB" class="sapUiTinyMarginTop"/>
+                    <Text id="maxFileSizeText" text="{i18n>maxFileSize}" class="sapUiTinyMarginTop"/>
                 </l:VerticalLayout>
                 
                 <!-- Preview Section -->
                 <Panel
                     id="previewPanel"
-                    headerText="Preview"
+                    headerText="{i18n>previewHeader}"
                     expandable="true"
                     expanded="false"
                     visible="false"
                     class="sapUiSmallMarginTop">
                     <content>
-                        <VBox>
-                            <HBox justifyContent="SpaceBetween" class="sapUiTinyMarginBottom">
-                                <Text text="Records to import:" class="sapUiSmallMarginEnd"/>
+                        <VBox id="previewContent">
+                            <HBox id="recordCountBox" justifyContent="SpaceBetween" class="sapUiTinyMarginBottom">
+                                <Text id="recordsLabel" text="{i18n>recordsToImport}" class="sapUiSmallMarginEnd"/>
                                 <ObjectNumber
                                     id="recordCount"
                                     number="0"
@@ -67,26 +68,26 @@
                                 growingThreshold="10"
                                 mode="None">
                                 <columns>
-                                    <Column width="8em">
-                                        <Text text="ID"/>
+                                    <Column id="colId" width="8em">
+                                        <Text id="colIdText" text="{i18n>importIdColumn}"/>
                                     </Column>
-                                    <Column>
-                                        <Text text="Title"/>
+                                    <Column id="colTitle">
+                                        <Text id="colTitleText" text="{i18n>importTitleColumn}"/>
                                     </Column>
-                                    <Column width="7em">
-                                        <Text text="Role"/>
+                                    <Column id="colRole" width="7em">
+                                        <Text id="colRoleText" text="{i18n>importRoleColumn}"/>
                                     </Column>
-                                    <Column width="7em">
-                                        <Text text="Module"/>
+                                    <Column id="colModule" width="7em">
+                                        <Text id="colModuleText" text="{i18n>importModuleColumn}"/>
                                     </Column>
                                 </columns>
                                 <items>
-                                    <ColumnListItem>
+                                    <ColumnListItem id="previewListItem">
                                         <cells>
-                                            <Text text="{import>ID}" wrapping="false"/>
-                                            <Text text="{import>title}" wrapping="false"/>
-                                            <Text text="{import>role}"/>
-                                            <Text text="{import>sap_module}"/>
+                                            <Text id="cellId" text="{import>ID}" wrapping="false"/>
+                                            <Text id="cellTitle" text="{import>title}" wrapping="false"/>
+                                            <Text id="cellRole" text="{import>role}"/>
+                                            <Text id="cellModule" text="{import>sap_module}"/>
                                         </cells>
                                     </ColumnListItem>
                                 </items>
@@ -98,7 +99,7 @@
                 <!-- Validation Messages -->
                 <Panel
                     id="validationPanel"
-                    headerText="Validation Results"
+                    headerText="{i18n>validationResults}"
                     expandable="true"
                     expanded="true"
                     visible="false"
@@ -107,8 +108,9 @@
                         <List
                             id="errorList"
                             items="{import>/errors}"
-                            noDataText="No errors found">
+                            noDataText="{i18n>noErrors}">
                             <StandardListItem
+                                id="errorListItem"
                                 title="{import>message}"
                                 icon="sap-icon://error"
                                 type="Inactive"/>
@@ -116,9 +118,10 @@
                         <List
                             id="warningList"
                             items="{import>/warnings}"
-                            noDataText="No warnings"
+                            noDataText="{i18n>noWarnings}"
                             class="sapUiSmallMarginTop">
                             <StandardListItem
+                                id="warningListItem"
                                 title="{import>message}"
                                 icon="sap-icon://alert"
                                 type="Inactive"/>
@@ -134,19 +137,19 @@
                     <ProgressIndicator
                         id="importProgress"
                         percentValue="0"
-                        displayValue="Importing..."
+                        displayValue="{i18n>importing}"
                         showValue="true"
                         state="Information"/>
                     <Text
                         id="progressText"
-                        text="Processing records..."
+                        text="{i18n>processingRecords}"
                         class="sapUiTinyMarginTop"/>
                 </VBox>
                 
                 <!-- Success Message -->
                 <MessageStrip
                     id="successMessage"
-                    text="Import completed successfully!"
+                    text="{i18n>importSuccess}"
                     type="Success"
                     showIcon="true"
                     visible="false"
@@ -167,7 +170,7 @@
         <beginButton>
             <Button
                 id="importButton"
-                text="Import"
+                text="{i18n>importButton}"
                 type="Emphasized"
                 press=".onImport"
                 enabled="false"/>
@@ -175,7 +178,8 @@
         
         <endButton>
             <Button
-                text="Cancel"
+                id="cancelImportButton"
+                text="{i18n>cancelButton}"
                 press=".onCloseImportDialog"/>
         </endButton>
         

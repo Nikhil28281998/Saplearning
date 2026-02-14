@@ -26,6 +26,14 @@ server:
         path: webapp
         delay: 300
 builder:
+  componentPreload:
+    paths:
+      - "webapp"
+    namespaces:
+      - "z/sap/courses"
+  excludes:
+    - "webapp/test/**"
+    - "webapp/localService/**"
   customTasks:
     - name: ui5-task-zipper
       afterTask: generateCachebusterInfo

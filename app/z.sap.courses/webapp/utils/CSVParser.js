@@ -10,7 +10,7 @@
  * - Error reporting with line numbers
  */
 
-sap.ui.define([], function() {
+sap.ui.define(["sap/base/security/encodeXML"], function(encodeXML) {
     "use strict";
 
     return {
@@ -107,10 +107,17 @@ sap.ui.define([], function() {
                 }
 
                 // Check for duplicate IDs
-                const ids = result.data.map(t => t.ID);
-                const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
+                var seenIds = new Set();
+                var duplicates = [];
+                result.data.forEach(function(t) {
+                    if (seenIds.has(t.ID)) {
+                        duplicates.push(t.ID);
+                    } else {
+                        seenIds.add(t.ID);
+                    }
+                });
                 if (duplicates.length > 0) {
-                    result.warnings.push(`Duplicate IDs found: ${[...new Set(duplicates)].join(', ')}`);
+                    result.warnings.push("Duplicate IDs found: " + [...new Set(duplicates)].join(', '));
                 }
 
             } catch (error) {
@@ -242,16 +249,11 @@ sap.ui.define([], function() {
         },
 
         /**
-         * Sanitize string (remove HTML tags, scripts)
+         * Sanitize string (XSS protection via UI5 encodeXML)
          */
         _sanitizeString: function(str) {
             if (!str) return '';
-            return str
-                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-                .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-                .replace(/javascript:/gi, '')
-                .replace(/on\w+\s*=/gi, '')
-                .trim();
+            return encodeXML(str.trim());
         },
 
         /**
@@ -268,29 +270,36 @@ sap.ui.define([], function() {
         },
 
         /**
-         * Parse date from various formats
+         * Parse date from various formats.
+         * Returns null on invalid/missing date and adds a validation warning.
          */
         _parseDate: function(dateStr) {
-            if (!dateStr) return new Date().toISOString();
+            if (!dateStr) return null;
             
             try {
+                var d;
                 // Handle ISO format: 2026-02-01T00:00:00Z
                 if (dateStr.includes('T')) {
-                    return new Date(dateStr).toISOString();
+                    d = new Date(dateStr);
                 }
-                
                 // Handle YYYYMMDD format: 20260201
-                if (/^\d{8}$/.test(dateStr)) {
-                    const year = dateStr.substring(0, 4);
-                    const month = dateStr.substring(4, 6);
-                    const day = dateStr.substring(6, 8);
-                    return new Date(`${year}-${month}-${day}`).toISOString();
+                else if (/^\d{8}$/.test(dateStr)) {
+                    var year = dateStr.substring(0, 4);
+                    var month = dateStr.substring(4, 6);
+                    var day = dateStr.substring(6, 8);
+                    d = new Date(year + '-' + month + '-' + day);
+                }
+                // Try standard parse
+                else {
+                    d = new Date(dateStr);
                 }
                 
-                // Try standard parse
-                return new Date(dateStr).toISOString();
+                if (isNaN(d.getTime())) {
+                    return null;
+                }
+                return d.toISOString();
             } catch (e) {
-                return new Date().toISOString();
+                return null;
             }
         },
 

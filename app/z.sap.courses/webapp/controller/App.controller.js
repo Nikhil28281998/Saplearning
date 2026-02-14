@@ -5,7 +5,7 @@ sap.ui.define([
 
     return Controller.extend("z.sap.courses.controller.App", {
         onInit: function () {
-            // App controller - no specific logic needed
+            this.getView().addStyleClass(this.getOwnerComponent().getContentDensityClass());
         }
     });
 });

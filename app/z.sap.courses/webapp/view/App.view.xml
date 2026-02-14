@@ -4,7 +4,7 @@
     height="100%"
     xmlns="sap.m"
     xmlns:mvc="sap.ui.core.mvc">
-    <App id="app" height="100%" autoFocus="true">
+    <App id="app" height="100%" autoFocus="true" class="sapCoursesApp">
         <!-- Pages will be inserted here by router -->
     </App>
 </mvc:View>

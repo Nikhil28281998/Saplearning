@@ -159,7 +159,7 @@ html, body, html.sap-desktop, .sapUiBody {
 }
 
 /* ===== Analytics Panel – Glassmorphism Dashboard ===== */
-.sapMPanel {
+.analyticsPanel.sapMPanel {
     border-radius: var(--sapRadius) !important;
     box-shadow: var(--sapShadowMd);
     border: 1px solid var(--sapBorder);
@@ -167,7 +167,7 @@ html, body, html.sap-desktop, .sapUiBody {
     background: var(--sapSurface) !important;
 }
 
-.sapMPanel > .sapMPanelHdr {
+.analyticsPanel.sapMPanel > .sapMPanelHdr {
     background: linear-gradient(135deg, #1a2c42 0%, #0854a0 50%, #0a6ed1 100%) !important;
     color: #fff !important;
     font-weight: 700;
@@ -179,11 +179,11 @@ html, body, html.sap-desktop, .sapUiBody {
 }
 
 /* Panel expand icon */
-.sapMPanel > .sapMPanelHdr .sapUiIcon {
+.analyticsPanel.sapMPanel > .sapMPanelHdr .sapUiIcon {
     color: rgba(255,255,255,0.85) !important;
 }
 
-.sapMPanel .sapMPanelContent {
+.analyticsPanel.sapMPanel .sapMPanelContent {
     transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 0.5rem !important;
 }
@@ -377,13 +377,13 @@ html, body, html.sap-desktop, .sapUiBody {
 }
 
 /* SmartFilterBar Go button accent */
-.sapUiCompSmartFilter .sapMBtnEmphasized {
+.sapCoursesApp .sapUiCompSmartFilter .sapMBtnEmphasized {
     border-radius: var(--sapRadiusSm) !important;
     font-weight: 600;
 }
 
 /* Adapt Filters link */
-.sapUiCompSmartFilter .sapMLnk {
+.sapCoursesApp .sapUiCompSmartFilter .sapMLnk {
     font-weight: 600;
     color: var(--sapBrand);
 }
@@ -510,31 +510,31 @@ html, body, html.sap-desktop, .sapUiBody {
     color: var(--sapBrandDark) !important;
 }
 
-/* ===== Dialogs – Modern Card Style ===== */
-.sapMDialog {
+/* ===== Dialogs – Modern Card Style (scoped to this app) ===== */
+.sapCoursesApp .sapMDialog {
     border-radius: var(--sapRadius) !important;
     box-shadow: var(--sapShadowLg) !important;
     border: 1px solid var(--sapBorder);
 }
 
-.sapMDialogTitle {
+.sapCoursesApp .sapMDialogTitle {
     font-weight: 700 !important;
     font-size: 1.125rem;
     color: var(--sapText);
 }
 
-.sapMDialog .sapMDialogSection {
+.sapCoursesApp .sapMDialog .sapMDialogSection {
     background: var(--sapSurface);
 }
 
 /* Dialog header bar */
-.sapMDialog > .sapMBar {
+.sapCoursesApp .sapMDialog > .sapMBar {
     background: linear-gradient(180deg, #ffffff 0%, #f8f9fc 100%) !important;
     border-bottom: 1px solid var(--sapBorder) !important;
 }
 
 /* Dialog footer bar */
-.sapMDialog .sapMDialogFooter {
+.sapCoursesApp .sapMDialog .sapMDialogFooter {
     background: var(--sapNeutralLight) !important;
     border-top: 1px solid var(--sapBorder) !important;
     border-radius: 0 0 var(--sapRadius) var(--sapRadius);
@@ -615,24 +615,24 @@ html, body, html.sap-desktop, .sapUiBody {
 }
 
 /* ===== View Details Dialog: proper display ===== */
-.sapMDialog .sapMObjH {
+.sapCoursesApp .sapMDialog .sapMObjH {
     white-space: normal !important;
     word-break: break-word !important;
 }
 
-.sapMDialog .sapMObjHTitle {
+.sapCoursesApp .sapMDialog .sapMObjHTitle {
     max-width: 100% !important;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 /* Allow dialog panel content to scroll/expand (no clip) */
-.sapMDialog .sapMPanelContent {
+.sapCoursesApp .sapMDialog .sapMPanelContent {
     overflow: visible !important;
     word-break: break-word !important;
 }
 
-.sapMDialog .sapMText {
+.sapCoursesApp .sapMDialog .sapMText {
     word-break: break-word !important;
     white-space: pre-wrap !important;
 }
@@ -833,7 +833,7 @@ html, body, html.sap-desktop, .sapUiBody {
 }
 
 /* ===== View Details Dialog – no overlap, proper spacing ===== */
-.sapMDialog .sapMTitle {
+.sapCoursesApp .sapMDialog .sapMTitle {
     word-break: break-word !important;
     white-space: normal !important;
 }

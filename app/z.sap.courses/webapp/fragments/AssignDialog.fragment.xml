@@ -1,0 +1,129 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:form="sap.ui.layout.form">
+
+    <Dialog
+        id="assignTrainingDialog"
+        title="Assign Training"
+        contentWidth="620px"
+        verticalScrolling="true"
+        draggable="true"
+        resizable="true">
+
+        <content>
+            <VBox id="assignDialogVBox" class="sapUiSmallMargin">
+                <form:SimpleForm
+                    id="assignForm"
+                    editable="true"
+                    layout="ResponsiveGridLayout"
+                    labelSpanXL="4" labelSpanL="4" labelSpanM="4" labelSpanS="12"
+                    emptySpanXL="0" emptySpanL="0" emptySpanM="0"
+                    columnsXL="1" columnsL="1" columnsM="1"
+                    adjustLabelSpan="false">
+                    <form:content>
+                        <!-- Section 1: Filter Training -->
+                        <core:Title id="assignTitleFilter" text="Filter Training" />
+                        <Label id="assignLabelRole" text="Role" />
+                        <Select
+                            id="assignRoleFilter"
+                            width="100%"
+                            items="{assignModel>/roles}"
+                            selectedKey="{assignModel>/selectedRoleFilter}"
+                            change=".onAssignRoleFilterChange">
+                            <core:ListItem id="assignRoleItem" key="{assignModel>key}" text="{assignModel>text}" />
+                        </Select>
+
+                        <Label id="assignLabelModule" text="Module" />
+                        <Select
+                            id="assignModuleFilter"
+                            width="100%"
+                            items="{assignModel>/modules}"
+                            selectedKey="{assignModel>/selectedModuleFilter}"
+                            change=".onAssignModuleFilterChange">
+                            <core:ListItem id="assignModuleItem" key="{assignModel>key}" text="{assignModel>text}" />
+                        </Select>
+
+                        <!-- Section 2: Select Training -->
+                        <core:Title id="assignTitleSelect" text="Select Training" />
+                        <Label id="assignLabelTraining" text="Training" required="true" />
+                        <Select
+                            id="assignTrainingSelect"
+                            width="100%"
+                            items="{assignModel>/filteredTrainings}"
+                            selectedKey="{assignModel>/selectedTrainingId}"
+                            showSecondaryValues="true">
+                            <core:ListItem
+                                id="assignTrainingItem"
+                                key="{assignModel>Id}"
+                                text="{assignModel>Title}"
+                                additionalText="{assignModel>Role} | {assignModel>SapModule}" />
+                        </Select>
+
+                        <!-- Section 3: Assign To -->
+                        <core:Title id="assignTitleAssignTo" text="Assign To" />
+                        <Label id="assignLabelUserId" text="User ID" required="true" />
+                        <ComboBox
+                            id="assignUserSelect"
+                            width="100%"
+                            placeholder="Type or select a user..."
+                            showSecondaryValues="true"
+                            filterSecondaryValues="true"
+                            selectedKey="{assignModel>/userId}"
+                            items="{assignModel>/users}"
+                            selectionChange=".onAssignUserSelectionChange"
+                            change=".onAssignUserChange">
+                            <core:ListItem
+                                id="assignUserItem"
+                                key="{assignModel>UserId}"
+                                text="{assignModel>UserId}"
+                                additionalText="{assignModel>FirstName} {assignModel>LastName}" />
+                        </ComboBox>
+
+                        <Label id="assignLabelFirstName" text="First Name" />
+                        <Input id="assignFirstName" width="100%" placeholder="Auto-filled" value="{assignModel>/firstName}" editable="false" />
+
+                        <Label id="assignLabelLastName" text="Last Name" />
+                        <Input id="assignLastName" width="100%" placeholder="Auto-filled" value="{assignModel>/lastName}" editable="false" />
+
+                        <Label id="assignLabelEmail" text="Email" />
+                        <Input id="assignEmail" width="100%" placeholder="Auto-filled" value="{assignModel>/userEmail}" editable="false" type="Email" />
+
+                        <!-- Section 4: Schedule -->
+                        <core:Title id="assignTitleSchedule" text="Schedule" />
+                        <Label id="assignLabelDueDate" text="Due Date" />
+                        <DatePicker
+                            id="assignDueDate"
+                            width="100%"
+                            valueFormat="yyyy-MM-dd"
+                            displayFormat="long"
+                            value="{assignModel>/dueDate}"
+                            placeholder="Select due date" />
+                    </form:content>
+                </form:SimpleForm>
+
+                <MessageStrip
+                    id="assignErrorStrip"
+                    text="{assignModel>/error}"
+                    visible="{= !!${assignModel>/error} }"
+                    type="Error"
+                    showIcon="true"
+                    class="sapUiSmallMarginTop" />
+            </VBox>
+        </content>
+
+        <beginButton>
+            <Button
+                id="assignSubmitBtn"
+                text="Assign"
+                type="Emphasized"
+                icon="sap-icon://accept"
+                enabled="{= !${assignModel>/submitting} }"
+                press=".onAssignSubmit" />
+        </beginButton>
+        <endButton>
+            <Button id="assignCancelBtn" text="Cancel" press=".onAssignCancel" />
+        </endButton>
+    </Dialog>
+
+</core:FragmentDefinition>

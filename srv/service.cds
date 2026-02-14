@@ -13,7 +13,7 @@ service SAPLearningService {
     @cds.redirection.target
     @restrict: [
         { grant: '*', to: 'Admin' },
-        { grant: 'READ', to: ['Manager','Lead','User'] }
+        { grant: 'READ', to: ['Manager','User'] }
     ]
     entity Trainings as projection on my.Trainings;
 
@@ -23,10 +23,11 @@ service SAPLearningService {
     @cds.redirection.target
     @restrict: [
         { grant: '*', to: 'Admin' },
-        { grant: ['READ', 'CREATE', 'UPDATE'], to: ['Manager','Lead'] },
+        { grant: ['READ', 'CREATE', 'UPDATE'], to: 'Manager' },
         { grant: ['READ', 'UPDATE'], to: 'User' }
     ]
     entity TrainingAssignments as projection on my.TrainingAssignments actions {
+        @restrict: [{ grant: 'WRITE', to: ['Admin','Manager','User'] }]
         action markCompleted();
     };
 
@@ -38,8 +39,8 @@ service SAPLearningService {
     // ========================================================================
     // VALUE HELP - For UI dropdowns
     // ========================================================================
-    entity RolesVH   as projection on my.Roles;
-    entity ModulesVH as projection on my.Modules;
+    @readonly entity RolesVH   as projection on my.Roles;
+    @readonly entity ModulesVH as projection on my.Modules;
 
     // ========================================================================
     // USER AUTHORIZATION - PFCG Role-Based (Clean Core Compliant)

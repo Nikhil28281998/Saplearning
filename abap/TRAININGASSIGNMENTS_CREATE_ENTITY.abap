@@ -19,6 +19,8 @@
 *&   USER_EMAIL    CHAR 241
 *&   DUE_DATE      DATS
 *&   COMPLETION_DT DATS
+*&   ASSIGNED_BY   CHAR 12  (manager who assigned)
+*&   ASSIGNED_BY_N CHAR 80  (manager display name)
 *&   CREATED_AT    DATS
 *&
 *& To create the table: SE11 → Create Table → ZCOURSE_ASGN
@@ -33,6 +35,16 @@ METHOD trainingassignme_create_entity.
   DATA: ls_entity   TYPE zcl_zcourses_mpc=>ts_trainingassignment,
         ls_asgn     TYPE zcourse_asgn,
         lv_guid     TYPE sysuuid_c36.
+
+* -- Authorization check: Create (ACTVT 01) -------------------------
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
+    ID 'ACTVT' FIELD '01'.
+  IF sy-subrc <> 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'No authorization to create assignments'.
+  ENDIF.
 
 * -- Read incoming OData payload into entity structure ----------------
   io_data_provider->read_entry_data( IMPORTING es_data = ls_entity ).
@@ -50,6 +62,15 @@ METHOD trainingassignme_create_entity.
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
         message = 'UserId is required'.
+  ENDIF.
+
+* -- Validate UserId format: uppercase alphanumeric + underscore, 1-12 chars
+*    Must match @assert.format: '^[A-Z0-9_]{1,12}$' from schema.cds
+  IF NOT ls_entity-user_id CO 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ '.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'UserId must contain only uppercase letters, digits, or underscores (A-Z, 0-9, _)'.
   ENDIF.
 
 * -- Generate UUID for the new assignment ----------------------------
@@ -80,6 +101,8 @@ METHOD trainingassignme_create_entity.
   ls_asgn-user_id       = ls_entity-user_id.
   ls_asgn-user_name     = ls_entity-user_name.
   ls_asgn-user_email    = ls_entity-user_email.
+  ls_asgn-assigned_by   = ls_entity-assigned_by.
+  ls_asgn-assigned_by_n = ls_entity-assigned_by_name.
   ls_asgn-created_at    = sy-datum.
 
 * -- Map DueDate if provided (OData DateTime → ABAP DATS) -----------

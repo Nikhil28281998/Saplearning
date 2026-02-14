@@ -37,16 +37,11 @@ module.exports = (srv) => {
   function getUserContext(req) {
     const username = req.user?.id || 'ANONYMOUS';
     
-    // In S/4HANA, req.user.roles contains PFCG roles
-    // In development, use mock roles from req.user.attr
-    const roles = req.user?.roles || req.user?.attr?.roles || [];
-    
     return {
       username: username,
-      roles: roles,
-      isAdmin: roles.includes('Z_COURSES_ADMIN'),
-      isManager: roles.includes('Z_COURSES_MANAGER'),
-      isUser: roles.includes('Z_COURSES_USER'),
+      isAdmin: req.user?.is('Admin') || false,
+      isManager: req.user?.is('Manager') || false,
+      isUser: req.user?.is('User') || false,
       // Extract SAP username (SYUNAME) from token attributes
       sapUsername: req.user?.attr?.sapUsername || username.split('@')[0].toUpperCase().substring(0, 12)
     };
@@ -110,7 +105,8 @@ module.exports = (srv) => {
    * Team: Thomas Weber (Security Consultant)
    */
   function secureLog(level, message, data = {}) {
-    if (cds.env.requires?.auth?.kind === 'dummy' || process.env.NODE_ENV !== 'production') {
+    const authKind = cds.env.requires?.auth?.kind;
+    if (authKind === 'dummy' || authKind === 'mocked' || process.env.NODE_ENV !== 'production') {
       // Development only - mask sensitive data
       const masked = { ...data };
       if (masked.email) masked.email = masked.email.substring(0, 3) + '***@***';
@@ -188,14 +184,12 @@ module.exports = (srv) => {
   // ============================================================================
   
   srv.on('getCurrentRole', async (req) => {
-    const userCtx = getUserContext(req);
+    if (req.user.is('Admin')) return 'Admin';
+    if (req.user.is('Manager')) return 'Manager';
+    if (req.user.is('User')) return 'User';
     
-    if (userCtx.isAdmin) return 'Admin';
-    if (userCtx.isManager) return 'Manager';
-    if (userCtx.isUser) return 'User';
-    
-    secureLog('warn', 'User has no recognized role', { username: userCtx.username });
-    return 'User'; // default fallback
+    secureLog('warn', 'User has no recognized role', { username: req.user?.id });
+    return 'None'; // default fallback — unrecognized users get no role
   });
   
   // ============================================================================
@@ -249,7 +243,7 @@ module.exports = (srv) => {
       // Denormalize training fields for performance (search/filter without joins)
       req.data.title = training.title;
       req.data.role = training.role;
-      req.data.module = training.module;
+      req.data.sap_module = training.sap_module;
       req.data.url = training.url;
       
       // Authorization check: @restrict handles Admin/Manager grants

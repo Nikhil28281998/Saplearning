@@ -321,7 +321,6 @@
           "grant": "READ",
           "to": [
             "Manager",
-            "Lead",
             "User"
           ]
         }
@@ -428,10 +427,7 @@
             "CREATE",
             "UPDATE"
           ],
-          "to": [
-            "Manager",
-            "Lead"
-          ]
+          "to": "Manager"
         },
         {
           "grant": [

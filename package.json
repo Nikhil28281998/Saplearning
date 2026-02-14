@@ -6,18 +6,23 @@
 	"license": "UNLICENSED",
 	"dependencies": {
 		"@sap/cds": "^8",
-		"cors": "^2.8.6",
+		"@sap/xssec": "^4",
 		"express": "^4",
 		"express-rate-limit": "^7.5.1",
-		"sqlite3": "^5.1.7"
+		"helmet": "^7",
+		"passport": "^0.7",
+		"xss": "^1.0"
 	},
 	"devDependencies": {
-		"@sap/cds-dk": "^8"
+		"@sap/cds-dk": "^8",
+		"sqlite3": "^5.1.7"
 	},
 	"scripts": {
 		"start": "cds-serve",
 		"watch": "cds watch",
-		"build": "cds build --production"
+		"build": "cds build --production",
+		"test": "cd app/z.sap.courses && ui5 serve --open test/unit/unitTests.qunit.html",
+		"test:integration": "cd app/z.sap.courses && ui5 serve --open test/integration/opaTests.qunit.html"
 	},
 	"cds": {
 		"requires": {
@@ -32,24 +37,24 @@
 			},
 			"auth": {
 				"[production]": {
-					"kind": "xsuaa"
+					"kind": "basic"
 				},
 				"[development]": {
-					"kind": "dummy",
+					"kind": "mocked",
 					"users": {
 						"admin@test.com": {
 							"password": "admin",
-							"roles": ["Z_COURSES_ADMIN"],
+							"roles": ["Admin"],
 							"attr": { "sapUsername": "ADMIN001" }
 						},
 						"manager@test.com": {
 							"password": "manager",
-							"roles": ["Z_COURSES_MANAGER"],
+							"roles": ["Manager"],
 							"attr": { "sapUsername": "MGR001" }
 						},
 						"user@test.com": {
 							"password": "user",
-							"roles": ["Z_COURSES_USER"],
+							"roles": ["User"],
 							"attr": { "sapUsername": "USER001" }
 						}
 					}

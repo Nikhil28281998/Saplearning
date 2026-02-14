@@ -8,6 +8,16 @@ METHOD trainings_create_entity.
         ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
         lv_guid     TYPE sysuuid_c36.
 
+* -- Authorization check: Create (ACTVT 01) -------------------------
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
+    ID 'ACTVT' FIELD '01'.
+  IF sy-subrc <> 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'No authorization to create trainings'.
+  ENDIF.
+
 * -- Read incoming OData payload into entity structure ----------------
   io_data_provider->read_entry_data( IMPORTING es_data = ls_entity ).
 

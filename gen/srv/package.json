@@ -6,13 +6,15 @@
 	"license": "UNLICENSED",
 	"dependencies": {
 		"@sap/cds": "^8",
+		"@sap/xssec": "^4",
 		"cors": "^2.8.6",
 		"express": "^4",
 		"express-rate-limit": "^7.5.1",
-		"sqlite3": "^5.1.7"
+		"passport": "^0.7"
 	},
 	"devDependencies": {
-		"@sap/cds-dk": "^8"
+		"@sap/cds-dk": "^8",
+		"sqlite3": "^5.1.7"
 	},
 	"scripts": {
 		"start": "cds-serve",
@@ -32,24 +34,24 @@
 			},
 			"auth": {
 				"[production]": {
-					"kind": "dummy-auth"
+					"kind": "basic"
 				},
 				"[development]": {
-					"kind": "dummy",
+					"kind": "mocked",
 					"users": {
 						"admin@test.com": {
 							"password": "admin",
-							"roles": ["Z_COURSES_ADMIN"],
+							"roles": ["Admin"],
 							"attr": { "sapUsername": "ADMIN001" }
 						},
 						"manager@test.com": {
 							"password": "manager",
-							"roles": ["Z_COURSES_MANAGER"],
+							"roles": ["Manager"],
 							"attr": { "sapUsername": "MGR001" }
 						},
 						"user@test.com": {
 							"password": "user",
-							"roles": ["Z_COURSES_USER"],
+							"roles": ["User"],
 							"attr": { "sapUsername": "USER001" }
 						}
 					}

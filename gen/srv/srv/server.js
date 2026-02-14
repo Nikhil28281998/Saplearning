@@ -95,4 +95,20 @@ cds.on('bootstrap', (app) => {
   });
 });
 
+// ========================================================================
+// SECURITY GUARD: Prevent dummy/mocked auth in production
+// ========================================================================
+cds.on('served', () => {
+  if (process.env.NODE_ENV === 'production') {
+    const authKind = cds.env.requires?.auth?.kind;
+    if (authKind === 'dummy' || authKind === 'mocked') {
+      cds.log('security').error(
+        'FATAL: Production is using "' + authKind + '" authentication. ' +
+        'Configure [production].auth.kind = "basic" or "xsuaa".'
+      );
+      process.exit(1);
+    }
+  }
+});
+
 module.exports = cds.server;

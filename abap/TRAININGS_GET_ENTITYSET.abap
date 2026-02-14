@@ -24,6 +24,16 @@ METHOD trainings_get_entityset.
         lv_skip        TYPE i,
         lv_top         TYPE i.
 
+* -- Authorization check: Display (ACTVT 03) -------------------------
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
+    ID 'ACTVT' FIELD '03'.
+  IF sy-subrc <> 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'No authorization to read trainings'.
+  ENDIF.
+
 * -- Read filter: Role -----------------------------------------------
 *   Try PascalCase first (SEGW standard), then UPPERCASE fallback
   READ TABLE it_filter_select_options

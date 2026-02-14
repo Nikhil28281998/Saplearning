@@ -10,7 +10,7 @@ annotate S.Trainings with @UI.LineItem: [
 	{ $Type: 'UI.DataField',        Value: lastUpdated,             Label: 'Last Updated' },
 	{ $Type: 'UI.DataField',        Value: sap_module,              Label: 'Module' },
 	{ $Type: 'UI.DataField',        Value: role,                    Label: 'Role' },
-	{ $Type: 'UI.DataFieldWithUrl', Value: 'Open SAP Help', Url: sapHelpLink, Label: 'SAP Help' },
+	{ $Type: 'UI.DataFieldWithUrl', Value: sapHelpLink, Url: sapHelpLink, Label: 'SAP Help' },
 	// Global navigation buttons on the Trainings ListReport toolbar
 	{ $Type: 'UI.DataFieldForIntentBasedNavigation', Label: 'My Assignments', SemanticObject: 'ZLearningMyTrainings', Action: 'display', RequiresContext: false },
 	{ $Type: 'UI.DataFieldForIntentBasedNavigation', Label: 'User Management', SemanticObject: 'ZLearningUsers', Action: 'display', RequiresContext: false }
@@ -37,7 +37,7 @@ annotate S.Trainings with @UI.FieldGroup #Main: {
 		{ $Type: 'UI.DataField', Value: sap_module,   Label: 'Module' },
 		{ $Type: 'UI.DataField', Value: lastUpdated,  Label: 'Last Updated' },
 		{ $Type: 'UI.DataFieldWithUrl', Value: title, Url: url,         Label: 'Primary Link' },
-		{ $Type: 'UI.DataFieldWithUrl', Value: 'Open SAP Help', Url: sapHelpLink, Label: 'SAP Help' }
+		{ $Type: 'UI.DataFieldWithUrl', Value: sapHelpLink, Url: sapHelpLink, Label: 'SAP Help' }
 	]
 };
 
@@ -91,30 +91,28 @@ annotate S.TrainingAssignments with @UI.FieldGroup #Main: {
 		{ $Type: 'UI.DataField', Value: userId,     Label: 'User' },
 		{ $Type: 'UI.DataField', Value: dueDate,    Label: 'Due Date' },
 		{ $Type: 'UI.DataField', Value: status,     Label: 'Status' },
-		{ $Type: 'UI.DataField', Value: completionDate, Label: 'Completed At' },
-		{ $Type: 'UI.DataFieldForAction', Action: 'SAPLearningService.markCompleted', Label: 'Mark Completed',
-		  Confirmation: { $Type: 'UI.ConfirmationDialogType', Title: 'Confirm', Text: 'Mark this assignment as completed?' } }
+		{ $Type: 'UI.DataField', Value: completionDate, Label: 'Completed At' }
 	]
 };
 
 // Default view variants: ensure columns Role, Module, Status visible and sorted
 annotate S.TrainingAssignments with @UI.PresentationVariant: {
 	SortOrder: [ { Property: 'status', Descending: false } ],
-	RequestAtLeast: [ 'role', 'module', 'status' ],
-	Visualizations: [ { $Type: 'UI.VisualizationSet', Visualizations: [ { $AnnotationPath: '@UI.LineItem' } ] } ]
+	RequestAtLeast: [ 'role', 'sap_module', 'status' ],
+	Visualizations: [ '@UI.LineItem' ]
 };
 
 annotate S.TrainingAssignments with @UI.SelectionVariant: {
 	SelectOptions: [
 		{ PropertyName: 'role' },
-		{ PropertyName: 'module' },
+		{ PropertyName: 'sap_module' },
 		{ PropertyName: 'status' }
 	]
 };
 
 // Make 'Mark Completed' available only when status != 'Completed'
 annotate S.TrainingAssignments with actions {
-	markCompleted @Core.OperationAvailable: { $If: [ { $Ne: [ { $Path: 'status' }, 'Completed' ] }, true, false ] };
+	markCompleted @Core.OperationAvailable: { $edmJson: { $If: [ { $Ne: [ { $Path: 'status' }, 'Completed' ] }, true, false ] } };
 };
 
 // Enable create/update; disable delete for compliance

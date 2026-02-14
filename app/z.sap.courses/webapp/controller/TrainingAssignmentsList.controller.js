@@ -6,13 +6,16 @@ sap.ui.define([
     "sap/ui/core/routing/History",
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
-    "sap/base/Log"
-], function (Controller, MessageToast, MessageBox, JSONModel, History, Filter, FilterOperator, Log) {
+    "sap/base/Log",
+    "z/sap/courses/services/AnalyticsService"
+], function (Controller, MessageToast, MessageBox, JSONModel, History, Filter, FilterOperator, Log, AnalyticsService) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingAssignmentsList", {
 
         onInit: function () {
+            this._analyticsService = new AnalyticsService();
+
             // Analytics model for my progress
             var oAnalyticsModel = new JSONModel({
                 assigned: 0,
@@ -27,44 +30,40 @@ sap.ui.define([
         },
 
         _loadAnalytics: function () {
-            var that = this;
             var oModel = this.getOwnerComponent().getModel();
             var oAnalyticsModel = this.getView().getModel("assignAnalytics");
-            
-            oModel.read("/" + this.getOwnerComponent().getAssignmentEntitySet(), {
-                success: function (data) {
-                    var results = data.results || [];
-                    var assigned = 0, inProgress = 0, completed = 0;
-                    results.forEach(function (a) {
-                        if (a.Status === "Assigned") { assigned++; }
-                        else if (a.Status === "In Progress") { inProgress++; }
-                        else if (a.Status === "Completed") { completed++; }
-                    });
-                    var total = results.length || 1;
-                    var pct = Math.round((completed / total) * 100);
-                    
-                    oAnalyticsModel.setProperty("/assigned", assigned);
-                    oAnalyticsModel.setProperty("/inProgress", inProgress);
-                    oAnalyticsModel.setProperty("/completed", completed);
-                    oAnalyticsModel.setProperty("/completionPercent", pct);
-                },
-                error: function (err) {
-                    Log.warning("[AssignAnalytics] Failed to load assignments: " + (err && err.message || ""));
-                    MessageToast.show("Failed to load assignment data");
-                }
+            var sEntitySet = this.getOwnerComponent().getAssignmentEntitySet();
+
+            // Set analytics panel busy during load
+            var oPanel = this.byId("myProgressPanel");
+            if (oPanel) { oPanel.setBusy(true); }
+
+            this._analyticsService.getAssignmentStats(oModel, sEntitySet).then(function (oStats) {
+                oAnalyticsModel.setProperty("/assigned", oStats.assigned);
+                oAnalyticsModel.setProperty("/inProgress", oStats.inProgress);
+                oAnalyticsModel.setProperty("/completed", oStats.completed);
+                oAnalyticsModel.setProperty("/completionPercent", oStats.completionPercent);
+            }).catch(function (err) {
+                Log.warning("[AssignAnalytics] Failed to load assignments: " + (err && err.message || ""));
+            }).finally(function () {
+                if (oPanel) { oPanel.setBusy(false); }
             });
         },
 
         /**
-         * SmartTable initialise – configure inner responsive table
+         * SmartTable initialise – configure inner responsive table.
+         * Guards against re-attaching itemPress on repeat init calls.
          */
         onSmartTableInit: function () {
             var oSmartTable = this.byId("assignSmartTable");
             var oTable = oSmartTable.getTable();
             if (oTable) {
                 oTable.setMode("SingleSelectMaster");
-                oTable.attachItemPress(this.onItemPress.bind(this));
                 oTable.setAlternateRowColors(true);
+                if (!this._itemPressAttached) {
+                    oTable.attachItemPress(this.onItemPress.bind(this));
+                    this._itemPressAttached = true;
+                }
             }
         },
 
@@ -75,7 +74,7 @@ sap.ui.define([
                 oSmartTable.rebindTable(true);
             }
             this._loadAnalytics();
-            MessageToast.show("Data refreshed");
+            MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("dataRefreshed"));
         },
 
         /**
@@ -142,13 +141,14 @@ sap.ui.define([
             if (!oContext) { return; }
             var oAssignment = oContext.getObject();
             var that = this;
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
 
             var aActions = [];
             if (oAssignment.Url) {
-                aActions.push("Open Training");
+                aActions.push(i18n.getText("openTraining"));
             }
             if (oAssignment.Status !== "Completed") {
-                aActions.push("Mark Completed");
+                aActions.push(i18n.getText("markCompleted"));
             }
             aActions.push(MessageBox.Action.CLOSE);
 
@@ -158,14 +158,14 @@ sap.ui.define([
                 "Status: " + (oAssignment.Status || "") + "\n" +
                 "Module: " + (oAssignment.SapModule || ""),
                 {
-                    title: "Assignment Details",
+                    title: i18n.getText("assignmentDetails"),
                     icon: MessageBox.Icon.INFORMATION,
                     actions: aActions,
                     emphasizedAction: aActions[0],
                     onClose: function (sAction) {
-                        if (sAction === "Open Training" && oAssignment.Url) {
+                        if (sAction === i18n.getText("openTraining") && oAssignment.Url) {
                             window.open(oAssignment.Url, "_blank", "noopener,noreferrer");
-                        } else if (sAction === "Mark Completed") {
+                        } else if (sAction === i18n.getText("markCompleted")) {
                             that._markCompleted(oContext);
                         }
                     }
@@ -175,19 +175,34 @@ sap.ui.define([
 
         _markCompleted: function (oContext) {
             var that = this;
-            var oModel = this.getView().getModel();
-            var sPath = oContext.getPath();
-            
-            oModel.update(sPath, {
-                Status: "Completed",
-                CompletionDate: new Date().toISOString()
-            }, {
-                success: function () {
-                    MessageToast.show("Marked as completed!");
-                    that.onRefresh();
-                },
-                error: function (err) {
-                    MessageBox.error("Failed to update: " + (err.message || "Unknown error"));
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+
+            // Confirmation dialog — irreversible action
+            MessageBox.confirm(i18n.getText("confirmText"), {
+                title: i18n.getText("confirmTitle"),
+                emphasizedAction: MessageBox.Action.OK,
+                onClose: function (sAction) {
+                    if (sAction !== MessageBox.Action.OK) { return; }
+
+                    var oModel = that.getView().getModel();
+                    var sPath = oContext.getPath();
+                    var oSmartTable = that.byId("assignSmartTable");
+                    if (oSmartTable) { oSmartTable.setBusy(true); }
+
+                    oModel.update(sPath, {
+                        Status: "Completed",
+                        CompletionDate: new Date()
+                    }, {
+                        success: function () {
+                            if (oSmartTable) { oSmartTable.setBusy(false); }
+                            MessageToast.show(i18n.getText("markedCompleted"));
+                            that.onRefresh();
+                        },
+                        error: function (err) {
+                            if (oSmartTable) { oSmartTable.setBusy(false); }
+                            MessageBox.error(i18n.getText("updateFailed") + ": " + (err.message || "Unknown error"));
+                        }
+                    });
                 }
             });
         }

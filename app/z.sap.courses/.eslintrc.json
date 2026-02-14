@@ -1,0 +1,53 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2020": true
+  },
+  "globals": {
+    "sap": "readonly",
+    "jQuery": "readonly",
+    "QUnit": "readonly",
+    "sinon": "readonly"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "script"
+  },
+  "rules": {
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-global-assign": "error",
+    "no-script-url": "error",
+    "no-alert": "warn",
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-debugger": "error",
+    "eqeqeq": ["error", "smart"],
+    "curly": ["error", "all"],
+    "no-caller": "error",
+    "no-extend-native": "error",
+    "no-extra-bind": "warn",
+    "no-floating-decimal": "warn",
+    "no-lone-blocks": "warn",
+    "no-multi-spaces": "warn",
+    "no-multi-str": "warn",
+    "no-new-wrappers": "error",
+    "no-throw-literal": "error",
+    "no-unused-expressions": ["error", { "allowShortCircuit": true, "allowTernary": true }],
+    "no-useless-concat": "warn",
+    "no-void": "error",
+    "no-with": "error",
+    "semi": ["error", "always"],
+    "no-unused-vars": ["warn", { "args": "none" }],
+    "no-undef": "error"
+  },
+  "overrides": [
+    {
+      "files": ["webapp/test/**/*.js"],
+      "rules": {
+        "no-unused-expressions": "off"
+      }
+    }
+  ]
+}

@@ -9,6 +9,16 @@ METHOD trainings_update_entity.
         ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
         lv_id       TYPE char36.
 
+* -- Authorization check: Change (ACTVT 02) --------------------------
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
+    ID 'ACTVT' FIELD '02'.
+  IF sy-subrc <> 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'No authorization to update trainings'.
+  ENDIF.
+
 * -- Read key from OData URI path ------------------------------------
   READ TABLE it_key_tab WITH KEY name = 'Id' INTO ls_key.
   IF sy-subrc <> 0.

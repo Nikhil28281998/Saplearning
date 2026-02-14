@@ -18,7 +18,7 @@
         <customHeader>
             <Bar id="headerBar">
                 <contentLeft>
-                    <Title id="pageTitle" text="SAP Learning Courses" level="H2" />
+                    <Title id="pageTitle" text="{i18n>appTitle}" level="H2" />
                 </contentLeft>
                 <contentRight>
                     <HBox id="roleBox" alignItems="Center" class="sapUiSmallMarginEnd">
@@ -31,7 +31,7 @@
                     </HBox>
                     <Button
                         id="myAssignmentsBtn"
-                        text="My Assignments"
+                        text="{i18n>myAssignments}"
                         icon="sap-icon://task"
                         press="onViewAssignments"
                         type="Emphasized" />
@@ -39,14 +39,20 @@
             </Bar>
         </customHeader>
 
+        <dependents>
+            <core:InvisibleText id="trainingsFilterLabel" text="{i18n>trainingsFilterLabel}" />
+            <core:InvisibleText id="trainingsTableLabel" text="{i18n>trainingsTableLabel}" />
+            <core:InvisibleText id="refreshButtonLabel" text="{i18n>refreshData}" />
+        </dependents>
+
         <content>
             <!-- Analytics Dashboard - Modern Tile Cards -->
             <Panel
                 id="analyticsPanel"
                 expandable="true"
                 expanded="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }"
-                headerText="Training Analytics"
-                class="sapUiSmallMarginBottom">
+                headerText="{i18n>analyticsHeader}"
+                class="sapUiSmallMarginBottom analyticsPanel">
                 <HBox id="analyticsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin analyticsContainer">
                     <!-- Total Trainings Card -->
                     <VBox id="totalBox" alignItems="Center" class="analyticsCard analyticsCardBlue">
@@ -56,7 +62,7 @@
                             number="{analyticsModel>/totalTrainings}"
                             state="Information"
                             class="analyticsNumber" />
-                        <Text id="totalLabel" text="Total Catalog" class="analyticsLabel" />
+                        <Text id="totalLabel" text="{i18n>totalCatalog}" class="analyticsLabel" />
                     </VBox>
                     <!-- Assigned Card (Manager/Admin: org-wide | User: my assignments) -->
                     <VBox id="assignedBox" alignItems="Center" class="analyticsCard analyticsCardOrange">
@@ -66,7 +72,7 @@
                             number="{analyticsModel>/assigned}"
                             state="Warning"
                             class="analyticsNumber" />
-                        <Text id="assignedLabel" text="Assigned" class="analyticsLabel" />
+                        <Text id="assignedLabel" text="{i18n>pending}" class="analyticsLabel" />
                     </VBox>
                     <!-- In Progress Card -->
                     <VBox id="inProgressBox" alignItems="Center" class="analyticsCard analyticsCardTeal">
@@ -76,7 +82,7 @@
                             number="{analyticsModel>/inProgress}"
                             state="Information"
                             class="analyticsNumber" />
-                        <Text id="inProgressLabel" text="In Progress" class="analyticsLabel" />
+                        <Text id="inProgressLabel" text="{i18n>learning}" class="analyticsLabel" />
                     </VBox>
                     <!-- Completed Card -->
                     <VBox id="completedBox" alignItems="Center" class="analyticsCard analyticsCardGreen">
@@ -86,7 +92,7 @@
                             number="{analyticsModel>/completed}"
                             state="Success"
                             class="analyticsNumber" />
-                        <Text id="completedLabel" text="Completed" class="analyticsLabel" />
+                        <Text id="completedLabel" text="{i18n>done}" class="analyticsLabel" />
                     </VBox>
                     <!-- Completion Rate Card -->
                     <VBox id="completionRateBox" alignItems="Center" class="analyticsCard analyticsCardPurple">
@@ -96,7 +102,7 @@
                             percentage="{analyticsModel>/completionPercent}"
                             valueColor="{= ${analyticsModel>/completionPercent} >= 80 ? 'Good' : ${analyticsModel>/completionPercent} >= 50 ? 'Critical' : 'Error' }"
                             size="S" />
-                        <Text id="completionRateLabel" text="Completion Rate" class="analyticsLabel" />
+                        <Text id="completionRateLabel" text="{i18n>completionRate}" class="analyticsLabel" />
                     </VBox>
                 </HBox>
                 <!-- Charts Row - Status + Module Breakdown (Manager/Admin Only) -->
@@ -106,7 +112,7 @@
                     <VBox id="statusChartBox" class="analyticsCard analyticsCardBlue chartCard">
                         <HBox id="statusChartHeader" alignItems="Center" class="sapUiTinyMarginBottom">
                             <core:Icon id="statusChartIcon" src="sap-icon://horizontal-bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
-                            <Text id="statusChartTitle" text="Status Distribution" class="chartTitle" />
+                            <Text id="statusChartTitle" text="{i18n>statusDistribution}" class="chartTitle" />
                         </HBox>
                         <mc:StackedBarMicroChart id="statusStackedBar" size="L" width="100%">
                             <mc:bars>
@@ -118,15 +124,15 @@
                         <HBox id="statusLegendBox" justifyContent="SpaceBetween" class="sapUiTinyMarginTop chartLegendRow">
                             <HBox id="legendAssignedBox" alignItems="Center">
                                 <core:Icon id="legendDotAssigned" src="sap-icon://circle-task-2" size="0.625rem" color="#bb0000" class="sapUiTinyMarginEnd" />
-                                <Text id="legendAssigned" text="Assigned" class="chartLegendText" />
+                                <Text id="legendAssigned" text="{i18n>pending}" class="chartLegendText" />
                             </HBox>
                             <HBox id="legendInProgressBox" alignItems="Center">
                                 <core:Icon id="legendDotInProgress" src="sap-icon://circle-task-2" size="0.625rem" color="#5b738b" class="sapUiTinyMarginEnd" />
-                                <Text id="legendInProgress" text="In Progress" class="chartLegendText" />
+                                <Text id="legendInProgress" text="{i18n>learning}" class="chartLegendText" />
                             </HBox>
                             <HBox id="legendCompletedBox" alignItems="Center">
                                 <core:Icon id="legendDotCompleted" src="sap-icon://circle-task-2" size="0.625rem" color="#107e3e" class="sapUiTinyMarginEnd" />
-                                <Text id="legendCompleted" text="Completed" class="chartLegendText" />
+                                <Text id="legendCompleted" text="{i18n>done}" class="chartLegendText" />
                             </HBox>
                         </HBox>
                     </VBox>
@@ -134,7 +140,7 @@
                     <VBox id="moduleChartBox" class="analyticsCard analyticsCardTeal chartCard">
                         <HBox id="moduleChartHeader" alignItems="Center" class="sapUiTinyMarginBottom">
                             <core:Icon id="moduleChartIcon" src="sap-icon://bar-chart" size="1rem" color="#0a6ed1" class="sapUiTinyMarginEnd" />
-                            <Text id="moduleChartTitle" text="Top Modules" class="chartTitle" />
+                            <Text id="moduleChartTitle" text="{i18n>topModules}" class="chartTitle" />
                         </HBox>
                         <VBox id="moduleChartContainer" />
                     </VBox>
@@ -146,6 +152,7 @@
                 id="smartFilterBar"
                 entitySet="Trainings"
                 persistencyKey="TrainingsSmartFilter"
+                ariaLabelledBy="trainingsFilterLabel"
                 enableBasicSearch="true"
                 showClearOnFB="false"
                 showRestoreOnFB="false"
@@ -161,7 +168,7 @@
                     <filterBar:FilterGroupItem
                         id="fgiRole"
                         name="Role"
-                        label="Role"
+                        label="{i18n>roleLabel}"
                         groupName="_BASIC"
                         visibleInFilterBar="true">
                         <filterBar:control>
@@ -174,7 +181,7 @@
                     <filterBar:FilterGroupItem
                         id="fgiModule"
                         name="SapModule"
-                        label="Module"
+                        label="{i18n>moduleLabel}"
                         groupName="_BASIC"
                         visibleInFilterBar="true">
                         <filterBar:control>
@@ -195,7 +202,7 @@
                 entitySet="Trainings"
                 smartFilterId="smartFilterBar"
                 tableType="Table"
-                header="Trainings"
+                header="{i18n>columnTraining}"
                 showRowCount="true"
                 enableAutoBinding="true"
                 showFullScreenButton="true"
@@ -216,14 +223,14 @@
                         <Button
                             id="createTrainingBtn"
                             icon="sap-icon://add"
-                            text="Create"
+                            text="{i18n>createBtn}"
                             type="Emphasized"
                             press="onCreateTraining"
                             visible="{= ${user>/role} === 'Admin' }" />
                         <Button
                             id="deleteTrainingBtn"
                             icon="sap-icon://delete"
-                            text="Delete"
+                            text="{i18n>deleteBtn}"
                             type="Reject"
                             press="onDeleteTraining"
                             visible="{= ${user>/role} === 'Admin' }" />
@@ -231,19 +238,20 @@
                         <Button
                             id="detailsButton"
                             icon="sap-icon://detail-view"
-                            text="View Details"
+                            text="{i18n>viewDetails}"
                             press="onViewDetails" />
                         <Button
                             id="assignButton"
                             icon="sap-icon://person-placeholder"
-                            text="Assign Training"
+                            text="{i18n>assignTraining}"
                             type="Attention"
                             press="onAssignTraining"
                             visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
                         <Button
                             id="refreshButton"
                             icon="sap-icon://refresh"
-                            tooltip="Refresh Data"
+                            tooltip="{i18n>refreshData}"
+                            ariaLabelledBy="refreshButtonLabel"
                             press="onRefresh" />
                     </OverflowToolbar>
                 </smartTable:customToolbar>

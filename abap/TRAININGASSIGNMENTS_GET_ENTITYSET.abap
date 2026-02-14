@@ -23,6 +23,16 @@ METHOD trainingassignme_get_entityset.
         lv_skip        TYPE i,
         lv_top         TYPE i.
 
+* -- Authorization check: Display (ACTVT 03) -------------------------
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
+    ID 'ACTVT' FIELD '03'.
+  IF sy-subrc <> 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'No authorization to read assignments'.
+  ENDIF.
+
 * -- Read filter: UserId ---------------------------------------------
   READ TABLE it_filter_select_options
     WITH KEY property = 'UserId'
@@ -107,6 +117,8 @@ METHOD trainingassignme_get_entityset.
     ls_entity-user_email    = ls_asgn-user_email.
     ls_entity-due_date      = ls_asgn-due_date.
     ls_entity-completion_date = ls_asgn-completion_dt.
+    ls_entity-assigned_by     = ls_asgn-assigned_by.
+    ls_entity-assigned_by_name = ls_asgn-assigned_by_n.
     APPEND ls_entity TO et_entityset.
   ENDLOOP.
 
