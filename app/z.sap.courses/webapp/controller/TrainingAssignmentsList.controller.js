@@ -31,7 +31,7 @@ sap.ui.define([
             var oModel = this.getOwnerComponent().getModel();
             var oAnalyticsModel = this.getView().getModel("assignAnalytics");
             
-            oModel.read("/TrainingAssignments", {
+            oModel.read("/" + this.getOwnerComponent().getAssignmentEntitySet(), {
                 success: function (data) {
                     var results = data.results || [];
                     var assigned = 0, inProgress = 0, completed = 0;
@@ -48,7 +48,10 @@ sap.ui.define([
                     oAnalyticsModel.setProperty("/completed", completed);
                     oAnalyticsModel.setProperty("/completionPercent", pct);
                 },
-                error: function () { /* ignore */ }
+                error: function (err) {
+                    Log.warning("[AssignAnalytics] Failed to load assignments: " + (err && err.message || ""));
+                    MessageToast.show("Failed to load assignment data");
+                }
             });
         },
 
@@ -118,41 +121,17 @@ sap.ui.define([
             Log.info("[AssignFilter] Total filters: " + mBindingParams.filters.length);
         },
 
-        /* ===== Nav Back – robust approach for FLP + standalone ===== */
+        /* ===== Nav Back – standard Fiori Router pattern (audit fix #18) ===== */
         onNavBack: function () {
-            // Method 1: Check UI5 navigation history
+            // Use router navigation — the standard and reliable Fiori approach.
+            // Handles both FLP and standalone scenarios correctly.
             var oHistory = History.getInstance();
             var sPreviousHash = oHistory.getPreviousHash();
 
             if (sPreviousHash !== undefined) {
-                // Browser back (works in FLP when user navigated forward)
                 window.history.go(-1);
-                return;
-            }
-
-            // Method 2: Use HashChanger to set app hash to root
-            try {
-                var oHashChanger = sap.ui.core.routing.HashChanger.getInstance();
-                oHashChanger.setHash("");
-                return;
-            } catch (e) {
-                // ignore
-            }
-
-            // Method 3: Router navTo
-            try {
-                var oRouter = this.getOwnerComponent().getRouter();
-                oRouter.navTo("TrainingsList", {}, true);
-            } catch (e2) {
-                // Method 4: Direct hash manipulation for FLP
-                var sHash = window.location.hash || "";
-                // Strip the app-internal part (&/assignments)
-                var sNewHash = sHash.replace(/&\/assignments.*$/, "");
-                if (sNewHash !== sHash) {
-                    window.location.hash = sNewHash;
-                } else {
-                    window.history.go(-1);
-                }
+            } else {
+                this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
             }
         },
 

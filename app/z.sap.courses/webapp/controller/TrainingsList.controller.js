@@ -34,13 +34,18 @@ sap.ui.define([
             });
             this.getView().setModel(oFilterModel, "filterData");
 
-            this._loadAnalytics();
-            this._loadFilterData();
+            this._loadAllData();
         },
 
-        _loadAnalytics: function () {
+        /**
+         * Consolidated data loader: single Trainings read + single Assignments read.
+         * Feeds analytics model, filter dropdowns, and module chart from one data fetch.
+         * Fixes audit #8 (was 3 separate OData calls loading same data).
+         */
+        _loadAllData: function () {
             var oModel = this.getOwnerComponent().getModel();
             var oAnalyticsModel = this.getView().getModel("analyticsModel");
+            var oFilterModel = this.getView().getModel("filterData");
             var that = this;
             var iPending = 2; // two reads
             BusyIndicator.show(0);
@@ -52,7 +57,7 @@ sap.ui.define([
                 }
             };
 
-            // Load all trainings for count + module distribution chart
+            // Single read: all trainings → analytics + filter dropdowns + chart
             oModel.read("/Trainings", {
                 success: function (data) {
                     var results = data.results || [];
@@ -69,17 +74,44 @@ sap.ui.define([
                     var moduleArr = Object.keys(moduleMap).map(function (m) {
                         return { label: m, count: moduleMap[m] };
                     }).sort(function (a, b) { return b.count - a.count; }).slice(0, 5);
-
                     that._buildModuleChart(moduleArr);
+
+                    // Also build filter dropdowns from this same data (eliminates duplicate read)
+                    var roleSet = {};
+                    var moduleSet = {};
+                    var roleModuleMap = {};
+                    results.forEach(function (t) {
+                        if (t.Role) {
+                            roleSet[t.Role] = true;
+                            if (!roleModuleMap[t.Role]) { roleModuleMap[t.Role] = {}; }
+                            if (t.SapModule) { roleModuleMap[t.Role][t.SapModule] = true; }
+                        }
+                        if (t.SapModule) { moduleSet[t.SapModule] = true; }
+                    });
+                    var roles = [{ key: "", text: "All" }];
+                    Object.keys(roleSet).sort().forEach(function (r) {
+                        roles.push({ key: r, text: r });
+                    });
+                    var modules = [{ key: "", text: "All" }];
+                    Object.keys(moduleSet).sort().forEach(function (m) {
+                        modules.push({ key: m, text: m });
+                    });
+                    oFilterModel.setProperty("/roles", roles);
+                    oFilterModel.setProperty("/modules", modules);
+                    oFilterModel.setProperty("/allModules", modules.slice(0));
+                    oFilterModel.setProperty("/roleModuleMap", roleModuleMap);
+
                     fnDone();
                 },
-                error: function () {
+                error: function (err) {
                     oAnalyticsModel.setProperty("/totalTrainings", 0);
+                    Log.error("[Analytics] Failed to load trainings: " + (err && err.message || ""));
+                    MessageToast.show("Failed to load training data");
                     fnDone();
                 }
             });
 
-            // Count assignments by status (use detected entity set name)
+            // Single read: all assignments → status counts
             var sAssignEntitySet = this.getOwnerComponent().getAssignmentEntitySet();
             oModel.read("/" + sAssignEntitySet, {
                 success: function (data) {
@@ -99,8 +131,18 @@ sap.ui.define([
                     oAnalyticsModel.setProperty("/completionPercent", pct);
                     fnDone();
                 },
-                error: function () { fnDone(); }
+                error: function (err) {
+                    Log.error("[Analytics] Failed to load assignments: " + (err && err.message || ""));
+                    fnDone();
+                }
             });
+        },
+
+        /**
+         * Refresh analytics - called by role switch and manual refresh.
+         */
+        _loadAnalytics: function () {
+            this._loadAllData();
         },
 
         /**
@@ -140,50 +182,7 @@ sap.ui.define([
             });
         },
 
-        /**
-         * Load unique Role and Module values from Trainings for filter dropdowns.
-         * Builds role→module map for cross-filtering.
-         */
-        _loadFilterData: function () {
-            var oModel = this.getOwnerComponent().getModel();
-            var oFilterModel = this.getView().getModel("filterData");
-
-            oModel.read("/Trainings", {
-                success: function (data) {
-                    var results = data.results || [];
-                    var roleSet = {};
-                    var moduleSet = {};
-                    var roleModuleMap = {};
-
-                    results.forEach(function (t) {
-                        if (t.Role) {
-                            roleSet[t.Role] = true;
-                            if (!roleModuleMap[t.Role]) { roleModuleMap[t.Role] = {}; }
-                            if (t.SapModule) { roleModuleMap[t.Role][t.SapModule] = true; }
-                        }
-                        if (t.SapModule) { moduleSet[t.SapModule] = true; }
-                    });
-
-                    var roles = [{ key: "", text: "All" }];
-                    Object.keys(roleSet).sort().forEach(function (r) {
-                        roles.push({ key: r, text: r });
-                    });
-
-                    var modules = [{ key: "", text: "All" }];
-                    Object.keys(moduleSet).sort().forEach(function (m) {
-                        modules.push({ key: m, text: m });
-                    });
-
-                    oFilterModel.setProperty("/roles", roles);
-                    oFilterModel.setProperty("/modules", modules);
-                    oFilterModel.setProperty("/allModules", modules.slice(0));
-                    oFilterModel.setProperty("/roleModuleMap", roleModuleMap);
-                },
-                error: function () {
-                    Log.warning("[FilterData] Failed to load filter data");
-                }
-            });
-        },
+        // _loadFilterData removed: consolidated into _loadAllData (audit fix #8)
 
         /**
          * Cross-filtering: when Role changes, filter Module dropdown
@@ -245,10 +244,15 @@ sap.ui.define([
                 oTable.setVisibleRowCountMode("Auto");
                 oTable.setMinAutoRowCount(5);
 
-                // Apply link templates + column menus + date formatting on every data update
+                // Apply link templates + column menus + date formatting once after first data load
+                // Uses a flag to avoid repeated heavy DOM operations (audit fix #13)
+                this._linksApplied = false;
                 oTable.attachRowsUpdated(function () {
                     that._enableColumnMenus(oTable);
-                    that._applyLinkTemplates(oTable);
+                    if (!that._linksApplied) {
+                        that._applyLinkTemplates(oTable);
+                        that._linksApplied = true;
+                    }
                     that._formatDateColumns(oTable);
                 });
 
@@ -268,10 +272,6 @@ sap.ui.define([
                         }
                     }
                 });
-
-                // Delayed fallback for timing issues on S/4HANA
-                setTimeout(function () { that._applyLinkTemplates(oTable); }, 3000);
-                setTimeout(function () { that._applyLinkTemplates(oTable); }, 6000);
             }
         },
 
@@ -308,15 +308,22 @@ sap.ui.define([
          * Format date columns to show date only (no time).
          * Replaces LastUpdated column template with date-only formatter.
          */
+        /**
+         * Format date columns to show date only (no time).
+         * Reapplies on each rowsUpdated since column templates can be reset.
+         * (Audit fix #14: removed one-shot flag that prevented re-formatting)
+         */
         _formatDateColumns: function (oTable) {
             if (!oTable || !oTable.getColumns) { return; }
-            if (this._dateColumnsFormatted) { return; } // only once
             var that = this;
             var aColumns = oTable.getColumns();
             aColumns.forEach(function (oCol) {
                 var sKey = that._getColumnKey(oCol);
                 if (sKey === "LastUpdated") {
-                    oCol.setTemplate(new Text({
+                    // Check if already formatted (has our custom formatter)
+                    var oTpl = oCol.getTemplate();
+                    if (oTpl && oTpl._dateFormatApplied) { return; }
+                    var oNewTpl = new Text({
                         text: {
                             path: "LastUpdated",
                             formatter: function (v) {
@@ -329,9 +336,9 @@ sap.ui.define([
                             }
                         },
                         wrapping: false
-                    }));
-                    that._dateColumnsFormatted = true;
-                    Log.info("[Format] LastUpdated column set to date-only format");
+                    });
+                    oNewTpl._dateFormatApplied = true;
+                    oCol.setTemplate(oNewTpl);
                 }
             });
         },

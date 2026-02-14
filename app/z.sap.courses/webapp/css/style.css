@@ -163,7 +163,7 @@ html, body, html.sap-desktop, .sapUiBody {
     border-radius: var(--sapRadius) !important;
     box-shadow: var(--sapShadowMd);
     border: 1px solid var(--sapBorder);
-    overflow: hidden;
+    overflow: visible;
     background: var(--sapSurface) !important;
 }
 

@@ -1,18 +1,14 @@
 sap.ui.define([
     "sap/ui/core/UIComponent",
-    "sap/ui/model/odata/v2/ODataModel",
     "sap/m/Button",
     "sap/m/Dialog",
-    "sap/m/List",
-    "sap/m/StandardListItem",
-    "sap/m/TextArea",
-    "sap/m/Bar",
     "sap/ui/model/json/JSONModel",
     "sap/base/Log",
     "sap/ui/Device",
     "sap/m/MessageToast",
+    "sap/m/MessageBox",
     "z/sap/courses/services/UserContext"
-], function (UIComponent, ODataModel, Button, Dialog, List, StandardListItem, TextArea, Bar, JSONModel, Log, Device, MessageToast, UserContext) {
+], function (UIComponent, Button, Dialog, JSONModel, Log, Device, MessageToast, MessageBox, UserContext) {
     "use strict";
 
     return UIComponent.extend("z.sap.courses.Component", {
@@ -182,27 +178,20 @@ sap.ui.define([
                 }catch(_){ /* ignore */ }
             }
             
-            // TEMPORARY FIX: Hardcode Admin role until Z_COURSES_USERCTX_SRV is implemented
-            // TODO: Remove this when backend service is ready (returns proper PFCG roles)
-            that._role = 'Admin';  // HARDCODED - Change to 'Manager' or 'User' for testing
-            that._applyRoleUI();
-            Log.info('Role hardcoded to Admin - waiting for Z_COURSES_USERCTX_SRV implementation');
-            return;
-            
-            // Original code (will be re-enabled when backend service is ready):
             // Production: Use S/4 UserContext service for PFCG role-based authorization
-            // NOTE: This is for UX purposes only - backend enforces actual authorization
-            // this._userContext.getCurrentRole()
-            //     .then(function(role){
-            //         that._role = role;
-            //         that._applyRoleUI();
-            //     })
-            //     .catch(function(error){ 
-            //         Log.warning('Failed to fetch role from S/4 UserContext (non-critical): ' + error);
-            //         // Default to read-only user role
-            //         that._role = 'User'; 
-            //         that._applyRoleUI(); 
-            //     });
+            // NOTE: This is for UX purposes only - backend MUST enforce actual authorization
+            this._userContext.getCurrentRole()
+                .then(function(role){
+                    that._role = role;
+                    that._applyRoleUI();
+                    Log.info('Role fetched from UserContext: ' + role);
+                })
+                .catch(function(error){
+                    Log.warning('Failed to fetch role from S/4 UserContext: ' + (error && error.message || error));
+                    // Default to read-only user role (safe fallback)
+                    that._role = 'User';
+                    that._applyRoleUI();
+                });
         },
 
         _applyRoleUI: function(){
@@ -240,20 +229,19 @@ sap.ui.define([
                 '/sap/opu/odata/sap/ZCOURSES_SRV/Trainings?$top=1' : 
                 '/service/SAPLearningService/Trainings?$top=1';
             
-            // Check OData service availability - non-blocking
+            // Check OData service availability - non-blocking (uses jQuery for SAP browser compat)
             setTimeout(function() {
-                var checks = [
-                    fetch(metadataPath).then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; }),
-                    fetch(dataPath).then(function(r){ ok = ok && r.ok; }).catch(function(){ ok=false; })
-                ];
-                Promise.all(checks).then(function(){
-                    if (!ok){
+                jQuery.ajax({
+                    url: metadataPath,
+                    type: 'GET',
+                    dataType: 'xml',
+                    success: function() {
+                        Log.info('OData metadata health check passed');
+                    },
+                    error: function() {
+                        ok = false;
                         Log.warning('OData service health check failed - service may not be fully available');
-                    } else {
-                        Log.info('OData service health check passed');
                     }
-                }).catch(function(err){
-                    Log.warning('Health check error (non-critical): ' + err.message);
                 });
             }, 500);
         },
@@ -712,10 +700,14 @@ sap.ui.define([
         },
 
         destroy: function() {
-            if (this._assignDlg) {
-                this._assignDlg.destroy();
-                this._assignDlg = null;
-            }
-            UIComponent.prototype.destroy.apply(this, arguments);        }
+            // Clean up ALL dialogs to prevent memory leaks
+            ['_assignDlg', '_createDlg', '_detailDlg'].forEach(function(sName) {
+                if (this[sName]) {
+                    this[sName].destroy();
+                    this[sName] = null;
+                }
+            }.bind(this));
+            UIComponent.prototype.destroy.apply(this, arguments);
+        }
     });
 });

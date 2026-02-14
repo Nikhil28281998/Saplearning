@@ -32,7 +32,7 @@
 			},
 			"auth": {
 				"[production]": {
-					"kind": "dummy-auth"
+					"kind": "xsuaa"
 				},
 				"[development]": {
 					"kind": "dummy",
