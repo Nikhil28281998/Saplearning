@@ -76,19 +76,43 @@ METHOD userset_get_entityset.
   LOOP AT lt_usr21 INTO ls_usr21.
     CLEAR: ls_entity, ls_adrp, ls_adr6.
 
+*   Get person name from ADRP using PERSNUMBER
     IF ls_usr21-persnumber IS NOT INITIAL.
       SELECT SINGLE * FROM adrp INTO ls_adrp
         WHERE persnumber = ls_usr21-persnumber.
     ENDIF.
 
-    IF ls_usr21-addrnumber IS NOT INITIAL.
+*   Get email: first try ADR6 via PERSNUMBER (user-specific),
+*   then fallback to ADDRNUMBER (company address)
+    CLEAR ls_adr6.
+    IF ls_usr21-persnumber IS NOT INITIAL.
       SELECT SINGLE * FROM adr6 INTO ls_adr6
-        WHERE addrnumber = ls_usr21-addrnumber
+        WHERE persnumber = ls_usr21-persnumber
           AND flgdefault = 'X'.
       IF sy-subrc <> 0.
         SELECT SINGLE * FROM adr6 INTO ls_adr6
-          WHERE addrnumber = ls_usr21-addrnumber.
+          WHERE persnumber = ls_usr21-persnumber.
       ENDIF.
+    ENDIF.
+
+*   Fallback: company address (ADDRNUMBER) if personal had no email
+    IF ls_adr6-smtp_addr IS INITIAL AND ls_usr21-addrnumber IS NOT INITIAL.
+      SELECT SINGLE * FROM adr6 INTO ls_adr6
+        WHERE addrnumber = ls_usr21-addrnumber
+          AND persnumber = ls_usr21-persnumber
+          AND flgdefault = 'X'.
+      IF sy-subrc <> 0.
+        SELECT SINGLE * FROM adr6 INTO ls_adr6
+          WHERE addrnumber = ls_usr21-addrnumber
+            AND persnumber = ls_usr21-persnumber.
+      ENDIF.
+    ENDIF.
+
+*   Last fallback: just ADDRNUMBER without persnumber filter
+    IF ls_adr6-smtp_addr IS INITIAL AND ls_usr21-addrnumber IS NOT INITIAL.
+      SELECT SINGLE smtp_addr FROM adr6 INTO ls_adr6-smtp_addr
+        WHERE addrnumber = ls_usr21-addrnumber
+          AND flgdefault = 'X'.
     ENDIF.
 
     ls_entity-userid    = ls_usr21-bname.
