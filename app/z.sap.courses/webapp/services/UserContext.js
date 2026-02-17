@@ -78,8 +78,22 @@ sap.ui.define([
                         return response.json();
                     })
                     .then(function (data) {
-                        // getCurrentRole returns Complex Type { d: { getCurrentRole: { Role: "Admin|Manager|User" } } }
-                        var sRole = (data && data.d && data.d.getCurrentRole && data.d.getCurrentRole.Role) || "User";
+                        // Log raw response for debugging
+                        Log.info("getCurrentRole raw response: " + JSON.stringify(data));
+
+                        // Handle both possible OData V2 Complex Type response formats:
+                        //   Format A: { d: { getCurrentRole: { Role: "Admin" } } }
+                        //   Format B: { d: { Role: "Admin" } }
+                        var sRole = "User";
+                        if (data && data.d) {
+                            if (data.d.getCurrentRole && data.d.getCurrentRole.Role) {
+                                sRole = data.d.getCurrentRole.Role;
+                            } else if (data.d.Role) {
+                                sRole = data.d.Role;
+                            }
+                        }
+
+                        Log.info("UserContext resolved role: " + sRole);
 
                         var userInfo = {
                             UserId: "S4USER",
@@ -99,7 +113,7 @@ sap.ui.define([
                         return userInfo;
                     })
                     .catch(function (error) {
-                        Log.warning("getCurrentRole not reachable. Defaulting to 'User' mode. " + (error.message || ''));
+                        Log.error("getCurrentRole FAILED: " + (error.message || error) + ". Buttons will be hidden. Check: 1) ZCOURSES_SRV registered in /IWFND/MAINT_SERVICE, 2) EXECUTE_ACTION redefined in DPC_EXT, 3) Z_COURSES auth object exists in SU21, 4) PFCG role has Z_COURSES with ACTVT 06");
                         // Return minimal default context (read-only user)
                         return {
                             UserId: "ANONYMOUS",
