@@ -278,7 +278,7 @@ sap.ui.define([
                 userId: '',
                 firstName: '',
                 lastName: '',
-                userEmail: '',,
+                userEmail: '',
                 dueDate: null,
                 submitting: false,
                 error: ''
