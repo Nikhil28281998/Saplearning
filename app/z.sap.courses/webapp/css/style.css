@@ -288,12 +288,13 @@ html, body, html.sap-desktop, .sapUiBody {
     transform: scale(1.15);
 }
 
-/* ===== Chart Cards ===== */
+/* ===== Chart Cards – side by side, no overlap ===== */
 .chartCard {
-    min-width: 240px;
-    max-width: none;
-    flex: 1 1 240px;
-    min-height: 160px;
+    min-width: 280px;
+    max-width: 48%;
+    flex: 1 1 45%;
+    min-height: 220px;
+    box-sizing: border-box;
 }
 
 .chartTitle {
@@ -320,28 +321,29 @@ html, body, html.sap-desktop, .sapUiBody {
     margin-top: 0.375rem;
 }
 
-/* StackedBarMicroChart – make bars BIGGER (taller rectangles) */
+/* StackedBarMicroChart – make bars BIGGER (taller rectangles to fill chart box) */
 .sapSuiteSBMC {
-    margin: 0.375rem 0;
-    min-width: 200px;
+    margin: 0.5rem 0;
+    min-width: 100%;
     width: 100%;
 }
 
 .chartCard .sapSuiteSBMC {
-    min-height: 48px !important;
+    min-height: 80px !important;
+    height: 80px !important;
 }
 
-/* Make the individual bar segments taller */
+/* Make the individual bar segments much taller */
 .sapSuiteSBMCBarCntr,
 .sapSuiteSBMCBar {
-    min-height: 36px !important;
-    height: 36px !important;
+    min-height: 64px !important;
+    height: 64px !important;
 }
 
 .sapSuiteSBMCBarCntr .sapSuiteSBMCBarText {
-    font-size: 0.8125rem !important;
+    font-size: 1rem !important;
     font-weight: 700 !important;
-    line-height: 36px !important;
+    line-height: 64px !important;
 }
 
 /* ===== SmartFilterBar – Modern Frosted Glass ===== */
@@ -637,7 +639,85 @@ html, body, html.sap-desktop, .sapUiBody {
     white-space: pre-wrap !important;
 }
 
-/* Detail section inside View Details dialog (replaces Panel) */
+/* ===== View Details Dialog – Modern Card-based UI ===== */
+.detailDialog.sapMDialog {
+    border-radius: 16px !important;
+}
+
+.detailHeaderCard {
+    background: linear-gradient(135deg, #f0f5ff 0%, #e8f4f8 100%);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin: 0.5rem;
+    border: 1px solid rgba(0,112,242,0.12);
+}
+
+.detailHeaderCard .sapMTitle {
+    color: #1a2c42 !important;
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.detailCard {
+    background: #f8f9fc;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin: 0.375rem 0.5rem;
+    border: 1px solid #e8ecf0;
+    transition: box-shadow 0.2s ease;
+}
+
+.detailCard:hover {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.detailCard .sapMLabel {
+    font-weight: 700;
+    color: #1a2c42;
+    font-size: 0.875rem;
+}
+
+.detailCard .sapMText {
+    color: #333;
+    line-height: 1.6;
+}
+
+.detailIdText {
+    font-family: 'Courier New', monospace;
+    font-size: 0.8125rem;
+    color: #556b82;
+    background: #e8ecf0;
+    padding: 0.375rem 0.625rem;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.detailLinkBtn {
+    margin-right: 0.5rem !important;
+    margin-bottom: 0.375rem !important;
+}
+
+.detailLinkBtn .sapMBtnInner {
+    border: 1.5px solid #0070f2 !important;
+    border-radius: 8px !important;
+    color: #0070f2 !important;
+    font-weight: 600;
+}
+
+.detailLinkBtn:hover .sapMBtnInner {
+    background: #ebf5ff !important;
+}
+
+.detailLinksRow {
+    gap: 0.5rem;
+}
+
+.detailAttrsRow .sapMGenericTag {
+    margin-right: 0.375rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Legacy detail section fallback */
 .detailSection {
     border-top: 1px solid var(--sapBorder, #d9d9d9);
     padding-top: 0.25rem;
@@ -774,21 +854,31 @@ html, body, html.sap-desktop, .sapUiBody {
     min-width: 90px;
 }
 
-/* White text only for the INLINE label in the header bar (not the popup) */
+/* Role switcher in header bar – white text on dark gradient background */
 .sapMBar .roleSwitcherSelect .sapMSltLabel,
 .sapMBar .roleSwitcherSelect .sapMSltArrow,
-.sapMBar .roleSwitcherSelect .sapMSltLabelState {
+.sapMBar .roleSwitcherSelect .sapMSltLabelState,
+.sapMBar .roleSwitcherSelect .sapMSltIcon {
     color: #fff !important;
 }
 
+/* The selected text inside the Select control */
+.sapMBar .roleSwitcherSelect .sapMSlt .sapMSelectListItemText,
+.sapMBar .roleSwitcherSelect .sapMSlt .sapMSltLabel {
+    color: #fff !important;
+    font-weight: 600;
+}
+
 .roleSwitcherSelect .sapMSlt {
-    background: rgba(255,255,255,0.15) !important;
-    border: 1px solid rgba(255,255,255,0.3) !important;
+    background: rgba(255,255,255,0.18) !important;
+    border: 1.5px solid rgba(255,255,255,0.4) !important;
     border-radius: var(--sapRadiusSm) !important;
+    min-width: 110px;
 }
 
 .roleSwitcherSelect .sapMSlt:hover {
-    background: rgba(255,255,255,0.25) !important;
+    background: rgba(255,255,255,0.3) !important;
+    border-color: rgba(255,255,255,0.6) !important;
 }
 
 /* Ensure role switcher dropdown popup items are dark text on white bg */

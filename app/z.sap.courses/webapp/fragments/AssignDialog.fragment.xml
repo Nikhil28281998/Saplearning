@@ -62,32 +62,20 @@
 
                         <!-- Section 3: Assign To -->
                         <core:Title id="assignTitleAssignTo" text="Assign To" />
-                        <Label id="assignLabelUserId" text="User ID" required="true" />
-                        <ComboBox
-                            id="assignUserSelect"
+                        <Label id="assignLabelUserId" text="User ID (SAP Logon)" required="true" />
+                        <Input
+                            id="assignUserIdInput"
                             width="100%"
-                            placeholder="Type or select a user..."
-                            showSecondaryValues="true"
-                            filterSecondaryValues="true"
-                            selectedKey="{assignModel>/userId}"
-                            items="{assignModel>/users}"
-                            selectionChange=".onAssignUserSelectionChange"
-                            change=".onAssignUserChange">
-                            <core:ListItem
-                                id="assignUserItem"
-                                key="{assignModel>UserId}"
-                                text="{assignModel>UserId}"
-                                additionalText="{assignModel>FirstName} {assignModel>LastName}" />
-                        </ComboBox>
+                            placeholder="e.g. JSMITH or T-USER01"
+                            value="{assignModel>/userId}"
+                            maxLength="12"
+                            description="Uppercase letters, digits, underscore (max 12)" />
 
-                        <Label id="assignLabelFirstName" text="First Name" />
-                        <Input id="assignFirstName" width="100%" placeholder="Auto-filled" value="{assignModel>/firstName}" editable="false" />
-
-                        <Label id="assignLabelLastName" text="Last Name" />
-                        <Input id="assignLastName" width="100%" placeholder="Auto-filled" value="{assignModel>/lastName}" editable="false" />
+                        <Label id="assignLabelFullName" text="Full Name" />
+                        <Input id="assignFullName" width="100%" placeholder="e.g. John Smith" value="{assignModel>/fullName}" />
 
                         <Label id="assignLabelEmail" text="Email" />
-                        <Input id="assignEmail" width="100%" placeholder="Auto-filled" value="{assignModel>/userEmail}" editable="false" type="Email" />
+                        <Input id="assignEmail" width="100%" placeholder="e.g. john.smith@company.com" value="{assignModel>/userEmail}" type="Email" />
 
                         <!-- Section 4: Schedule -->
                         <core:Title id="assignTitleSchedule" text="Schedule" />

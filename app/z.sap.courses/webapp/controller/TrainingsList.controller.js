@@ -673,27 +673,45 @@ sap.ui.define([
                 this._detailDlg = null;
             }
 
-            // Header: Title + metadata in a clean VBox layout (no overlap)
+            // Header: Modern card layout with icon + title + badges
             var aHeaderItems = [
-                new sap.m.Title({
-                    text: oTraining.Title || "Untitled",
-                    level: "H3",
-                    wrapping: true
+                new sap.m.HBox({
+                    alignItems: "Center",
+                    items: [
+                        new sap.ui.core.Icon({ src: "sap-icon://course-book", size: "2rem", color: "#0070f2" }).addStyleClass("sapUiSmallMarginEnd"),
+                        new sap.m.Title({
+                            text: oTraining.Title || "Untitled",
+                            level: "H3",
+                            wrapping: true
+                        })
+                    ]
                 }).addStyleClass("sapUiSmallMarginBottom")
             ];
 
-            // Attribute chips in a wrapping row
+            // Attribute badges in a wrapping row
             var aAttrs = [];
             if (oTraining.SapModule) {
-                aAttrs.push(new sap.m.ObjectStatus({ title: i18n.getText("moduleLabel"), text: oTraining.SapModule, state: "Information" }));
+                aAttrs.push(new sap.m.GenericTag({
+                    text: oTraining.SapModule,
+                    design: "StatusIconHidden",
+                    status: "Information"
+                }));
             }
             if (oTraining.Role) {
-                aAttrs.push(new sap.m.ObjectStatus({ title: i18n.getText("roleLabel"), text: oTraining.Role, state: "None" }));
+                aAttrs.push(new sap.m.GenericTag({
+                    text: oTraining.Role,
+                    design: "StatusIconHidden",
+                    status: "None"
+                }));
             }
             if (oTraining.LastUpdated) {
                 var sDate = oTraining.LastUpdated;
                 if (sDate instanceof Date) { sDate = sDate.toLocaleDateString(); }
-                aAttrs.push(new sap.m.ObjectStatus({ title: i18n.getText("updatedLabel"), text: sDate + "", state: "None" }));
+                aAttrs.push(new sap.m.GenericTag({
+                    text: "Updated: " + sDate,
+                    design: "StatusIconHidden",
+                    status: "Success"
+                }));
             }
             if (aAttrs.length > 0) {
                 aHeaderItems.push(new sap.m.FlexBox({
@@ -703,50 +721,82 @@ sap.ui.define([
             }
 
             var aContent = [
-                new sap.m.VBox({ items: aHeaderItems }).addStyleClass("sapUiSmallMargin")
+                new sap.m.VBox({ items: aHeaderItems }).addStyleClass("detailHeaderCard")
             ];
 
-            // Description section — use simple VBox with header, no Panel overflow issues
+            // Description section — modern card with subtle bg
             if (oTraining.Description) {
                 aContent.push(new sap.m.VBox({
                     items: [
-                        new sap.m.Label({ text: i18n.getText("descriptionLabel"), design: "Bold" }).addStyleClass("sapUiSmallMarginBegin sapUiTinyMarginTop"),
-                        new Text({ text: oTraining.Description, wrapping: true }).addStyleClass("sapUiSmallMargin")
+                        new sap.m.HBox({
+                            alignItems: "Center",
+                            items: [
+                                new sap.ui.core.Icon({ src: "sap-icon://document-text", size: "1.125rem", color: "#556b82" }).addStyleClass("sapUiSmallMarginEnd"),
+                                new sap.m.Label({ text: i18n.getText("descriptionLabel"), design: "Bold" })
+                            ]
+                        }),
+                        new Text({ text: oTraining.Description, wrapping: true }).addStyleClass("sapUiSmallMarginTop")
                     ]
-                }).addStyleClass("detailSection"));
+                }).addStyleClass("detailCard"));
             }
 
-            // Links section — simple VBox layout, no Panel
+            // Links section — modern card with action buttons
             var aLinkRows = [];
             if (oTraining.Url) {
-                aLinkRows.push(new sap.m.HBox({
-                    alignItems: "Center",
-                    items: [
-                        new sap.ui.core.Icon({ src: "sap-icon://chain-link", size: "1.25rem", color: "#0070f2" }).addStyleClass("sapUiSmallMarginEnd"),
-                        new Link({ text: i18n.getText("openTrainingLink"), href: oTraining.Url, target: "_blank" })
-                    ]
-                }).addStyleClass("sapUiTinyMargin"));
+                aLinkRows.push(new sap.m.Button({
+                    text: i18n.getText("openTrainingLink"),
+                    icon: "sap-icon://chain-link",
+                    type: "Transparent",
+                    press: function () {
+                        sap.m.URLHelper.redirect(oTraining.Url, true);
+                    }
+                }).addStyleClass("detailLinkBtn"));
             }
             if (oTraining.SapHelpLink) {
-                aLinkRows.push(new sap.m.HBox({
-                    alignItems: "Center",
-                    items: [
-                        new sap.ui.core.Icon({ src: "sap-icon://sys-help", size: "1.25rem", color: "#0854a0" }).addStyleClass("sapUiSmallMarginEnd"),
-                        new Link({ text: i18n.getText("openSapHelp"), href: oTraining.SapHelpLink, target: "_blank" })
-                    ]
-                }).addStyleClass("sapUiTinyMargin"));
+                aLinkRows.push(new sap.m.Button({
+                    text: i18n.getText("openSapHelp"),
+                    icon: "sap-icon://sys-help",
+                    type: "Transparent",
+                    press: function () {
+                        sap.m.URLHelper.redirect(oTraining.SapHelpLink, true);
+                    }
+                }).addStyleClass("detailLinkBtn"));
             }
             if (aLinkRows.length > 0) {
                 aContent.push(new sap.m.VBox({
                     items: [
-                        new sap.m.Label({ text: i18n.getText("resourcesLabel"), design: "Bold" }).addStyleClass("sapUiSmallMarginBegin sapUiTinyMarginTop")
-                    ].concat(aLinkRows)
-                }).addStyleClass("detailSection"));
+                        new sap.m.HBox({
+                            alignItems: "Center",
+                            items: [
+                                new sap.ui.core.Icon({ src: "sap-icon://action", size: "1.125rem", color: "#556b82" }).addStyleClass("sapUiSmallMarginEnd"),
+                                new sap.m.Label({ text: i18n.getText("resourcesLabel"), design: "Bold" })
+                            ]
+                        }),
+                        new sap.m.HBox({
+                            wrap: "Wrap",
+                            items: aLinkRows
+                        }).addStyleClass("sapUiSmallMarginTop detailLinksRow")
+                    ]
+                }).addStyleClass("detailCard"));
             }
+
+            // Training ID section — info card
+            aContent.push(new sap.m.VBox({
+                items: [
+                    new sap.m.HBox({
+                        alignItems: "Center",
+                        items: [
+                            new sap.ui.core.Icon({ src: "sap-icon://bar-code", size: "1.125rem", color: "#556b82" }).addStyleClass("sapUiSmallMarginEnd"),
+                            new sap.m.Label({ text: "Training ID", design: "Bold" })
+                        ]
+                    }),
+                    new Text({ text: oTraining.Id || "N/A" }).addStyleClass("sapUiSmallMarginTop detailIdText")
+                ]
+            }).addStyleClass("detailCard"));
 
             this._detailDlg = new sap.m.Dialog({
                 title: i18n.getText("trainingDetails"),
-                contentWidth: "480px",
+                contentWidth: "520px",
                 draggable: true,
                 resizable: true,
                 verticalScrolling: true,
@@ -755,6 +805,7 @@ sap.ui.define([
                 content: aContent,
                 endButton: new sap.m.Button({
                     text: i18n.getText("closeButton"),
+                    type: "Emphasized",
                     press: function () { that._detailDlg.close(); }
                 }),
                 afterClose: function () {
@@ -762,7 +813,7 @@ sap.ui.define([
                     that._detailDlg = null;
                 }
             });
-            this._detailDlg.addStyleClass("sapUiContentPadding");
+            this._detailDlg.addStyleClass("sapUiContentPadding detailDialog");
             this._detailDlg.open();
         },
 

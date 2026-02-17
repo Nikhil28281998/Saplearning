@@ -236,12 +236,7 @@ sap.ui.define([
 
             loadList('/Trainings').then(function (trainings) {
                 trainings = trainings || [];
-                loadList('/Users', { "$top": "9999" }).then(function (users) {
-                    users = users || [];
-                    that._openAssignFragment(trainings, users);
-                }).catch(function () {
-                    that._openAssignFragment(trainings, []);
-                });
+                that._openAssignFragment(trainings);
             }).catch(function () {
                 MessageToast.show('Failed to load data for assignment');
             });
@@ -250,7 +245,7 @@ sap.ui.define([
         /**
          * Build the assignModel and load the AssignDialog fragment.
          */
-        _openAssignFragment: function (trainings, users) {
+        _openAssignFragment: function (trainings) {
             var that = this;
 
             // Build filter data
@@ -264,7 +259,6 @@ sap.ui.define([
             this._assignModel = new JSONModel({
                 trainings: trainings,
                 filteredTrainings: trainings,
-                users: users,
                 roles: [{ key: '', text: 'All Roles' }].concat(
                     Object.keys(roleSet).sort().map(function (r) { return { key: r, text: r }; })
                 ),
@@ -275,8 +269,7 @@ sap.ui.define([
                 selectedModuleFilter: "",
                 selectedTrainingId: trainings[0] && trainings[0].Id || '',
                 userId: '',
-                firstName: '',
-                lastName: '',
+                fullName: '',
                 userEmail: '',
                 dueDate: null,
                 submitting: false,
@@ -363,82 +356,6 @@ sap.ui.define([
         },
 
         /**
-         * User ComboBox dropdown selection — auto-fill name/email fields.
-         */
-        onAssignUserSelectionChange: function (oEvent) {
-            var oModel = this._assignModel;
-            if (!oModel) { return; }
-            var oItem = oEvent.getParameter("selectedItem");
-            oModel.setProperty("/firstName", "");
-            oModel.setProperty("/lastName", "");
-            oModel.setProperty("/userEmail", "");
-            if (oItem) {
-                var sUserId = oItem.getKey();
-                oModel.setProperty("/userId", sUserId || "");
-                this._lookupAssignUser(sUserId);
-            } else {
-                oModel.setProperty("/userId", "");
-            }
-        },
-
-        /**
-         * User ComboBox manual typing — auto-fill from loaded users list.
-         */
-        onAssignUserChange: function (oEvent) {
-            var oSource = oEvent.getSource();
-            if (oSource.getSelectedItem()) { return; }
-            var oModel = this._assignModel;
-            if (!oModel) { return; }
-            var val = oEvent.getParameter("value") || "";
-            var upper = val.toUpperCase().trim();
-            oModel.setProperty("/userId", upper);
-            oModel.setProperty("/firstName", "");
-            oModel.setProperty("/lastName", "");
-            oModel.setProperty("/userEmail", "");
-            this._lookupAssignUser(upper);
-        },
-
-        /**
-         * Look up user by ID and auto-fill name/email fields.
-         * Uses dynamic property discovery for email (ABAP entity variants).
-         */
-        _lookupAssignUser: function (val) {
-            if (!val) { return; }
-            var oModel = this._assignModel;
-            if (!oModel) { return; }
-            var upper = val.toUpperCase().trim();
-            var allUsers = oModel.getProperty('/users') || [];
-            var found = allUsers.filter(function (u) {
-                return (u.UserId || '').toUpperCase().trim() === upper;
-            })[0];
-
-            if (found) {
-                oModel.setProperty('/firstName', found.FirstName || found.Firstname || found.FIRSTNAME || found.First_Name || '');
-                oModel.setProperty('/lastName', found.LastName || found.Lastname || found.LASTNAME || found.Last_Name || '');
-
-                var email = found.Email || found.EmailAddress || found.SmtpAddr ||
-                    found.UserEmail || found.Smtp_Addr || found.emailAddress ||
-                    found.EMAIL || found.SmtpAddress || '';
-
-                if (!email) {
-                    var props = Object.keys(found);
-                    for (var i = 0; i < props.length; i++) {
-                        var pName = props[i].toLowerCase();
-                        if ((pName.indexOf('mail') >= 0 || pName.indexOf('smtp') >= 0) && found[props[i]]) {
-                            email = found[props[i]];
-                            Log.info('[AssignDlg] Email found via dynamic scan: ' + props[i] + ' = ' + email);
-                            break;
-                        }
-                    }
-                }
-                oModel.setProperty('/userEmail', email);
-                Log.info('[AssignDlg] User found: ' + upper);
-            } else {
-                Log.warning('[AssignDlg] User NOT found for: ' + upper + ', Total users loaded: ' + allUsers.length);
-            }
-        },
-
-        /**
          * Submit handler for Assign Training dialog.
          */
         onAssignSubmit: function () {
@@ -471,8 +388,6 @@ sap.ui.define([
                 }
             } catch (e) { /* ignore */ }
 
-            var fullName = ((data.firstName || '') + ' ' + (data.lastName || '')).trim();
-
             var payload = {
                 TrainingId: tr.Id || '',
                 Title: tr.Title || '',
@@ -481,7 +396,7 @@ sap.ui.define([
                 Url: tr.Url || '',
                 Status: 'Assigned',
                 UserId: userIdUpper,
-                UserName: fullName || userIdUpper,
+                UserName: (data.fullName || '').trim() || userIdUpper,
                 UserEmail: data.userEmail || ''
             };
             if (dueDate) {
