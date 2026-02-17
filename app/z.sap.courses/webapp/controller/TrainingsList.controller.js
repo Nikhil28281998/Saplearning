@@ -109,9 +109,9 @@ sap.ui.define([
                 "sap/suite/ui/microchart/ComparisonMicroChartData"
             ], function (ComparisonMicroChart, ComparisonMicroChartData) {
                 var oChart = new ComparisonMicroChart({
-                    size: "M",
+                    size: "L",
                     shrinkable: true,
-                    width: "220px"
+                    width: "100%"
                 });
 
                 var colors = ["Good", "Neutral", "Critical", "Error", "Neutral"];

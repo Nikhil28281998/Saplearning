@@ -21,7 +21,7 @@
                     <Title id="pageTitle" text="{i18n>appTitle}" level="H2" />
                 </contentLeft>
                 <contentRight>
-                    <HBox id="roleBox" alignItems="Center" class="sapUiSmallMarginEnd">
+                    <HBox id="roleBox" alignItems="Center" class="sapUiSmallMarginEnd roleBoxContainer">
                         <core:Icon id="roleIcon" src="sap-icon://role" size="1rem" class="sapUiTinyMarginEnd headerIcon" />
                         <Select id="roleSwitcher" selectedKey="{user>/role}" change="onSwitchRole" class="roleSwitcherSelect">
                             <core:Item id="roleAdmin" key="Admin" text="Admin" />

@@ -234,9 +234,15 @@ sap.ui.define([
                 });
             };
 
-            loadList('/Trainings').then(function (trainings) {
-                trainings = trainings || [];
-                that._openAssignFragment(trainings);
+            // Load trainings and users in parallel
+            var pTrainings = loadList('/Trainings');
+            var pUsers = loadList('/Users').catch(function () {
+                Log.warning('[AssignDlg] Users entity set not available – manual entry only');
+                return []; // Graceful fallback if Users entity not yet created in SEGW
+            });
+
+            Promise.all([pTrainings, pUsers]).then(function (results) {
+                that._openAssignFragment(results[0] || [], results[1] || []);
             }).catch(function () {
                 MessageToast.show('Failed to load data for assignment');
             });
@@ -245,7 +251,7 @@ sap.ui.define([
         /**
          * Build the assignModel and load the AssignDialog fragment.
          */
-        _openAssignFragment: function (trainings) {
+        _openAssignFragment: function (trainings, users) {
             var that = this;
 
             // Build filter data
@@ -259,6 +265,7 @@ sap.ui.define([
             this._assignModel = new JSONModel({
                 trainings: trainings,
                 filteredTrainings: trainings,
+                users: users || [],
                 roles: [{ key: '', text: 'All Roles' }].concat(
                     Object.keys(roleSet).sort().map(function (r) { return { key: r, text: r }; })
                 ),
@@ -356,6 +363,30 @@ sap.ui.define([
         },
 
         /**
+         * User suggestion selected — auto-fill Full Name and Email fields.
+         */
+        onAssignUserSelected: function (oEvent) {
+            var oItem = oEvent.getParameter("selectedItem");
+            if (!oItem) { return; }
+            var oModel = this._assignModel;
+            if (!oModel) { return; }
+            var sKey = oItem.getKey();
+            oModel.setProperty("/userId", sKey);
+
+            // Look up user in loaded list to auto-fill name & email
+            var users = oModel.getProperty("/users") || [];
+            var found = users.filter(function (u) {
+                return (u.UserId || '').toUpperCase() === (sKey || '').toUpperCase();
+            })[0];
+            if (found) {
+                var fullName = ((found.FirstName || '') + ' ' + (found.LastName || '')).trim();
+                oModel.setProperty('/fullName', fullName);
+                oModel.setProperty('/userEmail', found.Email || '');
+                Log.info('[AssignDlg] User selected: ' + sKey + ' → ' + fullName);
+            }
+        },
+
+        /**
          * Submit handler for Assign Training dialog.
          */
         onAssignSubmit: function () {
@@ -380,13 +411,32 @@ sap.ui.define([
             }
             oAssignModel.setProperty('/error', '');
 
-            // Build due date as JS Date object (OData V2 needs Date, not ISO string)
+            // Build due date as JS Date object in UTC (OData V2 Edm.DateTime needs Date)
             var dueDate = null;
             try {
                 if (data.dueDate) {
-                    dueDate = new Date(data.dueDate + 'T00:00:00');
+                    if (data.dueDate instanceof Date) {
+                        dueDate = data.dueDate;
+                    } else if (typeof data.dueDate === 'string' && data.dueDate.length >= 10) {
+                        var dateParts = data.dueDate.substring(0, 10).split('-');
+                        if (dateParts.length === 3) {
+                            dueDate = new Date(Date.UTC(
+                                parseInt(dateParts[0], 10),
+                                parseInt(dateParts[1], 10) - 1,
+                                parseInt(dateParts[2], 10),
+                                0, 0, 0
+                            ));
+                        }
+                    }
+                    if (dueDate && isNaN(dueDate.getTime())) {
+                        dueDate = null;
+                        Log.warning('[AssignDlg] Invalid due date value: ' + data.dueDate);
+                    }
                 }
-            } catch (e) { /* ignore */ }
+            } catch (e) {
+                Log.warning('[AssignDlg] Date parse error: ' + e.message);
+                dueDate = null;
+            }
 
             var payload = {
                 TrainingId: tr.Id || '',

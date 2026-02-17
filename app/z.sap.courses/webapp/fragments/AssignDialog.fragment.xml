@@ -66,16 +66,28 @@
                         <Input
                             id="assignUserIdInput"
                             width="100%"
-                            placeholder="e.g. JSMITH or T-USER01"
+                            placeholder="Type to search SAP users..."
                             value="{assignModel>/userId}"
                             maxLength="12"
-                            description="Uppercase letters, digits, underscore (max 12)" />
+                            showSuggestion="true"
+                            filterSuggests="true"
+                            startSuggestion="1"
+                            suggestionItemSelected=".onAssignUserSelected"
+                            suggestionItems="{assignModel>/users}">
+                            <suggestionItems>
+                                <core:ListItem
+                                    id="assignUserSuggestItem"
+                                    key="{assignModel>UserId}"
+                                    text="{assignModel>UserId}"
+                                    additionalText="{assignModel>FirstName} {assignModel>LastName}" />
+                            </suggestionItems>
+                        </Input>
 
                         <Label id="assignLabelFullName" text="Full Name" />
-                        <Input id="assignFullName" width="100%" placeholder="e.g. John Smith" value="{assignModel>/fullName}" />
+                        <Input id="assignFullName" width="100%" placeholder="Auto-filled on user selection" value="{assignModel>/fullName}" />
 
                         <Label id="assignLabelEmail" text="Email" />
-                        <Input id="assignEmail" width="100%" placeholder="e.g. john.smith@company.com" value="{assignModel>/userEmail}" type="Email" />
+                        <Input id="assignEmail" width="100%" placeholder="Auto-filled on user selection" value="{assignModel>/userEmail}" type="Email" />
 
                         <!-- Section 4: Schedule -->
                         <core:Title id="assignTitleSchedule" text="Schedule" />

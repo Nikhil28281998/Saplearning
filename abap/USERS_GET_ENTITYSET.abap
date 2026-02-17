@@ -1,6 +1,16 @@
 *& Method: USERS_GET_ENTITYSET
 *& Returns SAP users for value help in Assign Training dialog
 *& Class: ZCL_ZCOURSES_DPC_EXT (Redefine in SE24)
+*&
+*& HOW TO REDEFINE:
+*&   1. SE24 → open class ZCL_ZCOURSES_DPC_EXT
+*&   2. Methods tab → find USERS_GET_ENTITYSET (may be USER_GET_ENTITYSET)
+*&   3. Right-click → Redefine
+*&   4. Paste this code → Activate
+*&
+*& PREREQUISITE: User Entity Type must exist in SEGW (see USER_ENTITY_DEFINITION.abap)
+*&   Entity Type: User  |  Entity Set: Users
+*&   Properties: UserId (Key, SYUNAME), FirstName, LastName, Email
 
 METHOD users_get_entityset.
 
@@ -9,20 +19,60 @@ METHOD users_get_entityset.
         ls_adrp     TYPE adrp,
         ls_adr6     TYPE adr6,
         ls_entity   TYPE zcl_zcourses_mpc=>ts_user,
-        lv_count    TYPE i.
+        lv_count    TYPE i,
+        lv_filter   TYPE string,
+        lt_filter   TYPE /iwbep/t_mgw_select_option,
+        ls_filter   TYPE /iwbep/s_mgw_select_option,
+        ls_range    TYPE /iwbep/s_cod_select_option.
 
-  SELECT * FROM usr21 INTO TABLE lt_usr21
-    WHERE bname NOT LIKE 'SAP%'
-      AND bname NOT LIKE 'DDIC%'
-      AND bname NOT LIKE 'WF-%'
-      AND bname NOT LIKE 'TMSADM%'
-    ORDER BY bname.
-
-  lv_count = lines( lt_usr21 ).
-  IF lv_count > 300.
-    DELETE lt_usr21 FROM 301.
+* -- Authorization check: Display (ACTVT 03) --
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
+    ID 'ACTVT' FIELD '03'.
+  IF sy-subrc <> 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'No authorization to list users'.
   ENDIF.
 
+* -- Read optional $filter for UserId --
+  CLEAR lv_filter.
+  lt_filter = io_tech_request_context->get_filter( )->get_filter_select_options( ).
+  READ TABLE lt_filter INTO ls_filter WITH KEY property = 'UserId'.
+  IF sy-subrc = 0 AND ls_filter-select_options IS NOT INITIAL.
+    READ TABLE ls_filter-select_options INDEX 1 INTO ls_range.
+    IF sy-subrc = 0 AND ls_range-low IS NOT INITIAL.
+      lv_filter = ls_range-low.
+      TRANSLATE lv_filter TO UPPER CASE.
+    ENDIF.
+  ENDIF.
+
+* -- Fetch users from USR21 (exclude system/service accounts) --
+  IF lv_filter IS NOT INITIAL.
+    CONCATENATE lv_filter '%' INTO lv_filter.
+    SELECT * FROM usr21 INTO TABLE lt_usr21
+      WHERE bname LIKE lv_filter
+        AND bname NOT LIKE 'SAP%'
+        AND bname NOT LIKE 'DDIC%'
+        AND bname NOT LIKE 'WF-%'
+        AND bname NOT LIKE 'TMSADM%'
+      ORDER BY bname.
+  ELSE.
+    SELECT * FROM usr21 INTO TABLE lt_usr21
+      WHERE bname NOT LIKE 'SAP%'
+        AND bname NOT LIKE 'DDIC%'
+        AND bname NOT LIKE 'WF-%'
+        AND bname NOT LIKE 'TMSADM%'
+      ORDER BY bname.
+  ENDIF.
+
+* -- Cap at 500 results to avoid performance issues --
+  lv_count = lines( lt_usr21 ).
+  IF lv_count > 500.
+    DELETE lt_usr21 FROM 501.
+  ENDIF.
+
+* -- Build entity set with address data --
   LOOP AT lt_usr21 INTO ls_usr21.
     CLEAR: ls_entity, ls_adrp, ls_adr6.
 
@@ -48,5 +98,11 @@ METHOD users_get_entityset.
 
     APPEND ls_entity TO et_entityset.
   ENDLOOP.
+
+* -- Handle $inlinecount request --
+  IF io_tech_request_context->has_inlinecount( ) = abap_true.
+    es_response_context-inlinecount = lines( et_entityset ).
+    es_response_context-count = es_response_context-inlinecount.
+  ENDIF.
 
 ENDMETHOD.
