@@ -3,12 +3,11 @@ sap.ui.define([
     "sap/m/MessageToast",
     "sap/m/MessageBox",
     "sap/ui/model/json/JSONModel",
-    "sap/ui/core/routing/History",
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
     "sap/base/Log",
     "z/sap/courses/services/AnalyticsService"
-], function (Controller, MessageToast, MessageBox, JSONModel, History, Filter, FilterOperator, Log, AnalyticsService) {
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Log, AnalyticsService) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingAssignmentsList", {
@@ -120,18 +119,11 @@ sap.ui.define([
             Log.info("[AssignFilter] Total filters: " + mBindingParams.filters.length);
         },
 
-        /* ===== Nav Back – standard Fiori Router pattern (audit fix #18) ===== */
+        /* ===== Nav Back – always use router.navTo for reliability in FLP ===== */
         onNavBack: function () {
-            // Use router navigation — the standard and reliable Fiori approach.
-            // Handles both FLP and standalone scenarios correctly.
-            var oHistory = History.getInstance();
-            var sPreviousHash = oHistory.getPreviousHash();
-
-            if (sPreviousHash !== undefined) {
-                window.history.go(-1);
-            } else {
-                this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
-            }
+            // Always use explicit router navigation — window.history.go(-1) is unreliable
+            // inside FLP because FLP manages the hash independently.
+            this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
         },
 
         /* ===== Item Press ===== */

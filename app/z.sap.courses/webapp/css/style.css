@@ -595,24 +595,81 @@ html, body, html.sap-desktop, .sapUiBody {
     outline-offset: 2px;
 }
 
-/* ===== Responsive Width – Standard Fiori Full-Screen ===== */
-/* Shell appWidthLimited="false" handles the main width constraint.
-   These rules ensure child containers also fill the available space. */
+/* ===== Full-Width FLP Override — Auto-Adjust to ANY Screen Size ===== */
+/* When deployed inside SAP Fiori Launchpad (FLP), the FLP Shell wraps
+   the app in containers with max-width constraints. These CSS rules
+   override ALL FLP container levels to allow full viewport width.
+   Works on 13", 15", 16", 27", 34", 50" or any resolution. */
 
+/* Level 0: Document root */
 html, body, html.sap-desktop, .sapUiBody {
     width: 100% !important;
     max-width: 100% !important;
     overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
-/* Shell + App containers – fill viewport */
-.sapMShell > .sapMShellBG,
-.sapMShell > .sapMShellContent {
+/* Level 1: FLP Unified Shell — outermost container */
+.sapUShell,
+.sapUShellHead,
+#shell,
+#shell-hdr,
+#canvas {
     max-width: 100% !important;
     width: 100% !important;
 }
 
-/* Page + Table components – full width within their parent */
+/* Level 2: FLP Content Area — the centered canvas that constrains apps */
+.sapUShellCntnt,
+.sapUShellContent,
+.sapUshellShellCanvas,
+.sapUshellShellMain,
+.sapUShellApplicationContainer,
+#content,
+[id*="shell-cntnt"],
+[id*="__component"],
+[id*="application-"] {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Level 3: FLP inner wrappers — these also have width limits */
+.sapUiComponentContainer,
+.sapUiComponent,
+.sapMShellContent,
+.sapMShell,
+.sapMShellCentralArea,
+.sapMShellMain,
+.sapMNavContainer,
+.sapMApp {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+}
+
+/* Level 4: sap.m.Shell background + content (in case Shell exists) */
+.sapMShell > .sapMShellBG,
+.sapMShell > .sapMShellContent,
+.sapMShellContent > .sapMShellCentralArea {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* Level 5: SAP theme density overrides */
+.sapUiSizeCompact .sapMShellContent,
+.sapUiSizeCozy .sapMShellContent,
+.sapUiSizeCompact .sapUShellApplicationContainer,
+.sapUiSizeCozy .sapUShellApplicationContainer {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* App-level: Page, SmartTable, Table components */
 .sapMPage,
 .sapMPage > section,
 .sapUiCompSmartTable,
@@ -629,14 +686,6 @@ html, body, html.sap-desktop, .sapUiBody {
 
 /* SmartTable horizontal scroll area */
 .sapUiCompSmartTable .sapUiTableHSb {
-    width: 100% !important;
-}
-
-/* FLP integration: when running inside Fiori Launchpad,
-   override its canvas centering as well */
-.sapUShellCntnt,
-.sapUShellContent {
-    max-width: 100% !important;
     width: 100% !important;
 }
 

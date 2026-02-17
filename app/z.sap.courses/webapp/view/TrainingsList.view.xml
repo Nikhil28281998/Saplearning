@@ -210,7 +210,6 @@
                 useVariantManagement="false"
                 useTablePersonalisation="true"
                 persistencyKey="TrainingsSmartTableV2"
-                demandPopin="true"
                 initialise="onSmartTableInit"
                 beforeRebindTable="onBeforeRebindTable"
                 fitContainer="true"
