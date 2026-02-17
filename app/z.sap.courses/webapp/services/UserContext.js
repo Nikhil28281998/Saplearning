@@ -42,7 +42,8 @@ sap.ui.define([
         /**
          * Fetch current user context from backend
          * 
-         * For S/4HANA deployment, calls /sap/opu/odata/sap/Z_COURSES_USERCTX_SRV/UserContextSet('ME')
+         * For S/4HANA deployment, calls ZCOURSES_SRV/getCurrentRole Function Import
+         * to determine PFCG-based role, then builds user info accordingly.
          * For local CAP development, returns mock admin user.
          * 
          * @returns {Promise<Object>} User context with role and permissions
@@ -60,9 +61,9 @@ sap.ui.define([
                           window.location.hostname !== '127.0.0.1';
 
             if (isS4Hana) {
-                // Production S/4HANA: Call ABAP OData service for PFCG role-based authorization
-                // Requires Z_COURSES_USERCTX_SRV deployed with proper PFCG role mapping
-                return fetch("/sap/opu/odata/sap/Z_COURSES_USERCTX_SRV/UserContextSet('ME')", {
+                // Production S/4HANA: Call ZCOURSES_SRV getCurrentRole Function Import
+                // This uses PFCG authority checks (Z_COURSES auth object) to determine role
+                return fetch("/sap/opu/odata/sap/ZCOURSES_SRV/getCurrentRole", {
                     method: "GET",
                     headers: {
                         "Accept": "application/json",
@@ -72,31 +73,33 @@ sap.ui.define([
                 })
                     .then(function (response) {
                         if (!response.ok) {
-                            throw new Error("Failed to fetch user context: " + response.status);
+                            throw new Error("Failed to fetch role: " + response.status);
                         }
                         return response.json();
                     })
                     .then(function (data) {
+                        // getCurrentRole returns Complex Type { d: { getCurrentRole: { Role: "Admin|Manager|User" } } }
+                        var sRole = (data && data.d && data.d.getCurrentRole && data.d.getCurrentRole.Role) || "User";
+
                         var userInfo = {
-                            UserId: (data && data.d && data.d.UserId) || "UNKNOWN",
-                            FullName: (data && data.d && data.d.FullName) || "",
-                            Email: (data && data.d && data.d.Email) || "",
-                            IsAdmin: !!(data && data.d && data.d.IsAdmin),
-                            IsManager: !!(data && data.d && data.d.IsManager),
-                            IsEndUser: !!(data && data.d && data.d.IsEndUser),
-                            Authorizations: (data && data.d && data.d.Authorizations) || []
+                            UserId: "S4USER",
+                            FullName: "",
+                            Email: "",
+                            IsAdmin: sRole === "Admin",
+                            IsManager: sRole === "Manager" || sRole === "Admin",
+                            IsEndUser: true,
+                            Authorizations: []
                         };
 
                         // Cache the result
                         that._userInfo = userInfo;
                         that._cacheExpiry = Date.now() + that._cacheTTL;
 
-                        Log.info("UserContext fetched from S/4HANA for: " + userInfo.UserId);
+                        Log.info("UserContext role from ZCOURSES_SRV: " + sRole);
                         return userInfo;
                     })
                     .catch(function (error) {
-                        // Suppress error in console to avoid confusing users (service not yet implemented in Phase 4)
-                        Log.warning("UserContext service (Z_COURSES_USERCTX_SRV) not reachable. Defaulting to 'User' mode. " + (error.message || ''));
+                        Log.warning("getCurrentRole not reachable. Defaulting to 'User' mode. " + (error.message || ''));
                         // Return minimal default context (read-only user)
                         return {
                             UserId: "ANONYMOUS",

@@ -8,9 +8,9 @@ sap.ui.define([
     "sap/m/Link",
     "sap/m/Text",
     "sap/base/Log",
-    "sap/m/URLHelper",
+    "sap/m/library",
     "z/sap/courses/services/AnalyticsService"
-], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, URLHelper, AnalyticsService) {
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, mLibrary, AnalyticsService) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingsList", {
@@ -213,7 +213,7 @@ sap.ui.define([
                         if (sKey === "Url" || sKey === "SapHelpLink") {
                             var sUrl = oRow.getProperty(sKey);
                             if (sUrl && /^https?:\/\//i.test(sUrl)) {
-                                URLHelper.redirect(sUrl, true);
+                                sap.m.URLHelper.redirect(sUrl, true);
                             } else if (sUrl) {
                                 Log.warning("[Security] Blocked non-HTTP URL: " + sUrl);
                                 MessageToast.show("Invalid URL protocol — only HTTP/HTTPS links are allowed");
