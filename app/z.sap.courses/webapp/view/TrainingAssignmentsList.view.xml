@@ -106,12 +106,13 @@
                 enableAutoBinding="true"
                 showFullScreenButton="true"
                 enableExport="true"
-                useVariantManagement="true"
+                useVariantManagement="false"
                 useTablePersonalisation="true"
-                persistencyKey="AssignmentsSmartTable"
+                persistencyKey="AssignmentsSmartTableV2"
                 demandPopin="true"
                 enableAutoColumnWidth="true"
                 initialise="onSmartTableInit"
+                initiallyVisibleFields="Title,SapModule,UserId,UserName,Status,DueDate,CompletionDate"
                 beforeRebindTable="onBeforeRebindTable">
 
                 <smartTable:customToolbar>

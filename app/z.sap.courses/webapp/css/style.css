@@ -595,14 +595,25 @@ html, body, html.sap-desktop, .sapUiBody {
     outline-offset: 2px;
 }
 
-/* ===== Responsive Width ===== */
+/* ===== Responsive Width – Auto-adjust to ANY screen size ===== */
+/* Core principle: use viewport units (vw/vh/%) + flex for fluid layout.
+   Works on 13", 15", 16", 27", 34", 50" or any resolution */
+
+html, body, html.sap-desktop, .sapUiBody {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+}
+
 .sapMPage,
 .sapMPage > section,
 .sapUiCompSmartTable,
 .sapUiCompSmartFilter,
 .sapUiTable,
 .sapUiTableCCnt,
-.sapUiTableCtrlScr {
+.sapUiTableCtrlScr,
+.sapMList,
+.sapMListTbl {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
@@ -625,9 +636,61 @@ html, body, html.sap-desktop, .sapUiBody {
 .sapMShellMain,
 .sapMApp,
 .sapMNavContainer,
-.sapMNavContent {
-    max-width: none !important;
+.sapMNavContent,
+.sapMShellBG,
+#content,
+#canvas,
+#shell,
+[id*="shell-cntnt"],
+[id*="shell"] {
+    max-width: 100vw !important;
     width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* SAP Fiori Launchpad specific – override canvas centering */
+.sapUshellShellHead,
+.sapUshellShellCanvas,
+.sapUshellShellMain {
+    max-width: 100vw !important;
+    width: 100% !important;
+}
+
+/* Override any SAP theme max-width on main canvas */
+.sapUiSizeCompact .sapMShellContent,
+.sapUiSizeCozy .sapMShellContent {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* Dialog responsive – scale with screen */
+.sapMDialog {
+    max-width: 90vw !important;
+}
+
+/* Smart Filter Bar + Table – fluid within page */
+.sapUiCompSmartFilter,
+.sapUiCompSmartTable {
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+/* GridTable columns auto-resize */
+.sapUiTable {
+    width: 100% !important;
+}
+
+.sapUiTableCol {
+    min-width: 80px !important;
+}
+
+/* ResponsiveTable (assignments) – full width */
+.sapMListTbl {
+    width: 100% !important;
+    table-layout: auto !important;
 }
 
 /* ===== View Details Dialog: proper display ===== */
@@ -744,7 +807,8 @@ html, body, html.sap-desktop, .sapUiBody {
     font-size: 0.875rem;
 }
 
-/* ===== Responsive Breakpoints ===== */
+/* ===== Responsive Breakpoints – Auto-adjust for ALL screen sizes ===== */
+/* Phone (<=600px): ~5" screens */
 @media (max-width: 600px) {
     .analyticsContainer {
         flex-direction: column;
@@ -753,10 +817,12 @@ html, body, html.sap-desktop, .sapUiBody {
     .analyticsCard {
         flex: 1 1 auto;
         min-width: 100% !important;
+        max-width: 100% !important;
     }
 
     .chartCard {
         min-width: 100% !important;
+        max-width: 100% !important;
     }
 
     .analyticsCard .sapMObjectNumber {
@@ -766,19 +832,132 @@ html, body, html.sap-desktop, .sapUiBody {
     .sapMPage > .sapMPageHeader .sapMBar .sapMTitle {
         font-size: 0.9375rem;
     }
+
+    .sapMDialog {
+        width: 95vw !important;
+        max-width: 95vw !important;
+    }
 }
 
+/* Tablet (601-1024px): ~10"-13" screens */
 @media (min-width: 601px) and (max-width: 1024px) {
     .analyticsCard {
         flex: 1 1 calc(50% - 1rem);
         min-width: 140px;
+        max-width: 50%;
+    }
+
+    .chartCard {
+        min-width: 45%;
+        max-width: 50%;
     }
 }
 
-@media (min-width: 1025px) {
+/* Small desktop (1025-1440px): ~13"-15" screens */
+@media (min-width: 1025px) and (max-width: 1440px) {
     .analyticsCard {
         flex: 1 1 0;
         min-width: 128px;
+        max-width: 20%;
+    }
+
+    .chartCard {
+        max-width: 48%;
+    }
+}
+
+/* Medium desktop (1441-1920px): ~16"-24" screens */
+@media (min-width: 1441px) and (max-width: 1920px) {
+    .analyticsCard {
+        flex: 1 1 0;
+        min-width: 160px;
+        max-width: 18%;
+    }
+
+    .chartCard {
+        max-width: 48%;
+    }
+
+    .sapUiTableCol {
+        min-width: 100px !important;
+    }
+}
+
+/* Large desktop (1921-2560px): ~27"-34" ultrawide screens */
+@media (min-width: 1921px) and (max-width: 2560px) {
+    .analyticsCard {
+        flex: 1 1 0;
+        min-width: 180px;
+        max-width: 16%;
+    }
+
+    .analyticsCard .sapMObjectNumber {
+        font-size: 2.25rem !important;
+    }
+
+    .analyticsCard .sapUiIcon {
+        font-size: 2.5rem !important;
+    }
+
+    .chartCard {
+        max-width: 48%;
+        min-height: 280px;
+    }
+
+    .sapUiTableCol {
+        min-width: 120px !important;
+    }
+
+    .sapMPage > .sapMPageHeader .sapMBar .sapMTitle {
+        font-size: 1.25rem;
+    }
+}
+
+/* Ultra-wide / 4K (2561-3840px): ~34"-50" screens */
+@media (min-width: 2561px) {
+    .analyticsCard {
+        flex: 1 1 0;
+        min-width: 220px;
+        max-width: 14%;
+    }
+
+    .analyticsCard .sapMObjectNumber {
+        font-size: 2.5rem !important;
+    }
+
+    .analyticsCard .sapUiIcon {
+        font-size: 3rem !important;
+    }
+
+    .analyticsLabel {
+        font-size: 0.875rem;
+    }
+
+    .chartCard {
+        max-width: 48%;
+        min-height: 320px;
+    }
+
+    .chartCard .sapSuiteSBMCBarCntr,
+    .chartCard .sapSuiteSBMCBar {
+        min-height: 140px !important;
+        height: 140px !important;
+    }
+
+    .sapUiTableCol {
+        min-width: 150px !important;
+    }
+
+    .sapUiTableCell {
+        font-size: 0.9375rem;
+    }
+
+    .sapMPage > .sapMPageHeader .sapMBar .sapMTitle {
+        font-size: 1.375rem;
+    }
+
+    .sapMPage > .sapMPageHeader .sapMBar {
+        min-height: 3.5rem;
     }
 }
 

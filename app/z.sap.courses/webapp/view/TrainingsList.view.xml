@@ -207,14 +207,15 @@
                 enableAutoBinding="true"
                 showFullScreenButton="true"
                 enableExport="true"
-                useVariantManagement="true"
+                useVariantManagement="false"
                 useTablePersonalisation="true"
-                persistencyKey="TrainingsSmartTable"
+                persistencyKey="TrainingsSmartTableV2"
                 demandPopin="true"
                 initialise="onSmartTableInit"
                 beforeRebindTable="onBeforeRebindTable"
                 fitContainer="true"
                 ignoredFields="Id"
+                initiallyVisibleFields="Title,Role,SapModule,Description,LastUpdated,Url,SapHelpLink"
                 requestAtLeastFields="Id,Url,SapHelpLink">
 
                 <!-- Custom buttons added to SmartTable toolbar alongside auto-generated ones -->
