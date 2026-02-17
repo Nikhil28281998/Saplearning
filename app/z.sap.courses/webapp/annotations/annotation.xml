@@ -206,50 +206,6 @@
                 </Annotation>
             </Annotations>
 
-            <!-- ========== User Entity (Value Help) ========== -->
-            <Annotations Target="ZCOURSES_SRV.User">
-                <Annotation Term="UI.SelectionFields">
-                    <Collection>
-                        <PropertyPath>UserId</PropertyPath>
-                        <PropertyPath>FirstName</PropertyPath>
-                        <PropertyPath>LastName</PropertyPath>
-                    </Collection>
-                </Annotation>
-
-                <Annotation Term="UI.LineItem">
-                    <Collection>
-                        <Record Type="UI.DataField">
-                            <PropertyValue Property="Value" Path="UserId"/>
-                            <PropertyValue Property="Label" String="User ID"/>
-                        </Record>
-                        <Record Type="UI.DataField">
-                            <PropertyValue Property="Value" Path="FirstName"/>
-                            <PropertyValue Property="Label" String="First Name"/>
-                        </Record>
-                        <Record Type="UI.DataField">
-                            <PropertyValue Property="Value" Path="LastName"/>
-                            <PropertyValue Property="Label" String="Last Name"/>
-                        </Record>
-                        <Record Type="UI.DataField">
-                            <PropertyValue Property="Value" Path="Email"/>
-                            <PropertyValue Property="Label" String="Email"/>
-                        </Record>
-                    </Collection>
-                </Annotation>
-
-                <Annotation Term="UI.HeaderInfo">
-                    <Record>
-                        <PropertyValue Property="TypeName" String="User"/>
-                        <PropertyValue Property="TypeNamePlural" String="Users"/>
-                        <PropertyValue Property="Title">
-                            <Record Type="UI.DataField">
-                                <PropertyValue Property="Value" Path="UserId"/>
-                            </Record>
-                        </PropertyValue>
-                    </Record>
-                </Annotation>
-            </Annotations>
-
         </Schema>
     </edmx:DataServices>
 </edmx:Edmx>
