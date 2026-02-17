@@ -6,7 +6,12 @@ METHOD trainings_create_entity.
 * -- Local variables --------------------------------------------------
   DATA: ls_training TYPE zcourses,
         ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
-        lv_guid     TYPE sysuuid_c36.
+        lv_guid     TYPE sysuuid_c36,
+        lv_errmsg   TYPE bapi_msg,
+        lx_root     TYPE REF TO cx_root,
+        lx_busi     TYPE REF TO /iwbep/cx_mgw_busi_exception.
+
+  TRY.
 
 * -- Authorization check: Create (ACTVT 01) -------------------------
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
@@ -68,5 +73,15 @@ METHOD trainings_create_entity.
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
         message = 'Failed to create training - record may already exist'.
   ENDIF.
+
+  CATCH /iwbep/cx_mgw_busi_exception INTO lx_busi.
+    RAISE EXCEPTION lx_busi.
+  CATCH cx_root INTO lx_root.
+    lv_errmsg = lx_root->get_text( ).
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = lv_errmsg.
+  ENDTRY.
 
 ENDMETHOD.

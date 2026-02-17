@@ -22,7 +22,12 @@ METHOD trainings_get_entityset.
         lv_title_up    TYPE char255,
         lv_upd_date    TYPE sydatum,
         lv_skip        TYPE i,
-        lv_top         TYPE i.
+        lv_top         TYPE i,
+        lv_errmsg      TYPE bapi_msg,
+        lx_root        TYPE REF TO cx_root,
+        lx_busi        TYPE REF TO /iwbep/cx_mgw_busi_exception.
+
+  TRY.
 
 * -- Authorization check: Display (ACTVT 03) -------------------------
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
@@ -167,5 +172,15 @@ METHOD trainings_get_entityset.
       DELETE et_entityset FROM ( lv_top + 1 ).
     ENDIF.
   ENDIF.
+
+  CATCH /iwbep/cx_mgw_busi_exception INTO lx_busi.
+    RAISE EXCEPTION lx_busi.
+  CATCH cx_root INTO lx_root.
+    lv_errmsg = lx_root->get_text( ).
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = lv_errmsg.
+  ENDTRY.
 
 ENDMETHOD.

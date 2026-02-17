@@ -6,7 +6,12 @@ METHOD trainings_delete_entity.
 * -- Local variables (explicit - no inline DATA) ----------------------
   DATA: ls_key    TYPE /iwbep/s_mgw_name_value_pair,
         lv_id     TYPE char36,
-        lv_check  TYPE char36.
+        lv_check  TYPE char36,
+        lv_errmsg TYPE bapi_msg,
+        lx_root   TYPE REF TO cx_root,
+        lx_busi   TYPE REF TO /iwbep/cx_mgw_busi_exception.
+
+  TRY.
 
 * -- Authorization check: Delete (ACTVT 06) --------------------------
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
@@ -54,5 +59,15 @@ METHOD trainings_delete_entity.
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
         message = 'Failed to delete training'.
   ENDIF.
+
+  CATCH /iwbep/cx_mgw_busi_exception INTO lx_busi.
+    RAISE EXCEPTION lx_busi.
+  CATCH cx_root INTO lx_root.
+    lv_errmsg = lx_root->get_text( ).
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = lv_errmsg.
+  ENDTRY.
 
 ENDMETHOD.

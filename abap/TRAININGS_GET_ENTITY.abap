@@ -7,7 +7,12 @@ METHOD trainings_get_entity.
   DATA: ls_key      TYPE /iwbep/s_mgw_name_value_pair,
         ls_training TYPE zcourses,
         ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
-        lv_id       TYPE char36.
+        lv_id       TYPE char36,
+        lv_errmsg   TYPE bapi_msg,
+        lx_root     TYPE REF TO cx_root,
+        lx_busi     TYPE REF TO /iwbep/cx_mgw_busi_exception.
+
+  TRY.
 
 * -- Authorization check: Display (ACTVT 03) -------------------------
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
@@ -58,5 +63,15 @@ METHOD trainings_get_entity.
   ls_entity-sap_help_link = ls_training-sap_help_link.
 
   er_entity = ls_entity.
+
+  CATCH /iwbep/cx_mgw_busi_exception INTO lx_busi.
+    RAISE EXCEPTION lx_busi.
+  CATCH cx_root INTO lx_root.
+    lv_errmsg = lx_root->get_text( ).
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = lv_errmsg.
+  ENDTRY.
 
 ENDMETHOD.

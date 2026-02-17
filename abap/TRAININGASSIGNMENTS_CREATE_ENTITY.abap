@@ -36,6 +36,9 @@ METHOD trainingassignme_create_entity.
         ls_asgn     TYPE zcourse_asgn,
         lv_guid     TYPE sysuuid_c36,
         lv_errmsg   TYPE bapi_msg,
+        lv_ftype    TYPE c,
+        lv_ts_conv  TYPE timestamp,
+        lv_time_ini TYPE t,
         lx_root     TYPE REF TO cx_root,
         lx_busi     TYPE REF TO /iwbep/cx_mgw_busi_exception.
 
@@ -130,9 +133,18 @@ METHOD trainingassignme_create_entity.
   ENDIF.
   ls_asgn-created_at    = sy-datum.
 
-* -- Map DueDate if provided (OData DateTime → ABAP DATS) -----------
+* -- Map DueDate if provided (safe conversion across MPC types) ------
+  DESCRIBE FIELD ls_entity-duedate TYPE lv_ftype.
   IF ls_entity-duedate IS NOT INITIAL.
-    ls_asgn-due_date = ls_entity-duedate.
+    IF lv_ftype = 'P'.
+*     MPC uses TIMESTAMP — convert to DATS via CONVERT TIME STAMP
+      lv_ts_conv = ls_entity-duedate.
+      CONVERT TIME STAMP lv_ts_conv TIME ZONE 'UTC'
+        INTO DATE ls_asgn-due_date TIME lv_time_ini.
+    ELSE.
+*     MPC uses DATS/CHAR — direct assignment is safe
+      ls_asgn-due_date = ls_entity-duedate.
+    ENDIF.
   ENDIF.
 
 * -- Insert into database table ZCOURSE_ASGN ------------------------
