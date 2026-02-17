@@ -34,7 +34,11 @@ METHOD trainingassignme_create_entity.
 * -- Local variables (classic ABAP - no inline DATA) ------------------
   DATA: ls_entity   TYPE zcl_zcourses_mpc=>ts_trainingassignment,
         ls_asgn     TYPE zcourse_asgn,
-        lv_guid     TYPE sysuuid_c36.
+        lv_guid     TYPE sysuuid_c36,
+        lv_errmsg   TYPE string.
+
+* -- Wrap everything in TRY/CATCH to prevent short dumps (500 errors)
+  TRY.
 
 * -- Authorization check: Create (ACTVT 01) -------------------------
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
@@ -101,8 +105,27 @@ METHOD trainingassignme_create_entity.
   ls_asgn-user_id       = ls_entity-userid.
   ls_asgn-user_name     = ls_entity-username.
   ls_asgn-user_email    = ls_entity-useremail.
-  ls_asgn-assigned_by   = ls_entity-assignedby.
-  ls_asgn-assigned_by_n = ls_entity-assignedbyname.
+* -- Set AssignedBy to current user (server-side, not from payload) --
+  ls_asgn-assigned_by   = sy-uname.
+* -- Look up AssignedBy display name from ADRP ----------------------
+  DATA: lv_asgn_persnumber TYPE ad_persnum,
+        ls_asgn_adrp       TYPE adrp.
+  SELECT SINGLE persnumber FROM usr21
+    INTO lv_asgn_persnumber
+    WHERE bname = sy-uname.
+  IF sy-subrc = 0 AND lv_asgn_persnumber IS NOT INITIAL.
+    SELECT SINGLE name_first name_last FROM adrp
+      INTO CORRESPONDING FIELDS OF ls_asgn_adrp
+      WHERE persnumber = lv_asgn_persnumber.
+    IF sy-subrc = 0.
+      CONCATENATE ls_asgn_adrp-name_first ls_asgn_adrp-name_last
+        INTO ls_asgn-assigned_by_n SEPARATED BY space.
+      CONDENSE ls_asgn-assigned_by_n.
+    ENDIF.
+  ENDIF.
+  IF ls_asgn-assigned_by_n IS INITIAL.
+    ls_asgn-assigned_by_n = sy-uname.
+  ENDIF.
   ls_asgn-created_at    = sy-datum.
 
 * -- Map DueDate if provided (OData DateTime → ABAP DATS) -----------
@@ -116,6 +139,9 @@ METHOD trainingassignme_create_entity.
   INSERT zcourse_asgn FROM ls_asgn.
 
   IF sy-subrc = 0.
+*   -- Fill response entity with assigned-by info --------------------
+    ls_entity-assignedby     = ls_asgn-assigned_by.
+    ls_entity-assignedbyname = ls_asgn-assigned_by_n.
     er_entity = ls_entity.
   ELSE.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
@@ -123,5 +149,16 @@ METHOD trainingassignme_create_entity.
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
         message = 'Failed to create assignment - record may already exist'.
   ENDIF.
+
+* -- Catch-all: convert any unhandled exception to business exception
+  CATCH /iwbep/cx_mgw_busi_exception.
+    RAISE.  " re-raise business exceptions as-is
+  CATCH cx_root INTO DATA(lx_root).
+    lv_errmsg = lx_root->get_text( ).
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = lv_errmsg.
+  ENDTRY.
 
 ENDMETHOD.

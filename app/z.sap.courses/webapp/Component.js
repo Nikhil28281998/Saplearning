@@ -467,9 +467,14 @@ sap.ui.define([
             var oModel = this.getModel();
             Log.info('Creating assignment via /' + sEntitySet + ' payload: ' + JSON.stringify(payload));
 
+            // Bypass $batch — send direct POST for clearer error messages
+            var bWasBatch = oModel.bUseBatch;
+            oModel.setUseBatch(false);
+
             oModel.refreshSecurityToken(function () {
                 oModel.create('/' + sEntitySet, payload, {
                     success: function () {
+                        oModel.setUseBatch(bWasBatch); // restore batch mode
                         oAssignModel.setProperty('/submitting', false);
                         oAssignModel.setProperty('/error', '');
                         // Close dialog BEFORE navigating (fix #6)
@@ -478,23 +483,32 @@ sap.ui.define([
                         MessageToast.show('Training assigned successfully');
                     },
                     error: function (err) {
+                        oModel.setUseBatch(bWasBatch); // restore batch mode
                         oAssignModel.setProperty('/submitting', false);
                         var msg = 'Create failed';
                         try {
                             if (err && err.responseText) {
                                 var parsed = JSON.parse(err.responseText);
-                                msg = parsed.error.message.value || msg;
+                                msg = (parsed.error && parsed.error.message && parsed.error.message.value) || msg;
                             } else if (err && err.message) {
                                 msg = err.message;
                             }
                         } catch (e) {
-                            msg = (err && err.message) || msg;
+                            // responseText might be XML
+                            try {
+                                var xmlMatch = err.responseText && err.responseText.match(/<message[^>]*>([^<]+)<\/message>/i);
+                                if (xmlMatch) { msg = xmlMatch[1]; }
+                            } catch (e2) { /* ignore */ }
+                            if (msg === 'Create failed') {
+                                msg = (err && err.message) || 'Create failed (status ' + (err && err.statusCode) + ')';
+                            }
                         }
                         oAssignModel.setProperty('/error', msg);
-                        Log.error('Assignment create failed: ' + msg);
+                        Log.error('Assignment create failed: ' + msg + ' | Full response: ' + (err && err.responseText));
                     }
                 });
             }, function (tokenErr) {
+                oModel.setUseBatch(bWasBatch); // restore batch mode
                 oAssignModel.setProperty('/submitting', false);
                 oAssignModel.setProperty('/error', 'Security token refresh failed. Please reload the app.');
                 Log.error('CSRF token refresh failed: ' + tokenErr);
