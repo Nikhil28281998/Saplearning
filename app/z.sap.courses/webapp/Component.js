@@ -412,31 +412,65 @@ sap.ui.define([
             }
             oAssignModel.setProperty('/error', '');
 
-            // Build due date as JS Date object in UTC (OData V2 Edm.DateTime needs Date)
-            var dueDate = null;
+            // Build due date — detect OData type from metadata to pick correct format
+            // Edm.DateTime → JS Date object; Edm.String (DATS) → "YYYYMMDD" string
+            var dueDateValue = null;
             try {
                 if (data.dueDate) {
+                    var year, month, day;
                     if (data.dueDate instanceof Date) {
-                        dueDate = data.dueDate;
+                        year = data.dueDate.getFullYear();
+                        month = data.dueDate.getMonth(); // 0-based
+                        day = data.dueDate.getDate();
                     } else if (typeof data.dueDate === 'string' && data.dueDate.length >= 10) {
                         var dateParts = data.dueDate.substring(0, 10).split('-');
                         if (dateParts.length === 3) {
-                            dueDate = new Date(Date.UTC(
-                                parseInt(dateParts[0], 10),
-                                parseInt(dateParts[1], 10) - 1,
-                                parseInt(dateParts[2], 10),
-                                0, 0, 0
-                            ));
+                            year = parseInt(dateParts[0], 10);
+                            month = parseInt(dateParts[1], 10) - 1; // 0-based
+                            day = parseInt(dateParts[2], 10);
                         }
                     }
-                    if (dueDate && isNaN(dueDate.getTime())) {
-                        dueDate = null;
-                        Log.warning('[AssignDlg] Invalid due date value: ' + data.dueDate);
+                    if (year && !isNaN(year)) {
+                        // Check metadata for DueDate property type
+                        var oModel = this.getModel();
+                        var sEntitySet = this._assignmentEntitySet || 'TrainingAssignments';
+                        var oMeta = oModel.getServiceMetadata();
+                        var sDueDateType = 'Edm.String'; // default to string (DATS)
+                        try {
+                            var schemas = oMeta.dataServices.schema;
+                            for (var s = 0; s < schemas.length; s++) {
+                                var ets = schemas[s].entityType || [];
+                                for (var e = 0; e < ets.length; e++) {
+                                    var props = ets[e].property || [];
+                                    for (var p = 0; p < props.length; p++) {
+                                        if (props[p].name === 'DueDate') {
+                                            sDueDateType = props[p].type || 'Edm.String';
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (metaErr) {
+                            Log.warning('[AssignDlg] Could not read DueDate type from metadata: ' + metaErr.message);
+                        }
+
+                        if (sDueDateType === 'Edm.DateTime' || sDueDateType === 'Edm.DateTimeOffset') {
+                            // Send JS Date object — OData V2 model serializes correctly
+                            dueDateValue = new Date(Date.UTC(year, month, day, 0, 0, 0));
+                            Log.info('[AssignDlg] DueDate as Edm.DateTime: ' + dueDateValue.toISOString());
+                        } else {
+                            // Edm.String (DATS) → send "YYYYMMDD" which ABAP expects
+                            var mm = String(month + 1);
+                            var dd = String(day);
+                            if (mm.length < 2) { mm = '0' + mm; }
+                            if (dd.length < 2) { dd = '0' + dd; }
+                            dueDateValue = String(year) + mm + dd;
+                            Log.info('[AssignDlg] DueDate as Edm.String (DATS): ' + dueDateValue);
+                        }
                     }
                 }
-            } catch (e) {
-                Log.warning('[AssignDlg] Date parse error: ' + e.message);
-                dueDate = null;
+            } catch (dateErr) {
+                Log.warning('[AssignDlg] Date parse error: ' + dateErr.message);
+                dueDateValue = null;
             }
 
             var payload = {
@@ -450,8 +484,8 @@ sap.ui.define([
                 UserName: ((data.firstName || '') + ' ' + (data.lastName || '')).trim() || userIdUpper,
                 UserEmail: data.userEmail || ''
             };
-            if (dueDate) {
-                payload.DueDate = dueDate;
+            if (dueDateValue !== null) {
+                payload.DueDate = dueDateValue;
             }
 
             oAssignModel.setProperty('/submitting', true);
