@@ -63,25 +63,21 @@
                         <!-- Section 3: Assign To -->
                         <core:Title id="assignTitleAssignTo" text="Assign To" />
                         <Label id="assignLabelUserId" text="User ID (SAP Logon)" required="true" />
-                        <Input
+                        <ComboBox
                             id="assignUserIdInput"
                             width="100%"
-                            placeholder="Type to search SAP users..."
+                            placeholder="Select or type SAP User ID..."
                             value="{assignModel>/userId}"
-                            maxLength="12"
-                            showSuggestion="true"
-                            filterSuggests="true"
-                            startSuggestion="1"
-                            suggestionItemSelected=".onAssignUserSelected"
-                            suggestionItems="{assignModel>/users}">
-                            <suggestionItems>
-                                <core:ListItem
-                                    id="assignUserSuggestItem"
-                                    key="{assignModel>UserId}"
-                                    text="{assignModel>UserId}"
-                                    additionalText="{assignModel>FirstName} {assignModel>LastName}" />
-                            </suggestionItems>
-                        </Input>
+                            showSecondaryValues="true"
+                            filterSecondaryValues="true"
+                            selectionChange=".onAssignUserSelected"
+                            items="{assignModel>/users}">
+                            <core:ListItem
+                                id="assignUserItem"
+                                key="{assignModel>UserId}"
+                                text="{assignModel>UserId}"
+                                additionalText="{assignModel>FirstName} {assignModel>LastName}" />
+                        </ComboBox>
 
                         <Label id="assignLabelFirstName" text="First Name" />
                         <Input id="assignFirstName" width="100%" placeholder="Auto-filled on user selection" value="{assignModel>/firstName}" />
