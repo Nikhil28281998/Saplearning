@@ -172,18 +172,64 @@ sap.ui.define([
                 } catch (_) { /* ignore */ }
             }
 
-            // Production: Use S/4 UserContext service for PFCG role-based authorization
-            this._userContext.getCurrentRole()
-                .then(function (role) {
-                    that._role = role;
-                    that._applyRoleUI();
-                    Log.info('Role fetched from UserContext: ' + role);
-                })
-                .catch(function (error) {
-                    Log.warning('Failed to fetch role from S/4 UserContext: ' + (error && error.message || error));
-                    that._role = 'User';
-                    that._applyRoleUI();
+            // Production: Use OData model callFunction for getCurrentRole
+            // This is the standard SAP Fiori approach — uses the model's CSRF token,
+            // authentication, and service URL from manifest.json automatically.
+            var oModel = this.getModel();
+            if (oModel && oModel.callFunction) {
+                var bWasBatch = oModel.bUseBatch;
+                oModel.setUseBatch(false); // bypass batch for this call
+                oModel.callFunction("/getCurrentRole", {
+                    method: "GET",
+                    success: function (oData) {
+                        oModel.setUseBatch(bWasBatch);
+                        var sRole = "User";
+                        // Handle both OData V2 response formats:
+                        //   Format A: { getCurrentRole: { Role: "Admin" } }
+                        //   Format B: { Role: "Admin" }
+                        if (oData) {
+                            if (oData.getCurrentRole && oData.getCurrentRole.Role) {
+                                sRole = oData.getCurrentRole.Role;
+                            } else if (oData.Role) {
+                                sRole = oData.Role;
+                            }
+                        }
+                        that._role = sRole;
+                        that._applyRoleUI();
+                        Log.info('Role fetched via callFunction: ' + sRole);
+                    },
+                    error: function (oError) {
+                        oModel.setUseBatch(bWasBatch);
+                        var errMsg = '';
+                        try {
+                            if (oError && oError.responseText) {
+                                var parsed = JSON.parse(oError.responseText);
+                                errMsg = (parsed.error && parsed.error.message && parsed.error.message.value) || '';
+                            }
+                        } catch (e) { /* ignore */ }
+                        Log.error('getCurrentRole failed: ' + (errMsg || (oError && oError.message) || 'HTTP 500') +
+                            '. Fix: 1) SEGW needs ComplexType "CurrentRole" with property "Role", ' +
+                            '2) SEGW needs FunctionImport "getCurrentRole" (GET, returns CurrentRole), ' +
+                            '3) Regenerate MPC, 4) Reactivate EXECUTE_ACTION in DPC_EXT. ' +
+                            'See abap/SEGW_FUNCTION_IMPORTS.abap for step-by-step guide.');
+                        that._role = 'User';
+                        that._applyRoleUI();
+                    }
                 });
+            } else {
+                // Fallback: use UserContext raw fetch (older UI5 versions)
+                this._userContext.getCurrentRole()
+                    .then(function (role) {
+                        that._role = role;
+                        that._applyRoleUI();
+                        Log.info('Role fetched from UserContext: ' + role);
+                    })
+                    .catch(function (error) {
+                        Log.warning('getCurrentRole failed (fetch): ' + (error && error.message || error));
+                        that._role = 'User';
+                        that._applyRoleUI();
+                    });
+            }
         },
 
         /**
@@ -479,6 +525,8 @@ sap.ui.define([
                         oAssignModel.setProperty('/error', '');
                         // Close dialog BEFORE navigating (fix #6)
                         if (that._assignDlg) { that._assignDlg.close(); }
+                        // Force model refresh so SmartTable loads fresh data
+                        oModel.refresh(true);
                         that.navigateToTraining();
                         MessageToast.show('Training assigned successfully');
                     },

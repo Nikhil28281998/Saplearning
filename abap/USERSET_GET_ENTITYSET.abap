@@ -25,14 +25,26 @@ METHOD userset_get_entityset.
         ls_filter   TYPE /iwbep/s_mgw_select_option,
         ls_range    TYPE /iwbep/s_cod_select_option.
 
-* -- Authorization check: Display (ACTVT 03) --
+* -- Authorization check: Display (ACTVT 03) or any higher privilege ---
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
     ID 'ACTVT' FIELD '03'.
   IF sy-subrc <> 0.
-    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
-      EXPORTING
-        textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'No authorization to list users'.
+    AUTHORITY-CHECK OBJECT 'Z_COURSES'
+      ID 'ACTVT' FIELD '06'.
+    IF sy-subrc <> 0.
+      AUTHORITY-CHECK OBJECT 'Z_COURSES'
+        ID 'ACTVT' FIELD '01'.
+      IF sy-subrc <> 0.
+        AUTHORITY-CHECK OBJECT 'Z_COURSES'
+          ID 'ACTVT' FIELD '02'.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+            EXPORTING
+              textid  = /iwbep/cx_mgw_busi_exception=>business_error
+              message = 'No authorization to list users (need ACTVT 03, 02, 01, or 06 in Z_COURSES)'.
+        ENDIF.
+      ENDIF.
+    ENDIF.
   ENDIF.
 
 * -- Read optional $filter for UserId --

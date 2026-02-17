@@ -31,14 +31,28 @@ METHOD trainingassignme_get_entityset.
 
   TRY.
 
-* -- Authorization check: Display (ACTVT 03) -------------------------
+* -- Authorization check: Display (ACTVT 03) or any higher privilege ---
+* Users with Admin (06), Create (01), or Change (02) implicitly can read.
+* Check 03 first; if that fails, check for any other valid activity.
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
     ID 'ACTVT' FIELD '03'.
   IF sy-subrc <> 0.
-    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
-      EXPORTING
-        textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'No authorization to read assignments'.
+    AUTHORITY-CHECK OBJECT 'Z_COURSES'
+      ID 'ACTVT' FIELD '06'.
+    IF sy-subrc <> 0.
+      AUTHORITY-CHECK OBJECT 'Z_COURSES'
+        ID 'ACTVT' FIELD '01'.
+      IF sy-subrc <> 0.
+        AUTHORITY-CHECK OBJECT 'Z_COURSES'
+          ID 'ACTVT' FIELD '02'.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+            EXPORTING
+              textid  = /iwbep/cx_mgw_busi_exception=>business_error
+              message = 'No authorization to read assignments (need ACTVT 03, 02, 01, or 06 in Z_COURSES)'.
+        ENDIF.
+      ENDIF.
+    ENDIF.
   ENDIF.
 
 * -- Read filter: UserId ---------------------------------------------
