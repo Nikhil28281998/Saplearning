@@ -51,14 +51,17 @@ html, body, html.sap-desktop, .sapUiBody {
 .sapUiView {
     display: block !important;
     height: 100% !important;
+    width: 100% !important;
 }
 
 .sapMApp, .sapMNavContainer, .sapMNavContent {
     height: 100% !important;
+    width: 100% !important;
 }
 
 .sapMShell .sapMShellContent {
     height: 100%;
+    width: 100%;
 }
 
 .sapMPage {
@@ -293,10 +296,10 @@ html, body, html.sap-desktop, .sapUiBody {
 
 /* ===== Chart Cards – side by side, no overlap ===== */
 .chartCard {
-    min-width: 280px;
+    min-width: 240px;
     max-width: 48%;
     flex: 1 1 45%;
-    min-height: 320px;
+    min-height: 200px;
     box-sizing: border-box;
 }
 

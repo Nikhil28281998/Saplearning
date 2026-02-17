@@ -83,8 +83,11 @@
                             </suggestionItems>
                         </Input>
 
-                        <Label id="assignLabelFullName" text="Full Name" />
-                        <Input id="assignFullName" width="100%" placeholder="Auto-filled on user selection" value="{assignModel>/fullName}" />
+                        <Label id="assignLabelFirstName" text="First Name" />
+                        <Input id="assignFirstName" width="100%" placeholder="Auto-filled on user selection" value="{assignModel>/firstName}" />
+
+                        <Label id="assignLabelLastName" text="Last Name" />
+                        <Input id="assignLastName" width="100%" placeholder="Auto-filled on user selection" value="{assignModel>/lastName}" />
 
                         <Label id="assignLabelEmail" text="Email" />
                         <Input id="assignEmail" width="100%" placeholder="Auto-filled on user selection" value="{assignModel>/userEmail}" type="Email" />

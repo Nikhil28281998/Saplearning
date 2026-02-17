@@ -276,8 +276,9 @@ sap.ui.define([
                 selectedModuleFilter: "",
                 selectedTrainingId: trainings[0] && trainings[0].Id || '',
                 userId: '',
-                fullName: '',
-                userEmail: '',
+                firstName: '',
+                lastName: '',
+                userEmail: '',,
                 dueDate: null,
                 submitting: false,
                 error: ''
@@ -379,10 +380,10 @@ sap.ui.define([
                 return (u.UserId || '').toUpperCase() === (sKey || '').toUpperCase();
             })[0];
             if (found) {
-                var fullName = ((found.FirstName || '') + ' ' + (found.LastName || '')).trim();
-                oModel.setProperty('/fullName', fullName);
+                oModel.setProperty('/firstName', found.FirstName || '');
+                oModel.setProperty('/lastName', found.LastName || '');
                 oModel.setProperty('/userEmail', found.Email || '');
-                Log.info('[AssignDlg] User selected: ' + sKey + ' → ' + fullName);
+                Log.info('[AssignDlg] User selected: ' + sKey + ' → ' + (found.FirstName || '') + ' ' + (found.LastName || ''));
             }
         },
 
@@ -446,7 +447,7 @@ sap.ui.define([
                 Url: tr.Url || '',
                 Status: 'Assigned',
                 UserId: userIdUpper,
-                UserName: (data.fullName || '').trim() || userIdUpper,
+                UserName: ((data.firstName || '') + ' ' + (data.lastName || '')).trim() || userIdUpper,
                 UserEmail: data.userEmail || ''
             };
             if (dueDate) {
