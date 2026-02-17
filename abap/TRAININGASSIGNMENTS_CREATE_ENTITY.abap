@@ -35,7 +35,9 @@ METHOD trainingassignme_create_entity.
   DATA: ls_entity   TYPE zcl_zcourses_mpc=>ts_trainingassignment,
         ls_asgn     TYPE zcourse_asgn,
         lv_guid     TYPE sysuuid_c36,
-        lv_errmsg   TYPE string.
+        lv_errmsg   TYPE bapi_msg,
+        lx_root     TYPE REF TO cx_root,
+        lx_busi     TYPE REF TO /iwbep/cx_mgw_busi_exception.
 
 * -- Wrap everything in TRY/CATCH to prevent short dumps (500 errors)
   TRY.
@@ -151,9 +153,9 @@ METHOD trainingassignme_create_entity.
   ENDIF.
 
 * -- Catch-all: convert any unhandled exception to business exception
-  CATCH /iwbep/cx_mgw_busi_exception.
-    RAISE.  " re-raise business exceptions as-is
-  CATCH cx_root INTO DATA(lx_root).
+  CATCH /iwbep/cx_mgw_busi_exception INTO lx_busi.
+    RAISE EXCEPTION lx_busi.  " re-raise business exceptions as-is
+  CATCH cx_root INTO lx_root.
     lv_errmsg = lx_root->get_text( ).
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
