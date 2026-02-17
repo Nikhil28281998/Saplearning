@@ -10,8 +10,8 @@
 *&   ID            CHAR 36  (UUID key)
 *&   TRAINING_ID   CHAR 36  (FK to ZCOURSES-ID)
 *&   TITLE         CHAR 255
-*&   ROLE          CHAR 50
-*&   SAP_MODULE    CHAR 50
+*&   ROLE          CHAR 20
+*&   SAP_MODULE    CHAR 20
 *&   URL           CHAR 500
 *&   STATUS        CHAR 20  (Assigned / In Progress / Completed)
 *&   USER_ID       CHAR 12  (SAP user name)
