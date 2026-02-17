@@ -31,9 +31,9 @@ builder:
       - "webapp"
     namespaces:
       - "z/sap/courses"
-  excludes:
-    - "webapp/test/**"
-    - "webapp/localService/**"
+    excludes:
+      - "webapp/test/**"
+      - "webapp/localService/**"
   customTasks:
     - name: ui5-task-zipper
       afterTask: generateCachebusterInfo
