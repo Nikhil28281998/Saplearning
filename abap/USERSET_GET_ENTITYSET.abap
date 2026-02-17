@@ -1,10 +1,10 @@
-*& Method: USERS_GET_ENTITYSET
+*& Method: USERSET_GET_ENTITYSET
 *& Returns SAP users for value help in Assign Training dialog
 *& Class: ZCL_ZCOURSES_DPC_EXT (Redefine in SE24)
 *&
 *& HOW TO REDEFINE:
 *&   1. SE24 → open class ZCL_ZCOURSES_DPC_EXT
-*&   2. Methods tab → find USERS_GET_ENTITYSET (may be USER_GET_ENTITYSET)
+*&   2. Methods tab → find USERSET_GET_ENTITYSET
 *&   3. Right-click → Redefine
 *&   4. Paste this code → Activate
 *&
@@ -12,7 +12,7 @@
 *&   Entity Type: User  |  Entity Set: Users
 *&   Properties: UserId (Key, SYUNAME), FirstName, LastName, Email
 
-METHOD users_get_entityset.
+METHOD userset_get_entityset.
 
   DATA: lt_usr21    TYPE TABLE OF usr21,
         ls_usr21    TYPE usr21,

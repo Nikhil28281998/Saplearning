@@ -8,6 +8,7 @@
 *& 2. Expand Data Model → Right-click Entity Types → Create
 *& 3. Entity Type Name: User
 *& 4. Check "Create Related Entity Set" → Press Enter
+*&    (This auto-creates Entity Set "UserSet" and method USERSET_GET_ENTITYSET)
 *&
 *& 5. Expand User → Right-click Properties → Create
 *& 6. Add properties using ABAP Dictionary references:
@@ -71,6 +72,6 @@
 * 2. Check Consistency: Project → Check Model Consistency
 * 3. Generate Runtime: Click Generate (Ctrl+G)
 * 4. Activate all objects
-* 5. Go to SE24 → ZCL_ZCOURSES_DPC_EXT → Redefine USERS_GET_ENTITYSET
+*& 5. Go to SE24 → ZCL_ZCOURSES_DPC_EXT → Redefine USERSET_GET_ENTITYSET
 *    (see USERS_GET_ENTITYSET.abap for code)
 *----------------------------------------------------------------------*

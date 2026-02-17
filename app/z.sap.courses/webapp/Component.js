@@ -236,9 +236,9 @@ sap.ui.define([
 
             // Load trainings and users in parallel
             var pTrainings = loadList('/Trainings');
-            var pUsers = loadList('/Users').catch(function () {
-                Log.warning('[AssignDlg] Users entity set not available – manual entry only');
-                return []; // Graceful fallback if Users entity not yet created in SEGW
+            var pUsers = loadList('/UserSet').catch(function () {
+                Log.warning('[AssignDlg] UserSet entity set not available – manual entry only');
+                return []; // Graceful fallback if User entity not yet created in SEGW
             });
 
             Promise.all([pTrainings, pUsers]).then(function (results) {
