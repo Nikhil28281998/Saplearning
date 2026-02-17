@@ -20,11 +20,12 @@
 METHOD /iwbep/if_mgw_appl_srv_runtime~execute_action.
 
 * -- Local variables --------------------------------------------------
-  DATA: ls_asgn   TYPE zcourse_asgn,
-        ls_entity TYPE zcl_zcourses_mpc=>ts_trainingassignment,
-        ls_param  TYPE /iwbep/s_mgw_name_value_pair,
-        lv_id     TYPE char36,
-        lv_role   TYPE string.
+  DATA: ls_asgn     TYPE zcourse_asgn,
+        ls_entity   TYPE zcl_zcourses_mpc=>ts_trainingassignment,
+        ls_param    TYPE /iwbep/s_mgw_name_value_pair,
+        lv_id       TYPE char36,
+        lv_role_val TYPE char20,
+        ls_role     TYPE zcl_zcourses_mpc=>ts_currentrole.
 
   CASE iv_action_name.
 
@@ -118,19 +119,23 @@ METHOD /iwbep/if_mgw_appl_srv_runtime~execute_action.
       AUTHORITY-CHECK OBJECT 'Z_COURSES'
         ID 'ACTVT' FIELD '06'.
       IF sy-subrc = 0.
-        lv_role = 'Admin'.
+        lv_role_val = 'Admin'.
       ELSE.
         AUTHORITY-CHECK OBJECT 'Z_COURSES'
           ID 'ACTVT' FIELD '01'.
         IF sy-subrc = 0.
-          lv_role = 'Manager'.
+          lv_role_val = 'Manager'.
         ELSE.
-          lv_role = 'User'.
+          lv_role_val = 'User'.
         ENDIF.
       ENDIF.
 
+*     Return via Complex Type structure (ts_currentrole)
+*     SEGW Complex Type "CurrentRole" has one property: Role (Edm.String 20)
+      ls_role-role = lv_role_val.
+
       copy_data_to_ref(
-        EXPORTING is_data = lv_role
+        EXPORTING is_data = ls_role
         CHANGING  cr_data = er_data ).
 
 * ═══════════════════════════════════════════════════════════════════════
