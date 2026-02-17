@@ -412,8 +412,8 @@ sap.ui.define([
             }
             oAssignModel.setProperty('/error', '');
 
-            // Build due date — detect OData type from metadata to pick correct format
-            // Edm.DateTime → JS Date object; Edm.String (DATS) → "YYYYMMDD" string
+            // Build due date as UTC Date object — SEGW maps DATS to Edm.DateTime
+            // SAPUI5 ODataModel V2 serializes Date objects as /Date(timestamp)/
             var dueDateValue = null;
             try {
                 if (data.dueDate) {
@@ -431,40 +431,13 @@ sap.ui.define([
                         }
                     }
                     if (year && !isNaN(year)) {
-                        // Check metadata for DueDate property type
-                        var oModel = this.getModel();
-                        var sEntitySet = this._assignmentEntitySet || 'TrainingAssignments';
-                        var oMeta = oModel.getServiceMetadata();
-                        var sDueDateType = 'Edm.String'; // default to string (DATS)
-                        try {
-                            var schemas = oMeta.dataServices.schema;
-                            for (var s = 0; s < schemas.length; s++) {
-                                var ets = schemas[s].entityType || [];
-                                for (var e = 0; e < ets.length; e++) {
-                                    var props = ets[e].property || [];
-                                    for (var p = 0; p < props.length; p++) {
-                                        if (props[p].name === 'DueDate') {
-                                            sDueDateType = props[p].type || 'Edm.String';
-                                        }
-                                    }
-                                }
-                            }
-                        } catch (metaErr) {
-                            Log.warning('[AssignDlg] Could not read DueDate type from metadata: ' + metaErr.message);
-                        }
-
-                        if (sDueDateType === 'Edm.DateTime' || sDueDateType === 'Edm.DateTimeOffset') {
-                            // Send JS Date object — OData V2 model serializes correctly
-                            dueDateValue = new Date(Date.UTC(year, month, day, 0, 0, 0));
-                            Log.info('[AssignDlg] DueDate as Edm.DateTime: ' + dueDateValue.toISOString());
+                        // Always send as JS Date in UTC — ODataModel V2 serializes to /Date(ts)/
+                        dueDateValue = new Date(Date.UTC(year, month, day, 0, 0, 0));
+                        if (isNaN(dueDateValue.getTime())) {
+                            dueDateValue = null;
+                            Log.warning('[AssignDlg] Invalid due date value: ' + data.dueDate);
                         } else {
-                            // Edm.String (DATS) → send "YYYYMMDD" which ABAP expects
-                            var mm = String(month + 1);
-                            var dd = String(day);
-                            if (mm.length < 2) { mm = '0' + mm; }
-                            if (dd.length < 2) { dd = '0' + dd; }
-                            dueDateValue = String(year) + mm + dd;
-                            Log.info('[AssignDlg] DueDate as Edm.String (DATS): ' + dueDateValue);
+                            Log.info('[AssignDlg] DueDate UTC: ' + dueDateValue.toISOString());
                         }
                     }
                 }
