@@ -56,19 +56,19 @@ METHOD trainingassignme_get_entity.
 
 * -- Map database record to OData entity structure -------------------
   ls_entity-id              = ls_asgn-id.
-  ls_entity-training_id     = ls_asgn-training_id.
+  ls_entity-trainingid      = ls_asgn-training_id.
   ls_entity-title           = ls_asgn-title.
   ls_entity-role            = ls_asgn-role.
-  ls_entity-sap_module      = ls_asgn-sap_module.
+  ls_entity-sapmodule       = ls_asgn-sap_module.
   ls_entity-url             = ls_asgn-url.
   ls_entity-status          = ls_asgn-status.
-  ls_entity-user_id         = ls_asgn-user_id.
-  ls_entity-user_name       = ls_asgn-user_name.
-  ls_entity-user_email      = ls_asgn-user_email.
-  ls_entity-due_date        = ls_asgn-due_date.
-  ls_entity-completion_date = ls_asgn-completion_dt.
-  ls_entity-assigned_by     = ls_asgn-assigned_by.
-  ls_entity-assigned_by_name = ls_asgn-assigned_by_n.
+  ls_entity-userid          = ls_asgn-user_id.
+  ls_entity-username        = ls_asgn-user_name.
+  ls_entity-useremail       = ls_asgn-user_email.
+  ls_entity-duedate         = ls_asgn-due_date.
+  ls_entity-completiondate  = ls_asgn-completion_dt.
+  ls_entity-assignedby      = ls_asgn-assigned_by.
+  ls_entity-assignedbyname  = ls_asgn-assigned_by_n.
 
   er_entity = ls_entity.
 

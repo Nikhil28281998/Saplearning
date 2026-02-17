@@ -1,5 +1,5 @@
 *&---------------------------------------------------------------------*
-*& Method: MODULESVH_GET_ENTITYSET
+*& Method: MODULEVH_GET_ENTITYSET  (SEGW truncates ModulesVH → ModuleVH)
 *& Returns distinct SapModule+Role values for value help dropdowns
 *& Class: ZCL_ZCOURSES_DPC_EXT (Redefine in SE24)
 *&
@@ -10,10 +10,10 @@
 *&   SAP_MODULE (CHAR 20) and ROLE (CHAR 20)
 *&---------------------------------------------------------------------*
 
-METHOD modulesvh_get_entityset.
+METHOD modulevh_get_entityset.
 
 * -- Local variables --------------------------------------------------
-  DATA: ls_entity   TYPE zcl_zcourses_mpc=>ts_modulesvh,
+  DATA: ls_entity   TYPE zcl_zcourses_mpc=>ts_modulevh,
         lv_module   TYPE char20,
         lv_role     TYPE char20.
 
@@ -22,8 +22,8 @@ METHOD modulesvh_get_entityset.
     INTO (lv_module, lv_role)
     WHERE sap_module <> ''.
     CLEAR ls_entity.
-    ls_entity-sap_module = lv_module.
-    ls_entity-role       = lv_role.
+    ls_entity-sapmodule = lv_module.
+    ls_entity-role      = lv_role.
     APPEND ls_entity TO et_entityset.
   ENDSELECT.
 

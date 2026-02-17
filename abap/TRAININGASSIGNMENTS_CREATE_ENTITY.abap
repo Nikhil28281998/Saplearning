@@ -50,14 +50,14 @@ METHOD trainingassignme_create_entity.
   io_data_provider->read_entry_data( IMPORTING es_data = ls_entity ).
 
 * -- Validate required fields ----------------------------------------
-  IF ls_entity-training_id IS INITIAL.
+  IF ls_entity-trainingid IS INITIAL.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
         message = 'TrainingId is required'.
   ENDIF.
 
-  IF ls_entity-user_id IS INITIAL.
+  IF ls_entity-userid IS INITIAL.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
@@ -66,7 +66,7 @@ METHOD trainingassignme_create_entity.
 
 * -- Validate UserId format: uppercase alphanumeric + underscore, 1-12 chars
 *    Must match @assert.format: '^[A-Z0-9_]{1,12}$' from schema.cds
-  IF NOT ls_entity-user_id CO 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ '.
+  IF NOT ls_entity-userid CO 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ '.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
@@ -92,22 +92,22 @@ METHOD trainingassignme_create_entity.
 * -- Map OData entity to database structure --------------------------
   CLEAR ls_asgn.
   ls_asgn-id            = ls_entity-id.
-  ls_asgn-training_id   = ls_entity-training_id.
+  ls_asgn-training_id   = ls_entity-trainingid.
   ls_asgn-title         = ls_entity-title.
   ls_asgn-role          = ls_entity-role.
-  ls_asgn-sap_module    = ls_entity-sap_module.
+  ls_asgn-sap_module    = ls_entity-sapmodule.
   ls_asgn-url           = ls_entity-url.
   ls_asgn-status        = ls_entity-status.
-  ls_asgn-user_id       = ls_entity-user_id.
-  ls_asgn-user_name     = ls_entity-user_name.
-  ls_asgn-user_email    = ls_entity-user_email.
-  ls_asgn-assigned_by   = ls_entity-assigned_by.
-  ls_asgn-assigned_by_n = ls_entity-assigned_by_name.
+  ls_asgn-user_id       = ls_entity-userid.
+  ls_asgn-user_name     = ls_entity-username.
+  ls_asgn-user_email    = ls_entity-useremail.
+  ls_asgn-assigned_by   = ls_entity-assignedby.
+  ls_asgn-assigned_by_n = ls_entity-assignedbyname.
   ls_asgn-created_at    = sy-datum.
 
 * -- Map DueDate if provided (OData DateTime → ABAP DATS) -----------
-  IF ls_entity-due_date IS NOT INITIAL.
-    ls_asgn-due_date = ls_entity-due_date.
+  IF ls_entity-duedate IS NOT INITIAL.
+    ls_asgn-due_date = ls_entity-duedate.
   ENDIF.
 
 * -- Insert into database table ZCOURSE_ASGN ------------------------
