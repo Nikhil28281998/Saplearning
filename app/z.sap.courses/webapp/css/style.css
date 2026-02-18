@@ -644,10 +644,15 @@ html, body, html.sap-desktop, .sapUiBody {
 .sapMShellContent,
 .sapMShell,
 .sapMShellCentralArea,
+.sapMShellCentralContext,
 .sapMShellMain,
+.sapMShellApp,
+.sapMShellAppContent,
 .sapMNavContainer,
 .sapMApp {
     max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
     width: 100% !important;
     margin: 0 !important;
 }
@@ -655,9 +660,23 @@ html, body, html.sap-desktop, .sapUiBody {
 /* Level 4: sap.m.Shell background + content (in case Shell exists) */
 .sapMShell > .sapMShellBG,
 .sapMShell > .sapMShellContent,
-.sapMShellContent > .sapMShellCentralArea {
+.sapMShellContent > .sapMShellCentralArea,
+.sapMShellContent > .sapMShellCentralContext {
     max-width: 100% !important;
     width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* S/4HANA 2022 FLP: extra right margin class that FLP may add */
+.sapMShellCntntExtraRightMargin {
+    margin-right: 0 !important;
+}
+
+/* FLP shifted container (IE compatibility class still applied on some SP levels) */
+.sapUShellApplicationContainerShiftedIE {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 }
 
 /* Level 5: SAP theme density overrides */
