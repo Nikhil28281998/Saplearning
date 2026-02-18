@@ -25,7 +25,7 @@ METHOD /iwbep/if_mgw_appl_srv_runtime~execute_action.
         ls_param    TYPE /iwbep/s_mgw_name_value_pair,
         lv_id       TYPE char36,
         lv_role_val TYPE char20,
-        ls_role     TYPE zcl_zcourses_mpc=>ts_currentrole,
+        ls_role     TYPE zcl_zcourses_mpc=>ts_currentrole,  "if error: try CURRENTROLE
         lv_ftype    TYPE c,
         lv_ts_conv  TYPE timestamp,
         lv_time_ini TYPE t,

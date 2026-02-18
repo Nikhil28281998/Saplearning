@@ -23,9 +23,40 @@ sap.ui.define([
                 completionPercent: 0
             });
             this.getView().setModel(oAnalyticsModel, "assignAnalytics");
-            
-            // Load analytics when view appears
-            this._loadAnalytics();
+
+            // Dynamically set entity set name on SmartFilterBar + SmartTable
+            // SEGW may name it "TrainingAssignments" or "TrainingAssignmentSet" —
+            // the Component detects the actual name from $metadata.
+            var that = this;
+            var oComponent = this.getOwnerComponent();
+            var oModel = oComponent.getModel();
+            if (oModel && oModel.metadataLoaded) {
+                oModel.metadataLoaded().then(function () {
+                    var sEntitySet = oComponent.getAssignmentEntitySet();
+                    Log.info("[Assignments] Using entity set: " + sEntitySet);
+                    var oSmartFilter = that.byId("assignSmartFilterBar");
+                    var oSmartTable = that.byId("assignSmartTable");
+                    if (oSmartFilter && sEntitySet !== "TrainingAssignments") {
+                        oSmartFilter.setEntitySet(sEntitySet);
+                    }
+                    if (oSmartTable && sEntitySet !== "TrainingAssignments") {
+                        oSmartTable.setEntitySet(sEntitySet);
+                    }
+                    that._loadAnalytics();
+                });
+            } else {
+                this._loadAnalytics();
+            }
+
+            // Reload data every time user navigates to this page
+            var oRouter = oComponent.getRouter();
+            if (oRouter) {
+                oRouter.getRoute("TrainingAssignmentsList").attachPatternMatched(function () {
+                    var oST = that.byId("assignSmartTable");
+                    if (oST) { oST.rebindTable(true); }
+                    that._loadAnalytics();
+                }, this);
+            }
         },
 
         _loadAnalytics: function () {
