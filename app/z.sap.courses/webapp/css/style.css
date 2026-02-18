@@ -679,6 +679,14 @@ html, body, html.sap-desktop, .sapUiBody {
     margin-right: 0 !important;
 }
 
+/* FLP Letterboxing: this class limits app to ~1280-1440px and left-aligns it.
+   Removed by sap.ui.fullWidth=true in manifest.json, but CSS override as fallback. */
+.sapUshellApplicationContainerLimitedWidth {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+}
+
 /* Level 5: SAP theme density overrides */
 .sapUiSizeCompact .sapMShellContent,
 .sapUiSizeCozy .sapMShellContent,
