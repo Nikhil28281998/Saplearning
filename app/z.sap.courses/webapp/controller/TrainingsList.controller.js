@@ -32,8 +32,10 @@ sap.ui.define([
             var oFilterModel = new JSONModel({
                 roles: [{ key: "", text: "All" }],
                 modules: [{ key: "", text: "All" }],
+                allRoles: [{ key: "", text: "All" }],
                 allModules: [{ key: "", text: "All" }],
-                roleModuleMap: {}
+                roleModuleMap: {},
+                moduleRoleMap: {}
             });
             this.getView().setModel(oFilterModel, "filterData");
 
@@ -63,8 +65,10 @@ sap.ui.define([
 
                 oFilterModel.setProperty("/roles", oStats.roles);
                 oFilterModel.setProperty("/modules", oStats.modules);
+                oFilterModel.setProperty("/allRoles", oStats.roles.slice(0));
                 oFilterModel.setProperty("/allModules", oStats.modules.slice(0));
                 oFilterModel.setProperty("/roleModuleMap", oStats.roleModuleMap);
+                oFilterModel.setProperty("/moduleRoleMap", oStats.moduleRoleMap || {});
             }).catch(function () {
                 oAnalyticsModel.setProperty("/totalTrainings", 0);
                 MessageToast.show(that.getView().getModel("i18n").getResourceBundle().getText("loadFailed"));
@@ -153,6 +157,31 @@ sap.ui.define([
             }
             var oModuleSelect = this.byId("filterModule");
             if (oModuleSelect) { oModuleSelect.setSelectedKey(""); }
+        },
+
+        /**
+         * Cross-filtering: when Module changes, filter Role dropdown
+         * to only show roles available for the selected module.
+         */
+        onModuleFilterChange: function (oEvent) {
+            var oItem = oEvent.getParameter("selectedItem");
+            var sModule = oItem ? oItem.getKey() : "";
+            var oFilterModel = this.getView().getModel("filterData");
+            var moduleRoleMap = oFilterModel.getProperty("/moduleRoleMap") || {};
+            var allRoles = oFilterModel.getProperty("/allRoles") || [];
+
+            if (!sModule) {
+                oFilterModel.setProperty("/roles", allRoles.slice(0));
+            } else {
+                var rolesForModule = moduleRoleMap[sModule] || {};
+                var filtered = [{ key: "", text: "All" }];
+                Object.keys(rolesForModule).sort().forEach(function (r) {
+                    filtered.push({ key: r, text: r });
+                });
+                oFilterModel.setProperty("/roles", filtered);
+            }
+            var oRoleSelect = this.byId("filterRole");
+            if (oRoleSelect) { oRoleSelect.setSelectedKey(""); }
         },
 
         /**

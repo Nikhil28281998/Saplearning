@@ -81,11 +81,14 @@ sap.ui.define([
                         var oRoleSet = {};
                         var oModuleSet = {};
                         var oRoleModuleMap = {};
+                        var oModuleRoleMap = {};
 
                         aResults.forEach(function (t) {
                             if (t.SapModule) {
                                 oModuleMap[t.SapModule] = (oModuleMap[t.SapModule] || 0) + 1;
                                 oModuleSet[t.SapModule] = true;
+                                if (!oModuleRoleMap[t.SapModule]) { oModuleRoleMap[t.SapModule] = {}; }
+                                if (t.Role) { oModuleRoleMap[t.SapModule][t.Role] = true; }
                             }
                             if (t.Role) {
                                 oRoleSet[t.Role] = true;
@@ -113,7 +116,8 @@ sap.ui.define([
                             moduleDistribution: aModuleDist,
                             roles: aRoles,
                             modules: aModules,
-                            roleModuleMap: oRoleModuleMap
+                            roleModuleMap: oRoleModuleMap,
+                            moduleRoleMap: oModuleRoleMap
                         });
                     },
                     error: function (err) {

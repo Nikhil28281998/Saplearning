@@ -194,7 +194,7 @@
                         groupName="_BASIC"
                         visibleInFilterBar="true">
                         <filterBar:control>
-                            <Select id="filterModule" forceSelection="false" selectedKey=""
+                            <Select id="filterModule" forceSelection="false" selectedKey="" change="onModuleFilterChange"
                                 items="{filterData>/modules}">
                                 <core:Item id="moduleItem" key="{filterData>key}" text="{filterData>text}" />
                             </Select>
