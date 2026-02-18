@@ -28,6 +28,17 @@ sap.ui.define([
             });
             this.getView().setModel(oAnalyticsModel, "analyticsModel");
 
+            // Team analytics model (Manager/Admin only — BUG-4: moved from assignments page)
+            var oTeamModel = new JSONModel({
+                totalAssignments: 0,
+                assigned: 0,
+                inProgress: 0,
+                completed: 0,
+                completionPercent: 0,
+                userBreakdown: []
+            });
+            this.getView().setModel(oTeamModel, "teamAnalytics");
+
             // Filter data model for Role/Module dropdowns + cross-filtering
             var oFilterModel = new JSONModel({
                 roles: [{ key: "", text: "All" }],
@@ -100,6 +111,9 @@ sap.ui.define([
             Promise.all([pTrainings, pAssignments]).finally(function () {
                 if (oPanel) { oPanel.setBusy(false); }
             });
+
+            // BUG-4: Load team analytics on home page (Manager/Admin only)
+            this._loadTeamAnalytics();
         },
 
         /**
@@ -143,6 +157,118 @@ sap.ui.define([
                 });
 
                 oContainer.addItem(oChart);
+            });
+        },
+
+        /* ================================================================== */
+        /* TEAM ANALYTICS — Manager/Admin org-wide view (BUG-4: moved here)  */
+        /* ================================================================== */
+
+        _loadTeamAnalytics: function () {
+            var sRole = this.getOwnerComponent()._role;
+            if (sRole !== "Manager" && sRole !== "Admin") { return; }
+
+            var oModel = this.getOwnerComponent().getModel();
+            var oTeamModel = this.getView().getModel("teamAnalytics");
+            var sEntitySet = this.getOwnerComponent().getAssignmentEntitySet();
+            var that = this;
+
+            var oPanel = this.byId("teamAnalyticsPanel");
+            if (oPanel) { oPanel.setBusy(true); }
+
+            oModel.read("/" + sEntitySet, {
+                urlParameters: { "$inlinecount": "allpages" },
+                success: function (oData) {
+                    var aAll = oData.results || [];
+                    var iTotal = oData.__count ? parseInt(oData.__count, 10) : aAll.length;
+                    var iAssigned = 0, iInProgress = 0, iCompleted = 0;
+                    var oUserMap = {};
+
+                    aAll.forEach(function (a) {
+                        if (a.Status === "Assigned") { iAssigned++; }
+                        else if (a.Status === "In Progress") { iInProgress++; }
+                        else if (a.Status === "Completed") { iCompleted++; }
+                        var sUser = a.UserId || "UNKNOWN";
+                        if (!oUserMap[sUser]) {
+                            oUserMap[sUser] = { userId: sUser, userName: a.UserName || sUser, total: 0, completed: 0 };
+                        }
+                        oUserMap[sUser].total++;
+                        if (a.Status === "Completed") { oUserMap[sUser].completed++; }
+                    });
+
+                    var iPct = iTotal > 0 ? Math.round((iCompleted / iTotal) * 100) : 0;
+                    oTeamModel.setProperty("/totalAssignments", iTotal);
+                    oTeamModel.setProperty("/assigned", iAssigned);
+                    oTeamModel.setProperty("/inProgress", iInProgress);
+                    oTeamModel.setProperty("/completed", iCompleted);
+                    oTeamModel.setProperty("/completionPercent", iPct);
+
+                    var aUsers = Object.keys(oUserMap).map(function (k) { return oUserMap[k]; });
+                    aUsers.sort(function (a, b) {
+                        var pctA = a.total > 0 ? a.completed / a.total : 0;
+                        var pctB = b.total > 0 ? b.completed / b.total : 0;
+                        return pctB - pctA;
+                    });
+                    oTeamModel.setProperty("/userBreakdown", aUsers);
+                    that._buildUserProgressList(aUsers);
+                    if (oPanel) { oPanel.setBusy(false); }
+                },
+                error: function (err) {
+                    Log.warning("[TeamAnalytics] Failed: " + (err && err.message || ""));
+                    if (oPanel) { oPanel.setBusy(false); }
+                }
+            });
+        },
+
+        _buildUserProgressList: function (aUsers) {
+            var oContainer = this.byId("teamUserListContainer");
+            if (!oContainer) { return; }
+            oContainer.destroyItems();
+
+            if (aUsers.length === 0) {
+                oContainer.addItem(new Text({ text: "No user assignments found" }));
+                return;
+            }
+
+            var aTop = aUsers.slice(0, 10);
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+
+            sap.ui.require([
+                "sap/m/HBox", "sap/m/VBox", "sap/m/ProgressIndicator", "sap/m/ObjectStatus"
+            ], function (HBox, VBox, ProgressIndicator, ObjectStatus) {
+                aTop.forEach(function (u) {
+                    var iPct = u.total > 0 ? Math.round((u.completed / u.total) * 100) : 0;
+                    var sState = iPct >= 100 ? "Success" : iPct >= 50 ? "Warning" : "Error";
+
+                    var oRow = new HBox({
+                        alignItems: "Center",
+                        justifyContent: "SpaceBetween",
+                        width: "100%",
+                        items: [
+                            new VBox({
+                                width: "35%",
+                                items: [
+                                    new Text({ text: u.userName || u.userId, wrapping: false }).addStyleClass("teamUserName"),
+                                    new Text({ text: u.userId, wrapping: false }).addStyleClass("teamUserId")
+                                ]
+                            }),
+                            new ProgressIndicator({
+                                percentValue: iPct,
+                                displayValue: u.completed + "/" + u.total + " (" + iPct + "%)",
+                                state: sState,
+                                width: "55%",
+                                height: "1.25rem"
+                            }),
+                            new ObjectStatus({
+                                text: iPct === 100 ? i18n.getText("done") : iPct + "%",
+                                state: sState,
+                                icon: iPct === 100 ? "sap-icon://accept" : ""
+                            }).addStyleClass("teamUserStatus")
+                        ]
+                    }).addStyleClass("teamUserRow sapUiTinyMarginBottom");
+
+                    oContainer.addItem(oRow);
+                });
             });
         },
 

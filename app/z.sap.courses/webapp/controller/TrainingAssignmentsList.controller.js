@@ -41,6 +41,10 @@ sap.ui.define([
             });
             this.getView().setModel(oTeamModel, "teamAnalytics");
 
+            // BUG-4: Team analytics moved to home page (TrainingsList).
+            // This model is kept for backward compatibility with view bindings
+            // but _loadTeamAnalytics is no longer called from this controller.
+
             // Dynamically set entity set name on SmartFilterBar + SmartTable
             var that = this;
             var oComponent = this.getOwnerComponent();
@@ -58,11 +62,9 @@ sap.ui.define([
                         oSmartTable.setEntitySet(sEntitySet);
                     }
                     that._loadAnalytics();
-                    that._loadTeamAnalytics();
                 });
             } else {
                 this._loadAnalytics();
-                this._loadTeamAnalytics();
             }
 
             // Re-load data when role changes (async fetch may complete after initial load)
@@ -70,7 +72,6 @@ sap.ui.define([
                 var oST = that.byId("assignSmartTable");
                 if (oST) { oST.rebindTable(true); }
                 that._loadAnalytics();
-                that._loadTeamAnalytics();
             }, this);
 
             // Reload data every time user navigates to this page
@@ -80,7 +81,6 @@ sap.ui.define([
                     var oST = that.byId("assignSmartTable");
                     if (oST) { oST.rebindTable(true); }
                     that._loadAnalytics();
-                    that._loadTeamAnalytics();
                 }, this);
             }
         },
@@ -352,7 +352,6 @@ sap.ui.define([
             }
             this._linksApplied = false; // reset so templates re-apply
             this._loadAnalytics();
-            this._loadTeamAnalytics();
             MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("dataRefreshed"));
         },
 
