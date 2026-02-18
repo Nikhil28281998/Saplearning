@@ -65,6 +65,14 @@ sap.ui.define([
                 this._loadTeamAnalytics();
             }
 
+            // Re-load data when role changes (async fetch may complete after initial load)
+            sap.ui.getCore().getEventBus().subscribe("sapCourses", "roleChanged", function () {
+                var oST = that.byId("assignSmartTable");
+                if (oST) { oST.rebindTable(true); }
+                that._loadAnalytics();
+                that._loadTeamAnalytics();
+            }, this);
+
             // Reload data every time user navigates to this page
             var oRouter = oComponent.getRouter();
             if (oRouter) {
@@ -82,14 +90,22 @@ sap.ui.define([
         /* ================================================================== */
 
         _loadAnalytics: function () {
-            var oModel = this.getOwnerComponent().getModel();
+            var oComponent = this.getOwnerComponent();
+            var oModel = oComponent.getModel();
             var oAnalyticsModel = this.getView().getModel("assignAnalytics");
-            var sEntitySet = this.getOwnerComponent().getAssignmentEntitySet();
+            var sEntitySet = oComponent.getAssignmentEntitySet();
+            var sUserId = oComponent.getCurrentUserId();
 
             var oPanel = this.byId("myProgressPanel");
             if (oPanel) { oPanel.setBusy(true); }
 
-            this._analyticsService.getAssignmentStats(oModel, sEntitySet).then(function (oStats) {
+            // BUG-1 FIX: My Progress always shows current user's own stats
+            var aUserFilters = [];
+            if (sUserId) {
+                aUserFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId));
+            }
+
+            this._analyticsService.getAssignmentStats(oModel, sEntitySet, aUserFilters).then(function (oStats) {
                 oAnalyticsModel.setProperty("/assigned", oStats.assigned);
                 oAnalyticsModel.setProperty("/inProgress", oStats.inProgress);
                 oAnalyticsModel.setProperty("/completed", oStats.completed);
@@ -365,6 +381,15 @@ sap.ui.define([
                 mBindingParams.filters[i] = fnSanitize(mBindingParams.filters[i]);
             }
 
+            // BUG-1 FIX: End users only see their own assignments
+            var oComponent = this.getOwnerComponent();
+            var sRole = oComponent._role || "User";
+            var sCurrentUserId = oComponent.getCurrentUserId();
+            if (sRole === "User" && sCurrentUserId) {
+                mBindingParams.filters.push(new Filter("UserId", FilterOperator.EQ, sCurrentUserId));
+                Log.info("[AssignFilter] UserId filter for end user: " + sCurrentUserId);
+            }
+
             // Basic search → Title EQ filter
             var sSearchVal = "";
             if (oSmartFilterBar && oSmartFilterBar.getBasicSearchValue) {
@@ -410,6 +435,15 @@ sap.ui.define([
 
             if (oAssignment.Status === "Completed") {
                 MessageToast.show(i18n.getText("alreadyCompleted"));
+                return;
+            }
+
+            // BUG-2 FIX: End users can only complete their own assignments
+            var oComponent = this.getOwnerComponent();
+            var sRole = oComponent._role || "User";
+            var sCurrentUserId = oComponent.getCurrentUserId();
+            if (sRole === "User" && sCurrentUserId && oAssignment.UserId !== sCurrentUserId) {
+                MessageToast.show(i18n.getText("cannotCompleteOthers"));
                 return;
             }
 
@@ -568,6 +602,16 @@ sap.ui.define([
         _markCompleted: function (oContext) {
             var that = this;
             var i18n = this.getView().getModel("i18n").getResourceBundle();
+
+            // BUG-2 FIX: Belt-and-suspenders ownership check (covers all code paths)
+            var oComponent = this.getOwnerComponent();
+            var sRole = oComponent._role || "User";
+            var sCurrentUserId = oComponent.getCurrentUserId();
+            var oAssignment = oContext.getObject();
+            if (sRole === "User" && sCurrentUserId && oAssignment.UserId !== sCurrentUserId) {
+                MessageToast.show(i18n.getText("cannotCompleteOthers"));
+                return;
+            }
 
             MessageBox.confirm(i18n.getText("confirmText"), {
                 title: i18n.getText("confirmTitle"),

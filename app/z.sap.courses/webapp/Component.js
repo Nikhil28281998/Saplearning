@@ -24,8 +24,11 @@ sap.ui.define([
             this._assignmentEntitySet = 'TrainingAssignments'; // default
 
             // Create a stable "user" JSONModel once — _applyRoleUI reuses it via setProperty
-            this._userModel = new JSONModel({ role: 'User' });
+            this._userModel = new JSONModel({ role: 'User', userId: '' });
             this.setModel(this._userModel, "user");
+
+            // Detect current SAP username for data filtering (BUG-1 fix)
+            this._fetchUserId();
 
             // Initialize UserContext service (S/4 authorization adapter) - non-blocking
             try {
@@ -130,6 +133,63 @@ sap.ui.define([
          */
         getAssignmentEntitySet: function () {
             return this._assignmentEntitySet || 'TrainingAssignments';
+        },
+
+        /**
+         * Get the current SAP username for data filtering.
+         */
+        getCurrentUserId: function () {
+            return this._userModel.getProperty("/userId") || "";
+        },
+
+        /**
+         * Detect the current SAP username (sy-uname equivalent).
+         * Production: reads from FLP UserInfo service.
+         * Dev: URL param ?sap-user=XXX, localStorage, or default 'DEVUSER'.
+         */
+        _fetchUserId: function () {
+            // 1. Try FLP UserInfo service (production S/4HANA)
+            try {
+                if (sap.ushell && sap.ushell.Container) {
+                    var oUser = sap.ushell.Container.getUser();
+                    if (oUser) {
+                        var sId = oUser.getId();
+                        if (sId) {
+                            this._userModel.setProperty("/userId", sId.toUpperCase());
+                            Log.info("User ID from FLP UserInfo: " + sId.toUpperCase());
+                            return;
+                        }
+                    }
+                }
+            } catch (e) {
+                Log.info("FLP UserInfo not available: " + e.message);
+            }
+
+            // 2. Dev mode: URL param or localStorage
+            var isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            if (isDev) {
+                try {
+                    var href = window.location.href || '';
+                    var m = href.match(/[?&]sap-user=([^&]+)/);
+                    if (m && m[1]) {
+                        var sUser = decodeURIComponent(m[1]).toUpperCase();
+                        this._userModel.setProperty("/userId", sUser);
+                        try { localStorage.setItem('saplc-user', sUser); } catch (_) {}
+                        Log.info("User ID from URL param: " + sUser);
+                        return;
+                    }
+                } catch (_) { /* ignore */ }
+                try {
+                    var ls = localStorage.getItem('saplc-user');
+                    if (ls) {
+                        this._userModel.setProperty("/userId", ls.toUpperCase());
+                        Log.info("User ID from localStorage: " + ls);
+                        return;
+                    }
+                } catch (_) { /* ignore */ }
+                this._userModel.setProperty("/userId", "DEVUSER");
+                Log.info("User ID defaulted to DEVUSER (dev mode)");
+            }
         },
 
         /**
@@ -239,6 +299,8 @@ sap.ui.define([
             var sRole = this._role || 'User';
             Log.info('User role applied: ' + sRole);
             this._userModel.setProperty("/role", sRole);
+            // Notify active controllers to refresh data with correct role-based filters
+            sap.ui.getCore().getEventBus().publish("sapCourses", "roleChanged", { role: sRole });
         },
 
         // Navigate to TrainingAssignments

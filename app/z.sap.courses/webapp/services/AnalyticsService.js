@@ -23,7 +23,7 @@ sap.ui.define([
          * @param {string} sEntitySet - Entity set name (e.g. "TrainingAssignments")
          * @returns {Promise<{assigned: number, inProgress: number, completed: number, completionPercent: number}>}
          */
-        getAssignmentStats: function (oModel, sEntitySet) {
+        getAssignmentStats: function (oModel, sEntitySet, aExtraFilters) {
             var aStatuses = [
                 { key: "assigned", value: "Assigned" },
                 { key: "inProgress", value: "In Progress" },
@@ -32,8 +32,12 @@ sap.ui.define([
 
             var aPromises = aStatuses.map(function (oStatus) {
                 return new Promise(function (resolve) {
+                    var aFilters = [new Filter("Status", FilterOperator.EQ, oStatus.value)];
+                    if (aExtraFilters && aExtraFilters.length > 0) {
+                        aFilters = aFilters.concat(aExtraFilters);
+                    }
                     oModel.read("/" + sEntitySet, {
-                        filters: [new Filter("Status", FilterOperator.EQ, oStatus.value)],
+                        filters: aFilters,
                         urlParameters: {
                             "$top": "0",
                             "$inlinecount": "allpages"

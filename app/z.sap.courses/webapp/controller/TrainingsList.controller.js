@@ -40,6 +40,12 @@ sap.ui.define([
             this.getView().setModel(oFilterModel, "filterData");
 
             this._loadAllData();
+
+            // BUG-3 FIX: Re-load analytics when role is fetched to apply correct user filters
+            var that = this;
+            sap.ui.getCore().getEventBus().subscribe("sapCourses", "roleChanged", function () {
+                that._loadAllData();
+            }, this);
         },
 
         /**
@@ -74,8 +80,16 @@ sap.ui.define([
                 MessageToast.show(that.getView().getModel("i18n").getResourceBundle().getText("loadFailed"));
             });
 
+            // BUG-3 FIX: For role=User, filter assignment stats by current user only
+            var sRole = this.getOwnerComponent()._role || "User";
+            var sCurrentUserId = this.getOwnerComponent().getCurrentUserId();
+            var aAssignmentFilters = [];
+            if (sRole === "User" && sCurrentUserId) {
+                aAssignmentFilters.push(new Filter("UserId", FilterOperator.EQ, sCurrentUserId));
+            }
+
             // Assignment stats: 3 lightweight server-side count requests
-            var pAssignments = this._analyticsService.getAssignmentStats(oModel, sEntitySet).then(function (oStats) {
+            var pAssignments = this._analyticsService.getAssignmentStats(oModel, sEntitySet, aAssignmentFilters).then(function (oStats) {
                 oAnalyticsModel.setProperty("/assigned", oStats.assigned);
                 oAnalyticsModel.setProperty("/inProgress", oStats.inProgress);
                 oAnalyticsModel.setProperty("/completed", oStats.completed);
