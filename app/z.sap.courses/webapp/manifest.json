@@ -169,5 +169,11 @@
       "z.sap.courses"
     ],
     "archeType": "transactional"
+  },
+  "sap.flp": {
+    "type": "application",
+    "config": {
+      "fullWidth": true
+    }
   }
 }

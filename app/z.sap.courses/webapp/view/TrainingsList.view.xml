@@ -209,10 +209,11 @@
                 enableExport="true"
                 useVariantManagement="false"
                 useTablePersonalisation="true"
-                persistencyKey="TrainingsSmartTableV2"
+                persistencyKey="TrainingsSmartTableV3"
                 initialise="onSmartTableInit"
                 beforeRebindTable="onBeforeRebindTable"
                 fitContainer="true"
+                enableAutoColumnWidth="true"
                 ignoredFields="Id"
                 initiallyVisibleFields="Title,Role,SapModule,Description,LastUpdated,Url,SapHelpLink"
                 requestAtLeastFields="Id,Url,SapHelpLink">
