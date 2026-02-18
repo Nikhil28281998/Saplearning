@@ -21,7 +21,16 @@
                     <Title id="pageTitle" text="{i18n>appTitle}" level="H2" />
                 </contentLeft>
                 <contentRight>
-                    <HBox id="roleBox" alignItems="Center" class="sapUiSmallMarginEnd roleBoxContainer">
+                    <!-- Role badge: shows the PFCG-detected role (read-only) -->
+                    <ObjectStatus
+                        id="roleBadge"
+                        text="{user>/role}"
+                        icon="sap-icon://role"
+                        state="{= ${user>/role} === 'Admin' ? 'Success' : ${user>/role} === 'Manager' ? 'Warning' : 'Information' }"
+                        class="sapUiSmallMarginEnd" />
+                    <!-- Role switcher: visible only in dev/localhost for testing.
+                         In production (S/4HANA), role comes from getCurrentRole PFCG check. -->
+                    <HBox id="roleBox" alignItems="Center" class="sapUiSmallMarginEnd roleBoxContainer" visible="false">
                         <core:Icon id="roleIcon" src="sap-icon://role" size="1rem" class="sapUiTinyMarginEnd headerIcon" />
                         <Select id="roleSwitcher" selectedKey="{user>/role}" change="onSwitchRole" class="roleSwitcherSelect">
                             <core:Item id="roleAdmin" key="Admin" text="Admin" />

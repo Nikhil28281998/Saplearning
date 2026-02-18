@@ -186,10 +186,6 @@ sap.ui.define([
                 oTable.setEnableCellFilter(true);
                 oTable.setEnableGrouping(true);
 
-                // fixedLayout=false: columns auto-stretch to fill available table width
-                // Without this, GridTable uses fixed column widths and leaves dead space
-                oTable.setFixedLayout(false);
-
                 // Fit-to-screen: auto-fill available height like standard Fiori
                 oTable.setVisibleRowCountMode("Auto");
                 oTable.setMinAutoRowCount(5);
