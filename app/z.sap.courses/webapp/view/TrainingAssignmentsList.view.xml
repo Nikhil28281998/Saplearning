@@ -67,15 +67,7 @@
                             class="analyticsNumber" />
                         <Text id="myAssignedLabel" text="{i18n>toStart}" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="myInProgressBox" alignItems="Center" class="analyticsCard analyticsCardTeal">
-                        <core:Icon id="myInProgressIcon" src="sap-icon://activity-2" size="1.5rem" color="#0a6ed1" class="sapUiTinyMarginBottom" />
-                        <ObjectNumber
-                            id="myInProgressCount"
-                            number="{assignAnalytics>/inProgress}"
-                            state="Information"
-                            class="analyticsNumber" />
-                        <Text id="myInProgressLabel" text="{i18n>inProgress}" class="analyticsLabel" />
-                    </VBox>
+
                     <VBox id="myCompletedBox" alignItems="Center" class="analyticsCard analyticsCardGreen">
                         <core:Icon id="myCompletedIcon" src="sap-icon://accept" size="1.5rem" color="#107e3e" class="sapUiTinyMarginBottom" />
                         <ObjectNumber

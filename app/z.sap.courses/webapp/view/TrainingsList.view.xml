@@ -88,7 +88,7 @@
                     </VBox>
                     <VBox id="teamCompletionBox" alignItems="Center" class="analyticsCard analyticsCardPurple">
                         <core:Icon id="teamCompletionIcon" src="sap-icon://performance" size="1.5rem" color="#6c32a9" class="sapUiTinyMarginBottom" />
-                        <mc:RadialMicroChart id="teamCompletionRadial" percentage="{teamAnalytics>/completionPercent}" valueColor="{= ${teamAnalytics>/completionPercent} >= 80 ? 'Good' : ${teamAnalytics>/completionPercent} >= 50 ? 'Critical' : 'Error' }" size="S" />
+                        <mc:RadialMicroChart id="teamCompletionRadial" percentage="{teamAnalytics>/completionPercent}" valueColor="{= ${teamAnalytics>/completionPercent} >= 80 ? 'Good' : ${teamAnalytics>/completionPercent} >= 50 ? 'Critical' : 'Error' }" size="L" />
                         <Text id="teamCompletionLabel" text="{i18n>teamCompletionRate}" class="analyticsLabel" />
                     </VBox>
                 </HBox>

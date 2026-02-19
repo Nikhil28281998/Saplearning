@@ -9,19 +9,13 @@ sap.ui.define([
     "sap/base/Log",
     "sap/m/Link",
     "sap/m/Text",
-    "sap/m/ObjectStatus",
-    "sap/m/HBox",
-    "sap/m/VBox",
-    "sap/m/ProgressIndicator",
-    "z/sap/courses/services/AnalyticsService"
-], function (Controller, History, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Log, Link, Text, ObjectStatus, HBox, VBox, ProgressIndicator, AnalyticsService) {
+    "sap/m/ObjectStatus"
+], function (Controller, History, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Log, Link, Text, ObjectStatus) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingAssignmentsList", {
 
         onInit: function () {
-            this._analyticsService = new AnalyticsService();
-
             // User's own progress model
             var oAnalyticsModel = new JSONModel({
                 assigned: 0,
@@ -30,21 +24,6 @@ sap.ui.define([
                 completionPercent: 0
             });
             this.getView().setModel(oAnalyticsModel, "assignAnalytics");
-
-            // Manager team analytics model
-            var oTeamModel = new JSONModel({
-                totalAssignments: 0,
-                assigned: 0,
-                inProgress: 0,
-                completed: 0,
-                completionPercent: 0,
-                userBreakdown: []
-            });
-            this.getView().setModel(oTeamModel, "teamAnalytics");
-
-            // BUG-4: Team analytics moved to home page (TrainingsList).
-            // This model is kept for backward compatibility with view bindings
-            // but _loadTeamAnalytics is no longer called from this controller.
 
             // Dynamically set entity set name on SmartFilterBar + SmartTable
             var that = this;
@@ -95,7 +74,6 @@ sap.ui.define([
             // FEAT-2: Analytics click-through — click card to filter table
             var aClickCards = [
                 { id: "myAssignedBox",    status: "Assigned" },
-                { id: "myInProgressBox",  status: "In Progress" },
                 { id: "myCompletedBox",   status: "Completed" }
             ];
             aClickCards.forEach(function (card) {
@@ -118,158 +96,44 @@ sap.ui.define([
             var oModel = oComponent.getModel();
             var oAnalyticsModel = this.getView().getModel("assignAnalytics");
             var sEntitySet = oComponent.getAssignmentEntitySet();
+            var sRole = oComponent._role || "User";
             var sUserId = oComponent.getCurrentUserId();
 
             var oPanel = this.byId("myProgressPanel");
             if (oPanel) { oPanel.setBusy(true); }
 
-            // BUG-1 FIX: My Progress always shows current user's own stats
-            var aUserFilters = [];
-            if (sUserId) {
-                aUserFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId));
+            // Always filter by userId for end users (sentinel if unknown)
+            var aFilters = [];
+            if (sRole === "User") {
+                aFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId || "__NOUSER__"));
+            } else if (sUserId) {
+                aFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId));
             }
 
-            this._analyticsService.getAssignmentStats(oModel, sEntitySet, aUserFilters).then(function (oStats) {
-                oAnalyticsModel.setProperty("/assigned", oStats.assigned);
-                oAnalyticsModel.setProperty("/inProgress", oStats.inProgress);
-                oAnalyticsModel.setProperty("/completed", oStats.completed);
-                oAnalyticsModel.setProperty("/completionPercent", oStats.completionPercent);
-            }).catch(function (err) {
-                Log.warning("[AssignAnalytics] Failed to load assignments: " + (err && err.message || ""));
-            }).finally(function () {
-                if (oPanel) { oPanel.setBusy(false); }
-            });
-        },
-
-        /* ================================================================== */
-        /* TEAM ANALYTICS – Manager/Admin org-wide view                       */
-        /* Shows all assignments across all users with per-user breakdown     */
-        /* ================================================================== */
-
-        _loadTeamAnalytics: function () {
-            var sRole = this.getOwnerComponent()._role;
-            if (sRole !== "Manager" && sRole !== "Admin") { return; }
-
-            var oModel = this.getOwnerComponent().getModel();
-            var oTeamModel = this.getView().getModel("teamAnalytics");
-            var sEntitySet = this.getOwnerComponent().getAssignmentEntitySet();
-            var that = this;
-
-            var oPanel = this.byId("teamAnalyticsPanel");
-            if (oPanel) { oPanel.setBusy(true); }
-
-            // Load ALL assignments (manager has full READ access)
+            // Single OData read — count statuses client-side for reliability
             oModel.read("/" + sEntitySet, {
+                filters: aFilters,
                 urlParameters: { "$inlinecount": "allpages" },
                 success: function (oData) {
                     var aAll = oData.results || [];
-                    var iTotal = oData.__count ? parseInt(oData.__count, 10) : aAll.length;
-
                     var iAssigned = 0, iInProgress = 0, iCompleted = 0;
-                    var oUserMap = {};
-
                     aAll.forEach(function (a) {
                         if (a.Status === "Assigned") { iAssigned++; }
                         else if (a.Status === "In Progress") { iInProgress++; }
                         else if (a.Status === "Completed") { iCompleted++; }
-
-                        // Per-user breakdown
-                        var sUser = a.UserId || "UNKNOWN";
-                        if (!oUserMap[sUser]) {
-                            oUserMap[sUser] = {
-                                userId: sUser,
-                                userName: a.UserName || sUser,
-                                total: 0,
-                                completed: 0
-                            };
-                        }
-                        oUserMap[sUser].total++;
-                        if (a.Status === "Completed") { oUserMap[sUser].completed++; }
                     });
-
+                    var iTotal = iAssigned + iInProgress + iCompleted;
                     var iPct = iTotal > 0 ? Math.round((iCompleted / iTotal) * 100) : 0;
-
-                    oTeamModel.setProperty("/totalAssignments", iTotal);
-                    oTeamModel.setProperty("/assigned", iAssigned);
-                    oTeamModel.setProperty("/inProgress", iInProgress);
-                    oTeamModel.setProperty("/completed", iCompleted);
-                    oTeamModel.setProperty("/completionPercent", iPct);
-
-                    // Build per-user breakdown array
-                    var aUsers = Object.keys(oUserMap).map(function (k) { return oUserMap[k]; });
-                    aUsers.sort(function (a, b) {
-                        var pctA = a.total > 0 ? a.completed / a.total : 0;
-                        var pctB = b.total > 0 ? b.completed / b.total : 0;
-                        return pctB - pctA;
-                    });
-                    oTeamModel.setProperty("/userBreakdown", aUsers);
-                    that._buildUserProgressList(aUsers);
-
+                    oAnalyticsModel.setProperty("/assigned", iAssigned);
+                    oAnalyticsModel.setProperty("/inProgress", iInProgress);
+                    oAnalyticsModel.setProperty("/completed", iCompleted);
+                    oAnalyticsModel.setProperty("/completionPercent", iPct);
                     if (oPanel) { oPanel.setBusy(false); }
                 },
                 error: function (err) {
-                    Log.warning("[TeamAnalytics] Failed to load: " + (err && err.message || ""));
+                    Log.warning("[AssignAnalytics] Failed to load: " + (err && err.message || ""));
                     if (oPanel) { oPanel.setBusy(false); }
                 }
-            });
-        },
-
-        /**
-         * Build per-user progress list in the Team Analytics chart area.
-         * Shows each user's name, completion bar, and count.
-         */
-        _buildUserProgressList: function (aUsers) {
-            var oContainer = this.byId("teamUserListContainer");
-            if (!oContainer) { return; }
-            oContainer.destroyItems();
-
-            if (aUsers.length === 0) {
-                oContainer.addItem(new Text({ text: "No user assignments found" }));
-                return;
-            }
-
-            // Show top 10 users by completion
-            var aTop = aUsers.slice(0, 10);
-            var i18n = this.getView().getModel("i18n").getResourceBundle();
-
-            aTop.forEach(function (u) {
-                var iPct = u.total > 0 ? Math.round((u.completed / u.total) * 100) : 0;
-                var sState = iPct >= 100 ? "Success" : iPct >= 50 ? "Warning" : "Error";
-
-                var oRow = new HBox({
-                    alignItems: "Center",
-                    justifyContent: "SpaceBetween",
-                    width: "100%",
-                    items: [
-                        new VBox({
-                            width: "35%",
-                            items: [
-                                new Text({
-                                    text: u.userName || u.userId,
-                                    wrapping: false
-                                }).addStyleClass("teamUserName"),
-                                new Text({
-                                    text: u.userId,
-                                    wrapping: false
-                                }).addStyleClass("teamUserId")
-                            ]
-                        }),
-                        new ProgressIndicator({
-                            percentValue: iPct,
-                            displayValue: u.completed + "/" + u.total + " (" + iPct + "%)",
-                            state: sState,
-                            width: "55%",
-                            height: "1.25rem"
-                        }),
-                        new ObjectStatus({
-                            text: iPct === 100 ? i18n.getText("done") : iPct + "%",
-                            state: sState,
-                            icon: iPct === 100 ? "sap-icon://accept" : ""
-                        }).addStyleClass("teamUserStatus")
-                    ]
-                }).addStyleClass("teamUserRow sapUiTinyMarginBottom");
-
-                oContainer.addItem(oRow);
             });
         },
 

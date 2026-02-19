@@ -211,9 +211,9 @@ sap.ui.define([
         _buildUserProgressList: function (aUsers) {
             var oContainer = this.byId("teamUserListContainer");
             if (!oContainer) { return; }
-            oContainer.destroyItems();
 
             if (aUsers.length === 0) {
+                oContainer.destroyItems();
                 oContainer.addItem(new Text({ text: "No user assignments found" }));
                 return;
             }
@@ -224,6 +224,7 @@ sap.ui.define([
             sap.ui.require([
                 "sap/m/HBox", "sap/m/VBox", "sap/m/ProgressIndicator", "sap/m/ObjectStatus"
             ], function (HBox, VBox, ProgressIndicator, ObjectStatus) {
+                oContainer.destroyItems();
                 aTop.forEach(function (u) {
                     var iPct = u.total > 0 ? Math.round((u.completed / u.total) * 100) : 0;
                     var sState = iPct >= 100 ? "Success" : iPct >= 50 ? "Warning" : "Error";
@@ -234,7 +235,7 @@ sap.ui.define([
                         width: "100%",
                         items: [
                             new VBox({
-                                width: "35%",
+                                width: "30%",
                                 items: [
                                     new Text({ text: u.userName || u.userId, wrapping: false }).addStyleClass("teamUserName"),
                                     new Text({ text: u.userId, wrapping: false }).addStyleClass("teamUserId")
@@ -245,7 +246,7 @@ sap.ui.define([
                                 displayValue: u.completed + "/" + u.total + " (" + iPct + "%)",
                                 state: sState,
                                 width: "55%",
-                                height: "1.25rem"
+                                height: "2rem"
                             }),
                             new ObjectStatus({
                                 text: iPct === 100 ? i18n.getText("done") : iPct + "%",
