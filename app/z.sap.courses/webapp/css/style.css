@@ -1076,6 +1076,19 @@ html, body, html.sap-desktop, .sapUiBody {
         var(--sapBg) !important;
 }
 
+/* FEAT-2: Analytics cards clickable cursor + hover lift */
+.analyticsCardClickable {
+    cursor: pointer !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.analyticsCardClickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.analyticsCardClickable:active {
+    transform: translateY(0);
+}
+
 /* ===== ToolbarSeparator ===== */
 .sapMTBSeparator {
     background: var(--sapBorder) !important;

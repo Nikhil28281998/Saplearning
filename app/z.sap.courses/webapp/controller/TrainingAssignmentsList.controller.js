@@ -81,7 +81,38 @@ sap.ui.define([
                     var oST = that.byId("assignSmartTable");
                     if (oST) { oST.rebindTable(true); }
                     that._loadAnalytics();
+
+                    // FEAT-2: Apply pending status filter from home page click-through
+                    var sPending = oComponent._pendingAssignmentFilter;
+                    if (sPending) {
+                        oComponent._pendingAssignmentFilter = null;
+                        setTimeout(function () { that._filterByStatus(sPending); }, 300);
+                    }
                 }, this);
+            }
+
+            // FEAT-2: Analytics click-through — click card to filter table
+            var aClickCards = [
+                { id: "myAssignedBox",    status: "Assigned" },
+                { id: "myInProgressBox",  status: "In Progress" },
+                { id: "myCompletedBox",   status: "Completed" }
+            ];
+            aClickCards.forEach(function (card) {
+                var oCard = that.byId(card.id);
+                if (oCard) {
+                    oCard.addStyleClass("analyticsCardClickable");
+                    oCard.attachBrowserEvent("click", function () {
+                        that._filterByStatus(card.status);
+                    });
+                }
+            });
+            // Click progress radial to clear status filter
+            var oProgressCard = this.byId("myProgressBox");
+            if (oProgressCard) {
+                oProgressCard.addStyleClass("analyticsCardClickable");
+                oProgressCard.attachBrowserEvent("click", function () {
+                    that._filterByStatus("");
+                });
             }
         },
 
@@ -393,6 +424,21 @@ sap.ui.define([
         },
 
         /**
+         * FEAT-2: Filter SmartTable by status via the SmartFilterBar Status Select.
+         * Pass empty string to clear the status filter.
+         */
+        _filterByStatus: function (sStatus) {
+            var oSelect = this.byId("filterAssignStatus");
+            if (oSelect) {
+                oSelect.setSelectedKey(sStatus);
+            }
+            var oSmartFilterBar = this.byId("assignSmartFilterBar");
+            if (oSmartFilterBar) {
+                oSmartFilterBar.search();
+            }
+        },
+
+        /**
          * beforeRebindTable – handle SmartFilterBar filters for Assignments.
          */
         onBeforeRebindTable: function (oEvent) {
@@ -664,7 +710,9 @@ sap.ui.define([
                         success: function () {
                             if (oSmartTable) { oSmartTable.setBusy(false); }
                             MessageToast.show(i18n.getText("markedCompleted"));
-                            that.onRefresh();
+                            // FEAT-3: Show completed assignments after marking
+                            that._filterByStatus("Completed");
+                            that._loadAnalytics();
                         },
                         error: function (err) {
                             if (oSmartTable) { oSmartTable.setBusy(false); }

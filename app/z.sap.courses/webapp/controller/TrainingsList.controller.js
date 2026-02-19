@@ -57,6 +57,23 @@ sap.ui.define([
             sap.ui.getCore().getEventBus().subscribe("sapCourses", "roleChanged", function () {
                 that._loadAllData();
             }, this);
+
+            // FEAT-2: Home page assignment analytics cards → navigate to assignments with pre-filter
+            var aAssignCards = [
+                { id: "assignedBox",   status: "Assigned" },
+                { id: "inProgressBox", status: "In Progress" },
+                { id: "completedBox",  status: "Completed" }
+            ];
+            aAssignCards.forEach(function (card) {
+                var oCard = that.byId(card.id);
+                if (oCard) {
+                    oCard.addStyleClass("analyticsCardClickable");
+                    oCard.attachBrowserEvent("click", function () {
+                        that.getOwnerComponent()._pendingAssignmentFilter = card.status;
+                        that.getOwnerComponent().getRouter().navTo("TrainingAssignmentsList", {}, true);
+                    });
+                }
+            });
         },
 
         /**
