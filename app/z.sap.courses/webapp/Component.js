@@ -343,14 +343,14 @@ sap.ui.define([
             };
 
             // Load trainings and users in parallel
-            // For Manager role: filter UserSet by ManagerSort2 = current user ID
-            // so the dropdown only shows the manager's team members
+            // For Manager role: filter UserSet by Sort2 = current user ID
+            // (Sort2 = User entity property mapped from ADRP.SORT2 in SU01)
             var pTrainings = loadList('/Trainings');
             var sUserId = that.getCurrentUserId();
             var sRole = that._role;
             var aUserFilters = [];
             if (sRole === 'Manager' && sUserId) {
-                aUserFilters.push(new sap.ui.model.Filter("ManagerSort2", sap.ui.model.FilterOperator.EQ, sUserId));
+                aUserFilters.push(new sap.ui.model.Filter("Sort2", sap.ui.model.FilterOperator.EQ, sUserId));
             }
             var pUsers = new Promise(function (resolve, reject) {
                 oModel.read('/UserSet', {
@@ -397,10 +397,7 @@ sap.ui.define([
                 selectedRoleFilter: "",
                 selectedModuleFilter: "",
                 selectedTrainingId: trainings[0] && trainings[0].Id || '',
-                userId: '',
-                firstName: '',
-                lastName: '',
-                userEmail: '',
+                selectedUserKeys: [],
                 dueDate: null,
                 submitting: false,
                 error: ''
@@ -486,31 +483,18 @@ sap.ui.define([
         },
 
         /**
-         * User suggestion selected — auto-fill Full Name and Email fields.
+         * Multi-user selection changed — update selectedUserKeys in model.
          */
-        onAssignUserSelected: function (oEvent) {
-            var oItem = oEvent.getParameter("selectedItem");
-            if (!oItem) { return; }
-            var oModel = this._assignModel;
-            if (!oModel) { return; }
-            var sKey = oItem.getKey();
-            oModel.setProperty("/userId", sKey);
-
-            // Look up user in loaded list to auto-fill name & email
-            var users = oModel.getProperty("/users") || [];
-            var found = users.filter(function (u) {
-                return (u.UserId || '').toUpperCase() === (sKey || '').toUpperCase();
-            })[0];
-            if (found) {
-                oModel.setProperty('/firstName', found.FirstName || '');
-                oModel.setProperty('/lastName', found.LastName || '');
-                oModel.setProperty('/userEmail', found.Email || '');
-                Log.info('[AssignDlg] User selected: ' + sKey + ' → ' + (found.FirstName || '') + ' ' + (found.LastName || ''));
-            }
+        onAssignUserSelectionChange: function (oEvent) {
+            var oMCB = oEvent.getSource();
+            var aKeys = oMCB.getSelectedKeys();
+            this._assignModel.setProperty("/selectedUserKeys", aKeys);
+            Log.info('[AssignDlg] Selected users: ' + aKeys.join(', '));
         },
 
         /**
-         * Submit handler for Assign Training dialog.
+         * Submit handler for Assign Training dialog — supports bulk assignment.
+         * Creates one assignment per selected user for the chosen training.
          */
         onAssignSubmit: function () {
             var that = this;
@@ -523,44 +507,33 @@ sap.ui.define([
                 oAssignModel.setProperty('/error', 'Please select a training');
                 return;
             }
-            if (!data.userId || data.userId.trim() === '') {
-                oAssignModel.setProperty('/error', 'User ID (SYUNAME) is required');
-                return;
-            }
-            var userIdUpper = data.userId.toUpperCase();
-            if (!/^[A-Z0-9_]{1,12}$/.test(userIdUpper)) {
-                oAssignModel.setProperty('/error', 'Invalid User ID format');
+            var aSelectedKeys = data.selectedUserKeys || [];
+            if (aSelectedKeys.length === 0) {
+                oAssignModel.setProperty('/error', 'Please select at least one team member');
                 return;
             }
             oAssignModel.setProperty('/error', '');
 
-            // Build due date as UTC Date object — SEGW maps DATS to Edm.DateTime
-            // SAPUI5 ODataModel V2 serializes Date objects as /Date(timestamp)/
+            // Build due date as UTC Date object
             var dueDateValue = null;
             try {
                 if (data.dueDate) {
                     var year, month, day;
                     if (data.dueDate instanceof Date) {
                         year = data.dueDate.getFullYear();
-                        month = data.dueDate.getMonth(); // 0-based
+                        month = data.dueDate.getMonth();
                         day = data.dueDate.getDate();
                     } else if (typeof data.dueDate === 'string' && data.dueDate.length >= 10) {
                         var dateParts = data.dueDate.substring(0, 10).split('-');
                         if (dateParts.length === 3) {
                             year = parseInt(dateParts[0], 10);
-                            month = parseInt(dateParts[1], 10) - 1; // 0-based
+                            month = parseInt(dateParts[1], 10) - 1;
                             day = parseInt(dateParts[2], 10);
                         }
                     }
                     if (year && !isNaN(year)) {
-                        // Always send as JS Date in UTC — ODataModel V2 serializes to /Date(ts)/
                         dueDateValue = new Date(Date.UTC(year, month, day, 0, 0, 0));
-                        if (isNaN(dueDateValue.getTime())) {
-                            dueDateValue = null;
-                            Log.warning('[AssignDlg] Invalid due date value: ' + data.dueDate);
-                        } else {
-                            Log.info('[AssignDlg] DueDate UTC: ' + dueDateValue.toISOString());
-                        }
+                        if (isNaN(dueDateValue.getTime())) { dueDateValue = null; }
                     }
                 }
             } catch (dateErr) {
@@ -568,74 +541,78 @@ sap.ui.define([
                 dueDateValue = null;
             }
 
-            var payload = {
-                TrainingId: tr.Id || '',
-                Title: tr.Title || '',
-                Role: tr.Role || '',
-                SapModule: tr.SapModule || '',
-                Url: tr.Url || '',
-                Status: 'Assigned',
-                UserId: userIdUpper,
-                UserName: ((data.firstName || '') + ' ' + (data.lastName || '')).trim() || userIdUpper,
-                UserEmail: data.userEmail || ''
-            };
-            if (dueDateValue !== null) {
-                payload.DueDate = dueDateValue;
-            }
+            // Look up user details from loaded list
+            var aUsers = data.users || [];
+            var mUserMap = {};
+            aUsers.forEach(function (u) { mUserMap[(u.UserId || '').toUpperCase()] = u; });
 
             oAssignModel.setProperty('/submitting', true);
 
             var sEntitySet = this._assignmentEntitySet || 'TrainingAssignments';
             var oModel = this.getModel();
-            Log.info('Creating assignment via /' + sEntitySet + ' payload: ' + JSON.stringify(payload));
 
-            // Bypass $batch — send direct POST for clearer error messages
+            // Bypass $batch for clearer error messages
             var bWasBatch = oModel.bUseBatch;
             oModel.setUseBatch(false);
 
-            oModel.refreshSecurityToken(function () {
-                oModel.create('/' + sEntitySet, payload, {
-                    success: function () {
-                        oModel.setUseBatch(bWasBatch); // restore batch mode
-                        oAssignModel.setProperty('/submitting', false);
-                        oAssignModel.setProperty('/error', '');
-                        // Close dialog BEFORE navigating (fix #6)
+            // Create one assignment per selected user sequentially
+            var iSuccess = 0, iFailCount = 0, aErrors = [];
+            var fnCreateNext = function (idx) {
+                if (idx >= aSelectedKeys.length) {
+                    // All done
+                    oModel.setUseBatch(bWasBatch);
+                    oAssignModel.setProperty('/submitting', false);
+                    if (iSuccess > 0) {
                         if (that._assignDlg) { that._assignDlg.close(); }
-                        // Force model refresh so SmartTable loads fresh data
                         oModel.refresh(true);
                         that.navigateToTraining();
-                        MessageToast.show('Training assigned successfully');
+                        MessageToast.show(iSuccess + ' assignment(s) created successfully' +
+                            (iFailCount > 0 ? ' (' + iFailCount + ' failed)' : ''));
+                    } else {
+                        oAssignModel.setProperty('/error', 'All assignments failed: ' + aErrors.join('; '));
+                    }
+                    return;
+                }
+
+                var sKey = aSelectedKeys[idx].toUpperCase();
+                var oUser = mUserMap[sKey] || {};
+                var payload = {
+                    TrainingId: tr.Id || '',
+                    Title: tr.Title || '',
+                    Role: tr.Role || '',
+                    SapModule: tr.SapModule || '',
+                    Url: tr.Url || '',
+                    Status: 'Assigned',
+                    UserId: sKey,
+                    UserName: ((oUser.FirstName || '') + ' ' + (oUser.LastName || '')).trim() || sKey,
+                    UserEmail: oUser.Email || ''
+                };
+                if (dueDateValue !== null) { payload.DueDate = dueDateValue; }
+
+                oModel.create('/' + sEntitySet, payload, {
+                    success: function () {
+                        iSuccess++;
+                        fnCreateNext(idx + 1);
                     },
                     error: function (err) {
-                        oModel.setUseBatch(bWasBatch); // restore batch mode
-                        oAssignModel.setProperty('/submitting', false);
-                        var msg = 'Create failed';
+                        iFailCount++;
+                        var msg = sKey + ': create failed';
                         try {
-                            if (err && err.responseText) {
-                                var parsed = JSON.parse(err.responseText);
-                                msg = (parsed.error && parsed.error.message && parsed.error.message.value) || msg;
-                            } else if (err && err.message) {
-                                msg = err.message;
-                            }
-                        } catch (e) {
-                            // responseText might be XML
-                            try {
-                                var xmlMatch = err.responseText && err.responseText.match(/<message[^>]*>([^<]+)<\/message>/i);
-                                if (xmlMatch) { msg = xmlMatch[1]; }
-                            } catch (e2) { /* ignore */ }
-                            if (msg === 'Create failed') {
-                                msg = (err && err.message) || 'Create failed (status ' + (err && err.statusCode) + ')';
-                            }
-                        }
-                        oAssignModel.setProperty('/error', msg);
-                        Log.error('Assignment create failed: ' + msg + ' | Full response: ' + (err && err.responseText));
+                            var parsed = JSON.parse(err.responseText);
+                            msg = sKey + ': ' + ((parsed.error && parsed.error.message && parsed.error.message.value) || 'failed');
+                        } catch (e) { /* ignore */ }
+                        aErrors.push(msg);
+                        fnCreateNext(idx + 1);
                     }
                 });
-            }, function (tokenErr) {
-                oModel.setUseBatch(bWasBatch); // restore batch mode
+            };
+
+            oModel.refreshSecurityToken(function () {
+                fnCreateNext(0);
+            }, function () {
+                oModel.setUseBatch(bWasBatch);
                 oAssignModel.setProperty('/submitting', false);
                 oAssignModel.setProperty('/error', 'Security token refresh failed. Please reload the app.');
-                Log.error('CSRF token refresh failed: ' + tokenErr);
             });
         },
 

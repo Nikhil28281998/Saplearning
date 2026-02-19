@@ -62,31 +62,22 @@
 
                         <!-- Section 3: Assign To -->
                         <core:Title id="assignTitleAssignTo" text="Assign To" />
-                        <Label id="assignLabelUserId" text="User ID (SAP Logon)" required="true" />
-                        <ComboBox
+                        <Label id="assignLabelUserId" text="Team Members" required="true" />
+                        <MultiComboBox
                             id="assignUserIdInput"
                             width="100%"
-                            placeholder="Select or type SAP User ID..."
-                            value="{assignModel>/userId}"
-                            showSecondaryValues="true"
-                            filterSecondaryValues="true"
-                            selectionChange=".onAssignUserSelected"
+                            placeholder="Select one or more team members..."
+                            selectedKeys="{assignModel>/selectedUserKeys}"
+                            selectionChange=".onAssignUserSelectionChange"
                             items="{assignModel>/users}">
-                            <core:ListItem
+                            <core:Item
                                 id="assignUserItem"
                                 key="{assignModel>UserId}"
-                                text="{assignModel>UserId}"
-                                additionalText="{assignModel>FirstName} {assignModel>LastName}" />
-                        </ComboBox>
+                                text="{assignModel>UserId} - {assignModel>FirstName} {assignModel>LastName}" />
+                        </MultiComboBox>
 
-                        <Label id="assignLabelFirstName" text="First Name" />
-                        <Input id="assignFirstName" width="100%" placeholder="Auto-filled on user selection" value="{assignModel>/firstName}" />
-
-                        <Label id="assignLabelLastName" text="Last Name" />
-                        <Input id="assignLastName" width="100%" placeholder="Auto-filled on user selection" value="{assignModel>/lastName}" />
-
-                        <Label id="assignLabelEmail" text="Email" />
-                        <Input id="assignEmail" width="100%" placeholder="Auto-filled on user selection" value="{assignModel>/userEmail}" type="Email" />
+                        <Label id="assignLabelSelectedCount" text="Selected" />
+                        <Text id="assignSelectedCount" text="{= ${assignModel>/selectedUserKeys}.length + ' team member(s) selected'}" />
 
                         <!-- Section 4: Schedule -->
                         <core:Title id="assignTitleSchedule" text="Schedule" />

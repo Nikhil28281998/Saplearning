@@ -1,6 +1,6 @@
 *& Method: USERS_GET_ENTITYSET
 *& Returns SAP users for value help in Assign Training dialog
-*& When $filter=ManagerSort2 eq 'XXXX' is sent, returns only users
+*& When $filter=Sort2 eq 'XXXX' is sent, returns only users
 *& whose ADRP.SORT2 matches the manager's SAP user ID (team members).
 *& Without filter, returns all users (for Admin role).
 *& Class: ZCL_ZCOURSES_DPC_EXT (Redefine in SE24)
@@ -18,10 +18,14 @@ METHOD users_get_entityset.
         ls_filter      TYPE /iwbep/s_mgw_select_option,
         ls_option      TYPE /iwbep/s_cod_select_option.
 
-* -- Read $filter for ManagerSort2 (team filtering) ------------------
+* -- Read $filter for Sort2 (team filtering via ADRP.SORT2) ----------
+*    User entity property name is 'Sort2', NOT 'ManagerSort2'
   lt_filter = io_tech_request_context->get_filter( )->get_filter_select_options( ).
   READ TABLE lt_filter INTO ls_filter
-    WITH KEY property = 'ManagerSort2'.
+    WITH KEY property = 'Sort2'.
+  IF sy-subrc <> 0.
+    READ TABLE lt_filter INTO ls_filter
+      WITH KEY property = 'ManagerSort2'.
   IF sy-subrc = 0.
     READ TABLE ls_filter-select_options INTO ls_option INDEX 1.
     IF sy-subrc = 0.
@@ -71,6 +75,7 @@ METHOD users_get_entityset.
     ls_entity-firstname = ls_adrp-name_first.
     ls_entity-lastname  = ls_adrp-name_last.
     ls_entity-email     = ls_adr6-smtp_addr.
+    ls_entity-sort2     = ls_adrp-sort2.
 
     APPEND ls_entity TO et_entityset.
   ENDLOOP.

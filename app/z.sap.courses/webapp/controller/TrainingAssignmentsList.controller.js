@@ -719,6 +719,111 @@ sap.ui.define([
                     });
                 }
             });
+        },
+
+        /* ================================================================== */
+        /* DE-ASSIGN – Remove assignment(s) (Manager/Admin only)              */
+        /* ================================================================== */
+
+        onDeassignBtn: function () {
+            var oSmartTable = this.byId("assignSmartTable");
+            var oTable = oSmartTable.getTable();
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+
+            var aSelectedItems = oTable.getSelectedItems();
+            if (!aSelectedItems || aSelectedItems.length === 0) {
+                MessageToast.show(i18n.getText("selectAssignmentFirst"));
+                return;
+            }
+
+            // Collect valid contexts (only non-completed or all for admin)
+            var oComponent = this.getOwnerComponent();
+            var sRole = oComponent._role || "User";
+            var sCurrentUserId = oComponent.getCurrentUserId();
+            var aValidContexts = [];
+            var iSkippedOwnership = 0;
+
+            aSelectedItems.forEach(function (oItem) {
+                var oCtx = oItem.getBindingContext();
+                if (!oCtx) { return; }
+                var oData = oCtx.getObject();
+                // Manager can only de-assign their own assignments
+                if (sRole === "Manager" && sCurrentUserId &&
+                    oData.ManagerSort2 !== sCurrentUserId && oData.Manager !== sCurrentUserId) {
+                    iSkippedOwnership++;
+                    return;
+                }
+                aValidContexts.push(oCtx);
+            });
+
+            if (aValidContexts.length === 0) {
+                if (iSkippedOwnership > 0) {
+                    MessageToast.show(i18n.getText("cannotDeassignOthers"));
+                } else {
+                    MessageToast.show(i18n.getText("selectAssignmentFirst"));
+                }
+                return;
+            }
+
+            var that = this;
+            var iCount = aValidContexts.length;
+            MessageBox.confirm(i18n.getText("confirmDeassign", [iCount]), {
+                title: i18n.getText("confirmDeassignTitle"),
+                emphasizedAction: MessageBox.Action.OK,
+                onClose: function (sAction) {
+                    if (sAction !== MessageBox.Action.OK) { return; }
+
+                    var oModel = that.getView().getModel();
+                    if (oSmartTable) { oSmartTable.setBusy(true); }
+
+                    // Delete sequentially
+                    var iSuccess = 0, iFailCount = 0;
+                    var fnDeleteNext = function (idx) {
+                        if (idx >= aValidContexts.length) {
+                            if (oSmartTable) { oSmartTable.setBusy(false); }
+                            if (iSuccess > 0) {
+                                MessageToast.show(i18n.getText("deassignSuccess", [iSuccess]));
+                                oModel.refresh(true);
+                                that._loadAnalytics();
+                            }
+                            if (iFailCount > 0) {
+                                MessageToast.show(iFailCount + " removal(s) failed");
+                            }
+                            return;
+                        }
+
+                        var sPath = aValidContexts[idx].getPath();
+                        oModel.remove(sPath, {
+                            success: function () {
+                                iSuccess++;
+                                fnDeleteNext(idx + 1);
+                            },
+                            error: function (err) {
+                                iFailCount++;
+                                var msg = "Delete failed";
+                                try {
+                                    var parsed = JSON.parse(err.responseText);
+                                    msg = (parsed.error && parsed.error.message && parsed.error.message.value) || msg;
+                                } catch (e) { /* ignore */ }
+                                Log.error("[Deassign] " + msg);
+                                fnDeleteNext(idx + 1);
+                            }
+                        });
+                    };
+
+                    // Bypass batch for clearer errors
+                    var bWasBatch = oModel.bUseBatch;
+                    oModel.setUseBatch(false);
+                    oModel.refreshSecurityToken(function () {
+                        fnDeleteNext(0);
+                        oModel.setUseBatch(bWasBatch);
+                    }, function () {
+                        oModel.setUseBatch(bWasBatch);
+                        if (oSmartTable) { oSmartTable.setBusy(false); }
+                        MessageBox.error("Security token refresh failed");
+                    });
+                }
+            });
         }
     });
 });
