@@ -93,22 +93,32 @@
                             <core:Icon id="teamStatusIcon" src="sap-icon://horizontal-bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
                             <Text id="teamStatusTitle" text="{i18n>teamStatusDistribution}" class="chartTitle" />
                         </HBox>
-                        <mc:StackedBarMicroChart id="teamStatusBar" size="L" width="100%">
-                            <mc:bars>
-                                <mc:StackedBarMicroChartBar id="teamBarAssigned" value="{teamAnalytics>/assigned}" valueColor="Critical" displayValue="{teamAnalytics>/assigned}" />
-                                <mc:StackedBarMicroChartBar id="teamBarCompleted" value="{teamAnalytics>/completed}" valueColor="Good" displayValue="{teamAnalytics>/completed}" />
-                            </mc:bars>
-                        </mc:StackedBarMicroChart>
-                        <HBox id="teamLegendBox" justifyContent="SpaceBetween" class="sapUiTinyMarginTop chartLegendRow">
-                            <HBox id="teamLegendPending" alignItems="Center">
-                                <core:Icon id="teamLegDotP" src="sap-icon://circle-task-2" size="0.625rem" color="#bb0000" class="sapUiTinyMarginEnd" />
-                                <Text id="teamLegTextP" text="{i18n>pending}" class="chartLegendText" />
+                        <VBox id="teamStatusChartContent" class="sapUiTinyMarginTop">
+                            <HBox id="teamPendingRow" alignItems="Center" class="sapUiTinyMarginBottom">
+                                <core:Icon id="teamPendingDot" src="sap-icon://pending" size="1rem" color="#bb0000" class="sapUiTinyMarginEnd" />
+                                <Text id="teamPendingLbl" text="{i18n>pending}" class="sapUiTinyMarginEnd chartLegendText" width="5rem" />
+                                <ProgressIndicator
+                                    id="teamPendingBar"
+                                    percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? (${teamAnalytics>/assigned} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
+                                    displayValue="{teamAnalytics>/assigned}"
+                                    state="Warning"
+                                    showValue="true"
+                                    width="100%"
+                                    height="2rem" />
                             </HBox>
-                            <HBox id="teamLegendDone" alignItems="Center">
-                                <core:Icon id="teamLegDotD" src="sap-icon://circle-task-2" size="0.625rem" color="#107e3e" class="sapUiTinyMarginEnd" />
-                                <Text id="teamLegTextD" text="{i18n>done}" class="chartLegendText" />
+                            <HBox id="teamCompletedRow" alignItems="Center">
+                                <core:Icon id="teamCompletedDot" src="sap-icon://accept" size="1rem" color="#107e3e" class="sapUiTinyMarginEnd" />
+                                <Text id="teamCompletedLbl" text="{i18n>done}" class="sapUiTinyMarginEnd chartLegendText" width="5rem" />
+                                <ProgressIndicator
+                                    id="teamCompletedBar"
+                                    percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? (${teamAnalytics>/completed} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
+                                    displayValue="{teamAnalytics>/completed}"
+                                    state="Success"
+                                    showValue="true"
+                                    width="100%"
+                                    height="2rem" />
                             </HBox>
-                        </HBox>
+                        </VBox>
                     </VBox>
                     <VBox id="teamUserChartBox" class="analyticsCard analyticsCardTeal chartCard">
                         <HBox id="teamUserChartHeader" alignItems="Center" class="sapUiTinyMarginBottom">

@@ -105,6 +105,12 @@ sap.ui.define([
             var aFilters = [];
             if (sRole === "User") {
                 aFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId || "__NOUSER__"));
+            } else if (sRole === "Manager") {
+                // Manager: filter analytics by their team (managerSort2 = manager's username)
+                var sMgrId = oComponent.getCurrentUserId();
+                if (sMgrId) {
+                    aFilters.push(new Filter("ManagerSort2", FilterOperator.EQ, sMgrId));
+                }
             } else if (sUserId) {
                 aFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId));
             }
@@ -380,6 +386,13 @@ sap.ui.define([
                 Log.info("[AssignFilter] UserId filter for end user: " + sFilterId);
             }
 
+            // Manager: only see assignments where ManagerSort2 matches their username
+            if (sRole === "Manager") {
+                var sManagerFilterId = sCurrentUserId || "__NOMANAGER__";
+                mBindingParams.filters.push(new Filter("ManagerSort2", FilterOperator.EQ, sManagerFilterId));
+                Log.info("[AssignFilter] ManagerSort2 filter for Manager: " + sManagerFilterId);
+            }
+
             // Read Status filter from the custom FilterGroupItem Select
             var oStatusSelect = this.byId("filterAssignStatus");
             if (oStatusSelect) {
@@ -407,24 +420,7 @@ sap.ui.define([
             Log.info("[AssignFilter] Total filters: " + mBindingParams.filters.length);
         },
 
-        /* ===== Nav Back – explicit route navigation ===== */
-        onNavBack: function () {
-            this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
-        },
 
-        /* ===== FEAT-4: Role Switcher ===== */
-        onSwitchRole: function (oEvent) {
-            var oItem = oEvent.getParameter("selectedItem");
-            var sNewRole = oItem ? oItem.getKey() : "";
-            if (sNewRole) {
-                var oComponent = this.getOwnerComponent();
-                if (oComponent && oComponent.switchRole) {
-                    oComponent.switchRole(sNewRole);
-                }
-                this._loadAnalytics();
-                MessageToast.show("Switched to " + sNewRole + " view");
-            }
-        },
 
         /* ================================================================== */
         /* MARK COMPLETED – Toolbar button (acts on selected row)             */

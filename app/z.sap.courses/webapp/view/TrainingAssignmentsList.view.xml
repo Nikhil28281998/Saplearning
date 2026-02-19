@@ -11,29 +11,9 @@
     <Page
         id="assignmentsListPage"
         title="{i18n>trainingAssignments}"
-        showNavButton="true"
-        navButtonPress="onNavBack"
+        showNavButton="false"
         enableScrolling="true"
         class="sapUiResponsivePadding--header sapUiResponsivePadding--content assignmentsPage">
-
-        <headerContent>
-            <!-- FEAT-4: Role switcher for multi-role users -->
-            <HBox id="assignRoleBox" alignItems="Center" class="sapUiSmallMarginEnd roleBoxContainer">
-                <core:Icon id="assignRoleIcon" src="sap-icon://role" size="1rem" class="sapUiTinyMarginEnd headerIcon" />
-                <Select id="assignRoleSwitcher" selectedKey="{user>/role}" change="onSwitchRole" class="roleSwitcherSelect">
-                    <core:Item id="assignRoleAdmin" key="Admin" text="Admin" />
-                    <core:Item id="assignRoleManager" key="Manager" text="Manager" />
-                    <core:Item id="assignRoleUser" key="User" text="End User" />
-                </Select>
-            </HBox>
-            <!-- Role badge -->
-            <ObjectStatus
-                id="assignRoleBadge"
-                text="{user>/role}"
-                icon="sap-icon://role"
-                state="{= ${user>/role} === 'Admin' ? 'Success' : ${user>/role} === 'Manager' ? 'Warning' : 'Information' }"
-                class="sapUiSmallMarginEnd" />
-        </headerContent>
 
         <dependents>
             <core:InvisibleText id="assignmentsFilterLabel" text="{i18n>assignmentsFilterLabel}" />

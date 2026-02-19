@@ -198,6 +198,11 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
       req.data.sap_module = training.sap_module;
       req.data.url = training.url;
 
+      // Populate managerSort2 — the manager who assigned this training
+      // In production (ABAP Gateway), ADRP.SORT2 is read for the assignee's manager
+      // In CAP dev mode, store the assigning manager's username as the sort2 value
+      req.data.managerSort2 = userCtx.sapUsername;
+
       secureLog('info', 'Training assignment created', {
         assigneeId, trainingId, createdBy: userCtx.username
       });

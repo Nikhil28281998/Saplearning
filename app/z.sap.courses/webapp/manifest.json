@@ -43,6 +43,7 @@
           "semanticObject": "ZLEARNING",
           "action": "display",
           "title": "{{sap-courses-display.flpTitle}}",
+          "subTitle": "{{sap-courses-display.flpSubtitle}}",
           "signature": {
             "parameters": {},
             "additionalParameters": "allowed"
@@ -52,6 +53,7 @@
           "semanticObject": "ZLEARNING",
           "action": "mytrainings",
           "title": "{{myTrainingsTileTitle}}",
+          "subTitle": "",
           "signature": {
             "parameters": {},
             "additionalParameters": "allowed"

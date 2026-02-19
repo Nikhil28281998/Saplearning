@@ -55,6 +55,9 @@ entity TrainingAssignments : managed {
         // Assignment creator (manager who assigned this training)
         assignedBy     : String(12);
         assignedByName : String(80);
+
+        // Manager identifier from ADRP.SORT2 (User Maintenance search term 2)
+        managerSort2   : String(20);
 }
 
 // ============================================================================
