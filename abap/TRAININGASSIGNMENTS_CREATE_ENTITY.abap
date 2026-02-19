@@ -133,21 +133,10 @@ METHOD trainingassignme_create_entity.
     ls_asgn-assigned_by_n = sy-uname.
   ENDIF.
 
-* -- Populate ManagerSort2 from assignee's ADRP.SORT2 ----------------
-*    Sort2 = Search Term 2 in SU01 User Maintenance, used to store manager name
-  DATA: lv_assignee_persnum TYPE ad_persnum,
-        ls_assignee_adrp    TYPE adrp.
-  SELECT SINGLE persnumber FROM usr21
-    INTO lv_assignee_persnum
-    WHERE bname = ls_entity-userid.
-  IF sy-subrc = 0 AND lv_assignee_persnum IS NOT INITIAL.
-    SELECT SINGLE sort2 FROM adrp
-      INTO ls_assignee_adrp-sort2
-      WHERE persnumber = lv_assignee_persnum.
-    IF sy-subrc = 0.
-      ls_asgn-manager_sort2 = ls_assignee_adrp-sort2.
-    ENDIF.
-  ENDIF.
+* -- Populate ManagerSort2 with the assigning manager's user ID ------
+*    Stores sy-uname (the manager who assigns the training)
+*    so we can filter "show assignments made by this manager"
+  ls_asgn-manager_sort2 = sy-uname.
 
   ls_asgn-created_at    = sy-datum.
 
