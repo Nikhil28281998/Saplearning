@@ -16,10 +16,13 @@ METHOD trainingassignme_get_entityset.
         ls_entity      TYPE zcl_zcourses_mpc=>ts_trainingassignment,
         ls_filter_uid  TYPE /iwbep/s_mgw_select_option,
         ls_filter_stat TYPE /iwbep/s_mgw_select_option,
+        ls_filter_mgr  TYPE /iwbep/s_mgw_select_option,
         ls_uid_opt     TYPE /iwbep/s_cod_select_option,
         ls_stat_opt    TYPE /iwbep/s_cod_select_option,
+        ls_mgr_opt     TYPE /iwbep/s_cod_select_option,
         lv_user_id     TYPE char12,
         lv_status      TYPE char20,
+        lv_mgr_sort2   TYPE char20,
         lv_skip        TYPE i,
         lv_top         TYPE i,
         lv_ftype       TYPE c,
@@ -72,6 +75,23 @@ METHOD trainingassignme_get_entityset.
     ENDIF.
   ENDIF.
 
+* -- Read filter: ManagerSort2 (manager team filtering via ADRP.SORT2) -
+  READ TABLE it_filter_select_options
+    WITH KEY property = 'ManagerSort2'
+    INTO ls_filter_mgr.
+  IF sy-subrc <> 0.
+    READ TABLE it_filter_select_options
+      WITH KEY property = 'MANAGER_SORT2'
+      INTO ls_filter_mgr.
+  ENDIF.
+  IF sy-subrc = 0.
+    READ TABLE ls_filter_mgr-select_options INDEX 1
+      INTO ls_mgr_opt.
+    IF sy-subrc = 0.
+      lv_mgr_sort2 = ls_mgr_opt-low.
+    ENDIF.
+  ENDIF.
+
 * -- Read filter: Status ---------------------------------------------
   READ TABLE it_filter_select_options
     WITH KEY property = 'Status'
@@ -106,6 +126,11 @@ METHOD trainingassignme_get_entityset.
   ELSE.
     SELECT * FROM zcourse_asgn INTO TABLE lt_asgn
       ORDER BY created_at DESCENDING.
+  ENDIF.
+
+* -- Post-filter: ManagerSort2 (applied after SELECT for flexibility) --
+  IF lv_mgr_sort2 IS NOT INITIAL.
+    DELETE lt_asgn WHERE manager_sort2 <> lv_mgr_sort2.
   ENDIF.
 
 * -- Pagination: $skip / $top ----------------------------------------
@@ -164,6 +189,7 @@ METHOD trainingassignme_get_entityset.
     ENDIF.
     ls_entity-assignedby      = ls_asgn-assigned_by.
     ls_entity-assignedbyname  = ls_asgn-assigned_by_n.
+    ls_entity-managersort2    = ls_asgn-manager_sort2.
     APPEND ls_entity TO et_entityset.
   ENDLOOP.
 

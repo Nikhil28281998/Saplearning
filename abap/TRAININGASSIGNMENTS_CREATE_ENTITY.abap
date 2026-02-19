@@ -21,6 +21,7 @@
 *&   COMPLETION_DT DATS
 *&   ASSIGNED_BY   CHAR 12  (manager who assigned)
 *&   ASSIGNED_BY_N CHAR 80  (manager display name)
+*&   MANAGER_SORT2 CHAR 20  (ADRP.SORT2 of assignee - manager name from SU01 search term 2)
 *&   CREATED_AT    DATS
 *&
 *& To create the table: SE11 → Create Table → ZCOURSE_ASGN
@@ -131,6 +132,23 @@ METHOD trainingassignme_create_entity.
   IF ls_asgn-assigned_by_n IS INITIAL.
     ls_asgn-assigned_by_n = sy-uname.
   ENDIF.
+
+* -- Populate ManagerSort2 from assignee's ADRP.SORT2 ----------------
+*    Sort2 = Search Term 2 in SU01 User Maintenance, used to store manager name
+  DATA: lv_assignee_persnum TYPE ad_persnum,
+        ls_assignee_adrp    TYPE adrp.
+  SELECT SINGLE persnumber FROM usr21
+    INTO lv_assignee_persnum
+    WHERE bname = ls_entity-userid.
+  IF sy-subrc = 0 AND lv_assignee_persnum IS NOT INITIAL.
+    SELECT SINGLE sort2 FROM adrp
+      INTO ls_assignee_adrp-sort2
+      WHERE persnumber = lv_assignee_persnum.
+    IF sy-subrc = 0.
+      ls_asgn-manager_sort2 = ls_assignee_adrp-sort2.
+    ENDIF.
+  ENDIF.
+
   ls_asgn-created_at    = sy-datum.
 
 * -- Map DueDate if provided (safe conversion across MPC types) ------
@@ -156,6 +174,7 @@ METHOD trainingassignme_create_entity.
 *   -- Fill response entity with assigned-by info --------------------
     ls_entity-assignedby     = ls_asgn-assigned_by.
     ls_entity-assignedbyname = ls_asgn-assigned_by_n.
+    ls_entity-managersort2   = ls_asgn-manager_sort2.
     er_entity = ls_entity.
   ELSE.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
