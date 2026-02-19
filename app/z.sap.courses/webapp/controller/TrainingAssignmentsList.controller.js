@@ -289,7 +289,7 @@ sap.ui.define([
             var oTable = oSmartTable.getTable();
             var that = this;
             if (oTable) {
-                oTable.setMode("SingleSelectMaster");
+                oTable.setMode("MultiSelect");
                 oTable.setAlternateRowColors(true);
 
                 // BUG-6 FIX: Enable growing for ResponsiveTable (lazy scroll-to-load)
@@ -324,7 +324,7 @@ sap.ui.define([
             if (aItems.length === 0) { return; }
 
             // Detect column indices via p13nData customData (i18n-safe)
-            var iUrlIdx = -1, iStatusIdx = -1;
+            var iUrlIdx = -1, iStatusIdx = -1, iDueDateIdx = -1;
             aCols.forEach(function (oCol, iIdx) {
                 var aCustomData = oCol.getCustomData();
                 for (var i = 0; i < aCustomData.length; i++) {
@@ -339,16 +339,18 @@ sap.ui.define([
                             if (oP13n.columnKey === "Status" || oP13n.leadingProperty === "Status") {
                                 iStatusIdx = iIdx;
                             }
+                            if (oP13n.columnKey === "DueDate" || oP13n.leadingProperty === "DueDate") {
+                                iDueDateIdx = iIdx;
+                            }
                         } catch (e) { /* ignore parse errors */ }
                     }
                 }
                 // Fallback: header text (for SmartTable without p13nData)
-                if (iUrlIdx < 0 || iStatusIdx < 0) {
-                    var oHeader = oCol.getHeader();
-                    var sLabel = (oHeader && typeof oHeader.getText === "function") ? oHeader.getText() : "";
-                    if ((sLabel === "Url" || sLabel === "Training Link") && iUrlIdx < 0) { iUrlIdx = iIdx; }
-                    if (sLabel === "Status" && iStatusIdx < 0) { iStatusIdx = iIdx; }
-                }
+                var oHeader = oCol.getHeader();
+                var sLabel = (oHeader && typeof oHeader.getText === "function") ? oHeader.getText() : "";
+                if ((sLabel === "Url" || sLabel === "Training Link") && iUrlIdx < 0) { iUrlIdx = iIdx; }
+                if (sLabel === "Status" && iStatusIdx < 0) { iStatusIdx = iIdx; }
+                if ((sLabel === "DueDate" || sLabel === "Due Date") && iDueDateIdx < 0) { iDueDateIdx = iIdx; }
             });
 
             aItems.forEach(function (oItem) {
@@ -382,24 +384,34 @@ sap.ui.define([
                     }
                 }
 
-                // Status → ObjectStatus with OData binding
+                // ADD-1: Status → ObjectStatus with overdue indicator
                 if (iStatusIdx >= 0 && iStatusIdx < aCells.length) {
                     var oStatusCell = aCells[iStatusIdx];
                     if (oStatusCell.getMetadata().getName() !== "sap.m.ObjectStatus") {
                         var oStatusCtrl = new ObjectStatus({
-                            text: "{Status}",
+                            text: {
+                                parts: [{ path: "Status" }, { path: "DueDate" }],
+                                formatter: function (sStatus, dDue) {
+                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < new Date();
+                                    return bOverdue ? sStatus + " (Overdue)" : sStatus;
+                                }
+                            },
                             state: {
-                                path: "Status",
-                                formatter: function (s) {
-                                    return s === "Completed" ? "Success" :
-                                           s === "In Progress" ? "Information" : "Warning";
+                                parts: [{ path: "Status" }, { path: "DueDate" }],
+                                formatter: function (sStatus, dDue) {
+                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < new Date();
+                                    if (bOverdue) { return "Error"; }
+                                    return sStatus === "Completed" ? "Success" :
+                                           sStatus === "In Progress" ? "Information" : "Warning";
                                 }
                             },
                             icon: {
-                                path: "Status",
-                                formatter: function (s) {
-                                    return s === "Completed" ? "sap-icon://accept" :
-                                           s === "In Progress" ? "sap-icon://activity-2" : "sap-icon://pending";
+                                parts: [{ path: "Status" }, { path: "DueDate" }],
+                                formatter: function (sStatus, dDue) {
+                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < new Date();
+                                    if (bOverdue) { return "sap-icon://alert"; }
+                                    return sStatus === "Completed" ? "sap-icon://accept" :
+                                           sStatus === "In Progress" ? "sap-icon://activity-2" : "sap-icon://pending";
                                 }
                             }
                         }).addStyleClass("assignmentStatusBadge");
@@ -408,9 +420,47 @@ sap.ui.define([
                         oStatusCell.destroy();
                     }
                 }
+
+                // ADD-4: DueDate → ObjectStatus with color-coded warnings
+                if (iDueDateIdx >= 0 && iDueDateIdx < aCells.length) {
+                    var oDueDateCell = aCells[iDueDateIdx];
+                    if (oDueDateCell.getMetadata().getName() !== "sap.m.ObjectStatus") {
+                        var oDueDateCtrl = new ObjectStatus({
+                            text: {
+                                path: "DueDate",
+                                formatter: function (dDate) {
+                                    return dDate ? new Date(dDate).toLocaleDateString() : "Not set";
+                                }
+                            },
+                            state: {
+                                parts: [{ path: "DueDate" }, { path: "Status" }],
+                                formatter: function (dDate, sStatus) {
+                                    if (sStatus === "Completed" || !dDate) { return "None"; }
+                                    var diff = Math.ceil((new Date(dDate) - new Date()) / 86400000);
+                                    if (diff < 0) { return "Error"; }
+                                    if (diff <= 7) { return "Warning"; }
+                                    return "Success";
+                                }
+                            },
+                            icon: {
+                                parts: [{ path: "DueDate" }, { path: "Status" }],
+                                formatter: function (dDate, sStatus) {
+                                    if (sStatus === "Completed" || !dDate) { return ""; }
+                                    var diff = Math.ceil((new Date(dDate) - new Date()) / 86400000);
+                                    if (diff < 0) { return "sap-icon://alert"; }
+                                    if (diff <= 7) { return "sap-icon://warning2"; }
+                                    return "";
+                                }
+                            }
+                        }).addStyleClass("assignmentDueDate");
+                        oItem.removeCell(oDueDateCell);
+                        oItem.insertCell(oDueDateCtrl, iDueDateIdx);
+                        oDueDateCell.destroy();
+                    }
+                }
             });
 
-            Log.info("[AssignLinks] Column templates applied (Url=" + iUrlIdx + ", Status=" + iStatusIdx + ")");
+            Log.info("[AssignLinks] Column templates applied (Url=" + iUrlIdx + ", Status=" + iStatusIdx + ", DueDate=" + iDueDateIdx + ")");
         },
 
         /* ===== Refresh ===== */
@@ -515,19 +565,12 @@ sap.ui.define([
         onMarkCompletedBtn: function () {
             var oSmartTable = this.byId("assignSmartTable");
             var oTable = oSmartTable.getTable();
-            var oSelectedItem = oTable.getSelectedItem();
             var i18n = this.getView().getModel("i18n").getResourceBundle();
 
-            if (!oSelectedItem) {
+            // ADD-3: Bulk operations — support multiple selection
+            var aSelectedItems = oTable.getSelectedItems();
+            if (!aSelectedItems || aSelectedItems.length === 0) {
                 MessageToast.show(i18n.getText("selectAssignmentFirst"));
-                return;
-            }
-            var oContext = oSelectedItem.getBindingContext();
-            if (!oContext) { return; }
-            var oAssignment = oContext.getObject();
-
-            if (oAssignment.Status === "Completed") {
-                MessageToast.show(i18n.getText("alreadyCompleted"));
                 return;
             }
 
@@ -535,12 +578,32 @@ sap.ui.define([
             var oComponent = this.getOwnerComponent();
             var sRole = oComponent._role || "User";
             var sCurrentUserId = oComponent.getCurrentUserId();
-            if (sRole === "User" && sCurrentUserId && oAssignment.UserId !== sCurrentUserId) {
-                MessageToast.show(i18n.getText("cannotCompleteOthers"));
+
+            // Validate selected items
+            var aValidContexts = [];
+            var iSkippedCompleted = 0, iSkippedOthers = 0;
+            aSelectedItems.forEach(function (oItem) {
+                var oCtx = oItem.getBindingContext();
+                if (!oCtx) { return; }
+                var oData = oCtx.getObject();
+                if (oData.Status === "Completed") { iSkippedCompleted++; return; }
+                if (sRole === "User" && sCurrentUserId && oData.UserId !== sCurrentUserId) { iSkippedOthers++; return; }
+                aValidContexts.push(oCtx);
+            });
+
+            if (aValidContexts.length === 0) {
+                if (iSkippedCompleted > 0) { MessageToast.show(i18n.getText("alreadyCompleted")); }
+                else if (iSkippedOthers > 0) { MessageToast.show(i18n.getText("cannotCompleteOthers")); }
+                else { MessageToast.show(i18n.getText("selectAssignmentFirst")); }
                 return;
             }
 
-            this._markCompleted(oContext);
+            // Single or bulk complete
+            if (aValidContexts.length === 1) {
+                this._markCompleted(aValidContexts[0]);
+            } else {
+                this._markCompletedBulk(aValidContexts);
+            }
         },
 
         /* ===== Item Press – Detail dialog with actions ===== */
@@ -737,6 +800,56 @@ sap.ui.define([
                             } catch (e) {
                                 msg = (err && err.message) || msg;
                             }
+                            MessageBox.error(msg);
+                        }
+                    });
+                }
+            });
+        },
+
+        /**
+         * ADD-3: Bulk mark completed — update multiple assignments in batch.
+         */
+        _markCompletedBulk: function (aContexts) {
+            var that = this;
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+            var iCount = aContexts.length;
+
+            MessageBox.confirm(i18n.getText("confirmBulkComplete", [iCount]), {
+                title: i18n.getText("confirmTitle"),
+                emphasizedAction: MessageBox.Action.OK,
+                onClose: function (sAction) {
+                    if (sAction !== MessageBox.Action.OK) { return; }
+
+                    var oModel = that.getView().getModel();
+                    var oSmartTable = that.byId("assignSmartTable");
+                    if (oSmartTable) { oSmartTable.setBusy(true); }
+
+                    // Use batch mode: defer updates, then submitChanges
+                    oModel.setDeferredGroups(["bulkComplete"]);
+                    var dNow = new Date();
+                    aContexts.forEach(function (oCtx) {
+                        oModel.update(oCtx.getPath(), {
+                            Status: "Completed",
+                            CompletionDate: dNow
+                        }, { groupId: "bulkComplete" });
+                    });
+
+                    oModel.submitChanges({
+                        groupId: "bulkComplete",
+                        success: function () {
+                            if (oSmartTable) { oSmartTable.setBusy(false); }
+                            MessageToast.show(i18n.getText("bulkCompleteSuccess", [iCount]));
+                            that._filterByStatus("Completed");
+                            that._loadAnalytics();
+                        },
+                        error: function (err) {
+                            if (oSmartTable) { oSmartTable.setBusy(false); }
+                            var msg = i18n.getText("updateFailed");
+                            try {
+                                var parsed = JSON.parse(err.responseText);
+                                msg = (parsed.error && parsed.error.message && parsed.error.message.value) || msg;
+                            } catch (e) { msg = (err && err.message) || msg; }
                             MessageBox.error(msg);
                         }
                     });
