@@ -76,11 +76,6 @@
                         <ObjectNumber id="teamAssignedCount" number="{teamAnalytics>/assigned}" state="Warning" class="analyticsNumber" />
                         <Text id="teamAssignedLabel" text="{i18n>teamPending}" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="teamInProgressBox" alignItems="Center" class="analyticsCard analyticsCardTeal">
-                        <core:Icon id="teamInProgressIcon" src="sap-icon://activity-2" size="1.5rem" color="#0a6ed1" class="sapUiTinyMarginBottom" />
-                        <ObjectNumber id="teamInProgressCount" number="{teamAnalytics>/inProgress}" state="Information" class="analyticsNumber" />
-                        <Text id="teamInProgressLabel" text="{i18n>teamInProgress}" class="analyticsLabel" />
-                    </VBox>
                     <VBox id="teamCompletedBox" alignItems="Center" class="analyticsCard analyticsCardGreen">
                         <core:Icon id="teamCompletedIcon" src="sap-icon://accept" size="1.5rem" color="#107e3e" class="sapUiTinyMarginBottom" />
                         <ObjectNumber id="teamCompletedCount" number="{teamAnalytics>/completed}" state="Success" class="analyticsNumber" />
@@ -101,7 +96,6 @@
                         <mc:StackedBarMicroChart id="teamStatusBar" size="L" width="100%">
                             <mc:bars>
                                 <mc:StackedBarMicroChartBar id="teamBarAssigned" value="{teamAnalytics>/assigned}" valueColor="Critical" displayValue="{teamAnalytics>/assigned}" />
-                                <mc:StackedBarMicroChartBar id="teamBarInProgress" value="{teamAnalytics>/inProgress}" valueColor="Neutral" displayValue="{teamAnalytics>/inProgress}" />
                                 <mc:StackedBarMicroChartBar id="teamBarCompleted" value="{teamAnalytics>/completed}" valueColor="Good" displayValue="{teamAnalytics>/completed}" />
                             </mc:bars>
                         </mc:StackedBarMicroChart>
@@ -109,10 +103,6 @@
                             <HBox id="teamLegendPending" alignItems="Center">
                                 <core:Icon id="teamLegDotP" src="sap-icon://circle-task-2" size="0.625rem" color="#bb0000" class="sapUiTinyMarginEnd" />
                                 <Text id="teamLegTextP" text="{i18n>pending}" class="chartLegendText" />
-                            </HBox>
-                            <HBox id="teamLegendIP" alignItems="Center">
-                                <core:Icon id="teamLegDotIP" src="sap-icon://circle-task-2" size="0.625rem" color="#5b738b" class="sapUiTinyMarginEnd" />
-                                <Text id="teamLegTextIP" text="{i18n>learning}" class="chartLegendText" />
                             </HBox>
                             <HBox id="teamLegendDone" alignItems="Center">
                                 <core:Icon id="teamLegDotD" src="sap-icon://circle-task-2" size="0.625rem" color="#107e3e" class="sapUiTinyMarginEnd" />
