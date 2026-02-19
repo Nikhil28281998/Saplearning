@@ -17,7 +17,7 @@
         <customHeader>
             <Bar id="assignHeaderBar">
                 <contentLeft>
-                    <Button id="navBackBtn" icon="sap-icon://nav-back" press="onNavBack" type="Back" tooltip="{i18n>backToCatalog}" />
+                    <Button id="navBackBtn" icon="sap-icon://nav-back" press="onNavBack" type="Transparent" tooltip="{i18n>backToCatalog}" />
                     <Title id="assignPageTitle" text="{i18n>trainingAssignments}" level="H2" />
                 </contentLeft>
                 <contentRight>

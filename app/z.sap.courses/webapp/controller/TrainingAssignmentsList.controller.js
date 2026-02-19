@@ -1,6 +1,5 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
-    "sap/ui/core/routing/History",
     "sap/m/MessageToast",
     "sap/m/MessageBox",
     "sap/ui/model/json/JSONModel",
@@ -10,7 +9,7 @@ sap.ui.define([
     "sap/m/Link",
     "sap/m/Text",
     "sap/m/ObjectStatus"
-], function (Controller, History, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Log, Link, Text, ObjectStatus) {
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Log, Link, Text, ObjectStatus) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingAssignmentsList", {
@@ -410,12 +409,7 @@ sap.ui.define([
 
         /* ===== Nav Back ===== */
         onNavBack: function () {
-            var sPreviousHash = History.getInstance().getPreviousHash();
-            if (sPreviousHash !== undefined) {
-                window.history.go(-1);
-            } else {
-                this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
-            }
+            this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
         },
 
         /* ===== FEAT-4: Role Switcher ===== */
