@@ -407,6 +407,11 @@ sap.ui.define([
             Log.info("[AssignFilter] Total filters: " + mBindingParams.filters.length);
         },
 
+        /* ===== Nav Back – standard browser back ===== */
+        onNavBack: function () {
+            window.history.go(-1);
+        },
+
         /* ===== FEAT-4: Role Switcher ===== */
         onSwitchRole: function (oEvent) {
             var oItem = oEvent.getParameter("selectedItem");

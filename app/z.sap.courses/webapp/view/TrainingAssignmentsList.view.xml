@@ -10,7 +10,8 @@
 
     <Page
         id="assignmentsListPage"
-        showNavButton="false"
+        showNavButton="true"
+        navButtonPress="onNavBack"
         enableScrolling="true"
         class="sapUiResponsivePadding--header sapUiResponsivePadding--content assignmentsPage">
 
