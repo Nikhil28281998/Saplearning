@@ -189,7 +189,7 @@ METHOD trainingassignme_get_entityset.
     ENDIF.
     ls_entity-assignedby      = ls_asgn-assigned_by.
     ls_entity-assignedbyname  = ls_asgn-assigned_by_n.
-    ls_entity-managersort2    = ls_asgn-manager_sort2.
+    ls_entity-manager         = ls_asgn-manager_sort2.
     APPEND ls_entity TO et_entityset.
   ENDLOOP.
 

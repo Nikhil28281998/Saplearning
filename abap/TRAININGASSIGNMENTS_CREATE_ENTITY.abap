@@ -174,7 +174,7 @@ METHOD trainingassignme_create_entity.
 *   -- Fill response entity with assigned-by info --------------------
     ls_entity-assignedby     = ls_asgn-assigned_by.
     ls_entity-assignedbyname = ls_asgn-assigned_by_n.
-    ls_entity-managersort2   = ls_asgn-manager_sort2.
+    ls_entity-manager        = ls_asgn-manager_sort2.
     er_entity = ls_entity.
   ELSE.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
