@@ -154,7 +154,7 @@ METHOD userset_get_entityset.
     ls_entity-firstname = ls_adrp-name_first.
     ls_entity-lastname  = ls_adrp-name_last.
     ls_entity-email     = ls_adr6-smtp_addr.
-    ls_entity-sort2     = ls_adrp-sort2.
+    ls_entity-manager   = ls_adrp-sort2.   "ABAP field MANAGER = ADRP.SORT2 (manager's user ID)
 
     APPEND ls_entity TO et_entityset.
   ENDLOOP.
