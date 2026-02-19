@@ -4,6 +4,7 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns:core="sap.ui.core"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
+    xmlns:filterBar="sap.ui.comp.filterbar"
     xmlns:smartTable="sap.ui.comp.smarttable"
     xmlns:mc="sap.suite.ui.microchart">
 
@@ -98,7 +99,30 @@
                 showRestoreOnFB="false"
                 showGoOnFB="true"
                 filterBarExpanded="true"
-                showFilterConfiguration="true" />
+                showFilterConfiguration="true"
+                useDateRangeType="true">
+                <smartFilterBar:controlConfiguration>
+                    <smartFilterBar:ControlConfiguration id="ccAssignStatus" key="Status" filterType="single" />
+                    <smartFilterBar:ControlConfiguration id="ccAssignModule" key="SapModule" filterType="single" />
+                </smartFilterBar:controlConfiguration>
+                <smartFilterBar:filterGroupItems>
+                    <filterBar:FilterGroupItem
+                        id="fgiAssignStatus"
+                        name="Status"
+                        label="{i18n>statusLabel}"
+                        groupName="_BASIC"
+                        visibleInFilterBar="true">
+                        <filterBar:control>
+                            <Select id="filterAssignStatus" forceSelection="false" selectedKey="">
+                                <core:Item id="assignStatusAll" key="" text="{i18n>allItems}" />
+                                <core:Item id="assignStatusAssigned" key="Assigned" text="{i18n>statusAssigned}" />
+                                <core:Item id="assignStatusInProgress" key="In Progress" text="{i18n>inProgress}" />
+                                <core:Item id="assignStatusCompleted" key="Completed" text="{i18n>completed}" />
+                            </Select>
+                        </filterBar:control>
+                    </filterBar:FilterGroupItem>
+                </smartFilterBar:filterGroupItems>
+            </smartFilterBar:SmartFilterBar>
 
             <!-- SmartTable for Assignments -->
             <smartTable:SmartTable
