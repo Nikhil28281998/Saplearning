@@ -70,15 +70,6 @@ sap.ui.define([
                 }, this);
             }
 
-            // Make entire back header area clickable
-            var oBackArea = this.byId("navBackArea");
-            if (oBackArea) {
-                oBackArea.addStyleClass("navBackAreaClickable");
-                oBackArea.attachBrowserEvent("click", function () {
-                    that.onNavBack();
-                });
-            }
-
             // FEAT-2: Analytics click-through — click card to filter table
             var aClickCards = [
                 { id: "myAssignedBox",    status: "Assigned" },
@@ -414,13 +405,6 @@ sap.ui.define([
             }
 
             Log.info("[AssignFilter] Total filters: " + mBindingParams.filters.length);
-        },
-
-        /* ===== Nav Back ===== */
-        onNavBack: function () {
-            var oRouter = this.getOwnerComponent().getRouter();
-            Log.info("[NavBack] Navigating to TrainingsList (home page)");
-            oRouter.navTo("TrainingsList");
         },
 
         /* ===== FEAT-4: Role Switcher ===== */

@@ -1247,29 +1247,6 @@ html, body, html.sap-desktop, .sapUiBody {
     color: rgba(255,255,255,0.85) !important;
 }
 
-/* ===== Nav Back Area – entire header-left clickable ===== */
-.navBackAreaClickable {
-    cursor: pointer !important;
-    border-radius: 8px;
-    padding: 0.25rem 0.75rem 0.25rem 0.5rem;
-    transition: background 0.15s ease;
-    margin-left: -0.25rem;
-}
-
-.navBackAreaClickable:hover {
-    background: rgba(255,255,255,0.18) !important;
-}
-
-.navBackAreaClickable:active {
-    background: rgba(255,255,255,0.25) !important;
-}
-
-.navBackIcon {
-    color: #fff !important;
-    margin-right: 0.5rem;
-    font-size: 1.25rem !important;
-}
-
 /* ===== Status Distribution Chart – fuller width ===== */
 .chartCard .sapSuiteSBMC {
     min-width: 100% !important;

@@ -17,10 +17,7 @@
         <customHeader>
             <Bar id="assignHeaderBar">
                 <contentLeft>
-                    <HBox id="navBackArea" alignItems="Center" class="navBackArea">
-                        <core:Icon id="navBackIcon" src="sap-icon://nav-back" size="1.25rem" class="navBackIcon" />
-                        <Title id="assignPageTitle" text="{i18n>trainingAssignments}" level="H2" />
-                    </HBox>
+                    <Title id="assignPageTitle" text="{i18n>trainingAssignments}" level="H2" />
                 </contentLeft>
                 <contentRight>
                     <!-- FEAT-4: Role switcher for multi-role users -->
