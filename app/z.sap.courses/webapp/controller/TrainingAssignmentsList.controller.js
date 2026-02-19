@@ -407,9 +407,9 @@ sap.ui.define([
             Log.info("[AssignFilter] Total filters: " + mBindingParams.filters.length);
         },
 
-        /* ===== Nav Back – standard browser back ===== */
+        /* ===== Nav Back – explicit route navigation ===== */
         onNavBack: function () {
-            window.history.go(-1);
+            this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
         },
 
         /* ===== FEAT-4: Role Switcher ===== */
