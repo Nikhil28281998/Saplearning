@@ -10,8 +10,8 @@
     <Page
         id="assignmentsListPage"
         showNavButton="false"
-        enableScrolling="false"
-        class="sapUiResponsivePadding--header sapUiResponsivePadding--content">
+        enableScrolling="true"
+        class="sapUiResponsivePadding--header sapUiResponsivePadding--content assignmentsPage">
 
         <customHeader>
             <Bar id="assignHeaderBar">
@@ -27,11 +27,6 @@
                         icon="sap-icon://role"
                         state="{= ${user>/role} === 'Admin' ? 'Success' : ${user>/role} === 'Manager' ? 'Warning' : 'Information' }"
                         class="sapUiSmallMarginEnd" />
-                    <Button
-                        id="backToCatalogBtn"
-                        text="{i18n>backToCatalog}"
-                        icon="sap-icon://learning-assistant"
-                        press="onNavBack" />
                 </contentRight>
             </Bar>
         </customHeader>

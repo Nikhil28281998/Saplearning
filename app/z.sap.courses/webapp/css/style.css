@@ -96,6 +96,16 @@ html, body, html.sap-desktop, .sapUiBody {
     min-height: 200px !important;
 }
 
+/* BUG-6 FIX: Assignments page uses ResponsiveTable – needs page-level scroll */
+.assignmentsPage.sapMPage > section.sapMPageEnableScrolling,
+.assignmentsPage.sapMPage > section {
+    overflow-y: auto !important;
+}
+.assignmentsPage .sapUiCompSmartTable {
+    flex: 0 0 auto !important;
+    overflow: visible !important;
+}
+
 /* ===== Modern Header Bar ===== */
 .sapMPage > .sapMPageHeader .sapMBar,
 .sapMPage > header .sapMBar {

@@ -260,88 +260,126 @@ sap.ui.define([
             if (oTable) {
                 oTable.setMode("SingleSelectMaster");
                 oTable.setAlternateRowColors(true);
+
+                // BUG-6 FIX: Enable growing for ResponsiveTable (lazy scroll-to-load)
+                if (typeof oTable.setGrowing === "function") {
+                    oTable.setGrowing(true);
+                    oTable.setGrowingScrollToLoad(true);
+                    oTable.setGrowingThreshold(50);
+                }
+
                 if (!this._itemPressAttached) {
                     oTable.attachItemPress(this.onItemPress.bind(this));
                     this._itemPressAttached = true;
                 }
 
-                // Apply link templates and status formatting after first data load
-                this._linksApplied = false;
+                // BUG-7 FIX: Apply column templates on EVERY data update
+                // (idempotent — skips cells already replaced)
                 oTable.attachUpdateFinished(function () {
-                    if (!that._linksApplied) {
-                        that._applyAssignmentColumnTemplates(oTable);
-                        that._linksApplied = true;
-                    }
+                    that._applyAssignmentColumnTemplates(oTable);
                 });
             }
         },
 
         /**
-         * Apply clickable Link template to the Url column and
-         * ObjectStatus template to the Status column in ResponsiveTable.
+         * BUG-7 FIX: Apply Link + ObjectStatus cell templates using p13nData
+         * for robust column detection, and OData bindings so controls survive
+         * ColumnListItem context changes on sort/filter/growing.
          */
         _applyAssignmentColumnTemplates: function (oTable) {
             if (!oTable || !oTable.getColumns) { return; }
             var aCols = oTable.getColumns();
             var aItems = oTable.getItems();
-
-            // Detect column positions by reading the cell content from the first data row
             if (aItems.length === 0) { return; }
-            var oFirstItem = aItems[0];
-            if (!oFirstItem || !oFirstItem.getCells) { return; }
-            var aCells = oFirstItem.getCells();
 
+            // Detect column indices via p13nData customData (i18n-safe)
+            var iUrlIdx = -1, iStatusIdx = -1;
             aCols.forEach(function (oCol, iIdx) {
-                var oHeader = oCol.getHeader();
-                var sLabel = (oHeader && typeof oHeader.getText === "function") ? oHeader.getText() : "";
-
-                if (sLabel === "Url" || sLabel === "Training Link") {
-                    // Replace all Url cells with Link controls
-                    aItems.forEach(function (oItem) {
-                        if (!oItem.getCells) { return; }
-                        var cells = oItem.getCells();
-                        if (iIdx < cells.length) {
-                            var oCtx = oItem.getBindingContext();
-                            var sUrl = oCtx ? oCtx.getProperty("Url") : "";
-                            if (sUrl && /^https?:\/\//i.test(sUrl)) {
-                                var oLink = new Link({
-                                    text: "Open Training",
-                                    href: sUrl,
-                                    target: "_blank",
-                                    wrapping: false
-                                }).addStyleClass("assignmentLink");
-                                oItem.removeCell(cells[iIdx]);
-                                oItem.insertCell(oLink, iIdx);
+                var aCustomData = oCol.getCustomData();
+                for (var i = 0; i < aCustomData.length; i++) {
+                    var oCD = aCustomData[i];
+                    if (oCD.getKey && oCD.getKey() === "p13nData") {
+                        try {
+                            var oP13n = typeof oCD.getValue() === "string"
+                                ? JSON.parse(oCD.getValue()) : oCD.getValue();
+                            if (oP13n.columnKey === "Url" || oP13n.leadingProperty === "Url") {
+                                iUrlIdx = iIdx;
                             }
-                        }
-                    });
-                    Log.info("[AssignLinks] Applied Link cells on Url column");
+                            if (oP13n.columnKey === "Status" || oP13n.leadingProperty === "Status") {
+                                iStatusIdx = iIdx;
+                            }
+                        } catch (e) { /* ignore parse errors */ }
+                    }
                 }
-
-                if (sLabel === "Status") {
-                    // Replace Status cells with ObjectStatus (colored badge)
-                    aItems.forEach(function (oItem) {
-                        if (!oItem.getCells) { return; }
-                        var cells = oItem.getCells();
-                        if (iIdx < cells.length) {
-                            var oCtx = oItem.getBindingContext();
-                            var sStatus = oCtx ? oCtx.getProperty("Status") : "";
-                            var sState = sStatus === "Completed" ? "Success" :
-                                         sStatus === "In Progress" ? "Information" : "Warning";
-                            var sIcon = sStatus === "Completed" ? "sap-icon://accept" :
-                                        sStatus === "In Progress" ? "sap-icon://activity-2" : "sap-icon://pending";
-                            var oStatusControl = new ObjectStatus({
-                                text: sStatus,
-                                state: sState,
-                                icon: sIcon
-                            }).addStyleClass("assignmentStatusBadge");
-                            oItem.removeCell(cells[iIdx]);
-                            oItem.insertCell(oStatusControl, iIdx);
-                        }
-                    });
-                    Log.info("[AssignLinks] Applied ObjectStatus cells on Status column");
+                // Fallback: header text (for SmartTable without p13nData)
+                if (iUrlIdx < 0 || iStatusIdx < 0) {
+                    var oHeader = oCol.getHeader();
+                    var sLabel = (oHeader && typeof oHeader.getText === "function") ? oHeader.getText() : "";
+                    if ((sLabel === "Url" || sLabel === "Training Link") && iUrlIdx < 0) { iUrlIdx = iIdx; }
+                    if (sLabel === "Status" && iStatusIdx < 0) { iStatusIdx = iIdx; }
                 }
             });
+
+            aItems.forEach(function (oItem) {
+                if (!oItem.getCells) { return; }
+                var aCells = oItem.getCells();
+
+                // Url → Link with OData binding (survives context changes)
+                if (iUrlIdx >= 0 && iUrlIdx < aCells.length) {
+                    var oUrlCell = aCells[iUrlIdx];
+                    if (oUrlCell.getMetadata().getName() !== "sap.m.Link") {
+                        var oLink = new Link({
+                            text: {
+                                path: "Url",
+                                formatter: function (sUrl) {
+                                    return (sUrl && /^https?:\/\//i.test(sUrl)) ? "Open Training" : (sUrl || "");
+                                }
+                            },
+                            href: "{Url}",
+                            target: "_blank",
+                            wrapping: false,
+                            enabled: {
+                                path: "Url",
+                                formatter: function (sUrl) {
+                                    return !!(sUrl && /^https?:\/\//i.test(sUrl));
+                                }
+                            }
+                        }).addStyleClass("assignmentLink");
+                        oItem.removeCell(oUrlCell);
+                        oItem.insertCell(oLink, iUrlIdx);
+                        oUrlCell.destroy();
+                    }
+                }
+
+                // Status → ObjectStatus with OData binding
+                if (iStatusIdx >= 0 && iStatusIdx < aCells.length) {
+                    var oStatusCell = aCells[iStatusIdx];
+                    if (oStatusCell.getMetadata().getName() !== "sap.m.ObjectStatus") {
+                        var oStatusCtrl = new ObjectStatus({
+                            text: "{Status}",
+                            state: {
+                                path: "Status",
+                                formatter: function (s) {
+                                    return s === "Completed" ? "Success" :
+                                           s === "In Progress" ? "Information" : "Warning";
+                                }
+                            },
+                            icon: {
+                                path: "Status",
+                                formatter: function (s) {
+                                    return s === "Completed" ? "sap-icon://accept" :
+                                           s === "In Progress" ? "sap-icon://activity-2" : "sap-icon://pending";
+                                }
+                            }
+                        }).addStyleClass("assignmentStatusBadge");
+                        oItem.removeCell(oStatusCell);
+                        oItem.insertCell(oStatusCtrl, iStatusIdx);
+                        oStatusCell.destroy();
+                    }
+                }
+            });
+
+            Log.info("[AssignLinks] Column templates applied (Url=" + iUrlIdx + ", Status=" + iStatusIdx + ")");
         },
 
         /* ===== Refresh ===== */
@@ -350,7 +388,6 @@ sap.ui.define([
             if (oSmartTable) {
                 oSmartTable.rebindTable(true);
             }
-            this._linksApplied = false; // reset so templates re-apply
             this._loadAnalytics();
             MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("dataRefreshed"));
         },
@@ -402,9 +439,6 @@ sap.ui.define([
             if (mBindingParams.parameters && mBindingParams.parameters.custom) {
                 delete mBindingParams.parameters.custom.search;
             }
-
-            // Allow link templates to re-apply on next data load
-            this._linksApplied = false;
 
             Log.info("[AssignFilter] Total filters: " + mBindingParams.filters.length);
         },
@@ -630,7 +664,6 @@ sap.ui.define([
                         success: function () {
                             if (oSmartTable) { oSmartTable.setBusy(false); }
                             MessageToast.show(i18n.getText("markedCompleted"));
-                            that._linksApplied = false;
                             that.onRefresh();
                         },
                         error: function (err) {
