@@ -125,9 +125,9 @@
                         </HBox>
                         <mc:StackedBarMicroChart id="statusStackedBar" size="L" width="100%">
                             <mc:bars>
-                                <mc:StackedBarMicroChartBar id="statusBarAssigned" value="{analyticsModel>/assigned}" valueColor="Critical" displayValue="{analyticsModel>/assigned}" />
-                                <mc:StackedBarMicroChartBar id="statusBarInProgress" value="{analyticsModel>/inProgress}" valueColor="Neutral" displayValue="{analyticsModel>/inProgress}" />
-                                <mc:StackedBarMicroChartBar id="statusBarCompleted" value="{analyticsModel>/completed}" valueColor="Good" displayValue="{analyticsModel>/completed}" />
+                                <mc:StackedBarMicroChartBar id="statusBarAssigned" value="{analyticsModel>/assigned}" valueColor="Critical" displayValue="{analyticsModel>/assignedDisplay}" />
+                                <mc:StackedBarMicroChartBar id="statusBarInProgress" value="{analyticsModel>/inProgress}" valueColor="Neutral" displayValue="{analyticsModel>/inProgressDisplay}" />
+                                <mc:StackedBarMicroChartBar id="statusBarCompleted" value="{analyticsModel>/completed}" valueColor="Good" displayValue="{analyticsModel>/completedDisplay}" />
                             </mc:bars>
                         </mc:StackedBarMicroChart>
                         <HBox id="statusLegendBox" justifyContent="SpaceBetween" class="sapUiTinyMarginTop chartLegendRow">

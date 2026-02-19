@@ -122,6 +122,13 @@ sap.ui.define([
                 oAnalyticsModel.setProperty("/inProgress", oStats.inProgress);
                 oAnalyticsModel.setProperty("/completed", oStats.completed);
                 oAnalyticsModel.setProperty("/completionPercent", oStats.completionPercent);
+
+                // FEAT-5: Percentage display values for status distribution chart
+                var iTotal = oStats.assigned + oStats.inProgress + oStats.completed;
+                var fnPct = function (n) { return iTotal > 0 ? Math.round((n / iTotal) * 100) : 0; };
+                oAnalyticsModel.setProperty("/assignedDisplay", oStats.assigned + " (" + fnPct(oStats.assigned) + "%)");
+                oAnalyticsModel.setProperty("/inProgressDisplay", oStats.inProgress + " (" + fnPct(oStats.inProgress) + "%)");
+                oAnalyticsModel.setProperty("/completedDisplay", oStats.completed + " (" + fnPct(oStats.completed) + "%)");
             });
 
             // Clear busy when both complete
@@ -163,13 +170,16 @@ sap.ui.define([
                     width: "100%"
                 });
 
-                var colors = ["Good", "Neutral", "Critical", "Error", "Neutral"];
-                moduleArr.forEach(function (m, i) {
+                var colors = ["Good", "Neutral", "Critical", "Good", "Neutral", "Critical", "Good", "Neutral"];
+                var iTotalModules = moduleArr.reduce(function (sum, m) { return sum + m.count; }, 0);
+                var aTop = moduleArr.slice(0, 8); // FEAT-5: Show top 8 modules
+                aTop.forEach(function (m, i) {
+                    var iPct = iTotalModules > 0 ? Math.round((m.count / iTotalModules) * 100) : 0;
                     oChart.addData(new ComparisonMicroChartData({
                         title: m.label,
                         value: m.count,
                         color: colors[i % colors.length],
-                        displayValue: m.count + ""
+                        displayValue: m.count + " (" + iPct + "%)"
                     }));
                 });
 
