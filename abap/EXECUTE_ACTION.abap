@@ -25,6 +25,7 @@ METHOD /iwbep/if_mgw_appl_srv_runtime~execute_action.
         ls_param    TYPE /iwbep/s_mgw_name_value_pair,
         lv_id       TYPE char36,
         lv_role_val TYPE char20,
+        lv_avail    TYPE char60,
         ls_role     TYPE zcl_zcourses_mpc=>ts_currentrole,  "if error: try CURRENTROLE
         lv_ftype    TYPE c,
         lv_ts_conv  TYPE timestamp,
@@ -138,32 +139,66 @@ METHOD /iwbep/if_mgw_appl_srv_runtime~execute_action.
         CHANGING  cr_data = er_data ).
 
 * ═══════════════════════════════════════════════════════════════════════
-* getCurrentRole - Returns the user's highest role
+* getCurrentRole - Returns highest role + ALL available roles
+*   UI uses AvailableRoles to populate the role switcher dynamically:
+*   - 3 roles → switcher shows Admin / Manager / End User
+*   - 2 roles → switcher shows those two only
+*   - 1 role  → no switcher, just role badge
 * ═══════════════════════════════════════════════════════════════════════
     WHEN 'getCurrentRole'.
 
-*     Role detection logic:
-*     - Admin  = has Delete authorization (ACTVT 06) — only Z_COURSES_ADMIN has this
-*     - Manager = has Create authorization (ACTVT 01) — Z_COURSES_MANAGER has 01 but not 06
-*     - User   = everyone else with at least Display (ACTVT 03)
+      CLEAR: lv_role_val, lv_avail.
 
+*     Check Admin: Delete auth (ACTVT 06) — only Z_COURSES_ADMIN has this
       AUTHORITY-CHECK OBJECT 'Z_COURSES'
         ID 'ACTVT' FIELD '06'.
       IF sy-subrc = 0.
         lv_role_val = 'Admin'.
-      ELSE.
-        AUTHORITY-CHECK OBJECT 'Z_COURSES'
-          ID 'ACTVT' FIELD '01'.
-        IF sy-subrc = 0.
+        lv_avail    = 'Admin'.
+      ENDIF.
+
+*     Check Manager: Create auth (ACTVT 01)
+*     NOTE: Admin also passes this (ACTVT 01 is in Z_COURSES_ADMIN)
+      AUTHORITY-CHECK OBJECT 'Z_COURSES'
+        ID 'ACTVT' FIELD '01'.
+      IF sy-subrc = 0.
+        IF lv_role_val IS INITIAL.
           lv_role_val = 'Manager'.
+        ENDIF.
+        IF lv_avail IS NOT INITIAL.
+          CONCATENATE lv_avail ',Manager' INTO lv_avail.
         ELSE.
-          lv_role_val = 'User'.
+          lv_avail = 'Manager'.
         ENDIF.
       ENDIF.
 
+*     Check User: Display auth (ACTVT 03)
+*     NOTE: Admin & Manager also pass this (ACTVT 03 is in both roles)
+      AUTHORITY-CHECK OBJECT 'Z_COURSES'
+        ID 'ACTVT' FIELD '03'.
+      IF sy-subrc = 0.
+        IF lv_role_val IS INITIAL.
+          lv_role_val = 'User'.
+        ENDIF.
+        IF lv_avail IS NOT INITIAL.
+          CONCATENATE lv_avail ',User' INTO lv_avail.
+        ELSE.
+          lv_avail = 'User'.
+        ENDIF.
+      ENDIF.
+
+*     Fallback: if no authorization at all, default to User (view-only)
+      IF lv_role_val IS INITIAL.
+        lv_role_val = 'User'.
+        lv_avail    = 'User'.
+      ENDIF.
+
 *     Return via Complex Type structure (ts_currentrole)
-*     SEGW Complex Type "CurrentRole" has one property: Role (Edm.String 20)
-      ls_role-role = lv_role_val.
+*     SEGW Complex Type "CurrentRole":
+*       Role            (Edm.String 20) — highest role
+*       AvailableRoles  (Edm.String 60) — comma-separated, e.g. "Admin,Manager,User"
+      ls_role-role           = lv_role_val.
+      ls_role-availableroles = lv_avail.
 
       copy_data_to_ref(
         EXPORTING is_data = ls_role

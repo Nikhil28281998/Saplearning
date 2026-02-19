@@ -28,14 +28,14 @@
                         icon="sap-icon://role"
                         state="{= ${user>/role} === 'Admin' ? 'Success' : ${user>/role} === 'Manager' ? 'Warning' : 'Information' }"
                         class="sapUiSmallMarginEnd" />
-                    <!-- Role switcher: visible only in dev/localhost for testing.
-                         In production (S/4HANA), role comes from getCurrentRole PFCG check. -->
-                    <HBox id="roleBox" alignItems="Center" class="sapUiSmallMarginEnd roleBoxContainer" visible="true">
+                    <!-- Role switcher: dynamically shows only the roles this user has.
+                         Hidden when user has only one role (just badge visible). -->
+                    <HBox id="roleBox" alignItems="Center" class="sapUiSmallMarginEnd roleBoxContainer" visible="{user>/showRoleSwitcher}">
                         <core:Icon id="roleIcon" src="sap-icon://role" size="1rem" class="sapUiTinyMarginEnd headerIcon" />
-                        <Select id="roleSwitcher" selectedKey="{user>/role}" change="onSwitchRole" class="roleSwitcherSelect">
-                            <core:Item id="roleAdmin" key="Admin" text="Admin" />
-                            <core:Item id="roleManager" key="Manager" text="Manager" />
-                            <core:Item id="roleUser" key="User" text="End User" />
+                        <Select id="roleSwitcher" selectedKey="{user>/role}" change="onSwitchRole"
+                                class="roleSwitcherSelect"
+                                items="{user>/availableRoles}">
+                            <core:Item key="{user>key}" text="{user>text}" />
                         </Select>
                     </HBox>
                     <Button

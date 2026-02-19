@@ -24,7 +24,12 @@ sap.ui.define([
             this._assignmentEntitySet = 'TrainingAssignments'; // default
 
             // Create a stable "user" JSONModel once — _applyRoleUI reuses it via setProperty
-            this._userModel = new JSONModel({ role: 'User', userId: '' });
+            this._userModel = new JSONModel({
+                role: 'User',
+                userId: '',
+                availableRoles: [{ key: 'User', text: 'End User' }],
+                showRoleSwitcher: false
+            });
             this.setModel(this._userModel, "user");
 
             // Detect current SAP username for data filtering (BUG-1 fix)
@@ -193,10 +198,16 @@ sap.ui.define([
         },
 
         /**
-         * Switch user role dynamically (Admin/Manager/User).
+         * Switch user role dynamically — only allows roles the user actually has.
          * Reuses existing JSONModel via setProperty — no new model created.
          */
         switchRole: function (sRole) {
+            var aAvail = this._userModel.getProperty("/availableRoles") || [];
+            var bValid = aAvail.some(function (r) { return r.key === sRole; });
+            if (!bValid) {
+                Log.warning('Role "' + sRole + '" not available for this user — ignoring switch');
+                return;
+            }
             this._role = sRole;
             this._applyRoleUI();
             Log.info('Role switched to: ' + sRole);
@@ -221,6 +232,7 @@ sap.ui.define([
                             var norm = v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
                             that._role = norm;
                             try { localStorage.setItem('saplc-role', norm); } catch (_) {}
+                            that._buildAvailableRoles('Admin,Manager,User'); // dev: all roles
                             that._applyRoleUI();
                             return;
                         }
@@ -228,7 +240,12 @@ sap.ui.define([
                 } catch (_) { /* ignore */ }
                 try {
                     var ls = localStorage.getItem('saplc-role');
-                    if (ls) { that._role = ls; that._applyRoleUI(); return; }
+                    if (ls) {
+                        that._role = ls;
+                        that._buildAvailableRoles('Admin,Manager,User'); // dev: all roles
+                        that._applyRoleUI();
+                        return;
+                    }
                 } catch (_) { /* ignore */ }
             }
 
@@ -244,19 +261,25 @@ sap.ui.define([
                     success: function (oData) {
                         oModel.setUseBatch(bWasBatch);
                         var sRole = "User";
+                        var sAvail = "";
                         // Handle both OData V2 response formats:
-                        //   Format A: { getCurrentRole: { Role: "Admin" } }
-                        //   Format B: { Role: "Admin" }
+                        //   Format A: { getCurrentRole: { Role: "Admin", AvailableRoles: "Admin,Manager,User" } }
+                        //   Format B: { Role: "Admin", AvailableRoles: "Admin,Manager,User" }
                         if (oData) {
                             if (oData.getCurrentRole && oData.getCurrentRole.Role) {
                                 sRole = oData.getCurrentRole.Role;
+                                sAvail = oData.getCurrentRole.AvailableRoles || '';
                             } else if (oData.Role) {
                                 sRole = oData.Role;
+                                sAvail = oData.AvailableRoles || '';
                             }
                         }
+                        // If backend doesn't return AvailableRoles yet, fall back to single role
+                        if (!sAvail) { sAvail = sRole; }
                         that._role = sRole;
+                        that._buildAvailableRoles(sAvail);
                         that._applyRoleUI();
-                        Log.info('Role fetched via callFunction: ' + sRole);
+                        Log.info('Role fetched via callFunction: ' + sRole + ' (available: ' + sAvail + ')');
                     },
                     error: function (oError) {
                         oModel.setUseBatch(bWasBatch);
@@ -273,6 +296,7 @@ sap.ui.define([
                             '3) Regenerate MPC, 4) Reactivate EXECUTE_ACTION in DPC_EXT. ' +
                             'See abap/SEGW_FUNCTION_IMPORTS.abap for step-by-step guide.');
                         that._role = 'User';
+                        that._buildAvailableRoles('User');
                         that._applyRoleUI();
                     }
                 });
@@ -281,12 +305,14 @@ sap.ui.define([
                 this._userContext.getCurrentRole()
                     .then(function (role) {
                         that._role = role;
+                        that._buildAvailableRoles(role);
                         that._applyRoleUI();
                         Log.info('Role fetched from UserContext: ' + role);
                     })
                     .catch(function (error) {
                         Log.warning('getCurrentRole failed (fetch): ' + (error && error.message || error));
                         that._role = 'User';
+                        that._buildAvailableRoles('User');
                         that._applyRoleUI();
                     });
             }
@@ -301,6 +327,31 @@ sap.ui.define([
             this._userModel.setProperty("/role", sRole);
             // Notify active controllers to refresh data with correct role-based filters
             sap.ui.getCore().getEventBus().publish("sapCourses", "roleChanged", { role: sRole });
+        },
+
+        /**
+         * Build the dynamic available-roles array for the role switcher.
+         * @param {string} sAvail - Comma-separated roles from backend, e.g. "Admin,Manager,User"
+         */
+        _buildAvailableRoles: function (sAvail) {
+            var roleLabels = { Admin: 'Admin', Manager: 'Manager', User: 'End User' };
+            var aRoles = [];
+            if (sAvail) {
+                sAvail.split(',').forEach(function (r) {
+                    r = r.trim();
+                    if (roleLabels[r]) {
+                        aRoles.push({ key: r, text: roleLabels[r] });
+                    }
+                });
+            }
+            // Fallback: at least show current role
+            if (aRoles.length === 0) {
+                var sCur = this._role || 'User';
+                aRoles.push({ key: sCur, text: roleLabels[sCur] || 'End User' });
+            }
+            this._userModel.setProperty("/availableRoles", aRoles);
+            this._userModel.setProperty("/showRoleSwitcher", aRoles.length > 1);
+            Log.info('Available roles: ' + aRoles.map(function (r) { return r.key; }).join(', '));
         },
 
         // Navigate to TrainingAssignments
