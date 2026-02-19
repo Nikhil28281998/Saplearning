@@ -343,8 +343,22 @@ sap.ui.define([
             };
 
             // Load trainings and users in parallel
+            // For Manager role: filter UserSet by ManagerSort2 = current user ID
+            // so the dropdown only shows the manager's team members
             var pTrainings = loadList('/Trainings');
-            var pUsers = loadList('/UserSet').catch(function () {
+            var sUserId = that.getCurrentUserId();
+            var sRole = that._role;
+            var aUserFilters = [];
+            if (sRole === 'Manager' && sUserId) {
+                aUserFilters.push(new sap.ui.model.Filter("ManagerSort2", sap.ui.model.FilterOperator.EQ, sUserId));
+            }
+            var pUsers = new Promise(function (resolve, reject) {
+                oModel.read('/UserSet', {
+                    filters: aUserFilters,
+                    success: function (data) { resolve(data.results || []); },
+                    error: reject
+                });
+            }).catch(function () {
                 Log.warning('[AssignDlg] UserSet entity set not available – manual entry only');
                 return []; // Graceful fallback if User entity not yet created in SEGW
             });
