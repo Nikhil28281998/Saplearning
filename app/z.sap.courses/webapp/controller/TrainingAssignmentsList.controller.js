@@ -325,6 +325,12 @@ sap.ui.define([
             Log.info("[AssignLinks] Column templates applied (Url=" + iUrlIdx + ", Status=" + iStatusIdx + ", DueDate=" + iDueDateIdx + ")");
         },
 
+        /* ===== Navigate back to Training Catalog ===== */
+        onBackToCatalog: function () {
+            var oRouter = this.getOwnerComponent().getRouter();
+            oRouter.navTo("TrainingsList");
+        },
+
         /* ===== Refresh ===== */
         onRefresh: function () {
             var oSmartTable = this.byId("assignSmartTable");

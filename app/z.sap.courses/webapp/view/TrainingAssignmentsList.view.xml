@@ -10,10 +10,27 @@
 
     <Page
         id="assignmentsListPage"
-        title="{i18n>trainingAssignments}"
-        showNavButton="false"
+        showNavButton="true"
+        navButtonPress="onBackToCatalog"
         enableScrolling="true"
         class="sapUiResponsivePadding--header sapUiResponsivePadding--content assignmentsPage">
+
+        <customHeader>
+            <Bar id="assignHeaderBar">
+                <contentLeft>
+                    <Button id="assignBackBtn" icon="sap-icon://nav-back" press="onBackToCatalog" type="Transparent" />
+                    <Title id="assignPageTitle" text="{i18n>trainingAssignments}" level="H2" />
+                </contentLeft>
+                <contentRight>
+                    <Button
+                        id="browseCatalogBtn"
+                        text="{i18n>browseCatalog}"
+                        icon="sap-icon://course-book"
+                        type="Emphasized"
+                        press="onBackToCatalog" />
+                </contentRight>
+            </Bar>
+        </customHeader>
 
         <dependents>
             <core:InvisibleText id="assignmentsFilterLabel" text="{i18n>assignmentsFilterLabel}" />

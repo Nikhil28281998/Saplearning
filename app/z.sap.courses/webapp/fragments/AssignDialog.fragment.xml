@@ -5,7 +5,7 @@
 
     <Dialog
         id="assignTrainingDialog"
-        title="Assign Training"
+        title="Assign Training to Team"
         contentWidth="620px"
         verticalScrolling="true"
         draggable="true"
@@ -13,6 +13,19 @@
 
         <content>
             <VBox id="assignDialogVBox" class="sapUiSmallMargin">
+
+                <!-- Section 1: Selected Trainings (read-only summary) -->
+                <Panel id="assignTrainingsPanel" headerText="Selected Trainings ({= ${assignModel>/trainings}.length })">
+                    <List id="assignTrainingsList" items="{assignModel>/trainings}" noDataText="No trainings selected">
+                        <StandardListItem
+                            id="assignTrainingListItem"
+                            title="{assignModel>Title}"
+                            description="{assignModel>Role} | {assignModel>SapModule}"
+                            icon="sap-icon://course-book"
+                            type="Inactive" />
+                    </List>
+                </Panel>
+
                 <form:SimpleForm
                     id="assignForm"
                     editable="true"
@@ -22,45 +35,7 @@
                     columnsXL="1" columnsL="1" columnsM="1"
                     adjustLabelSpan="false">
                     <form:content>
-                        <!-- Section 1: Filter Training -->
-                        <core:Title id="assignTitleFilter" text="Filter Training" />
-                        <Label id="assignLabelRole" text="Role" />
-                        <Select
-                            id="assignRoleFilter"
-                            width="100%"
-                            items="{assignModel>/roles}"
-                            selectedKey="{assignModel>/selectedRoleFilter}"
-                            change=".onAssignRoleFilterChange">
-                            <core:ListItem id="assignRoleItem" key="{assignModel>key}" text="{assignModel>text}" />
-                        </Select>
-
-                        <Label id="assignLabelModule" text="Module" />
-                        <Select
-                            id="assignModuleFilter"
-                            width="100%"
-                            items="{assignModel>/modules}"
-                            selectedKey="{assignModel>/selectedModuleFilter}"
-                            change=".onAssignModuleFilterChange">
-                            <core:ListItem id="assignModuleItem" key="{assignModel>key}" text="{assignModel>text}" />
-                        </Select>
-
-                        <!-- Section 2: Select Training -->
-                        <core:Title id="assignTitleSelect" text="Select Training" />
-                        <Label id="assignLabelTraining" text="Training" required="true" />
-                        <Select
-                            id="assignTrainingSelect"
-                            width="100%"
-                            items="{assignModel>/filteredTrainings}"
-                            selectedKey="{assignModel>/selectedTrainingId}"
-                            showSecondaryValues="true">
-                            <core:ListItem
-                                id="assignTrainingItem"
-                                key="{assignModel>Id}"
-                                text="{assignModel>Title}"
-                                additionalText="{assignModel>Role} | {assignModel>SapModule}" />
-                        </Select>
-
-                        <!-- Section 3: Assign To -->
+                        <!-- Section 2: Assign To -->
                         <core:Title id="assignTitleAssignTo" text="Assign To" />
                         <Label id="assignLabelUserId" text="Team Members" required="true" />
                         <MultiComboBox
@@ -77,9 +52,9 @@
                         </MultiComboBox>
 
                         <Label id="assignLabelSelectedCount" text="Selected" />
-                        <Text id="assignSelectedCount" text="{= ${assignModel>/selectedUserKeys}.length + ' team member(s) selected'}" />
+                        <Text id="assignSelectedCount" text="{= ${assignModel>/selectedUserKeys}.length + ' team member(s) x ' + ${assignModel>/trainings}.length + ' training(s) = ' + (${assignModel>/selectedUserKeys}.length * ${assignModel>/trainings}.length) + ' assignment(s)'}" />
 
-                        <!-- Section 4: Schedule -->
+                        <!-- Section 3: Schedule -->
                         <core:Title id="assignTitleSchedule" text="Schedule" />
                         <Label id="assignLabelDueDate" text="Due Date" />
                         <DatePicker

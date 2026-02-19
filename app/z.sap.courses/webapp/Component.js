@@ -327,6 +327,14 @@ sap.ui.define([
             this._userModel.setProperty("/role", sRole);
             // Notify active controllers to refresh data with correct role-based filters
             sap.ui.getCore().getEventBus().publish("sapCourses", "roleChanged", { role: sRole });
+
+            // Role-based landing: User starts at My Assignments (one-time redirect)
+            if (!this._landingApplied) {
+                this._landingApplied = true;
+                if (sRole === 'User') {
+                    this.getRouter().navTo('TrainingAssignmentsList');
+                }
+            }
         },
 
         /**
@@ -376,27 +384,16 @@ sap.ui.define([
 
         /**
          * Open the Assign Training dialog. Loads data first, then loads fragment.
+         * @param {Array} [aPreSelectedTrainings] - Trainings pre-selected from SmartTable
          */
-        openAssignDialog: function () {
+        openAssignDialog: function (aPreSelectedTrainings) {
             var that = this;
             // Destroy previous instance for fresh data
             if (this._assignDlg) { this._assignDlg.destroy(); this._assignDlg = null; }
             var oModel = this.getModel();
 
-            var loadList = function (path, params) {
-                return new Promise(function (resolve, reject) {
-                    oModel.read(path, {
-                        urlParameters: params || {},
-                        success: function (data) { resolve(data.results || []); },
-                        error: reject
-                    });
-                });
-            };
-
-            // Load trainings and users in parallel
             // For Manager role: filter UserSet by Sort2 = current user ID
             // (Sort2 = User entity property mapped from ADRP.SORT2 in SU01)
-            var pTrainings = loadList('/Trainings');
             var sUserId = that.getCurrentUserId();
             var sRole = that._role;
             var aUserFilters = [];
@@ -414,8 +411,8 @@ sap.ui.define([
                 return []; // Graceful fallback if User entity not yet created in SEGW
             });
 
-            Promise.all([pTrainings, pUsers]).then(function (results) {
-                that._openAssignFragment(results[0] || [], results[1] || []);
+            pUsers.then(function (users) {
+                that._openAssignFragment(aPreSelectedTrainings || [], users || []);
             }).catch(function () {
                 MessageToast.show('Failed to load data for assignment');
             });
@@ -423,31 +420,15 @@ sap.ui.define([
 
         /**
          * Build the assignModel and load the AssignDialog fragment.
+         * @param {Array} trainings - Pre-selected trainings from SmartTable
+         * @param {Array} users - Team members from UserSet
          */
         _openAssignFragment: function (trainings, users) {
             var that = this;
 
-            // Build filter data
-            var roleSet = {};
-            var moduleSet = {};
-            trainings.forEach(function (t) {
-                if (t.Role) { roleSet[t.Role] = true; }
-                if (t.SapModule) { moduleSet[t.SapModule] = true; }
-            });
-
             this._assignModel = new JSONModel({
                 trainings: trainings,
-                filteredTrainings: trainings,
                 users: users || [],
-                roles: [{ key: '', text: 'All Roles' }].concat(
-                    Object.keys(roleSet).sort().map(function (r) { return { key: r, text: r }; })
-                ),
-                modules: [{ key: '', text: 'All Modules' }].concat(
-                    Object.keys(moduleSet).sort().map(function (m) { return { key: m, text: m }; })
-                ),
-                selectedRoleFilter: "",
-                selectedModuleFilter: "",
-                selectedTrainingId: trainings[0] && trainings[0].Id || '',
                 selectedUserKeys: [],
                 dueDate: null,
                 submitting: false,
@@ -469,71 +450,6 @@ sap.ui.define([
         // --- Fragment event handlers ---
 
         /**
-         * Cross-filter: filter trainings by role, update available modules.
-         */
-        onAssignRoleFilterChange: function () {
-            this._filterAssignTrainings('role');
-        },
-
-        /**
-         * Cross-filter: filter trainings by module, update available roles.
-         */
-        onAssignModuleFilterChange: function () {
-            this._filterAssignTrainings('module');
-        },
-
-        _filterAssignTrainings: function (source) {
-            var oModel = this._assignModel;
-            if (!oModel) { return; }
-            var data = oModel.getData();
-            var selRole = data.selectedRoleFilter;
-            var selModule = data.selectedModuleFilter;
-
-            var filtered = data.trainings.filter(function (t) {
-                var roleMatch = !selRole || t.Role === selRole;
-                var moduleMatch = !selModule || t.SapModule === selModule;
-                return roleMatch && moduleMatch;
-            });
-            oModel.setProperty('/filteredTrainings', filtered);
-
-            if (source === 'role') {
-                var mSet = {};
-                data.trainings.forEach(function (t) {
-                    if (t.SapModule && (!selRole || t.Role === selRole)) {
-                        mSet[t.SapModule] = true;
-                    }
-                });
-                var newModules = [{ key: '', text: 'All Modules' }].concat(
-                    Object.keys(mSet).sort().map(function (m) { return { key: m, text: m }; })
-                );
-                oModel.setProperty('/modules', newModules);
-                if (selModule && !mSet[selModule]) {
-                    oModel.setProperty('/selectedModuleFilter', '');
-                }
-            }
-
-            if (source === 'module') {
-                var rSet = {};
-                data.trainings.forEach(function (t) {
-                    if (t.Role && (!selModule || t.SapModule === selModule)) {
-                        rSet[t.Role] = true;
-                    }
-                });
-                var newRoles = [{ key: '', text: 'All Roles' }].concat(
-                    Object.keys(rSet).sort().map(function (r) { return { key: r, text: r }; })
-                );
-                oModel.setProperty('/roles', newRoles);
-                if (selRole && !rSet[selRole]) {
-                    oModel.setProperty('/selectedRoleFilter', '');
-                }
-            }
-
-            if (filtered.length > 0 && !filtered.some(function (f) { return f.Id === data.selectedTrainingId; })) {
-                oModel.setProperty('/selectedTrainingId', filtered[0].Id);
-            }
-        },
-
-        /**
          * Multi-user selection changed — update selectedUserKeys in model.
          */
         onAssignUserSelectionChange: function (oEvent) {
@@ -544,18 +460,18 @@ sap.ui.define([
         },
 
         /**
-         * Submit handler for Assign Training dialog — supports bulk assignment.
-         * Creates one assignment per selected user for the chosen training.
+         * Submit handler for Assign Training dialog — supports bulk: N trainings x M users.
+         * Creates one assignment per training per user sequentially.
          */
         onAssignSubmit: function () {
             var that = this;
             var oAssignModel = this._assignModel;
             if (!oAssignModel) { return; }
             var data = oAssignModel.getData();
-            var tr = (data.filteredTrainings || []).find(function (t) { return t.Id === data.selectedTrainingId; });
+            var aTrainings = data.trainings || [];
 
-            if (!tr) {
-                oAssignModel.setProperty('/error', 'Please select a training');
+            if (aTrainings.length === 0) {
+                oAssignModel.setProperty('/error', 'No trainings selected. Select trainings from the catalog first.');
                 return;
             }
             var aSelectedKeys = data.selectedUserKeys || [];
@@ -606,10 +522,17 @@ sap.ui.define([
             var bWasBatch = oModel.bUseBatch;
             oModel.setUseBatch(false);
 
-            // Create one assignment per selected user sequentially
+            // Build flat list of all training x user combinations
+            var aCombinations = [];
+            aTrainings.forEach(function (tr) {
+                aSelectedKeys.forEach(function (sKey) {
+                    aCombinations.push({ training: tr, userKey: sKey.toUpperCase() });
+                });
+            });
+
             var iSuccess = 0, iFailCount = 0, aErrors = [];
             var fnCreateNext = function (idx) {
-                if (idx >= aSelectedKeys.length) {
+                if (idx >= aCombinations.length) {
                     // All done
                     oModel.setUseBatch(bWasBatch);
                     oAssignModel.setProperty('/submitting', false);
@@ -617,15 +540,18 @@ sap.ui.define([
                         if (that._assignDlg) { that._assignDlg.close(); }
                         oModel.refresh(true);
                         that.navigateToTraining();
-                        MessageToast.show(iSuccess + ' assignment(s) created successfully' +
-                            (iFailCount > 0 ? ' (' + iFailCount + ' failed)' : ''));
+                        MessageToast.show(iSuccess + ' assignment(s) created' +
+                            (aTrainings.length > 1 ? ' (' + aTrainings.length + ' trainings x ' + aSelectedKeys.length + ' users)' : '') +
+                            (iFailCount > 0 ? ' — ' + iFailCount + ' failed' : ''));
                     } else {
                         oAssignModel.setProperty('/error', 'All assignments failed: ' + aErrors.join('; '));
                     }
                     return;
                 }
 
-                var sKey = aSelectedKeys[idx].toUpperCase();
+                var combo = aCombinations[idx];
+                var tr = combo.training;
+                var sKey = combo.userKey;
                 var oUser = mUserMap[sKey] || {};
                 var payload = {
                     TrainingId: tr.Id || '',
@@ -647,7 +573,7 @@ sap.ui.define([
                     },
                     error: function (err) {
                         iFailCount++;
-                        var msg = sKey + ': create failed';
+                        var msg = sKey + '/' + (tr.Title || tr.Id) + ': create failed';
                         try {
                             var parsed = JSON.parse(err.responseText);
                             msg = sKey + ': ' + ((parsed.error && parsed.error.message && parsed.error.message.value) || 'failed');

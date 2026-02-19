@@ -349,7 +349,9 @@ sap.ui.define([
             var oSmartTable = this.byId("smartTable");
             var oTable = oSmartTable.getTable();
             if (oTable) {
-                oTable.setSelectionMode("Single");
+                // Manager/Admin: MultiToggle for bulk assign; User: Single for view details
+                var sRole = this.getOwnerComponent()._role || 'User';
+                oTable.setSelectionMode(sRole === 'User' ? 'Single' : 'MultiToggle');
                 oTable.setSelectionBehavior("RowOnly");
                 oTable.setAlternateRowColors(true);
                 oTable.setEnableColumnFreeze(true);
@@ -1008,9 +1010,26 @@ sap.ui.define([
 
         onAssignTraining: function () {
             var oComponent = this.getOwnerComponent();
-            if (oComponent && oComponent.openAssignDialog) {
-                oComponent.openAssignDialog();
+            if (!oComponent || !oComponent.openAssignDialog) { return; }
+
+            // Collect selected trainings from SmartTable (multi-select)
+            var oSmartTable = this.byId("smartTable");
+            var oTable = oSmartTable ? oSmartTable.getTable() : null;
+            var aSelectedTrainings = [];
+            if (oTable && oTable.getSelectedIndices) {
+                var aIndices = oTable.getSelectedIndices();
+                aIndices.forEach(function (idx) {
+                    var oCtx = oTable.getContextByIndex(idx);
+                    if (oCtx) { aSelectedTrainings.push(oCtx.getObject()); }
+                });
             }
+
+            if (aSelectedTrainings.length === 0) {
+                MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("selectTrainingFirst"));
+                return;
+            }
+
+            oComponent.openAssignDialog(aSelectedTrainings);
         },
 
         onViewAssignments: function () {

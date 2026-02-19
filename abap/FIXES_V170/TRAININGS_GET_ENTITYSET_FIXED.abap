@@ -8,6 +8,24 @@
 *&---------------------------------------------------------------------*
 METHOD trainings_get_entityset.
 
+* -- Authority check: minimum ACTVT 03 (Display) required ----------
+*   Cascading check: 03 (Display) → 06 (Execute) → 01 (Create) → 02 (Change)
+  AUTHORITY-CHECK OBJECT 'Z_COURSES' ID 'ACTVT' FIELD '03'.   "Display
+  IF sy-subrc <> 0.
+    AUTHORITY-CHECK OBJECT 'Z_COURSES' ID 'ACTVT' FIELD '06'. "Execute
+    IF sy-subrc <> 0.
+      AUTHORITY-CHECK OBJECT 'Z_COURSES' ID 'ACTVT' FIELD '01'. "Create
+      IF sy-subrc <> 0.
+        AUTHORITY-CHECK OBJECT 'Z_COURSES' ID 'ACTVT' FIELD '02'. "Change
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+            EXPORTING textid = /iwbep/cx_mgw_busi_exception=>resource_not_found
+                      message = 'Not authorized to view training catalog (Z_COURSES ACTVT 03)'.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+  ENDIF.
+
 * -- Local variables (explicit - no inline DATA) ----------------------
   DATA: lt_training    TYPE TABLE OF zcourses,
         ls_training    TYPE zcourses,
