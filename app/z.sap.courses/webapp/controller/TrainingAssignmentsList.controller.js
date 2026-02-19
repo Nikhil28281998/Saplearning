@@ -1,5 +1,6 @@
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
+    "sap/ui/core/routing/History",
     "sap/m/MessageToast",
     "sap/m/MessageBox",
     "sap/ui/model/json/JSONModel",
@@ -13,7 +14,7 @@ sap.ui.define([
     "sap/m/VBox",
     "sap/m/ProgressIndicator",
     "z/sap/courses/services/AnalyticsService"
-], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Log, Link, Text, ObjectStatus, HBox, VBox, ProgressIndicator, AnalyticsService) {
+], function (Controller, History, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Log, Link, Text, ObjectStatus, HBox, VBox, ProgressIndicator, AnalyticsService) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingAssignmentsList", {
@@ -106,14 +107,6 @@ sap.ui.define([
                     });
                 }
             });
-            // Click progress radial to clear status filter
-            var oProgressCard = this.byId("myProgressBox");
-            if (oProgressCard) {
-                oProgressCard.addStyleClass("analyticsCardClickable");
-                oProgressCard.attachBrowserEvent("click", function () {
-                    that._filterByStatus("");
-                });
-            }
         },
 
         /* ================================================================== */
@@ -517,9 +510,21 @@ sap.ui.define([
             var oComponent = this.getOwnerComponent();
             var sRole = oComponent._role || "User";
             var sCurrentUserId = oComponent.getCurrentUserId();
-            if (sRole === "User" && sCurrentUserId) {
-                mBindingParams.filters.push(new Filter("UserId", FilterOperator.EQ, sCurrentUserId));
-                Log.info("[AssignFilter] UserId filter for end user: " + sCurrentUserId);
+            if (sRole === "User") {
+                // Always filter by userId for end users; if unknown, use impossible value to show 0 results
+                var sFilterId = sCurrentUserId || "__NOUSER__";
+                mBindingParams.filters.push(new Filter("UserId", FilterOperator.EQ, sFilterId));
+                Log.info("[AssignFilter] UserId filter for end user: " + sFilterId);
+            }
+
+            // Read Status filter from the custom FilterGroupItem Select
+            var oStatusSelect = this.byId("filterAssignStatus");
+            if (oStatusSelect) {
+                var sStatusKey = oStatusSelect.getSelectedKey();
+                if (sStatusKey) {
+                    mBindingParams.filters.push(new Filter("Status", FilterOperator.EQ, sStatusKey));
+                    Log.info("[AssignFilter] Status filter: " + sStatusKey);
+                }
             }
 
             // Basic search → Title EQ filter
@@ -541,7 +546,12 @@ sap.ui.define([
 
         /* ===== Nav Back ===== */
         onNavBack: function () {
-            this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
+            var sPreviousHash = History.getInstance().getPreviousHash();
+            if (sPreviousHash !== undefined) {
+                window.history.go(-1);
+            } else {
+                this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
+            }
         },
 
         /* ===== FEAT-4: Role Switcher ===== */

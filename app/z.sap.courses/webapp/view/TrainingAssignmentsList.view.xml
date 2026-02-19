@@ -85,15 +85,6 @@
                             class="analyticsNumber" />
                         <Text id="myCompletedLabel" text="{i18n>completed}" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="myProgressBox" alignItems="Center" class="analyticsCard analyticsCardPurple">
-                        <core:Icon id="myProgressIcon" src="sap-icon://target-group" size="1.5rem" color="#6c32a9" class="sapUiTinyMarginBottom" />
-                        <mc:RadialMicroChart
-                            id="myProgressRadial"
-                            percentage="{assignAnalytics>/completionPercent}"
-                            valueColor="{= ${assignAnalytics>/completionPercent} >= 80 ? 'Good' : ${assignAnalytics>/completionPercent} >= 50 ? 'Critical' : 'Error' }"
-                            size="S" />
-                        <Text id="myProgressLabel" text="{i18n>myAssignments}" class="analyticsLabel" />
-                    </VBox>
                 </HBox>
             </Panel>
 

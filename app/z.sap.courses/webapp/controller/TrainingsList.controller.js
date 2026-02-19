@@ -58,22 +58,6 @@ sap.ui.define([
                 that._loadAllData();
             }, this);
 
-            // FEAT-2: Home page assignment analytics cards → navigate to assignments with pre-filter
-            var aAssignCards = [
-                { id: "assignedBox",   status: "Assigned" },
-                { id: "inProgressBox", status: "In Progress" },
-                { id: "completedBox",  status: "Completed" }
-            ];
-            aAssignCards.forEach(function (card) {
-                var oCard = that.byId(card.id);
-                if (oCard) {
-                    oCard.addStyleClass("analyticsCardClickable");
-                    oCard.attachBrowserEvent("click", function () {
-                        that.getOwnerComponent()._pendingAssignmentFilter = card.status;
-                        that.getOwnerComponent().getRouter().navTo("TrainingAssignmentsList", {}, true);
-                    });
-                }
-            });
         },
 
         /**
@@ -88,8 +72,8 @@ sap.ui.define([
             var that = this;
             var sEntitySet = this.getOwnerComponent().getAssignmentEntitySet();
 
-            // Set analytics panel busy during load
-            var oPanel = this.byId("analyticsPanel");
+            // Set team analytics panel busy during load
+            var oPanel = this.byId("teamAnalyticsPanel");
             if (oPanel) { oPanel.setBusy(true); }
 
             // Training stats: total count + module chart + filter dropdowns
@@ -108,35 +92,12 @@ sap.ui.define([
                 MessageToast.show(that.getView().getModel("i18n").getResourceBundle().getText("loadFailed"));
             });
 
-            // BUG-3 FIX: For role=User, filter assignment stats by current user only
-            var sRole = this.getOwnerComponent()._role || "User";
-            var sCurrentUserId = this.getOwnerComponent().getCurrentUserId();
-            var aAssignmentFilters = [];
-            if (sRole === "User" && sCurrentUserId) {
-                aAssignmentFilters.push(new Filter("UserId", FilterOperator.EQ, sCurrentUserId));
-            }
-
-            // Assignment stats: 3 lightweight server-side count requests
-            var pAssignments = this._analyticsService.getAssignmentStats(oModel, sEntitySet, aAssignmentFilters).then(function (oStats) {
-                oAnalyticsModel.setProperty("/assigned", oStats.assigned);
-                oAnalyticsModel.setProperty("/inProgress", oStats.inProgress);
-                oAnalyticsModel.setProperty("/completed", oStats.completed);
-                oAnalyticsModel.setProperty("/completionPercent", oStats.completionPercent);
-
-                // FEAT-5: Percentage display values for status distribution chart
-                var iTotal = oStats.assigned + oStats.inProgress + oStats.completed;
-                var fnPct = function (n) { return iTotal > 0 ? Math.round((n / iTotal) * 100) : 0; };
-                oAnalyticsModel.setProperty("/assignedDisplay", oStats.assigned + " (" + fnPct(oStats.assigned) + "%)");
-                oAnalyticsModel.setProperty("/inProgressDisplay", oStats.inProgress + " (" + fnPct(oStats.inProgress) + "%)");
-                oAnalyticsModel.setProperty("/completedDisplay", oStats.completed + " (" + fnPct(oStats.completed) + "%)");
-            });
-
-            // Clear busy when both complete
-            Promise.all([pTrainings, pAssignments]).finally(function () {
+            // Training stats loaded — clear busy
+            pTrainings.finally(function () {
                 if (oPanel) { oPanel.setBusy(false); }
             });
 
-            // BUG-4: Load team analytics on home page (Manager/Admin only)
+            // Load team analytics on home page (Manager/Admin only)
             this._loadTeamAnalytics();
         },
 
