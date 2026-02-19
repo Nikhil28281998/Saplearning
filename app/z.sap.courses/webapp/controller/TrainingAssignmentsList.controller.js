@@ -494,6 +494,20 @@ sap.ui.define([
             this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
         },
 
+        /* ===== FEAT-4: Role Switcher ===== */
+        onSwitchRole: function (oEvent) {
+            var oItem = oEvent.getParameter("selectedItem");
+            var sNewRole = oItem ? oItem.getKey() : "";
+            if (sNewRole) {
+                var oComponent = this.getOwnerComponent();
+                if (oComponent && oComponent.switchRole) {
+                    oComponent.switchRole(sNewRole);
+                }
+                this._loadAnalytics();
+                MessageToast.show("Switched to " + sNewRole + " view");
+            }
+        },
+
         /* ================================================================== */
         /* MARK COMPLETED – Toolbar button (acts on selected row)             */
         /* ================================================================== */
