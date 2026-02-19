@@ -164,7 +164,19 @@ sap.ui.define([
             var oPanel = this.byId("teamAnalyticsPanel");
             if (oPanel) { oPanel.setBusy(true); }
 
+            // Manager: only see assignments they created (assignedBy filter)
+            // Admin: see all assignments
+            var aFilters = [];
+            if (sRole === "Manager") {
+                var sManagerId = this.getOwnerComponent().getCurrentUserId();
+                if (sManagerId) {
+                    aFilters.push(new Filter("AssignedBy", FilterOperator.EQ, sManagerId));
+                    Log.info("[TeamAnalytics] Filtering by AssignedBy=" + sManagerId + " for Manager");
+                }
+            }
+
             oModel.read("/" + sEntitySet, {
+                filters: aFilters,
                 urlParameters: { "$inlinecount": "allpages" },
                 success: function (oData) {
                     var aAll = oData.results || [];
