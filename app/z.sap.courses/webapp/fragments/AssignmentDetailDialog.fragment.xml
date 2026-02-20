@@ -1,0 +1,79 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <Dialog
+        id="assignmentDetailDlg"
+        title="{i18n>assignmentDetails}"
+        contentWidth="520px"
+        draggable="true"
+        resizable="true"
+        verticalScrolling="true">
+
+        <content>
+            <!-- PG-4: Stale data warning (hidden by default, shown after async check) -->
+            <MessageStrip
+                text="{i18n>staleDataWarning}"
+                type="Warning"
+                showIcon="true"
+                showCloseButton="true"
+                visible="{detail>/staleWarning}" />
+
+            <!-- Header Card: Icon + Title + Status/Module/Role badges -->
+            <VBox class="detailHeaderCard">
+                <HBox alignItems="Center" class="sapUiSmallMarginBottom">
+                    <core:Icon src="sap-icon://course-book" size="2rem" color="#0070f2" class="sapUiSmallMarginEnd" />
+                    <Title text="{detail>/Title}" level="H3" wrapping="true" />
+                </HBox>
+                <HBox wrap="Wrap">
+                    <ObjectStatus text="{detail>/Status}" state="{detail>/StatusState}" icon="{detail>/StatusIcon}" class="sapUiSmallMarginEnd" />
+                    <GenericTag text="{detail>/SapModule}" design="StatusIconHidden" status="Information" visible="{= !!${detail>/SapModule} }" class="sapUiSmallMarginEnd" />
+                    <GenericTag text="{detail>/Role}" design="StatusIconHidden" status="None" visible="{= !!${detail>/Role} }" />
+                </HBox>
+            </VBox>
+
+            <!-- User Info Card -->
+            <VBox class="detailCard">
+                <HBox alignItems="Center">
+                    <core:Icon src="sap-icon://person-placeholder" size="1.125rem" color="#556b82" class="sapUiSmallMarginEnd" />
+                    <Label text="{i18n>userLabel}" design="Bold" />
+                </HBox>
+                <Text text="{detail>/UserDisplayText}" class="sapUiSmallMarginTop" />
+            </VBox>
+
+            <!-- Dates Card -->
+            <VBox class="detailCard">
+                <HBox alignItems="Center">
+                    <core:Icon src="sap-icon://calendar" size="1.125rem" color="#556b82" class="sapUiSmallMarginEnd" />
+                    <Label text="{i18n>schedule}" design="Bold" />
+                </HBox>
+                <HBox justifyContent="SpaceBetween" width="100%" class="sapUiSmallMarginTop">
+                    <VBox>
+                        <Label text="{i18n>dueDateLabel}" />
+                        <Text text="{detail>/DueDateText}" />
+                    </VBox>
+                    <VBox>
+                        <Label text="{i18n>completionDateLabel}" />
+                        <Text text="{detail>/CompletionDateText}" />
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- Actions Card -->
+            <VBox class="detailCard" visible="{= !!${detail>/Url} || ${detail>/showMarkCompleted} }">
+                <HBox alignItems="Center">
+                    <core:Icon src="sap-icon://action" size="1.125rem" color="#556b82" class="sapUiSmallMarginEnd" />
+                    <Label text="{i18n>resourcesLabel}" design="Bold" />
+                </HBox>
+                <HBox wrap="Wrap" class="sapUiSmallMarginTop detailLinksRow">
+                    <Button text="{i18n>openTrainingLink}" icon="sap-icon://chain-link" type="Transparent" press=".onOpenAssignmentUrl" visible="{= !!${detail>/Url} }" class="detailLinkBtn" />
+                    <Button text="{i18n>markCompleted}" icon="sap-icon://complete" type="Emphasized" press=".onAssignmentDetailComplete" visible="{detail>/showMarkCompleted}" class="detailLinkBtn" />
+                </HBox>
+            </VBox>
+        </content>
+
+        <endButton>
+            <Button text="{i18n>closeButton}" type="Emphasized" press=".onAssignmentDetailClose" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

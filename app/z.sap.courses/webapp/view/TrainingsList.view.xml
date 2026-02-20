@@ -139,6 +139,14 @@
                         </HBox>
                         <VBox id="teamUserListContainer" />
                     </VBox>
+                    <!-- AN-2: Module distribution chart container (populated by _buildModuleChart) -->
+                    <VBox id="moduleChartBox" class="analyticsCard analyticsCardBlue chartCard">
+                        <HBox id="moduleChartHeader" alignItems="Center" class="sapUiTinyMarginBottom">
+                            <core:Icon id="moduleChartIcon" src="sap-icon://bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
+                            <Text id="moduleChartTitle" text="{i18n>topModules}" class="chartTitle" />
+                        </HBox>
+                        <VBox id="moduleChartContainer" />
+                    </VBox>
                 </HBox>
             </Panel>
 

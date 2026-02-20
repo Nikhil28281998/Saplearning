@@ -1,0 +1,63 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <Dialog
+        id="trainingDetailDlg"
+        title="{i18n>trainingDetails}"
+        contentWidth="520px"
+        draggable="true"
+        resizable="true"
+        verticalScrolling="true"
+        horizontalScrolling="false">
+
+        <content>
+            <!-- Header Card: Icon + Title + Attribute badges -->
+            <VBox class="detailHeaderCard">
+                <HBox alignItems="Center" class="sapUiSmallMarginBottom">
+                    <core:Icon src="sap-icon://course-book" size="2rem" color="#0070f2" class="sapUiSmallMarginEnd" />
+                    <Title text="{detail>/Title}" level="H3" wrapping="true" />
+                </HBox>
+                <FlexBox wrap="Wrap" visible="{= !!${detail>/SapModule} || !!${detail>/Role} || !!${detail>/LastUpdatedText} }">
+                    <GenericTag text="{detail>/SapModule}" design="StatusIconHidden" status="Information" visible="{= !!${detail>/SapModule} }" class="sapUiSmallMarginEnd" />
+                    <GenericTag text="{detail>/Role}" design="StatusIconHidden" status="None" visible="{= !!${detail>/Role} }" class="sapUiSmallMarginEnd" />
+                    <GenericTag text="{detail>/LastUpdatedText}" design="StatusIconHidden" status="Success" visible="{= !!${detail>/LastUpdatedText} }" />
+                </FlexBox>
+            </VBox>
+
+            <!-- Description Card -->
+            <VBox class="detailCard" visible="{= !!${detail>/Description} }">
+                <HBox alignItems="Center">
+                    <core:Icon src="sap-icon://document-text" size="1.125rem" color="#556b82" class="sapUiSmallMarginEnd" />
+                    <Label text="{i18n>descriptionLabel}" design="Bold" />
+                </HBox>
+                <Text text="{detail>/Description}" wrapping="true" class="sapUiSmallMarginTop" />
+            </VBox>
+
+            <!-- Links Card -->
+            <VBox class="detailCard" visible="{= !!${detail>/Url} || !!${detail>/SapHelpLink} }">
+                <HBox alignItems="Center">
+                    <core:Icon src="sap-icon://action" size="1.125rem" color="#556b82" class="sapUiSmallMarginEnd" />
+                    <Label text="{i18n>resourcesLabel}" design="Bold" />
+                </HBox>
+                <HBox wrap="Wrap" class="sapUiSmallMarginTop detailLinksRow">
+                    <Button text="{i18n>openTrainingLink}" icon="sap-icon://chain-link" type="Transparent" press=".onOpenTrainingUrl" visible="{= !!${detail>/Url} }" class="detailLinkBtn" />
+                    <Button text="{i18n>openSapHelp}" icon="sap-icon://sys-help" type="Transparent" press=".onOpenSapHelpUrl" visible="{= !!${detail>/SapHelpLink} }" class="detailLinkBtn" />
+                </HBox>
+            </VBox>
+
+            <!-- Training ID Card -->
+            <VBox class="detailCard">
+                <HBox alignItems="Center">
+                    <core:Icon src="sap-icon://bar-code" size="1.125rem" color="#556b82" class="sapUiSmallMarginEnd" />
+                    <Label text="Training ID" design="Bold" />
+                </HBox>
+                <Text text="{detail>/Id}" class="sapUiSmallMarginTop detailIdText" />
+            </VBox>
+        </content>
+
+        <endButton>
+            <Button text="{i18n>closeButton}" type="Emphasized" press=".onTrainingDetailClose" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

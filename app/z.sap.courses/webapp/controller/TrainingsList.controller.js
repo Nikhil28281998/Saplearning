@@ -12,8 +12,14 @@ sap.ui.define([
     "sap/m/MessagePopover",
     "sap/m/MessageItem",
     "z/sap/courses/services/AnalyticsService",
-    "z/sap/courses/utils/CSVParser"
-], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, mLibrary, MessagePopover, MessageItem, AnalyticsService, CSVParser) {
+    "z/sap/courses/utils/CSVParser",
+    "sap/suite/ui/microchart/ComparisonMicroChart",
+    "sap/suite/ui/microchart/ComparisonMicroChartData",
+    "sap/m/HBox",
+    "sap/m/VBox",
+    "sap/m/ProgressIndicator",
+    "sap/m/ObjectStatus"
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, mLibrary, MessagePopover, MessageItem, AnalyticsService, CSVParser, ComparisonMicroChart, ComparisonMicroChartData, HBox, VBox, ProgressIndicator, ObjectStatus) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingsList", {
@@ -143,31 +149,26 @@ sap.ui.define([
                 return;
             }
 
-            sap.ui.require([
-                "sap/suite/ui/microchart/ComparisonMicroChart",
-                "sap/suite/ui/microchart/ComparisonMicroChartData"
-            ], function (ComparisonMicroChart, ComparisonMicroChartData) {
-                var oChart = new ComparisonMicroChart({
-                    size: "L",
-                    shrinkable: true,
-                    width: "100%"
-                });
-
-                var colors = ["Good", "Neutral", "Critical", "Good", "Neutral", "Critical", "Good", "Neutral"];
-                var iTotalModules = moduleArr.reduce(function (sum, m) { return sum + m.count; }, 0);
-                var aTop = moduleArr.slice(0, 8); // FEAT-5: Show top 8 modules
-                aTop.forEach(function (m, i) {
-                    var iPct = iTotalModules > 0 ? Math.round((m.count / iTotalModules) * 100) : 0;
-                    oChart.addData(new ComparisonMicroChartData({
-                        title: m.label,
-                        value: m.count,
-                        color: colors[i % colors.length],
-                        displayValue: m.count + " (" + iPct + "%)"
-                    }));
-                });
-
-                oContainer.addItem(oChart);
+            var oChart = new ComparisonMicroChart({
+                size: "L",
+                shrinkable: true,
+                width: "100%"
             });
+
+            var colors = ["Good", "Neutral", "Critical", "Good", "Neutral", "Critical", "Good", "Neutral"];
+            var iTotalModules = moduleArr.reduce(function (sum, m) { return sum + m.count; }, 0);
+            var aTop = moduleArr.slice(0, 8); // FEAT-5: Show top 8 modules
+            aTop.forEach(function (m, i) {
+                var iPct = iTotalModules > 0 ? Math.round((m.count / iTotalModules) * 100) : 0;
+                oChart.addData(new ComparisonMicroChartData({
+                    title: m.label,
+                    value: m.count,
+                    color: colors[i % colors.length],
+                    displayValue: m.count + " (" + iPct + "%)"
+                }));
+            });
+
+            oContainer.addItem(oChart);
         },
 
         /* ================================================================== */
@@ -200,7 +201,7 @@ sap.ui.define([
 
             oModel.read("/" + sEntitySet, {
                 filters: aFilters,
-                urlParameters: { "$inlinecount": "allpages" },
+                urlParameters: { "$inlinecount": "allpages", "$top": "500" },
                 success: function (oData) {
                     var aAll = oData.results || [];
                     var iTotal = oData.__count ? parseInt(oData.__count, 10) : aAll.length;
@@ -273,43 +274,39 @@ sap.ui.define([
             var aTop = aUsers.slice(0, 10);
             var i18n = this.getView().getModel("i18n").getResourceBundle();
 
-            sap.ui.require([
-                "sap/m/HBox", "sap/m/VBox", "sap/m/ProgressIndicator", "sap/m/ObjectStatus"
-            ], function (HBox, VBox, ProgressIndicator, ObjectStatus) {
-                oContainer.destroyItems();
-                aTop.forEach(function (u) {
-                    var iPct = u.total > 0 ? Math.round((u.completed / u.total) * 100) : 0;
-                    var sState = iPct >= 100 ? "Success" : iPct >= 50 ? "Warning" : "Error";
+            oContainer.destroyItems();
+            aTop.forEach(function (u) {
+                var iPct = u.total > 0 ? Math.round((u.completed / u.total) * 100) : 0;
+                var sState = iPct >= 100 ? "Success" : iPct >= 50 ? "Warning" : "Error";
 
-                    var oRow = new HBox({
-                        alignItems: "Center",
-                        justifyContent: "SpaceBetween",
-                        width: "100%",
-                        items: [
-                            new VBox({
-                                width: "30%",
-                                items: [
-                                    new Text({ text: u.userName || u.userId, wrapping: false }).addStyleClass("teamUserName"),
-                                    new Text({ text: u.userId, wrapping: false }).addStyleClass("teamUserId")
-                                ]
-                            }),
-                            new ProgressIndicator({
-                                percentValue: iPct,
-                                displayValue: u.completed + "/" + u.total + " (" + iPct + "%)",
-                                state: sState,
-                                width: "55%",
-                                height: "2rem"
-                            }),
-                            new ObjectStatus({
-                                text: iPct === 100 ? i18n.getText("done") : iPct + "%",
-                                state: sState,
-                                icon: iPct === 100 ? "sap-icon://accept" : ""
-                            }).addStyleClass("teamUserStatus")
-                        ]
-                    }).addStyleClass("teamUserRow sapUiTinyMarginBottom");
+                var oRow = new HBox({
+                    alignItems: "Center",
+                    justifyContent: "SpaceBetween",
+                    width: "100%",
+                    items: [
+                        new VBox({
+                            width: "30%",
+                            items: [
+                                new Text({ text: u.userName || u.userId, wrapping: false }).addStyleClass("teamUserName"),
+                                new Text({ text: u.userId, wrapping: false }).addStyleClass("teamUserId")
+                            ]
+                        }),
+                        new ProgressIndicator({
+                            percentValue: iPct,
+                            displayValue: u.completed + "/" + u.total + " (" + iPct + "%)",
+                            state: sState,
+                            width: "55%",
+                            height: "2rem"
+                        }),
+                        new ObjectStatus({
+                            text: iPct === 100 ? i18n.getText("done") : iPct + "%",
+                            state: sState,
+                            icon: iPct === 100 ? "sap-icon://accept" : ""
+                        }).addStyleClass("teamUserStatus")
+                    ]
+                }).addStyleClass("teamUserRow sapUiTinyMarginBottom");
 
-                    oContainer.addItem(oRow);
-                });
+                oContainer.addItem(oRow);
             });
         },
 
@@ -1154,148 +1151,58 @@ sap.ui.define([
                 this._detailDlg = null;
             }
 
-            // Header: Modern card layout with icon + title + badges
-            var aHeaderItems = [
-                new sap.m.HBox({
-                    alignItems: "Center",
-                    items: [
-                        new sap.ui.core.Icon({ src: "sap-icon://course-book", size: "2rem", color: "#0070f2" }).addStyleClass("sapUiSmallMarginEnd"),
-                        new sap.m.Title({
-                            text: oTraining.Title || "Untitled",
-                            level: "H3",
-                            wrapping: true
-                        })
-                    ]
-                }).addStyleClass("sapUiSmallMarginBottom")
-            ];
-
-            // Attribute badges in a wrapping row
-            var aAttrs = [];
-            if (oTraining.SapModule) {
-                aAttrs.push(new sap.m.GenericTag({
-                    text: oTraining.SapModule,
-                    design: "StatusIconHidden",
-                    status: "Information"
-                }));
-            }
-            if (oTraining.Role) {
-                aAttrs.push(new sap.m.GenericTag({
-                    text: oTraining.Role,
-                    design: "StatusIconHidden",
-                    status: "None"
-                }));
-            }
+            // UI-1: Prepare detail model with pre-formatted fields
+            var sLastUpdated = "";
             if (oTraining.LastUpdated) {
-                var sDate = oTraining.LastUpdated;
-                if (sDate instanceof Date) { sDate = sDate.toLocaleDateString(); }
-                aAttrs.push(new sap.m.GenericTag({
-                    text: "Updated: " + sDate,
-                    design: "StatusIconHidden",
-                    status: "Success"
-                }));
+                sLastUpdated = oTraining.LastUpdated instanceof Date
+                    ? "Updated: " + oTraining.LastUpdated.toLocaleDateString()
+                    : "Updated: " + oTraining.LastUpdated;
             }
-            if (aAttrs.length > 0) {
-                aHeaderItems.push(new sap.m.FlexBox({
-                    wrap: "Wrap",
-                    items: aAttrs
-                }).addStyleClass("sapUiTinyMarginBottom detailAttrsRow"));
-            }
-
-            var aContent = [
-                new sap.m.VBox({ items: aHeaderItems }).addStyleClass("detailHeaderCard")
-            ];
-
-            // Description section — modern card with subtle bg
-            if (oTraining.Description) {
-                aContent.push(new sap.m.VBox({
-                    items: [
-                        new sap.m.HBox({
-                            alignItems: "Center",
-                            items: [
-                                new sap.ui.core.Icon({ src: "sap-icon://document-text", size: "1.125rem", color: "#556b82" }).addStyleClass("sapUiSmallMarginEnd"),
-                                new sap.m.Label({ text: i18n.getText("descriptionLabel"), design: "Bold" })
-                            ]
-                        }),
-                        new Text({ text: oTraining.Description, wrapping: true }).addStyleClass("sapUiSmallMarginTop")
-                    ]
-                }).addStyleClass("detailCard"));
-            }
-
-            // Links section — modern card with action buttons
-            var aLinkRows = [];
-            if (oTraining.Url) {
-                aLinkRows.push(new sap.m.Button({
-                    text: i18n.getText("openTrainingLink"),
-                    icon: "sap-icon://chain-link",
-                    type: "Transparent",
-                    press: function () {
-                        sap.m.URLHelper.redirect(oTraining.Url, true);
-                    }
-                }).addStyleClass("detailLinkBtn"));
-            }
-            if (oTraining.SapHelpLink) {
-                aLinkRows.push(new sap.m.Button({
-                    text: i18n.getText("openSapHelp"),
-                    icon: "sap-icon://sys-help",
-                    type: "Transparent",
-                    press: function () {
-                        sap.m.URLHelper.redirect(oTraining.SapHelpLink, true);
-                    }
-                }).addStyleClass("detailLinkBtn"));
-            }
-            if (aLinkRows.length > 0) {
-                aContent.push(new sap.m.VBox({
-                    items: [
-                        new sap.m.HBox({
-                            alignItems: "Center",
-                            items: [
-                                new sap.ui.core.Icon({ src: "sap-icon://action", size: "1.125rem", color: "#556b82" }).addStyleClass("sapUiSmallMarginEnd"),
-                                new sap.m.Label({ text: i18n.getText("resourcesLabel"), design: "Bold" })
-                            ]
-                        }),
-                        new sap.m.HBox({
-                            wrap: "Wrap",
-                            items: aLinkRows
-                        }).addStyleClass("sapUiSmallMarginTop detailLinksRow")
-                    ]
-                }).addStyleClass("detailCard"));
-            }
-
-            // Training ID section — info card
-            aContent.push(new sap.m.VBox({
-                items: [
-                    new sap.m.HBox({
-                        alignItems: "Center",
-                        items: [
-                            new sap.ui.core.Icon({ src: "sap-icon://bar-code", size: "1.125rem", color: "#556b82" }).addStyleClass("sapUiSmallMarginEnd"),
-                            new sap.m.Label({ text: "Training ID", design: "Bold" })
-                        ]
-                    }),
-                    new Text({ text: oTraining.Id || "N/A" }).addStyleClass("sapUiSmallMarginTop detailIdText")
-                ]
-            }).addStyleClass("detailCard"));
-
-            this._detailDlg = new sap.m.Dialog({
-                title: i18n.getText("trainingDetails"),
-                contentWidth: "520px",
-                draggable: true,
-                resizable: true,
-                verticalScrolling: true,
-                horizontalScrolling: false,
-                stretch: sap.ui.Device.system.phone,
-                content: aContent,
-                endButton: new sap.m.Button({
-                    text: i18n.getText("closeButton"),
-                    type: "Emphasized",
-                    press: function () { that._detailDlg.close(); }
-                }),
-                afterClose: function () {
-                    that._detailDlg.destroy();
-                    that._detailDlg = null;
-                }
+            var oDetailModel = new JSONModel({
+                Title: oTraining.Title || "Untitled",
+                SapModule: oTraining.SapModule || "",
+                Role: oTraining.Role || "",
+                LastUpdatedText: sLastUpdated,
+                Description: oTraining.Description || "",
+                Url: oTraining.Url || "",
+                SapHelpLink: oTraining.SapHelpLink || "",
+                Id: oTraining.Id || "N/A"
             });
-            this._detailDlg.addStyleClass("sapUiContentPadding detailDialog");
-            this._detailDlg.open();
+
+            this.loadFragment({
+                name: "z.sap.courses.fragments.TrainingDetailDialog"
+            }).then(function (oDialog) {
+                that._detailDlg = oDialog;
+                oDialog.setModel(oDetailModel, "detail");
+                oDialog.setModel(that.getView().getModel("i18n"), "i18n");
+                if (sap.ui.Device.system.phone) {
+                    oDialog.setStretch(true);
+                }
+                oDialog.addStyleClass("sapUiContentPadding detailDialog");
+                oDialog.attachAfterClose(function () {
+                    oDialog.destroy();
+                    that._detailDlg = null;
+                });
+                oDialog.open();
+            });
+        },
+
+        onTrainingDetailClose: function () {
+            if (this._detailDlg) { this._detailDlg.close(); }
+        },
+
+        onOpenTrainingUrl: function () {
+            if (this._detailDlg) {
+                var sUrl = this._detailDlg.getModel("detail").getProperty("/Url");
+                if (sUrl) { sap.m.URLHelper.redirect(sUrl, true); }
+            }
+        },
+
+        onOpenSapHelpUrl: function () {
+            if (this._detailDlg) {
+                var sUrl = this._detailDlg.getModel("detail").getProperty("/SapHelpLink");
+                if (sUrl) { sap.m.URLHelper.redirect(sUrl, true); }
+            }
         },
 
         onAssignTraining: function () {

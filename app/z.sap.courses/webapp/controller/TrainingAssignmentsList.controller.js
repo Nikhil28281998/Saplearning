@@ -647,149 +647,92 @@ sap.ui.define([
             }
         },
 
-        /* ===== Item Press – Detail dialog with actions ===== */
+        /* ===== Item Press – Detail dialog via XML Fragment (UI-1) ===== */
         onItemPress: function (oEvent) {
             var oItem = oEvent.getParameter("listItem") || oEvent.getSource();
             var oContext = oItem.getBindingContext();
             if (!oContext) { return; }
             var oAssignment = oContext.getObject();
             var that = this;
-            var i18n = this.getView().getModel("i18n").getResourceBundle();
 
-            // Build detail content with modern card layout
+            // Store context reference for Mark Completed action
+            this._detailContext = oContext;
+
+            // Destroy previous dialog
             if (this._detailDlg) { this._detailDlg.destroy(); this._detailDlg = null; }
 
-            var aContent = [];
-
-            // Header card with training title + status badge
+            // Compute display values for detail model
             var sStatusState = oAssignment.Status === "Completed" ? "Success" :
                                oAssignment.Status === "In Progress" ? "Information" : "Warning";
             var sStatusIcon = oAssignment.Status === "Completed" ? "sap-icon://accept" :
                               oAssignment.Status === "In Progress" ? "sap-icon://activity-2" : "sap-icon://pending";
-
-            aContent.push(new sap.m.VBox({
-                items: [
-                    new sap.m.HBox({
-                        alignItems: "Center",
-                        items: [
-                            new sap.ui.core.Icon({ src: "sap-icon://course-book", size: "2rem", color: "#0070f2" }).addStyleClass("sapUiSmallMarginEnd"),
-                            new sap.m.Title({ text: oAssignment.Title || "Untitled", level: "H3", wrapping: true })
-                        ]
-                    }).addStyleClass("sapUiSmallMarginBottom"),
-                    new sap.m.HBox({
-                        wrap: "Wrap",
-                        items: [
-                            new ObjectStatus({ text: oAssignment.Status, state: sStatusState, icon: sStatusIcon }).addStyleClass("sapUiSmallMarginEnd"),
-                            oAssignment.SapModule ? new sap.m.GenericTag({ text: oAssignment.SapModule, design: "StatusIconHidden", status: "Information" }).addStyleClass("sapUiSmallMarginEnd") : new Text({ text: "" }),
-                            oAssignment.Role ? new sap.m.GenericTag({ text: oAssignment.Role, design: "StatusIconHidden", status: "None" }) : new Text({ text: "" })
-                        ]
-                    })
-                ]
-            }).addStyleClass("detailHeaderCard"));
-
-            // User info card
-            aContent.push(new sap.m.VBox({
-                items: [
-                    new sap.m.HBox({
-                        alignItems: "Center",
-                        items: [
-                            new sap.ui.core.Icon({ src: "sap-icon://person-placeholder", size: "1.125rem", color: "#556b82" }).addStyleClass("sapUiSmallMarginEnd"),
-                            new sap.m.Label({ text: i18n.getText("userLabel"), design: "Bold" })
-                        ]
-                    }),
-                    new Text({ text: (oAssignment.UserName || "") + " (" + (oAssignment.UserId || "") + ")" }).addStyleClass("sapUiSmallMarginTop")
-                ]
-            }).addStyleClass("detailCard"));
-
-            // Dates card
             var sDueDate = oAssignment.DueDate ? new Date(oAssignment.DueDate).toLocaleDateString() : "Not set";
-            var sCompDate = oAssignment.CompletionDate ? new Date(oAssignment.CompletionDate).toLocaleDateString() : "—";
-            aContent.push(new sap.m.VBox({
-                items: [
-                    new sap.m.HBox({
-                        alignItems: "Center",
-                        items: [
-                            new sap.ui.core.Icon({ src: "sap-icon://calendar", size: "1.125rem", color: "#556b82" }).addStyleClass("sapUiSmallMarginEnd"),
-                            new sap.m.Label({ text: i18n.getText("schedule"), design: "Bold" })
-                        ]
-                    }),
-                    new sap.m.HBox({
-                        justifyContent: "SpaceBetween",
-                        width: "100%",
-                        items: [
-                            new sap.m.VBox({
-                                items: [
-                                    new sap.m.Label({ text: i18n.getText("dueDateLabel") }),
-                                    new Text({ text: sDueDate })
-                                ]
-                            }),
-                            new sap.m.VBox({
-                                items: [
-                                    new sap.m.Label({ text: i18n.getText("completionDateLabel") }),
-                                    new Text({ text: sCompDate })
-                                ]
-                            })
-                        ]
-                    }).addStyleClass("sapUiSmallMarginTop")
-                ]
-            }).addStyleClass("detailCard"));
+            var sCompDate = oAssignment.CompletionDate ? new Date(oAssignment.CompletionDate).toLocaleDateString() : "\u2014";
 
-            // Action buttons card
-            var aActions = [];
-            if (oAssignment.Url) {
-                aActions.push(new sap.m.Button({
-                    text: i18n.getText("openTrainingLink"),
-                    icon: "sap-icon://chain-link",
-                    type: "Transparent",
-                    press: function () { sap.m.URLHelper.redirect(oAssignment.Url, true); }
-                }).addStyleClass("detailLinkBtn"));
-            }
-            if (oAssignment.Status !== "Completed") {
-                aActions.push(new sap.m.Button({
-                    text: i18n.getText("markCompleted"),
-                    icon: "sap-icon://complete",
-                    type: "Emphasized",
-                    press: function () {
-                        that._detailDlg.close();
-                        that._markCompleted(oContext);
-                    }
-                }).addStyleClass("detailLinkBtn"));
-            }
-            if (aActions.length > 0) {
-                aContent.push(new sap.m.VBox({
-                    items: [
-                        new sap.m.HBox({
-                            alignItems: "Center",
-                            items: [
-                                new sap.ui.core.Icon({ src: "sap-icon://action", size: "1.125rem", color: "#556b82" }).addStyleClass("sapUiSmallMarginEnd"),
-                                new sap.m.Label({ text: i18n.getText("resourcesLabel"), design: "Bold" })
-                            ]
-                        }),
-                        new sap.m.HBox({ wrap: "Wrap", items: aActions }).addStyleClass("sapUiSmallMarginTop detailLinksRow")
-                    ]
-                }).addStyleClass("detailCard"));
-            }
+            var oDetailModel = new JSONModel({
+                Title: oAssignment.Title || "Untitled",
+                Status: oAssignment.Status,
+                StatusState: sStatusState,
+                StatusIcon: sStatusIcon,
+                SapModule: oAssignment.SapModule || "",
+                Role: oAssignment.Role || "",
+                UserDisplayText: (oAssignment.UserName || "") + " (" + (oAssignment.UserId || "") + ")",
+                DueDateText: sDueDate,
+                CompletionDateText: sCompDate,
+                Url: oAssignment.Url || "",
+                showMarkCompleted: oAssignment.Status !== "Completed",
+                staleWarning: false
+            });
 
-            this._detailDlg = new sap.m.Dialog({
-                title: i18n.getText("assignmentDetails"),
-                contentWidth: "520px",
-                draggable: true,
-                resizable: true,
-                verticalScrolling: true,
-                stretch: sap.ui.Device.system.phone,
-                content: aContent,
-                endButton: new sap.m.Button({
-                    text: i18n.getText("closeButton"),
-                    type: "Emphasized",
-                    press: function () { that._detailDlg.close(); }
-                }),
-                afterClose: function () {
-                    that._detailDlg.destroy();
+            this.loadFragment({
+                name: "z.sap.courses.fragments.AssignmentDetailDialog"
+            }).then(function (oDialog) {
+                that._detailDlg = oDialog;
+                oDialog.setModel(oDetailModel, "detail");
+                oDialog.setModel(that.getView().getModel("i18n"), "i18n");
+                if (sap.ui.Device.system.phone) {
+                    oDialog.setStretch(true);
+                }
+                oDialog.addStyleClass("sapUiContentPadding detailDialog");
+                oDialog.attachAfterClose(function () {
+                    oDialog.destroy();
                     that._detailDlg = null;
+                    that._detailContext = null;
+                });
+                oDialog.open();
+
+                // PG-4: Async stale data check — compare assignment snapshot with current training title
+                if (oAssignment.TrainingId) {
+                    var oModel = that.getOwnerComponent().getModel();
+                    oModel.read("/Trainings('" + encodeURIComponent(oAssignment.TrainingId) + "')", {
+                        success: function (oTraining) {
+                            if (oTraining && oTraining.Title && oAssignment.Title &&
+                                oTraining.Title !== oAssignment.Title && that._detailDlg) {
+                                oDetailModel.setProperty("/staleWarning", true);
+                            }
+                        },
+                        error: function () { /* silently ignore — just skip stale check */ }
+                    });
                 }
             });
-            this._detailDlg.addStyleClass("sapUiContentPadding detailDialog");
-            this._detailDlg.open();
+        },
+
+        onAssignmentDetailClose: function () {
+            if (this._detailDlg) { this._detailDlg.close(); }
+        },
+
+        onOpenAssignmentUrl: function () {
+            if (this._detailDlg) {
+                var sUrl = this._detailDlg.getModel("detail").getProperty("/Url");
+                if (sUrl) { sap.m.URLHelper.redirect(sUrl, true); }
+            }
+        },
+
+        onAssignmentDetailComplete: function () {
+            if (this._detailDlg && this._detailContext) {
+                this._detailDlg.close();
+                this._markCompleted(this._detailContext);
+            }
         },
 
         /* ================================================================== */
