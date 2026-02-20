@@ -1,0 +1,261 @@
+﻿
+==========================================
+COURSE: Asset Accounting Processes
+COURSE_URL: https://learning.sap.com/courses/asset-accounting-processes
+==========================================
+
+  --- UNIT: Outlining the Asset Accounting Structure and Master Data ---
+  [lesson] Explaining the Functionality of Asset Classes
+    URL: https://learning.sap.com/courses/asset-accounting-processes/explaining-the-functionality-of-asset-classes_c5aa5795-f1f2-4d40-bce7-56752a6533ff
+  [lesson] Maintaining Asset Master Data
+    URL: https://learning.sap.com/courses/asset-accounting-processes/maintaining-asset-master-data_d9620ea0-2f52-4b98-a87d-d025881ee43f
+  [lesson] Making Changes to Asset Master Data
+    URL: https://learning.sap.com/courses/asset-accounting-processes/making-changes-to-asset-master-data_ec0e32bb-535c-40f0-bd79-167d99a59273
+  [quiz] Outlining the Asset Accounting Structure and Master Data
+    URL: https://learning.sap.com/courses/asset-accounting-processes/outlining-the-asset-accounting-structure-and-master-data_19814d61-c52c-38c8-a9d7-2a36a30966fc
+
+  --- UNIT: Posting Asset Accounting Transactions ---
+  [lesson] Posting Acquisitions for Fixed Assets
+    URL: https://learning.sap.com/courses/asset-accounting-processes/posting-acquisitions-for-fixed-assets_f46e3701-cae3-4f11-b63c-deb74d1dd2f5
+  [lesson] Posting Non-Integrated Acquisitions for Fixed Assets
+    URL: https://learning.sap.com/courses/asset-accounting-processes/posting-non-integrated-acquisitions-for-fixed-assets_ee0ad015-e4c4-4bdd-bf57-2d7b87c3f22b
+  [lesson] Posting Acquisitions for Fixed Assets with Quantity
+    URL: https://learning.sap.com/courses/asset-accounting-processes/posting-acquisitions-for-fixed-assets-with-quantity_f302773d-3694-4493-9812-0ec7edfde76a
+  [lesson] Posting Retirements from Fixed Assets
+    URL: https://learning.sap.com/courses/asset-accounting-processes/posting-retirements-from-fixed-assets_f385face-db47-4f18-a0e8-9f40faf832b4
+  [lesson] Analyzing and Correcting Capitalized Assets
+    URL: https://learning.sap.com/courses/asset-accounting-processes/analyzing-and-correcting-capitalized-assets_c3b6842c-994f-4475-b9b4-ee5c0e5ec608
+  [quiz] Posting Asset Accounting Transactions
+    URL: https://learning.sap.com/courses/asset-accounting-processes/posting-asset-accounting-transactions_e0731e76-dec6-3779-83fc-5d54619f66d6
+
+  --- UNIT: Utilizing Assets under Construction (AuC) ---
+  [lesson] Understanding the Asset Under Construction Process
+    URL: https://learning.sap.com/courses/asset-accounting-processes/understanding-the-asset-under-construction-process_d124520e-df6a-4e98-a08a-ac4f3c3f2c20
+  [lesson] Maintaining the Periodic Settlement of Investment WBS Elements
+    URL: https://learning.sap.com/courses/asset-accounting-processes/maintaining-the-periodic-settlement-of-investment-wbs-elements_c6ce0b01-752d-478c-b8c0-43e259ce478c
+  [lesson] Maintaining Full Settlement of Investment WBS Elements
+    URL: https://learning.sap.com/courses/asset-accounting-processes/maintaining-full-settlement-of-investment-wbs-elements_af946cc2-85a8-4065-bfc7-7fbe2a76fb23
+  [lesson] Working with Small Investment Projects
+    URL: https://learning.sap.com/courses/asset-accounting-processes/working-with-small-investment-projects
+  [quiz] Utilizing Assets under Construction (AuC)
+    URL: https://learning.sap.com/courses/asset-accounting-processes/utilizing-assets-under-construction-auc-_4598b60a-bb42-313f-b670-5eec1788938f
+
+  --- UNIT: Managing Depreciation ---
+  [lesson] Preparing a Depreciation Run
+    URL: https://learning.sap.com/courses/asset-accounting-processes/preparing-a-depreciation-run_a7989bf3-5294-457b-a15e-92bc051542c0
+  [lesson] Performing a Depreciation Run
+    URL: https://learning.sap.com/courses/asset-accounting-processes/performing-a-depreciation-run_f40e41f8-980c-4e0c-b56d-7b4fc6d5e733
+  [quiz] Managing Depreciation
+    URL: https://learning.sap.com/courses/asset-accounting-processes/managing-depreciation_a923b57d-d5ab-3abc-83da-9da8bc093677
+
+==========================================
+COURSE: Detailing Profitability Accounting for Discrete Industries
+COURSE_URL: https://learning.sap.com/courses/detailing-profitability-accounting-for-discrete-industries
+==========================================
+
+  --- UNIT: Introducing Margin Analysis in SAP S/4HANA Cloud Public Edition ---
+  [lesson] Exploring SAP Analytic Cloud Reports
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-for-discrete-industries/exploring-sap-analytic-cloud-reports_acf495d2-2310-486f-b2ef-bf123c332aee
+  [lesson] Understanding Analytical Stories in SAP Analytics Cloud
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-for-discrete-industries/understanding-analytical-stories-in-sap-analytics-cloud_e2da0a0e-074f-4c58-8027-8d80e3c6679c
+  [lesson] Getting an Overview of the Core Terms in Margin Analysis
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-for-discrete-industries/getting-an-overview-of-the-core-terms-in-margin-analysis_b3fb8db9-bea4-4d2e-bd6a-e0c7f5e54cf5
+  [quiz] Introducing Margin Analysis in SAP S/4HANA Cloud Public Edition
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-for-discrete-industries/introducing-margin-analysis-in-sap-s-4hana-cloud-public-edition_c0d48312-1be7-363f-aac4-c53705d7d36b
+
+  --- UNIT: Analyzing the Sales Order Cycle in a Make-to-Stock Business Scenario ---
+  [lesson] Analyzing Incoming Sales Orders Using the Extension Ledger
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-for-discrete-industries/analyzing-incoming-sales-orders-using-the-extension-ledger_cd0ec44b-c838-4ee2-8f6e-f8620801eb71
+  [lesson] Valuating Deliveries with Cost Component Split
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-for-discrete-industries/valuating-deliveries-with-cost-component-split_af4be247-b1bc-4e07-8ee8-3a01e3a092fe
+  [lesson] Analyzing the Delivery Related Billing in Margin Analysis
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-for-discrete-industries/analyzing-the-delivery-related-billing-in-margin-analysis_e828b5ef-de61-4f79-a252-07ec1ec61243
+  [lesson] Evaluating Production Variances in Margin Analysis
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-for-discrete-industries/evaluating-production-variances-in-margin-analysis_a669fe8c-a22b-436f-b96b-3d8d02443d40
+  [quiz] Analyzing the Sales Order Cycle in a Make-to-Stock Business Scenario
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-for-discrete-industries/analyzing-the-sales-order-cycle-in-a-make-to-stock-business-scenario_95d3b1eb-9154-3185-ab33-ad90359196cd
+
+  --- UNIT: Reporting in Margin Analysis ---
+  [lesson] Analyzing Sales Performance
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-for-discrete-industries/analyzing-sales-performance_cab6f779-31a1-43d2-b375-ffb8caa4b0a6
+  [quiz] Reporting in Margin Analysis
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-for-discrete-industries/reporting-in-margin-analysis_81b3d760-de54-346e-b1d8-12530f5f3cab
+
+==========================================
+COURSE: Detailing Profitability Accounting in Make-to-Order Scenarios
+COURSE_URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios
+==========================================
+
+  --- UNIT: Introducing Margin Analysis in SAP S/4HANA Cloud Public Edition ---
+  [lesson] Exploring SAP Analytics Cloud Reports
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios/exploring-sap-analytics-cloud-reports
+  [lesson] Understanding Analytical Stories in SAP Analytics Cloud
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios/understanding-analytical-stories-in-sap-analytics-cloud
+  [lesson] Explaining Core Terms in Margin Analysis
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios/explaining-core-terms-in-margin-analysis
+  [quiz] Introducing Margin Analysis in SAP S/4HANA Cloud Public Edition
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios/introducing-margin-analysis-in-sap-s-4hana-cloud-public-edition
+
+  --- UNIT: Analyzing the Sales Order Cycle for Make-to-Order with Manufacturing ---
+  [lesson] Exploring Make-to-Order with Configurable Product
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios/exploring-make-to-order-with-configurable-product
+  [lesson] Analyzing Incoming Sales Orders in Margin Analysis
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios/analyzing-incoming-sales-orders-in-margin-analysis
+  [lesson] Planning to Product and the Impact to Product Costing
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios/planning-to-product-and-the-impact-to-product-costing
+  [lesson] Analyzing Delivery and Billing Sales Orders including EBRR
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios/analyzing-delivery-and-billing-sales-orders-including-ebrr
+  [lesson] Evaluating Make-to-Order with Production
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios/evaluating-make-to-order-with-production
+  [quiz] Analyzing the Sales Order Cycle for Make-to-Order with Manufacturing
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios/analyzing-the-sales-order-cycle-for-make-to-order-with-manufacturing
+
+  --- UNIT: Analyzing the Sales Order Cycle for Make-to-Order with Services ---
+  [lesson] Exploring Framework Conditions of the Service Process
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios/explore-framework-conditions-of-the-service-process
+  [lesson] Analyzing Sales-Order-Cycle for Services
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios/analyzing-sales-order-cycle-for-services
+  [lesson] Evaluating MTO with Service
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios/evaluating-mto-with-service
+  [quiz] Analyzing the Sales Order Cycle for Make-to-Order with Services
+    URL: https://learning.sap.com/courses/detailing-profitability-accounting-in-make-to-order-scenarios/analyzing-the-sales-order-cycle-for-make-to-order-with-services
+
+==========================================
+COURSE: Detailing Profitability Accounting in Make-to-Order Scenarios
+COURSE_URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments
+==========================================
+
+  --- UNIT: Introducing Margin Analysis in SAP S/4HANA Cloud Public Edition ---
+  [lesson] Exploring SAP Analytics Cloud Reports
+    URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments/exploring-sap-analytics-cloud-reports
+  [lesson] Understanding Analytical Stories in SAP Analytics Cloud
+    URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments/understanding-analytical-stories-in-sap-analytics-cloud
+  [lesson] Explaining Core Terms in Margin Analysis
+    URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments/explaining-core-terms-in-margin-analysis
+  [quiz] Introducing Margin Analysis in SAP S/4HANA Cloud Public Edition
+    URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments/introducing-margin-analysis-in-sap-s-4hana-cloud-public-edition
+
+  --- UNIT: Analyzing the Sales Order Cycle for Make-to-Order with Manufacturing ---
+  [lesson] Exploring Make-to-Order with Configurable Product
+    URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments/exploring-make-to-order-with-configurable-product
+  [lesson] Analyzing Incoming Sales Orders in Margin Analysis
+    URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments/analyzing-incoming-sales-orders-in-margin-analysis
+  [lesson] Planning to Product and the Impact to Product Costing
+    URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments/planning-to-product-and-the-impact-to-product-costing
+  [lesson] Analyzing Delivery and Billing Sales Orders including EBRR
+    URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments/analyzing-delivery-and-billing-sales-orders-including-ebrr
+  [lesson] Evaluating Make-to-Order with Production
+    URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments/evaluating-make-to-order-with-production
+  [quiz] Analyzing the Sales Order Cycle for Make-to-Order with Manufacturing
+    URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments/analyzing-the-sales-order-cycle-for-make-to-order-with-manufacturing
+
+  --- UNIT: Analyzing the Sales Order Cycle for Make-to-Order with Services ---
+  [lesson] Exploring Framework Conditions of the Service Process
+    URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments/explore-framework-conditions-of-the-service-process
+  [lesson] Analyzing Sales-Order-Cycle for Services
+    URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments/analyzing-sales-order-cycle-for-services
+  [lesson] Evaluating MTO with Service
+    URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments/evaluating-mto-with-service
+  [quiz] Analyzing the Sales Order Cycle for Make-to-Order with Services
+    URL: https://learning.sap.com/courses/rule-based-consolidation-of-investments/analyzing-the-sales-order-cycle-for-make-to-order-with-services
+
+==========================================
+COURSE: Detailing Profit Center Reorganization
+COURSE_URL: https://learning.sap.com/courses/detailing-profit-center-reorganization
+==========================================
+
+  --- UNIT: Introducing Profit Center Reorganization ---
+  [lesson] Providing Context for Profit Center Reorganization
+    URL: https://learning.sap.com/courses/detailing-profit-center-reorganization/providing-context-for-profit-center-reorginization_a73720be-d964-49a6-96a5-a5e89e3b8f48
+  [lesson] Describing the Solution Use Cases
+    URL: https://learning.sap.com/courses/detailing-profit-center-reorganization/describing-the-solution-use-cases_a303cf2c-a992-4248-be31-87bfa64d5cd2
+  [quiz] Introducing Profit Center Reorganization
+    URL: https://learning.sap.com/courses/detailing-profit-center-reorganization/introducing-profit-center-reorganization_14c0f8d9-6a95-3ce3-8240-2441777274fe
+
+  --- UNIT: Explaining the Solution Scope ---
+  [lesson] Describing the Scope of the Solution
+    URL: https://learning.sap.com/courses/detailing-profit-center-reorganization/describing-the-scope-of-the-solution_eb2be800-ec49-4698-a771-f51cc08f76aa
+  [lesson] Analyzing the Reorganization Process
+    URL: https://learning.sap.com/courses/detailing-profit-center-reorganization/analyzing-the-reorganization-process_fc7908dd-04e8-402b-9657-4634aeef7008
+  [quiz] Explaining the Solution Scope
+    URL: https://learning.sap.com/courses/detailing-profit-center-reorganization/explaining-the-solution-scope_19fe791f-545b-36e6-8d0b-cdae87243a47
+
+  --- UNIT: Running a Reorganization Project ---
+  [lesson] Providing a Walkthrough for the Process
+    URL: https://learning.sap.com/courses/detailing-profit-center-reorganization/providing-a-walkthrough-for-the-process_dd99e375-c306-40ac-b522-67a73efc64f1
+  [quiz] Running a Reorganization Project
+    URL: https://learning.sap.com/courses/detailing-profit-center-reorganization/running-a-reorganization-project_c3d467aa-d60a-3845-b2a2-534a0f465946
+
+  --- UNIT: Detailing the Reorganization Function ---
+  [lesson] Analyzing the Process Steps
+    URL: https://learning.sap.com/courses/detailing-profit-center-reorganization/analyzing-the-process-steps_ffbd1b04-220f-453e-a2b9-1633ef2f9a52
+  [lesson] Detailing the Dependent Objects
+    URL: https://learning.sap.com/courses/detailing-profit-center-reorganization/detailing-the-dependent-objects_bf084c69-34ac-4b47-89ae-1dbf0981c4e4
+  [lesson] Reviewing the Transfer Postings
+    URL: https://learning.sap.com/courses/detailing-profit-center-reorganization/reviewing-the-transfer-postings_e04b4d50-fc97-4d7c-900a-8670ddb5d3d2
+  [lesson] Describing Configuration Options
+    URL: https://learning.sap.com/courses/detailing-profit-center-reorganization/describing-configuration-options_c40b222a-f2de-4c11-b9c9-6e2ab7d233cd
+  [quiz] Detailing the Reorganization Function
+    URL: https://learning.sap.com/courses/detailing-profit-center-reorganization/detailing-the-reorganization-function_a2d4a502-3c52-3cf7-819f-75180e0318a6
+
+==========================================
+COURSE: Discovering Treasury Management in SAP S/4HANA
+COURSE_URL: https://learning.sap.com/courses/discovering-treasury-management
+==========================================
+
+  --- UNIT: Defining Treasury Management and Describing Key Elements of the SAP S/4HANA Treasury portfolio of solutions ---
+  [lesson] Describing Key Elements of SAP S/4HANA Treasury Management
+    URL: https://learning.sap.com/courses/discovering-treasury-management/describing-key-elements-of-sap-s-4hana-treasury-management
+  [lesson] Explaining the Business Benefits of SAP S/4HANA Cash Management
+    URL: https://learning.sap.com/courses/discovering-treasury-management/explaining-the-business-benefits-of-sap-cash-management-cloud-edition
+  [lesson] Explaining the Business Benefits of Treasury Risk Management
+    URL: https://learning.sap.com/courses/discovering-treasury-management/outlining-the-business-benefits-of-treasury-management
+  [lesson] Explaining the Business Benefits of Advanced Payment Management
+    URL: https://learning.sap.com/courses/discovering-treasury-management/explaining-the-business-benefits-of-advanced-payment-management
+  [lesson] Summarizing Process Improvements from SAP S/4HANA Treasury portfolio and solutions
+    URL: https://learning.sap.com/courses/discovering-treasury-management/describing-process-improvements-from-sap-s-4hana-treasury-and-risk-management
+  [quiz] Defining Treasury Management and Describing Key Elements of the SAP S/4HANA Treasury portfolio of solutions
+    URL: https://learning.sap.com/courses/discovering-treasury-management/explaining-the-business-benefits-of-sap-s-4hana-cash-management
+
+==========================================
+COURSE: Administration of Bank Accounts
+COURSE_URL: https://learning.sap.com/courses/administration-of-bank-accounts
+==========================================
+
+  --- UNIT: Maintaining Bank Master Data ---
+  [lesson] Overseeing Public Bank Directory Data
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/overseeing-public-bank-directory-data_a48f963a-07e7-4013-b772-70e8933c5ac2
+  [lesson] Managing Company Specific Bank Master Data
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/managing-company-specific-bank-master-data_c83ad51c-a140-4e33-bf65-ab7b87e950d0
+  [quiz] Maintaining Bank Master Data
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/maintaining-bank-master-data_0dca46c2-e3bf-3b20-b5a2-8f0b6744064f
+
+  --- UNIT: Performing Bank Account Operations ---
+  [lesson] Managing the Lifecycle of a Bank Account
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/managing-the-lifecycle-of-a-bank-account_c6f93c92-5885-4372-afae-a534906e1be9
+  [lesson] Opening a Bank Account in the Manage Bank Accounts app
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/opening-a-bank-account-in-the-manage-bank-accounts-app_c494e4a8-018f-4106-8a7b-fe50184e77f7
+  [lesson] Closing and Deleting Bank Accounts in the Manage Bank Accounts App
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/closing-and-deleting-bank-accounts-in-the-manage-bank-accounts-app_cd132e54-f42a-416c-82f5-caa0295e1af5
+  [lesson] Reporting for Banks and Bank accounts
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/reporting-for-banks-and-bank-accounts_f1666905-c29d-4ffd-b50c-9fb0697aece0
+  [quiz] Performing Bank Account Operations
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/performing-bank-account-operations_0865600f-baee-37e4-9a91-53baf14492d7
+
+  --- UNIT: Handling Bank Account Related Attachments ---
+  [lesson] Identifying Bank Account Related Attachments
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/identifying-bank-account-related-attachments_b864fe50-ae26-4c1f-846c-3dc010ed578e
+  [lesson] Managing Documents in the Manage Bank Accounts Fiori app
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/managing-documents-in-the-manage-bank-accounts-fiori-app_b45d3833-61a7-42a9-8b4a-d22ac85c7a29
+  [lesson] Managing Documents in the Manage Power of Attorney for Bank Transactions Fiori app
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/managing-documents-in-the-manage-power-of-attorney-for-bank-transactions-fiori-app_efc70a9c-f99f-454e-94e0-c5a1c813b87d
+  [quiz] Handling Bank Account Related Attachments
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/handling-bank-account-related-attachments_eb6a9d22-a5fa-30c0-9477-f2c160eec7d2
+
+  --- UNIT: Assigning Payment Signatories ---
+  [lesson] Identifying Required Signatories for Bank Operations
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/identifying-required-signatories-for-bank-operations_a4cb112f-117a-4784-8007-33a2fe52de09
+  [lesson] Maintaining Signatories in the Manage Bank Accounts and Manage Power of Attorney for Banking Transactions Fiori apps
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/maintaining-signatories-in-the-manage-bank-accounts-and-manage-power-of-attorney-for-banking-transactions-fiori-apps_ce57e21c-ff63-4c7e-a6fb-9878b409bc16
+  [quiz] Assigning Payment Signatories
+    URL: https://learning.sap.com/courses/administration-of-bank-accounts/assigning-payment-signatories_bddbb9df-0ac9-35c3-a5da-205879f6788f
