@@ -56,7 +56,25 @@ sap.ui.define([
             var that = this;
             sap.ui.getCore().getEventBus().subscribe("sapCourses", "roleChanged", function () {
                 that._loadAllData();
+                // F1-FIX: Update SmartTable selection mode for new role
+                that._updateTableSelectionMode();
             }, this);
+
+            // F2: Wire Team Analytics card click handlers for drill-down
+            var aTeamCards = [
+                { id: "teamTotalBox",     filter: "" },
+                { id: "teamAssignedBox",  filter: "Assigned" },
+                { id: "teamCompletedBox", filter: "Completed" }
+            ];
+            aTeamCards.forEach(function (card) {
+                var oCard = that.byId(card.id);
+                if (oCard) {
+                    oCard.addStyleClass("analyticsCardClickable");
+                    oCard.attachBrowserEvent("click", function () {
+                        that._openTeamDrillDown(card.filter);
+                    });
+                }
+            });
 
         },
 
@@ -211,6 +229,7 @@ sap.ui.define([
                         return pctB - pctA;
                     });
                     oTeamModel.setProperty("/userBreakdown", aUsers);
+                    oTeamModel.setProperty("/allAssignments", aAll);
                     that._buildUserProgressList(aUsers);
                     if (oPanel) { oPanel.setBusy(false); }
                 },
@@ -275,6 +294,173 @@ sap.ui.define([
         },
 
         // _loadFilterData removed: consolidated into _loadAllData (audit fix #8)
+
+        /**
+         * F1-FIX: Update SmartTable selection mode after async role change.
+         * Manager/Admin get MultiToggle for bulk assign; User gets Single.
+         */
+        _updateTableSelectionMode: function () {
+            var oSmartTable = this.byId("smartTable");
+            if (!oSmartTable) { return; }
+            var oTable = oSmartTable.getTable();
+            if (!oTable || !oTable.setSelectionMode) { return; }
+            var sRole = this.getOwnerComponent()._role || 'User';
+            oTable.setSelectionMode(sRole === 'User' ? 'Single' : 'MultiToggle');
+            Log.info("[SmartTable] Selection mode updated to " + (sRole === 'User' ? 'Single' : 'MultiToggle') + " for role " + sRole);
+        },
+
+        /* ================================================================== */
+        /* TEAM ANALYTICS DRILL-DOWN — click analytics card to see details    */
+        /* ================================================================== */
+
+        /**
+         * F2: Open drill-down dialog for Team Analytics.
+         * @param {string} sStatusFilter - 'Assigned', 'Completed', or '' for all
+         */
+        _openTeamDrillDown: function (sStatusFilter) {
+            var sRole = this.getOwnerComponent()._role;
+            if (sRole !== "Manager" && sRole !== "Admin") { return; }
+
+            var oTeamModel = this.getView().getModel("teamAnalytics");
+            var aAll = oTeamModel.getProperty("/allAssignments") || [];
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+
+            // Filter by status if specified
+            var aFiltered = aAll;
+            if (sStatusFilter) {
+                aFiltered = aAll.filter(function (a) { return a.Status === sStatusFilter; });
+            }
+
+            // Build title
+            var sTitle;
+            if (sStatusFilter === "Assigned") {
+                sTitle = i18n.getText("teamDrilldownPending");
+            } else if (sStatusFilter === "Completed") {
+                sTitle = i18n.getText("teamDrilldownCompleted");
+            } else {
+                sTitle = i18n.getText("teamDrilldownAll");
+            }
+            sTitle += " (" + aFiltered.length + ")";
+
+            // Destroy previous
+            if (this._teamDrillDownDlg) { this._teamDrillDownDlg.destroy(); this._teamDrillDownDlg = null; }
+
+            // Create local model for filtered data
+            var oDrillModel = new JSONModel({ assignments: aFiltered, dialogTitle: sTitle });
+            oDrillModel.setSizeLimit(10000);
+            this._drillDownModel = oDrillModel;
+
+            var that = this;
+            sap.ui.core.Fragment.load({
+                name: "z.sap.courses.fragments.TeamAssignmentsDialog",
+                controller: this
+            }).then(function (oDialog) {
+                that._teamDrillDownDlg = oDialog;
+                oDialog.setModel(oDrillModel, "drillDown");
+                oDialog.setModel(that.getView().getModel("i18n"), "i18n");
+                oDialog.open();
+            });
+        },
+
+        /**
+         * F2: De-assign selected assignments from drill-down dialog.
+         */
+        onDeassignFromDrillDown: function () {
+            var that = this;
+            var oDialog = this._teamDrillDownDlg;
+            if (!oDialog) { return; }
+
+            var oTable = sap.ui.getCore().byId("teamDrillDownTable");
+            if (!oTable) { return; }
+
+            var aSelectedItems = oTable.getSelectedItems();
+            if (!aSelectedItems || aSelectedItems.length === 0) {
+                MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("selectAssignmentFirst"));
+                return;
+            }
+
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+            var iCount = aSelectedItems.length;
+
+            // Collect assignment data from selected items
+            var aToDelete = [];
+            aSelectedItems.forEach(function (oItem) {
+                var oCtx = oItem.getBindingContext("drillDown");
+                if (oCtx) {
+                    aToDelete.push(oCtx.getObject());
+                }
+            });
+
+            MessageBox.confirm(i18n.getText("confirmDeassign", [iCount]), {
+                title: i18n.getText("confirmDeassignTitle"),
+                emphasizedAction: MessageBox.Action.OK,
+                onClose: function (sAction) {
+                    if (sAction !== MessageBox.Action.OK) { return; }
+
+                    var oModel = that.getOwnerComponent().getModel();
+                    var sEntitySet = that.getOwnerComponent().getAssignmentEntitySet();
+                    var bWasBatch = oModel.bUseBatch;
+                    oModel.setUseBatch(false);
+
+                    var iSuccess = 0, iFailCount = 0;
+                    var fnDeleteNext = function (idx) {
+                        if (idx >= aToDelete.length) {
+                            oModel.setUseBatch(bWasBatch);
+                            if (iSuccess > 0) {
+                                MessageToast.show(i18n.getText("deassignSuccess", [iSuccess]));
+                                // Refresh team analytics
+                                that._loadTeamAnalytics();
+                                // Close dialog
+                                if (that._teamDrillDownDlg) { that._teamDrillDownDlg.close(); }
+                            } else {
+                                MessageBox.error(i18n.getText("deassignFailed"));
+                            }
+                            return;
+                        }
+
+                        var oAssignment = aToDelete[idx];
+                        var sKey = oAssignment.Id || oAssignment.ID;
+                        if (!sKey) {
+                            iFailCount++;
+                            fnDeleteNext(idx + 1);
+                            return;
+                        }
+
+                        // Build OData path using GUID key
+                        var sPath = "/" + sEntitySet + "(guid'" + sKey + "')";
+                        oModel.remove(sPath, {
+                            success: function () {
+                                iSuccess++;
+                                fnDeleteNext(idx + 1);
+                            },
+                            error: function (err) {
+                                iFailCount++;
+                                Log.warning("[DeassignDrillDown] DELETE failed for " + sKey + ": " + (err && err.message || ""));
+                                fnDeleteNext(idx + 1);
+                            }
+                        });
+                    };
+
+                    oModel.refreshSecurityToken(function () {
+                        fnDeleteNext(0);
+                    }, function () {
+                        oModel.setUseBatch(bWasBatch);
+                        MessageBox.error(i18n.getText("securityTokenFailed"));
+                    });
+                }
+            });
+        },
+
+        /**
+         * F2: Close the Team Assignments drill-down dialog.
+         */
+        onCloseDrillDown: function () {
+            if (this._teamDrillDownDlg) {
+                this._teamDrillDownDlg.close();
+                this._teamDrillDownDlg.destroy();
+                this._teamDrillDownDlg = null;
+            }
+        },
 
         /**
          * Cross-filtering: when Role changes, filter Module dropdown

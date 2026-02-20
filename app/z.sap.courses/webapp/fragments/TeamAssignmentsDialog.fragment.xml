@@ -1,0 +1,85 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <Dialog
+        id="teamDrillDownDialog"
+        title="{drillDown>/dialogTitle}"
+        contentWidth="780px"
+        contentHeight="480px"
+        verticalScrolling="true"
+        draggable="true"
+        resizable="true"
+        stretch="{= ${device>/system/phone} }">
+
+        <content>
+            <Table
+                id="teamDrillDownTable"
+                items="{drillDown>/assignments}"
+                mode="MultiSelect"
+                growing="true"
+                growingThreshold="50"
+                alternateRowColors="true"
+                noDataText="{i18n>noAssignmentsFound}">
+                <headerToolbar>
+                    <OverflowToolbar id="drillDownToolbar">
+                        <Title id="drillDownTableTitle" text="{drillDown>/dialogTitle}" level="H5" />
+                        <ToolbarSpacer id="drillDownSpacer" />
+                    </OverflowToolbar>
+                </headerToolbar>
+                <columns>
+                    <Column id="ddColUserId" width="8rem">
+                        <header><Text id="ddColUserIdText" text="{i18n>idLabel}" /></header>
+                    </Column>
+                    <Column id="ddColUserName" width="10rem">
+                        <header><Text id="ddColUserNameText" text="{i18n>nameLabel}" /></header>
+                    </Column>
+                    <Column id="ddColTitle">
+                        <header><Text id="ddColTitleText" text="{i18n>titleLabel}" /></header>
+                    </Column>
+                    <Column id="ddColModule" width="6rem" demandPopin="true" minScreenWidth="Tablet">
+                        <header><Text id="ddColModuleText" text="{i18n>moduleLabel}" /></header>
+                    </Column>
+                    <Column id="ddColStatus" width="7rem">
+                        <header><Text id="ddColStatusText" text="{i18n>columnStatus}" /></header>
+                    </Column>
+                    <Column id="ddColDueDate" width="7rem" demandPopin="true" minScreenWidth="Tablet">
+                        <header><Text id="ddColDueDateText" text="{i18n>dueDateLabel}" /></header>
+                    </Column>
+                </columns>
+                <items>
+                    <ColumnListItem id="ddListItem" type="Inactive">
+                        <cells>
+                            <Text id="ddCellUserId" text="{drillDown>UserId}" />
+                            <Text id="ddCellUserName" text="{drillDown>UserName}" />
+                            <Text id="ddCellTitle" text="{drillDown>Title}" wrapping="false" />
+                            <Text id="ddCellModule" text="{drillDown>SapModule}" />
+                            <ObjectStatus id="ddCellStatus"
+                                text="{drillDown>Status}"
+                                state="{= ${drillDown>Status} === 'Completed' ? 'Success' : ${drillDown>Status} === 'In Progress' ? 'Information' : 'Warning' }"
+                                icon="{= ${drillDown>Status} === 'Completed' ? 'sap-icon://accept' : ${drillDown>Status} === 'In Progress' ? 'sap-icon://activity-2' : 'sap-icon://pending' }" />
+                            <Text id="ddCellDueDate" text="{
+                                path: 'drillDown>DueDate',
+                                type: 'sap.ui.model.type.Date',
+                                formatOptions: { style: 'medium' }
+                            }" />
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </content>
+
+        <beginButton>
+            <Button
+                id="drillDownDeassignBtn"
+                text="{i18n>deassign}"
+                type="Reject"
+                icon="sap-icon://delete"
+                press=".onDeassignFromDrillDown" />
+        </beginButton>
+        <endButton>
+            <Button id="drillDownCloseBtn" text="{i18n>closeButton}" press=".onCloseDrillDown" />
+        </endButton>
+    </Dialog>
+
+</core:FragmentDefinition>

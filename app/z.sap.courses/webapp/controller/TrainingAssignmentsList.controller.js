@@ -105,12 +105,6 @@ sap.ui.define([
             var aFilters = [];
             if (sRole === "User") {
                 aFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId || "__NOUSER__"));
-            } else if (sRole === "Manager") {
-                // Manager: filter analytics by their team (managerSort2 = manager's username)
-                var sMgrId = oComponent.getCurrentUserId();
-                if (sMgrId) {
-                    aFilters.push(new Filter("ManagerSort2", FilterOperator.EQ, sMgrId));
-                }
             } else if (sUserId) {
                 aFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId));
             }
@@ -325,12 +319,6 @@ sap.ui.define([
             Log.info("[AssignLinks] Column templates applied (Url=" + iUrlIdx + ", Status=" + iStatusIdx + ", DueDate=" + iDueDateIdx + ")");
         },
 
-        /* ===== Navigate back to Training Catalog ===== */
-        onBackToCatalog: function () {
-            var oRouter = this.getOwnerComponent().getRouter();
-            oRouter.navTo("TrainingsList");
-        },
-
         /* ===== Refresh ===== */
         onRefresh: function () {
             var oSmartTable = this.byId("assignSmartTable");
@@ -392,13 +380,6 @@ sap.ui.define([
                 Log.info("[AssignFilter] UserId filter for end user: " + sFilterId);
             }
 
-            // Manager: only see assignments where ManagerSort2 matches their username
-            if (sRole === "Manager") {
-                var sManagerFilterId = sCurrentUserId || "__NOMANAGER__";
-                mBindingParams.filters.push(new Filter("ManagerSort2", FilterOperator.EQ, sManagerFilterId));
-                Log.info("[AssignFilter] ManagerSort2 filter for Manager: " + sManagerFilterId);
-            }
-
             // Read Status filter from the custom FilterGroupItem Select
             var oStatusSelect = this.byId("filterAssignStatus");
             if (oStatusSelect) {
@@ -426,7 +407,111 @@ sap.ui.define([
             Log.info("[AssignFilter] Total filters: " + mBindingParams.filters.length);
         },
 
+        /* ===== Nav Back – explicit route navigation ===== */
+        onNavBack: function () {
+            this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
+        },
 
+        /* ================================================================== */
+        /* F3: DE-ASSIGN – Remove selected assignments (Manager/Admin)        */
+        /* ================================================================== */
+
+        onDeassignBtn: function () {
+            var that = this;
+            var oSmartTable = this.byId("assignSmartTable");
+            var oTable = oSmartTable.getTable();
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+
+            var aSelectedItems = oTable.getSelectedItems();
+            if (!aSelectedItems || aSelectedItems.length === 0) {
+                MessageToast.show(i18n.getText("selectAssignmentFirst"));
+                return;
+            }
+
+            // Collect contexts for deletion
+            var oComponent = this.getOwnerComponent();
+            var sRole = oComponent._role || "User";
+            var sCurrentUserId = oComponent.getCurrentUserId();
+            var aToDelete = [];
+
+            aSelectedItems.forEach(function (oItem) {
+                var oCtx = oItem.getBindingContext();
+                if (!oCtx) { return; }
+                var oData = oCtx.getObject();
+                // Manager can only de-assign their team (ManagerSort2 check is server-side)
+                aToDelete.push({ context: oCtx, data: oData });
+            });
+
+            if (aToDelete.length === 0) {
+                MessageToast.show(i18n.getText("selectAssignmentFirst"));
+                return;
+            }
+
+            var iCount = aToDelete.length;
+            MessageBox.confirm(i18n.getText("confirmDeassign", [iCount]), {
+                title: i18n.getText("confirmDeassignTitle"),
+                emphasizedAction: MessageBox.Action.OK,
+                onClose: function (sAction) {
+                    if (sAction !== MessageBox.Action.OK) { return; }
+
+                    var oModel = that.getView().getModel();
+                    var bWasBatch = oModel.bUseBatch;
+                    oModel.setUseBatch(false);
+                    if (oSmartTable) { oSmartTable.setBusy(true); }
+
+                    var iSuccess = 0, iFailCount = 0;
+                    var fnDeleteNext = function (idx) {
+                        if (idx >= aToDelete.length) {
+                            oModel.setUseBatch(bWasBatch);
+                            if (oSmartTable) { oSmartTable.setBusy(false); }
+                            if (iSuccess > 0) {
+                                MessageToast.show(i18n.getText("deassignSuccess", [iSuccess]));
+                                oSmartTable.rebindTable(true);
+                                that._loadAnalytics();
+                            } else {
+                                MessageBox.error(i18n.getText("deassignFailed"));
+                            }
+                            return;
+                        }
+
+                        var sPath = aToDelete[idx].context.getPath();
+                        oModel.remove(sPath, {
+                            success: function () {
+                                iSuccess++;
+                                fnDeleteNext(idx + 1);
+                            },
+                            error: function (err) {
+                                iFailCount++;
+                                Log.warning("[Deassign] DELETE failed: " + (err && err.message || ""));
+                                fnDeleteNext(idx + 1);
+                            }
+                        });
+                    };
+
+                    oModel.refreshSecurityToken(function () {
+                        fnDeleteNext(0);
+                    }, function () {
+                        oModel.setUseBatch(bWasBatch);
+                        if (oSmartTable) { oSmartTable.setBusy(false); }
+                        MessageBox.error(i18n.getText("securityTokenFailed"));
+                    });
+                }
+            });
+        },
+
+        /* ===== FEAT-4: Role Switcher ===== */
+        onSwitchRole: function (oEvent) {
+            var oItem = oEvent.getParameter("selectedItem");
+            var sNewRole = oItem ? oItem.getKey() : "";
+            if (sNewRole) {
+                var oComponent = this.getOwnerComponent();
+                if (oComponent && oComponent.switchRole) {
+                    oComponent.switchRole(sNewRole);
+                }
+                this._loadAnalytics();
+                MessageToast.show("Switched to " + sNewRole + " view");
+            }
+        },
 
         /* ================================================================== */
         /* MARK COMPLETED – Toolbar button (acts on selected row)             */
@@ -722,111 +807,6 @@ sap.ui.define([
                             } catch (e) { msg = (err && err.message) || msg; }
                             MessageBox.error(msg);
                         }
-                    });
-                }
-            });
-        },
-
-        /* ================================================================== */
-        /* DE-ASSIGN – Remove assignment(s) (Manager/Admin only)              */
-        /* ================================================================== */
-
-        onDeassignBtn: function () {
-            var oSmartTable = this.byId("assignSmartTable");
-            var oTable = oSmartTable.getTable();
-            var i18n = this.getView().getModel("i18n").getResourceBundle();
-
-            var aSelectedItems = oTable.getSelectedItems();
-            if (!aSelectedItems || aSelectedItems.length === 0) {
-                MessageToast.show(i18n.getText("selectAssignmentFirst"));
-                return;
-            }
-
-            // Collect valid contexts (only non-completed or all for admin)
-            var oComponent = this.getOwnerComponent();
-            var sRole = oComponent._role || "User";
-            var sCurrentUserId = oComponent.getCurrentUserId();
-            var aValidContexts = [];
-            var iSkippedOwnership = 0;
-
-            aSelectedItems.forEach(function (oItem) {
-                var oCtx = oItem.getBindingContext();
-                if (!oCtx) { return; }
-                var oData = oCtx.getObject();
-                // Manager can only de-assign their own assignments
-                if (sRole === "Manager" && sCurrentUserId &&
-                    oData.ManagerSort2 !== sCurrentUserId && oData.Manager !== sCurrentUserId) {
-                    iSkippedOwnership++;
-                    return;
-                }
-                aValidContexts.push(oCtx);
-            });
-
-            if (aValidContexts.length === 0) {
-                if (iSkippedOwnership > 0) {
-                    MessageToast.show(i18n.getText("cannotDeassignOthers"));
-                } else {
-                    MessageToast.show(i18n.getText("selectAssignmentFirst"));
-                }
-                return;
-            }
-
-            var that = this;
-            var iCount = aValidContexts.length;
-            MessageBox.confirm(i18n.getText("confirmDeassign", [iCount]), {
-                title: i18n.getText("confirmDeassignTitle"),
-                emphasizedAction: MessageBox.Action.OK,
-                onClose: function (sAction) {
-                    if (sAction !== MessageBox.Action.OK) { return; }
-
-                    var oModel = that.getView().getModel();
-                    if (oSmartTable) { oSmartTable.setBusy(true); }
-
-                    // Delete sequentially
-                    var iSuccess = 0, iFailCount = 0;
-                    var fnDeleteNext = function (idx) {
-                        if (idx >= aValidContexts.length) {
-                            if (oSmartTable) { oSmartTable.setBusy(false); }
-                            if (iSuccess > 0) {
-                                MessageToast.show(i18n.getText("deassignSuccess", [iSuccess]));
-                                oModel.refresh(true);
-                                that._loadAnalytics();
-                            }
-                            if (iFailCount > 0) {
-                                MessageToast.show(iFailCount + " removal(s) failed");
-                            }
-                            return;
-                        }
-
-                        var sPath = aValidContexts[idx].getPath();
-                        oModel.remove(sPath, {
-                            success: function () {
-                                iSuccess++;
-                                fnDeleteNext(idx + 1);
-                            },
-                            error: function (err) {
-                                iFailCount++;
-                                var msg = "Delete failed";
-                                try {
-                                    var parsed = JSON.parse(err.responseText);
-                                    msg = (parsed.error && parsed.error.message && parsed.error.message.value) || msg;
-                                } catch (e) { /* ignore */ }
-                                Log.error("[Deassign] " + msg);
-                                fnDeleteNext(idx + 1);
-                            }
-                        });
-                    };
-
-                    // Bypass batch for clearer errors
-                    var bWasBatch = oModel.bUseBatch;
-                    oModel.setUseBatch(false);
-                    oModel.refreshSecurityToken(function () {
-                        fnDeleteNext(0);
-                        oModel.setUseBatch(bWasBatch);
-                    }, function () {
-                        oModel.setUseBatch(bWasBatch);
-                        if (oSmartTable) { oSmartTable.setBusy(false); }
-                        MessageBox.error("Security token refresh failed");
                     });
                 }
             });
