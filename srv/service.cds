@@ -62,4 +62,24 @@ service SAPLearningService {
     // ========================================================================
     
     function getCurrentRole() returns String;
+
+    // NEW-8: Server-side team analytics aggregation
+    // Returns pre-aggregated counts + user breakdown so the client
+    // does not need to fetch up to 500 records and count client-side.
+    type TeamUserBreakdown {
+        userId    : String(12);
+        userName  : String(80);
+        total     : Integer;
+        completed : Integer;
+    };
+    type TeamAnalyticsResult {
+        totalAssignments  : Integer;
+        assigned          : Integer;
+        inProgress        : Integer;
+        completed         : Integer;
+        overdue           : Integer;
+        completionPercent : Integer;
+        userBreakdown     : array of TeamUserBreakdown;
+    };
+    function getTeamAnalytics() returns TeamAnalyticsResult;
 }

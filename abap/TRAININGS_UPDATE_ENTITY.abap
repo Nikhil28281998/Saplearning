@@ -9,6 +9,7 @@ METHOD trainings_update_entity.
         ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
         lv_id       TYPE char36,
         lv_errmsg   TYPE bapi_msg,
+        lv_msg      TYPE bapi_msg,
         lx_root     TYPE REF TO cx_root,
         lx_busi     TYPE REF TO /iwbep/cx_mgw_busi_exception.
 
@@ -18,10 +19,11 @@ METHOD trainings_update_entity.
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
     ID 'ACTVT' FIELD '02'.
   IF sy-subrc <> 0.
+    MESSAGE e001(zcourses) WITH 'update' 'trainings' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'No authorization to update trainings'.
+        message = lv_msg.
   ENDIF.
 
 * -- Read key from OData URI path ------------------------------------
@@ -33,10 +35,11 @@ METHOD trainings_update_entity.
   IF sy-subrc = 0.
     lv_id = ls_key-value.
   ELSE.
+    MESSAGE e002(zcourses) WITH 'Training ID' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Training ID is required'.
+        message = lv_msg.
   ENDIF.
 
 * -- Fetch existing record (classic syntax, no @ host expression) ----
@@ -44,10 +47,11 @@ METHOD trainings_update_entity.
     WHERE id = lv_id.
 
   IF sy-subrc <> 0.
+    MESSAGE e003(zcourses) WITH 'Training' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Training not found'.
+        message = lv_msg.
   ENDIF.
 
 * -- Read incoming update payload ------------------------------------
@@ -92,6 +96,24 @@ METHOD trainings_update_entity.
   MODIFY zcourses FROM ls_training.
 
   IF sy-subrc = 0.
+
+*   -- PG-4: Cascade denormalized fields to ZCOURSE_ASGN ------------
+*     Only update fields that were actually changed in the payload
+    DATA: lv_cascade_needed TYPE abap_bool VALUE abap_false.
+    IF ls_entity-title IS NOT INITIAL OR ls_entity-role IS NOT INITIAL
+       OR ls_entity-sap_module IS NOT INITIAL OR ls_entity-url IS NOT INITIAL.
+      lv_cascade_needed = abap_true.
+    ENDIF.
+    IF lv_cascade_needed = abap_true.
+      UPDATE zcourse_asgn
+        SET title      = ls_training-title
+            role       = ls_training-role
+            sap_module = ls_training-sap_module
+            url        = ls_training-url
+        WHERE training_id = lv_id.
+*     Log cascade result (non-critical — do not fail the main update)
+    ENDIF.
+
 *   Return updated entity to caller
     ls_entity-id            = ls_training-id.
     ls_entity-url           = ls_training-url.
@@ -104,10 +126,11 @@ METHOD trainings_update_entity.
 
     er_entity = ls_entity.
   ELSE.
+    MESSAGE e004(zcourses) WITH 'update' 'training' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Failed to update training'.
+        message = lv_msg.
   ENDIF.
 
   CATCH /iwbep/cx_mgw_busi_exception INTO lx_busi.

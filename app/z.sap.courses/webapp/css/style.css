@@ -1181,74 +1181,6 @@ html, body, html.sap-desktop, .sapUiBody {
     display: none !important;
 }
 
-/* ===== Role Switcher in Header ===== */
-
-/* Role box container – pill-style matching My Assignments button */
-.sapMBar .roleBoxContainer {
-    background: rgba(255,255,255,0.2) !important;
-    border: 1px solid rgba(255,255,255,0.35) !important;
-    border-radius: 8px !important;
-    padding: 0.15rem 0.5rem;
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
-    transition: var(--sapTransition);
-}
-
-.sapMBar .roleBoxContainer:hover {
-    background: rgba(255,255,255,0.3) !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.roleSwitcherSelect {
-    min-width: 100px;
-}
-
-/* Role switcher in header bar – white text on dark gradient background */
-.sapMBar .roleSwitcherSelect .sapMSltLabel,
-.sapMBar .roleSwitcherSelect .sapMSltArrow,
-.sapMBar .roleSwitcherSelect .sapMSltLabelState,
-.sapMBar .roleSwitcherSelect .sapMSltIcon {
-    color: #fff !important;
-}
-
-/* The selected text inside the Select control */
-.sapMBar .roleSwitcherSelect .sapMSlt .sapMSelectListItemText,
-.sapMBar .roleSwitcherSelect .sapMSlt .sapMSltLabel {
-    color: #fff !important;
-    font-weight: 600;
-}
-
-/* Select inside roleBox – transparent so container bg shows through */
-.roleBoxContainer .sapMSlt {
-    background: transparent !important;
-    border: none !important;
-    min-width: 100px;
-}
-
-.roleBoxContainer .sapMSlt:hover {
-    background: rgba(255,255,255,0.1) !important;
-}
-
-/* Ensure role switcher dropdown popup items are dark text on white bg */
-.sapMSltPicker .sapMSelectListItem,
-.sapMSltPicker .sapMSelectListItemBase,
-.sapMSelectList .sapMSelectListItem,
-.sapMSelectList .sapMSelectListItemBase {
-    color: var(--sapTextColor, #333) !important;
-    background: var(--sapSurface, #fff) !important;
-}
-.sapMSltPicker .sapMSelectListItem:hover,
-.sapMSltPicker .sapMSelectListItemBase:hover,
-.sapMSelectList .sapMSelectListItem:hover,
-.sapMSelectList .sapMSelectListItemBase:hover {
-    background: var(--sapHighlightColor, #e8f0fe) !important;
-}
-
-/* Header icon color */
-.headerIcon {
-    color: rgba(255,255,255,0.85) !important;
-}
-
 /* ===== Status Distribution Chart – fuller width ===== */
 .chartCard .sapSuiteSBMC {
     min-width: 100% !important;
@@ -1406,8 +1338,7 @@ html, body, html.sap-desktop, .sapUiBody {
     .teamUserProgressItem:hover {
         background: var(--sapList_Hover_Background, #283038);
     }
-    .analyticsContainer,
-    .roleBoxContainer {
+    .analyticsContainer {
         background: transparent;
     }
 }

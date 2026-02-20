@@ -8,6 +8,7 @@ METHOD trainings_delete_entity.
         lv_id     TYPE char36,
         lv_check  TYPE char36,
         lv_errmsg TYPE bapi_msg,
+        lv_msg    TYPE bapi_msg,
         lx_root   TYPE REF TO cx_root,
         lx_busi   TYPE REF TO /iwbep/cx_mgw_busi_exception.
 
@@ -17,10 +18,11 @@ METHOD trainings_delete_entity.
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
     ID 'ACTVT' FIELD '06'.
   IF sy-subrc <> 0.
+    MESSAGE e001(zcourses) WITH 'delete' 'trainings' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'No authorization to delete trainings'.
+        message = lv_msg.
   ENDIF.
 
 * -- Read key from OData URI path (e.g. Trainings('xxx')) ------------
@@ -32,10 +34,11 @@ METHOD trainings_delete_entity.
   IF sy-subrc = 0.
     lv_id = ls_key-value.
   ELSE.
+    MESSAGE e002(zcourses) WITH 'Training ID' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Training ID is required'.
+        message = lv_msg.
   ENDIF.
 
 * -- Verify record exists before deleting ----------------------------
@@ -43,10 +46,11 @@ METHOD trainings_delete_entity.
     WHERE id = lv_id.
 
   IF sy-subrc <> 0.
+    MESSAGE e003(zcourses) WITH 'Training' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Training not found'.
+        message = lv_msg.
   ENDIF.
 
 * -- Delete from ZCOURSES -------------------------------------------
@@ -54,10 +58,11 @@ METHOD trainings_delete_entity.
   DELETE FROM zcourses WHERE id = lv_id.
 
   IF sy-subrc <> 0.
+    MESSAGE e004(zcourses) WITH 'delete' 'training' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Failed to delete training'.
+        message = lv_msg.
   ENDIF.
 
   CATCH /iwbep/cx_mgw_busi_exception INTO lx_busi.

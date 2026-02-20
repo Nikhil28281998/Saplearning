@@ -1,9 +1,7 @@
 sap.ui.define([
     "sap/ui/base/Object",
-    "sap/ui/model/Filter",
-    "sap/ui/model/FilterOperator",
     "sap/base/Log"
-], function (BaseObject, Filter, FilterOperator, Log) {
+], function (BaseObject, Log) {
     "use strict";
 
     /**
@@ -15,53 +13,8 @@ sap.ui.define([
      */
     return BaseObject.extend("z.sap.courses.services.AnalyticsService", {
 
-        /**
-         * Get assignment status counts using 3 lightweight filtered OData calls.
-         * Each request sends $top=0&$inlinecount=allpages so only __count is returned.
-         *
-         * @param {sap.ui.model.odata.v2.ODataModel} oModel - The OData V2 model
-         * @param {string} sEntitySet - Entity set name (e.g. "TrainingAssignments")
-         * @returns {Promise<{assigned: number, inProgress: number, completed: number, completionPercent: number}>}
-         */
-        getAssignmentStats: function (oModel, sEntitySet, aExtraFilters) {
-            var aStatuses = [
-                { key: "assigned", value: "Assigned" },
-                { key: "inProgress", value: "In Progress" },
-                { key: "completed", value: "Completed" }
-            ];
-
-            var aPromises = aStatuses.map(function (oStatus) {
-                return new Promise(function (resolve) {
-                    var aFilters = [new Filter("Status", FilterOperator.EQ, oStatus.value)];
-                    if (aExtraFilters && aExtraFilters.length > 0) {
-                        aFilters = aFilters.concat(aExtraFilters);
-                    }
-                    oModel.read("/" + sEntitySet, {
-                        filters: aFilters,
-                        urlParameters: {
-                            "$top": "0",
-                            "$inlinecount": "allpages"
-                        },
-                        success: function (oData) {
-                            var iCount = oData.__count ? parseInt(oData.__count, 10) : 0;
-                            resolve({ key: oStatus.key, count: iCount });
-                        },
-                        error: function (err) {
-                            Log.warning("[AnalyticsService] Failed to count " + oStatus.value + ": " + (err && err.message || ""));
-                            resolve({ key: oStatus.key, count: 0 });
-                        }
-                    });
-                });
-            });
-
-            return Promise.all(aPromises).then(function (aResults) {
-                var oStats = {};
-                aResults.forEach(function (r) { oStats[r.key] = r.count; });
-                var iTotal = oStats.assigned + oStats.inProgress + oStats.completed;
-                oStats.completionPercent = iTotal > 0 ? Math.round((oStats.completed / iTotal) * 100) : 0;
-                return oStats;
-            });
-        },
+        // PG-5: getAssignmentStats removed — was dead code (no controller called it).
+        // Assignment counts are now computed inline in each controller's _loadAnalytics.
 
         /**
          * Get training catalog stats: total count + module distribution for chart.

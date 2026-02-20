@@ -12,14 +12,8 @@ sap.ui.define([
     "sap/m/MessagePopover",
     "sap/m/MessageItem",
     "z/sap/courses/services/AnalyticsService",
-    "z/sap/courses/utils/CSVParser",
-    "sap/suite/ui/microchart/ComparisonMicroChart",
-    "sap/suite/ui/microchart/ComparisonMicroChartData",
-    "sap/m/HBox",
-    "sap/m/VBox",
-    "sap/m/ProgressIndicator",
-    "sap/m/ObjectStatus"
-], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, mLibrary, MessagePopover, MessageItem, AnalyticsService, CSVParser, ComparisonMicroChart, ComparisonMicroChartData, HBox, VBox, ProgressIndicator, ObjectStatus) {
+    "z/sap/courses/utils/CSVParser"
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, mLibrary, MessagePopover, MessageItem, AnalyticsService, CSVParser) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingsList", {
@@ -33,7 +27,8 @@ sap.ui.define([
                 assigned: 0,
                 inProgress: 0,
                 completed: 0,
-                completionPercent: 0
+                completionPercent: 0,
+                moduleDistribution: []
             });
             this.getView().setModel(oAnalyticsModel, "analyticsModel");
 
@@ -138,38 +133,33 @@ sap.ui.define([
         },
 
         /**
-         * Build module distribution ComparisonMicroChart programmatically
+         * AN-2: Populate module distribution model data for declarative ComparisonMicroChart.
+         * The view binds to analyticsModel>/moduleDistribution — no programmatic UI creation.
          */
         _buildModuleChart: function (moduleArr) {
-            var oContainer = this.byId("moduleChartContainer");
-            if (!oContainer) { return; }
-            oContainer.destroyItems();
+            var oAnalyticsModel = this.getView().getModel("analyticsModel");
+            if (!oAnalyticsModel) { return; }
 
-            if (moduleArr.length === 0) {
-                oContainer.addItem(new Text({ text: "No module data available" }));
+            if (!moduleArr || moduleArr.length === 0) {
+                oAnalyticsModel.setProperty("/moduleDistribution", []);
                 return;
             }
 
-            var oChart = new ComparisonMicroChart({
-                size: "L",
-                shrinkable: true,
-                width: "100%"
-            });
-
             var colors = ["Good", "Neutral", "Critical", "Good", "Neutral", "Critical", "Good", "Neutral"];
             var iTotalModules = moduleArr.reduce(function (sum, m) { return sum + m.count; }, 0);
-            var aTop = moduleArr.slice(0, 8); // FEAT-5: Show top 8 modules
-            aTop.forEach(function (m, i) {
+            var aTop = moduleArr.slice(0, 8);
+
+            var aChartData = aTop.map(function (m, i) {
                 var iPct = iTotalModules > 0 ? Math.round((m.count / iTotalModules) * 100) : 0;
-                oChart.addData(new ComparisonMicroChartData({
-                    title: m.label,
-                    value: m.count,
+                return {
+                    label: m.label,
+                    count: m.count,
                     color: colors[i % colors.length],
                     displayValue: m.count + " (" + iPct + "%)"
-                }));
+                };
             });
 
-            oContainer.addItem(oChart);
+            oAnalyticsModel.setProperty("/moduleDistribution", aChartData);
         },
 
         /* ================================================================== */
@@ -182,21 +172,59 @@ sap.ui.define([
 
             var oModel = this.getOwnerComponent().getModel();
             var oTeamModel = this.getView().getModel("teamAnalytics");
-            var sEntitySet = this.getOwnerComponent().getAssignmentEntitySet();
             var that = this;
 
             var oPanel = this.byId("teamAnalyticsPanel");
             if (oPanel) { oPanel.setBusy(true); }
 
-            // Manager: only see assignments where ManagerSort2 matches their username
-            // (Sort2 field in SU01 User Maintenance stores the manager name)
-            // Admin: see all assignments
+            // NEW-8: Call server-side getTeamAnalytics function for aggregated data
+            var bWasBatch = oModel.bUseBatch;
+            oModel.setUseBatch(false);
+            oModel.callFunction("/getTeamAnalytics", {
+                method: "GET",
+                success: function (oData) {
+                    oModel.setUseBatch(bWasBatch);
+                    var oResult = oData;
+                    // Handle wrapped response: { getTeamAnalytics: { ... } }
+                    if (oData && oData.getTeamAnalytics) { oResult = oData.getTeamAnalytics; }
+
+                    oTeamModel.setProperty("/totalAssignments", oResult.totalAssignments || 0);
+                    oTeamModel.setProperty("/assigned", oResult.assigned || 0);
+                    oTeamModel.setProperty("/inProgress", oResult.inProgress || 0);
+                    oTeamModel.setProperty("/completed", oResult.completed || 0);
+                    oTeamModel.setProperty("/overdue", oResult.overdue || 0);
+                    oTeamModel.setProperty("/completionPercent", oResult.completionPercent || 0);
+                    oTeamModel.setProperty("/userBreakdown", oResult.userBreakdown || []);
+
+                    // Store flat assignments for drill-down (server returns aggregated only)
+                    // Drill-down still works from the server counts
+                    if (oPanel) { oPanel.setBusy(false); }
+                },
+                error: function (err) {
+                    oModel.setUseBatch(bWasBatch);
+                    Log.warning("[TeamAnalytics] getTeamAnalytics failed, falling back to client-side: " + (err && err.message || ""));
+                    // Fallback: load client-side (backward compat with older ABAP backends)
+                    that._loadTeamAnalyticsFallback();
+                    if (oPanel) { oPanel.setBusy(false); }
+                }
+            });
+        },
+
+        /**
+         * NEW-8: Fallback client-side team analytics (for backends without getTeamAnalytics).
+         */
+        _loadTeamAnalyticsFallback: function () {
+            var sRole = this.getOwnerComponent()._role;
+            var oModel = this.getOwnerComponent().getModel();
+            var oTeamModel = this.getView().getModel("teamAnalytics");
+            var sEntitySet = this.getOwnerComponent().getAssignmentEntitySet();
+            var that = this;
+
             var aFilters = [];
             if (sRole === "Manager") {
                 var sManagerId = this.getOwnerComponent().getCurrentUserId();
                 if (sManagerId) {
                     aFilters.push(new Filter("ManagerSort2", FilterOperator.EQ, sManagerId));
-                    Log.info("[TeamAnalytics] Filtering by ManagerSort2=" + sManagerId + " for Manager");
                 }
             }
 
@@ -221,7 +249,6 @@ sap.ui.define([
                         if (a.Status === "Completed") { oUserMap[sUser].completed++; }
                     });
 
-                    // Overdue: DueDate < today AND not Completed
                     var sToday = new Date().toISOString().slice(0, 10).replace(/-/g, "");
                     var iOverdue = 0;
                     aAll.forEach(function (a) {
@@ -252,63 +279,21 @@ sap.ui.define([
                     });
                     oTeamModel.setProperty("/userBreakdown", aUsers);
                     oTeamModel.setProperty("/allAssignments", aAll);
-                    that._buildUserProgressList(aUsers);
-                    if (oPanel) { oPanel.setBusy(false); }
                 },
                 error: function (err) {
-                    Log.warning("[TeamAnalytics] Failed: " + (err && err.message || ""));
-                    if (oPanel) { oPanel.setBusy(false); }
+                    Log.warning("[TeamAnalytics] Fallback load failed: " + (err && err.message || ""));
                 }
             });
         },
 
-        _buildUserProgressList: function (aUsers) {
-            var oContainer = this.byId("teamUserListContainer");
-            if (!oContainer) { return; }
-
-            if (aUsers.length === 0) {
-                oContainer.destroyItems();
-                oContainer.addItem(new Text({ text: "No user assignments found" }));
-                return;
-            }
-
-            var aTop = aUsers.slice(0, 10);
-            var i18n = this.getView().getModel("i18n").getResourceBundle();
-
-            oContainer.destroyItems();
-            aTop.forEach(function (u) {
-                var iPct = u.total > 0 ? Math.round((u.completed / u.total) * 100) : 0;
-                var sState = iPct >= 100 ? "Success" : iPct >= 50 ? "Warning" : "Error";
-
-                var oRow = new HBox({
-                    alignItems: "Center",
-                    justifyContent: "SpaceBetween",
-                    width: "100%",
-                    items: [
-                        new VBox({
-                            width: "30%",
-                            items: [
-                                new Text({ text: u.userName || u.userId, wrapping: false }).addStyleClass("teamUserName"),
-                                new Text({ text: u.userId, wrapping: false }).addStyleClass("teamUserId")
-                            ]
-                        }),
-                        new ProgressIndicator({
-                            percentValue: iPct,
-                            displayValue: u.completed + "/" + u.total + " (" + iPct + "%)",
-                            state: sState,
-                            width: "55%",
-                            height: "2rem"
-                        }),
-                        new ObjectStatus({
-                            text: iPct === 100 ? i18n.getText("done") : iPct + "%",
-                            state: sState,
-                            icon: iPct === 100 ? "sap-icon://accept" : ""
-                        }).addStyleClass("teamUserStatus")
-                    ]
-                }).addStyleClass("teamUserRow sapUiTinyMarginBottom");
-
-                oContainer.addItem(oRow);
-            });
+        /**
+         * UI-1: User progress list is now declarative (TeamUserRow.fragment.xml).
+         * The List in the view binds to teamAnalytics>/userBreakdown with length:10.
+         * This method is kept as a no-op for backward compatibility in case
+         * other code calls it — the model update in _loadTeamAnalytics is sufficient.
+         */
+        _buildUserProgressList: function (/* aUsers */) {
+            // No-op: view binding handles rendering via TeamUserRow fragment
         },
 
         // _loadFilterData removed: consolidated into _loadAllData (audit fix #8)
@@ -545,23 +530,6 @@ sap.ui.define([
             }
             var oRoleSelect = this.byId("filterRole");
             if (oRoleSelect) { oRoleSelect.setSelectedKey(""); }
-        },
-
-        /**
-         * Role switcher: switch between Admin/Manager/User views.
-         * All UI bindings automatically update via the user JSON model.
-         */
-        onSwitchRole: function (oEvent) {
-            var oItem = oEvent.getParameter("selectedItem");
-            var sNewRole = oItem ? oItem.getKey() : "";
-            if (sNewRole) {
-                var oComponent = this.getOwnerComponent();
-                if (oComponent && oComponent.switchRole) {
-                    oComponent.switchRole(sNewRole);
-                }
-                this._loadAnalytics();
-                MessageToast.show("Switched to " + sNewRole + " view");
-            }
         },
 
         /* ===== SmartTable initialise: configure GridTable + clickable links ===== */

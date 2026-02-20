@@ -76,16 +76,6 @@ sap.ui.define([
 						},
 						errorMessage: "Analytics panel not found"
 					});
-				},
-
-				iShouldSeeTheRoleSwitcher: function () {
-					return this.waitFor({
-						id: "roleSwitcher",
-						success: function () {
-							Opa5.assert.ok(true, "Role switcher is rendered");
-						},
-						errorMessage: "Role switcher not found"
-					});
 				}
 			}
 		}

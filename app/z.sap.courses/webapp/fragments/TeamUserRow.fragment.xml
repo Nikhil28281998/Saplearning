@@ -1,0 +1,28 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+    <!--
+        UI-1/NEW-5: Declarative fragment for team user progress rows.
+        Bound to teamAnalytics>/userBreakdown via List aggregation in the view.
+        Each item shows: userName, userId, ProgressIndicator, ObjectStatus.
+    -->
+    <CustomListItem type="Inactive" class="teamUserRow sapUiTinyMarginBottom">
+        <HBox alignItems="Center" justifyContent="SpaceBetween" width="100%">
+            <VBox width="30%">
+                <Text text="{teamAnalytics>userName}" wrapping="false" class="teamUserName" />
+                <Text text="{teamAnalytics>userId}" wrapping="false" class="teamUserId" />
+            </VBox>
+            <ProgressIndicator
+                percentValue="{= ${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0 }"
+                displayValue="{= ${teamAnalytics>completed} + '/' + ${teamAnalytics>total} + ' (' + (${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0) + '%)' }"
+                state="{= (${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0) >= 100 ? 'Success' : (${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0) >= 50 ? 'Warning' : 'Error' }"
+                width="55%"
+                height="2rem" />
+            <ObjectStatus
+                text="{= (${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0) === 100 ? ${i18n>done} : (${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0) + '%' }"
+                state="{= (${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0) >= 100 ? 'Success' : (${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0) >= 50 ? 'Warning' : 'Error' }"
+                icon="{= (${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0) === 100 ? 'sap-icon://accept' : '' }"
+                class="teamUserStatus" />
+        </HBox>
+    </CustomListItem>
+</core:FragmentDefinition>

@@ -23,6 +23,7 @@ METHOD trainingassignme_update_entity.
         lv_ts_conv  TYPE timestamp,
         lv_time_ini TYPE t,
         lv_errmsg   TYPE bapi_msg,
+        lv_msg      TYPE bapi_msg,
         lx_root     TYPE REF TO cx_root,
         lx_busi     TYPE REF TO /iwbep/cx_mgw_busi_exception.
 
@@ -32,10 +33,11 @@ METHOD trainingassignme_update_entity.
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
     ID 'ACTVT' FIELD '02'.
   IF sy-subrc <> 0.
+    MESSAGE e001(zcourses) WITH 'update' 'assignments' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'No authorization to update assignments'.
+        message = lv_msg.
   ENDIF.
 
 * -- Read key from OData URI path ------------------------------------
@@ -47,10 +49,11 @@ METHOD trainingassignme_update_entity.
   IF sy-subrc = 0.
     lv_id = ls_key-value.
   ELSE.
+    MESSAGE e002(zcourses) WITH 'Assignment ID' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Assignment ID is required'.
+        message = lv_msg.
   ENDIF.
 
 * -- Fetch existing record -------------------------------------------
@@ -58,14 +61,38 @@ METHOD trainingassignme_update_entity.
     WHERE id = lv_id.
 
   IF sy-subrc <> 0.
+    MESSAGE e003(zcourses) WITH 'Assignment' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Assignment not found'.
+        message = lv_msg.
   ENDIF.
 
 * -- Read incoming update payload ------------------------------------
   io_data_provider->read_entry_data( IMPORTING es_data = ls_entity ).
+
+* -- PG-2: DueDate validation — must not be in the past -------------
+  IF ls_entity-duedate IS NOT INITIAL.
+    DATA: lv_due_date_chk TYPE d,
+          lv_ftype_chk    TYPE c,
+          lv_ts_chk       TYPE timestamp,
+          lv_time_chk     TYPE t.
+    DESCRIBE FIELD ls_entity-duedate TYPE lv_ftype_chk.
+    IF lv_ftype_chk = 'P'.
+      lv_ts_chk = ls_entity-duedate.
+      CONVERT TIME STAMP lv_ts_chk TIME ZONE 'UTC'
+        INTO DATE lv_due_date_chk TIME lv_time_chk.
+    ELSE.
+      lv_due_date_chk = ls_entity-duedate.
+    ENDIF.
+    IF lv_due_date_chk < sy-datum.
+      MESSAGE e011(zcourses) INTO lv_msg.
+      RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+        EXPORTING
+          textid  = /iwbep/cx_mgw_busi_exception=>business_error
+          message = lv_msg.
+    ENDIF.
+  ENDIF.
 
 * -- Merge: only overwrite fields that were actually provided --------
 *   (IS NOT INITIAL check = partial update / PATCH support)
@@ -146,10 +173,11 @@ METHOD trainingassignme_update_entity.
 
     er_entity = ls_entity.
   ELSE.
+    MESSAGE e004(zcourses) WITH 'update' 'assignment' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Failed to update assignment'.
+        message = lv_msg.
   ENDIF.
 
 * -- Catch-all: prevent short dumps (500 errors) --------------------

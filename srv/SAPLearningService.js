@@ -156,6 +156,73 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
     });
 
     // ============================================================================
+    // NEW-8: FUNCTION: Server-side Team Analytics Aggregation
+    // ============================================================================
+
+    this.on('getTeamAnalytics', async (req) => {
+      const userCtx = getUserContext(req);
+
+      // Only Managers and Admins can view team analytics
+      if (!userCtx.isManager && !userCtx.isAdmin) {
+        return req.reject(403, 'Team analytics requires Manager or Admin role');
+      }
+
+      // Build filter: Manager sees only their team; Admin sees all
+      const where = {};
+      if (userCtx.isManager && !userCtx.isAdmin) {
+        where.managerSort2 = userCtx.sapUsername;
+      }
+
+      const assignments = await SELECT.from(TrainingAssignments).where(where);
+
+      let assigned = 0, inProgress = 0, completed = 0, overdue = 0;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const userMap = {};
+
+      for (const a of assignments) {
+        if (a.status === 'Assigned') assigned++;
+        else if (a.status === 'In Progress') inProgress++;
+        else if (a.status === 'Completed') completed++;
+
+        // Overdue: not completed and dueDate < today
+        if (a.status !== 'Completed' && a.dueDate) {
+          const due = new Date(a.dueDate);
+          if (due < today) overdue++;
+        }
+
+        const uid = a.userId || 'UNKNOWN';
+        if (!userMap[uid]) {
+          userMap[uid] = { userId: uid, userName: a.userName || uid, total: 0, completed: 0 };
+        }
+        userMap[uid].total++;
+        if (a.status === 'Completed') userMap[uid].completed++;
+      }
+
+      const totalAssignments = assignments.length;
+      const completionPercent = totalAssignments > 0
+        ? Math.round((completed / totalAssignments) * 100)
+        : 0;
+
+      // Sort by completion % descending
+      const userBreakdown = Object.values(userMap).sort((a, b) => {
+        const pctA = a.total > 0 ? a.completed / a.total : 0;
+        const pctB = b.total > 0 ? b.completed / b.total : 0;
+        return pctB - pctA;
+      });
+
+      return {
+        totalAssignments,
+        assigned,
+        inProgress,
+        completed,
+        overdue,
+        completionPercent,
+        userBreakdown
+      };
+    });
+
+    // ============================================================================
     // BEFORE CREATE: Training Assignments
     // ============================================================================
 
@@ -192,6 +259,16 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
       req.data.assignedBy = userCtx.sapUsername;
       req.data.assignedByName = userCtx.username.split('@')[0];
 
+      // PG-2: Validate DueDate is not in the past
+      if (req.data.dueDate) {
+        const due = new Date(req.data.dueDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (due < today) {
+          return req.reject(400, 'Due date cannot be in the past');
+        }
+      }
+
       // Denormalize training fields for performance (search/filter without joins)
       req.data.title = training.title;
       req.data.role = training.role;
@@ -220,6 +297,16 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
       }
 
       if (!validateInput(req.data, req)) return;
+
+      // PG-2: Validate DueDate is not in the past (on update too)
+      if (req.data.dueDate) {
+        const due = new Date(req.data.dueDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (due < today) {
+          return req.reject(400, 'Due date cannot be in the past');
+        }
+      }
 
       const assignmentId = req.data.ID || req.params?.[0]?.ID;
       if (!assignmentId) return req.reject(400, 'Assignment ID is required');
@@ -308,6 +395,37 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
       secureLog('info', 'Training modified', {
         operation, trainingId, username: userCtx.username
       });
+    });
+
+    // ============================================================================
+    // PG-4: AFTER UPDATE: Trainings — cascade denormalized fields to assignments
+    // ============================================================================
+
+    this.after('UPDATE', 'Trainings', async (data, req) => {
+      const trainingId = data.ID || req.params?.[0]?.ID;
+      if (!trainingId) return;
+
+      // Build SET clause with only the denormalized fields that changed
+      const updateFields = {};
+      if (data.title !== undefined) updateFields.title = data.title;
+      if (data.role !== undefined) updateFields.role = data.role;
+      if (data.sap_module !== undefined) updateFields.sap_module = data.sap_module;
+      if (data.url !== undefined) updateFields.url = data.url;
+
+      if (Object.keys(updateFields).length === 0) return;
+
+      try {
+        const n = await UPDATE(TrainingAssignments)
+          .set(updateFields)
+          .where({ trainingId: trainingId });
+        secureLog('info', 'Cascade update to assignments', {
+          trainingId, fieldsUpdated: Object.keys(updateFields), rowsAffected: n
+        });
+      } catch (err) {
+        secureLog('error', 'Cascade update failed', {
+          trainingId, error: err.message
+        });
+      }
     });
 
     // ============================================================================

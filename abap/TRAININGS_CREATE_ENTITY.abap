@@ -8,6 +8,7 @@ METHOD trainings_create_entity.
         ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
         lv_guid     TYPE sysuuid_c36,
         lv_errmsg   TYPE bapi_msg,
+        lv_msg      TYPE bapi_msg,
         lx_root     TYPE REF TO cx_root,
         lx_busi     TYPE REF TO /iwbep/cx_mgw_busi_exception.
 
@@ -17,10 +18,11 @@ METHOD trainings_create_entity.
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
     ID 'ACTVT' FIELD '01'.
   IF sy-subrc <> 0.
+    MESSAGE e001(zcourses) WITH 'create' 'trainings' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'No authorization to create trainings'.
+        message = lv_msg.
   ENDIF.
 
 * -- Read incoming OData payload into entity structure ----------------
@@ -28,10 +30,11 @@ METHOD trainings_create_entity.
 
 * -- Validate required fields (Title + URL mandatory) ----------------
   IF ls_entity-title IS INITIAL OR ls_entity-url IS INITIAL.
+    MESSAGE e007(zcourses) INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Title and URL are required'.
+        message = lv_msg.
   ENDIF.
 
 * -- SEC-5: Input sanitization – strip HTML/script tags ---------------
@@ -43,10 +46,11 @@ METHOD trainings_create_entity.
 
 * -- Validate URL format: must start with http:// or https:// --------
   IF ls_entity-url NS 'http://' AND ls_entity-url NS 'https://'.
+    MESSAGE e008(zcourses) INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'URL must start with http:// or https://'.
+        message = lv_msg.
   ENDIF.
 
 * -- Generate UUID if caller did not provide one ---------------------
@@ -83,10 +87,11 @@ METHOD trainings_create_entity.
   IF sy-subrc = 0.
     er_entity = ls_entity.
   ELSE.
+    MESSAGE e004(zcourses) WITH 'create' 'training' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Failed to create training - record may already exist'.
+        message = lv_msg.
   ENDIF.
 
   CATCH /iwbep/cx_mgw_busi_exception INTO lx_busi.

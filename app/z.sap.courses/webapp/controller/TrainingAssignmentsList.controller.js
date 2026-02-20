@@ -522,20 +522,6 @@ sap.ui.define([
             });
         },
 
-        /* ===== FEAT-4: Role Switcher ===== */
-        onSwitchRole: function (oEvent) {
-            var oItem = oEvent.getParameter("selectedItem");
-            var sNewRole = oItem ? oItem.getKey() : "";
-            if (sNewRole) {
-                var oComponent = this.getOwnerComponent();
-                if (oComponent && oComponent.switchRole) {
-                    oComponent.switchRole(sNewRole);
-                }
-                this._loadAnalytics();
-                MessageToast.show("Switched to " + sNewRole + " view");
-            }
-        },
-
         /* ================================================================== */
         /* START TRAINING – Set status to "In Progress"                       */
         /* ================================================================== */

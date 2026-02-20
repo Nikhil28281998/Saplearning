@@ -30,10 +30,6 @@ sap.ui.define([
 		Then.onTheTrainingsListPage.iShouldSeeTheAnalyticsPanel();
 	});
 
-	opaTest("Should see the role switcher", function (Given, When, Then) {
-		Then.onTheTrainingsListPage.iShouldSeeTheRoleSwitcher();
-	});
-
 	opaTest("Should navigate to assignments when clicking 'My Assignments'", function (Given, When, Then) {
 		// Action
 		When.onTheTrainingsListPage.iPressTheMyAssignmentsButton();

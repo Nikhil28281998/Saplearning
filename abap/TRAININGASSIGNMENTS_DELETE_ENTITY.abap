@@ -19,6 +19,7 @@ METHOD trainingassignme_delete_entity.
         lv_id       TYPE char36,
         ls_asgn     TYPE zcourse_asgn,
         lv_errmsg   TYPE bapi_msg,
+        lv_msg      TYPE bapi_msg,
         lx_root     TYPE REF TO cx_root,
         lx_busi     TYPE REF TO /iwbep/cx_mgw_busi_exception.
 
@@ -31,10 +32,11 @@ METHOD trainingassignme_delete_entity.
     AUTHORITY-CHECK OBJECT 'Z_COURSES'
       ID 'ACTVT' FIELD '01'.
     IF sy-subrc <> 0.
+      MESSAGE e001(zcourses) WITH 'remove' 'assignments' INTO lv_msg.
       RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
         EXPORTING
           textid  = /iwbep/cx_mgw_busi_exception=>business_error
-          message = 'No authorization to remove assignments'.
+          message = lv_msg.
     ENDIF.
   ENDIF.
 
@@ -42,10 +44,11 @@ METHOD trainingassignme_delete_entity.
   READ TABLE it_key_tab INTO ls_key_tab
     WITH KEY name = 'Id'.
   IF sy-subrc <> 0.
+    MESSAGE e002(zcourses) WITH 'Assignment ID' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Assignment ID is required'.
+        message = lv_msg.
   ENDIF.
   lv_id = ls_key_tab-value.
 
@@ -53,10 +56,11 @@ METHOD trainingassignme_delete_entity.
   SELECT SINGLE * FROM zcourse_asgn INTO ls_asgn
     WHERE id = lv_id.
   IF sy-subrc <> 0.
+    MESSAGE e003(zcourses) WITH 'Assignment' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Assignment not found'.
+        message = lv_msg.
   ENDIF.
 
 * -- Manager can only delete their own assignments -------------------
@@ -66,20 +70,22 @@ METHOD trainingassignme_delete_entity.
   IF sy-subrc <> 0.
 *   Not admin — check ownership
     IF ls_asgn-manager_sort2 <> sy-uname.
+      MESSAGE e010(zcourses) INTO lv_msg.
       RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
         EXPORTING
           textid  = /iwbep/cx_mgw_busi_exception=>business_error
-          message = 'You can only remove assignments you created'.
+          message = lv_msg.
     ENDIF.
   ENDIF.
 
 * -- Delete from database (no COMMIT — Gateway manages LUW) ----------
   DELETE FROM zcourse_asgn WHERE id = lv_id.
   IF sy-subrc <> 0.
+    MESSAGE e004(zcourses) WITH 'remove' 'assignment' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Failed to remove assignment'.
+        message = lv_msg.
   ENDIF.
 
 * -- Catch-all -------------------------------------------------------

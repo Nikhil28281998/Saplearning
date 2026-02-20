@@ -31,6 +31,7 @@ METHOD /iwbep/if_mgw_appl_srv_runtime~execute_action.
         lv_ts_conv  TYPE timestamp,
         lv_time_ini TYPE t,
         lv_errmsg   TYPE bapi_msg,
+        lv_msg      TYPE bapi_msg,
         lx_root     TYPE REF TO cx_root,
         lx_busi     TYPE REF TO /iwbep/cx_mgw_busi_exception.
 
@@ -47,19 +48,21 @@ METHOD /iwbep/if_mgw_appl_srv_runtime~execute_action.
       AUTHORITY-CHECK OBJECT 'Z_COURSES'
         ID 'ACTVT' FIELD '02'.
       IF sy-subrc <> 0.
+        MESSAGE e001(zcourses) WITH 'mark complete' 'assignments' INTO lv_msg.
         RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
           EXPORTING
             textid  = /iwbep/cx_mgw_busi_exception=>business_error
-            message = 'No authorization to mark assignments complete'.
+            message = lv_msg.
       ENDIF.
 
 *     Read Id parameter
       READ TABLE it_parameter WITH KEY name = 'Id' INTO ls_param.
       IF sy-subrc <> 0.
+        MESSAGE e002(zcourses) WITH 'Assignment ID' INTO lv_msg.
         RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
           EXPORTING
             textid  = /iwbep/cx_mgw_busi_exception=>business_error
-            message = 'Assignment ID parameter is required'.
+            message = lv_msg.
       ENDIF.
       lv_id = ls_param-value.
 
@@ -67,18 +70,20 @@ METHOD /iwbep/if_mgw_appl_srv_runtime~execute_action.
       SELECT SINGLE * FROM zcourse_asgn INTO ls_asgn
         WHERE id = lv_id.
       IF sy-subrc <> 0.
+        MESSAGE e003(zcourses) WITH 'Assignment' INTO lv_msg.
         RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
           EXPORTING
             textid  = /iwbep/cx_mgw_busi_exception=>business_error
-            message = 'Assignment not found'.
+            message = lv_msg.
       ENDIF.
 
 *     Business rule: cannot complete an already completed assignment
       IF ls_asgn-status = 'Completed'.
+        MESSAGE e009(zcourses) WITH 'Assignment' INTO lv_msg.
         RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
           EXPORTING
             textid  = /iwbep/cx_mgw_busi_exception=>business_error
-            message = 'Assignment is already completed'.
+            message = lv_msg.
       ENDIF.
 
 *     Update status and completion date
@@ -88,10 +93,11 @@ METHOD /iwbep/if_mgw_appl_srv_runtime~execute_action.
 *     Save to DB (no COMMIT - Gateway manages LUW)
       MODIFY zcourse_asgn FROM ls_asgn.
       IF sy-subrc <> 0.
+        MESSAGE e004(zcourses) WITH 'complete' 'assignment' INTO lv_msg.
         RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
           EXPORTING
             textid  = /iwbep/cx_mgw_busi_exception=>business_error
-            message = 'Failed to mark as completed'.
+            message = lv_msg.
       ENDIF.
 
 *     Return updated entity
@@ -208,10 +214,11 @@ METHOD /iwbep/if_mgw_appl_srv_runtime~execute_action.
 * Unknown action
 * ═══════════════════════════════════════════════════════════════════════
     WHEN OTHERS.
+      MESSAGE e003(zcourses) WITH 'Action' INTO lv_msg.
       RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
         EXPORTING
           textid  = /iwbep/cx_mgw_busi_exception=>business_error
-          message = 'Unknown action'.
+          message = lv_msg.
 
   ENDCASE.
 

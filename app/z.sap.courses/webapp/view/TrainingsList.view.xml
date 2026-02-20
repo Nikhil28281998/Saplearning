@@ -28,16 +28,6 @@
                         icon="sap-icon://role"
                         state="{= ${user>/role} === 'Admin' ? 'Success' : ${user>/role} === 'Manager' ? 'Warning' : 'Information' }"
                         class="sapUiSmallMarginEnd" />
-                    <!-- Role switcher: dynamically shows only the roles this user has.
-                         Hidden when user has only one role (just badge visible). -->
-                    <HBox id="roleBox" alignItems="Center" class="sapUiSmallMarginEnd roleBoxContainer" visible="{user>/showRoleSwitcher}">
-                        <core:Icon id="roleIcon" src="sap-icon://role" size="1rem" class="sapUiTinyMarginEnd headerIcon" />
-                        <Select id="roleSwitcher" selectedKey="{user>/role}" change="onSwitchRole"
-                                class="roleSwitcherSelect"
-                                items="{user>/availableRoles}">
-                            <core:Item key="{user>key}" text="{user>text}" />
-                        </Select>
-                    </HBox>
                     <Button
                         id="myAssignmentsBtn"
                         text="{i18n>myAssignments}"
@@ -154,15 +144,45 @@
                             <core:Icon id="teamUserChartIcon" src="sap-icon://customer" size="1rem" color="#0a6ed1" class="sapUiTinyMarginEnd" />
                             <Text id="teamUserChartTitle" text="{i18n>teamUserProgress}" class="chartTitle" />
                         </HBox>
-                        <VBox id="teamUserListContainer" />
+                        <VBox id="teamUserListContainer">
+                            <!-- UI-1: Declarative List with TeamUserRow fragment template -->
+                            <List id="teamUserList"
+                                  items="{path: 'teamAnalytics>/userBreakdown', length: 10}"
+                                  showNoData="true"
+                                  noDataText="No user assignments found"
+                                  showSeparators="None">
+                                <items>
+                                    <core:Fragment fragmentName="z.sap.courses.fragments.TeamUserRow" type="XML" />
+                                </items>
+                            </List>
+                        </VBox>
                     </VBox>
-                    <!-- AN-2: Module distribution chart container (populated by _buildModuleChart) -->
+                    <!-- AN-2: Module distribution chart — declarative ComparisonMicroChart -->
                     <VBox id="moduleChartBox" class="analyticsCard analyticsCardBlue chartCard">
                         <HBox id="moduleChartHeader" alignItems="Center" class="sapUiTinyMarginBottom">
                             <core:Icon id="moduleChartIcon" src="sap-icon://bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
                             <Text id="moduleChartTitle" text="{i18n>topModules}" class="chartTitle" />
                         </HBox>
-                        <VBox id="moduleChartContainer" />
+                        <VBox id="moduleChartContainer">
+                            <mc:ComparisonMicroChart
+                                id="moduleComparisonChart"
+                                size="L"
+                                shrinkable="true"
+                                width="100%"
+                                data="{path: 'analyticsModel>/moduleDistribution'}"
+                                visible="{= ${analyticsModel>/moduleDistribution}.length > 0 }">
+                                <mc:data>
+                                    <mc:ComparisonMicroChartData
+                                        title="{analyticsModel>label}"
+                                        value="{analyticsModel>count}"
+                                        color="{analyticsModel>color}"
+                                        displayValue="{analyticsModel>displayValue}" />
+                                </mc:data>
+                            </mc:ComparisonMicroChart>
+                            <Text id="moduleChartNoData"
+                                  text="No module data available"
+                                  visible="{= !${analyticsModel>/moduleDistribution} || ${analyticsModel>/moduleDistribution}.length === 0 }" />
+                        </VBox>
                     </VBox>
                 </HBox>
             </Panel>

@@ -38,6 +38,7 @@ METHOD trainingassignme_create_entity.
         lv_guid     TYPE sysuuid_c36,
         lv_dup_id   TYPE char36,
         lv_errmsg   TYPE bapi_msg,
+        lv_msg      TYPE bapi_msg,
         lv_ftype    TYPE c,
         lv_ts_conv  TYPE timestamp,
         lv_time_ini TYPE t,
@@ -51,10 +52,11 @@ METHOD trainingassignme_create_entity.
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
     ID 'ACTVT' FIELD '01'.
   IF sy-subrc <> 0.
+    MESSAGE e001(zcourses) WITH 'create' 'assignments' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'No authorization to create assignments'.
+        message = lv_msg.
   ENDIF.
 
 * -- Read incoming OData payload into entity structure ----------------
@@ -62,26 +64,29 @@ METHOD trainingassignme_create_entity.
 
 * -- Validate required fields ----------------------------------------
   IF ls_entity-trainingid IS INITIAL.
+    MESSAGE e002(zcourses) WITH 'TrainingId' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'TrainingId is required'.
+        message = lv_msg.
   ENDIF.
 
   IF ls_entity-userid IS INITIAL.
+    MESSAGE e002(zcourses) WITH 'UserId' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'UserId is required'.
+        message = lv_msg.
   ENDIF.
 
 * -- Validate UserId format: uppercase alphanumeric + underscore, 1-12 chars
 *    Must match @assert.format: '^[A-Z0-9_]{1,12}$' from schema.cds
   IF NOT ls_entity-userid CO 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ '.
+    MESSAGE e006(zcourses) INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'UserId must contain only uppercase letters, digits, or underscores (A-Z, 0-9, _)'.
+        message = lv_msg.
   ENDIF.
 
 * -- WF-2 FIX: Duplicate assignment check ----------------------------
@@ -91,10 +96,34 @@ METHOD trainingassignme_create_entity.
       AND user_id     = ls_entity-userid
       AND status     <> 'Completed'.
   IF sy-subrc = 0.
+    MESSAGE e005(zcourses) INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'User already has an active assignment for this training'.
+        message = lv_msg.
+  ENDIF.
+
+* -- PG-2: DueDate validation — must not be in the past -------------
+  IF ls_entity-duedate IS NOT INITIAL.
+    DATA: lv_due_date_chk TYPE d,
+          lv_ftype_chk    TYPE c,
+          lv_ts_chk       TYPE timestamp,
+          lv_time_chk     TYPE t.
+    DESCRIBE FIELD ls_entity-duedate TYPE lv_ftype_chk.
+    IF lv_ftype_chk = 'P'.
+      lv_ts_chk = ls_entity-duedate.
+      CONVERT TIME STAMP lv_ts_chk TIME ZONE 'UTC'
+        INTO DATE lv_due_date_chk TIME lv_time_chk.
+    ELSE.
+      lv_due_date_chk = ls_entity-duedate.
+    ENDIF.
+    IF lv_due_date_chk < sy-datum.
+      MESSAGE e011(zcourses) INTO lv_msg.
+      RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+        EXPORTING
+          textid  = /iwbep/cx_mgw_busi_exception=>business_error
+          message = lv_msg.
+    ENDIF.
   ENDIF.
 
 * -- Generate UUID for the new assignment ----------------------------
@@ -180,10 +209,11 @@ METHOD trainingassignme_create_entity.
     ls_entity-manager        = ls_asgn-manager_sort2.
     er_entity = ls_entity.
   ELSE.
+    MESSAGE e004(zcourses) WITH 'create' 'assignment' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Failed to create assignment - record may already exist'.
+        message = lv_msg.
   ENDIF.
 
 * -- Catch-all: convert any unhandled exception to business exception
