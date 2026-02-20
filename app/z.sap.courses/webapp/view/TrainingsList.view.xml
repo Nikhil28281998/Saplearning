@@ -83,6 +83,11 @@
                         <ObjectNumber id="teamAssignedCount" number="{teamAnalytics>/assigned}" state="Warning" class="analyticsNumber" />
                         <Text id="teamAssignedLabel" text="{i18n>teamPending}" class="analyticsLabel" />
                     </VBox>
+                    <VBox id="teamInProgressBox" alignItems="Center" class="analyticsCard analyticsCardBlue">
+                        <core:Icon id="teamInProgressIcon" src="sap-icon://activity-2" size="1.5rem" color="#0854a0" class="sapUiTinyMarginBottom" />
+                        <ObjectNumber id="teamInProgressCount" number="{teamAnalytics>/inProgress}" state="Information" class="analyticsNumber" />
+                        <Text id="teamInProgressLabel" text="{i18n>teamInProgress}" class="analyticsLabel" />
+                    </VBox>
                     <VBox id="teamOverdueBox" alignItems="Center" class="analyticsCard analyticsCardRed">
                         <core:Icon id="teamOverdueIcon" src="sap-icon://alert" size="1.5rem" color="#bb0000" class="sapUiTinyMarginBottom" />
                         <ObjectNumber id="teamOverdueCount" number="{teamAnalytics>/overdue}" state="Error" class="analyticsNumber" />
@@ -114,6 +119,18 @@
                                     percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? (${teamAnalytics>/assigned} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
                                     displayValue="{teamAnalytics>/assigned}"
                                     state="Warning"
+                                    showValue="true"
+                                    width="100%"
+                                    height="2rem" />
+                            </HBox>
+                            <HBox id="teamInProgressRow" alignItems="Center" class="sapUiTinyMarginBottom">
+                                <core:Icon id="teamInProgressDot" src="sap-icon://activity-2" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
+                                <Text id="teamInProgressLbl" text="{i18n>inProgress}" class="sapUiTinyMarginEnd chartLegendText" width="5rem" />
+                                <ProgressIndicator
+                                    id="teamInProgressBar"
+                                    percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? (${teamAnalytics>/inProgress} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
+                                    displayValue="{teamAnalytics>/inProgress}"
+                                    state="Information"
                                     showValue="true"
                                     width="100%"
                                     height="2rem" />

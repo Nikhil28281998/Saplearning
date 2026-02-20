@@ -17,14 +17,6 @@
         class="sapUiResponsivePadding--header sapUiResponsivePadding--content assignmentsPage">
 
         <headerContent>
-            <!-- FEAT-4: Role switcher for multi-role users -->
-            <HBox id="assignRoleBox" alignItems="Center" class="sapUiSmallMarginEnd roleBoxContainer" visible="{user>/showRoleSwitcher}">
-                <core:Icon id="assignRoleIcon" src="sap-icon://role" size="1rem" class="sapUiTinyMarginEnd headerIcon" />
-                <Select id="assignRoleSwitcher" selectedKey="{user>/role}" change="onSwitchRole" class="roleSwitcherSelect"
-                        items="{user>/availableRoles}">
-                    <core:Item id="assignRoleItem" key="{user>key}" text="{user>text}" />
-                </Select>
-            </HBox>
             <!-- Role badge -->
             <ObjectStatus
                 id="assignRoleBadge"
@@ -59,6 +51,16 @@
                             state="Warning"
                             class="analyticsNumber" />
                         <Text id="myAssignedLabel" text="{i18n>toStart}" class="analyticsLabel" />
+                    </VBox>
+
+                    <VBox id="myInProgressBox" alignItems="Center" class="analyticsCard analyticsCardBlue">
+                        <core:Icon id="myInProgressIcon" src="sap-icon://activity-2" size="1.5rem" color="#0854a0" class="sapUiTinyMarginBottom" />
+                        <ObjectNumber
+                            id="myInProgressCount"
+                            number="{assignAnalytics>/inProgress}"
+                            state="Information"
+                            class="analyticsNumber" />
+                        <Text id="myInProgressLabel" text="{i18n>inProgress}" class="analyticsLabel" />
                     </VBox>
 
                     <VBox id="myOverdueBox" alignItems="Center" class="analyticsCard analyticsCardRed">

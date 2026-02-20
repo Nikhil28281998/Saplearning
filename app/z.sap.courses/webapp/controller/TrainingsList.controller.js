@@ -71,10 +71,11 @@ sap.ui.define([
 
             // F2: Wire Team Analytics card click handlers for drill-down
             var aTeamCards = [
-                { id: "teamTotalBox",     filter: "" },
-                { id: "teamAssignedBox",  filter: "Assigned" },
-                { id: "teamOverdueBox",   filter: "Overdue" },
-                { id: "teamCompletedBox", filter: "Completed" }
+                { id: "teamTotalBox",       filter: "" },
+                { id: "teamAssignedBox",    filter: "Assigned" },
+                { id: "teamInProgressBox",  filter: "In Progress" },
+                { id: "teamOverdueBox",     filter: "Overdue" },
+                { id: "teamCompletedBox",   filter: "Completed" }
             ];
             aTeamCards.forEach(function (card) {
                 var oCard = that.byId(card.id);
@@ -364,6 +365,8 @@ sap.ui.define([
             var sTitle;
             if (sStatusFilter === "Assigned") {
                 sTitle = i18n.getText("teamDrilldownPending");
+            } else if (sStatusFilter === "In Progress") {
+                sTitle = i18n.getText("teamDrilldownInProgress");
             } else if (sStatusFilter === "Completed") {
                 sTitle = i18n.getText("teamDrilldownCompleted");
             } else if (sStatusFilter === "Overdue") {
@@ -382,13 +385,16 @@ sap.ui.define([
             this._drillDownModel = oDrillModel;
 
             var that = this;
-            sap.ui.core.Fragment.load({
-                name: "z.sap.courses.fragments.TeamAssignmentsDialog",
-                controller: this
+            this.loadFragment({
+                name: "z.sap.courses.fragments.TeamAssignmentsDialog"
             }).then(function (oDialog) {
                 that._teamDrillDownDlg = oDialog;
                 oDialog.setModel(oDrillModel, "drillDown");
                 oDialog.setModel(that.getView().getModel("i18n"), "i18n");
+                oDialog.attachAfterClose(function () {
+                    oDialog.destroy();
+                    that._teamDrillDownDlg = null;
+                });
                 oDialog.open();
             });
         },
@@ -401,7 +407,7 @@ sap.ui.define([
             var oDialog = this._teamDrillDownDlg;
             if (!oDialog) { return; }
 
-            var oTable = sap.ui.getCore().byId("teamDrillDownTable");
+            var oTable = this.byId("teamDrillDownTable");
             if (!oTable) { return; }
 
             var aSelectedItems = oTable.getSelectedItems();
@@ -488,8 +494,6 @@ sap.ui.define([
         onCloseDrillDown: function () {
             if (this._teamDrillDownDlg) {
                 this._teamDrillDownDlg.close();
-                this._teamDrillDownDlg.destroy();
-                this._teamDrillDownDlg = null;
             }
         },
 
