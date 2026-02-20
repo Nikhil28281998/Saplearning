@@ -101,13 +101,10 @@ sap.ui.define([
             var oPanel = this.byId("myProgressPanel");
             if (oPanel) { oPanel.setBusy(true); }
 
-            // Always filter by userId for end users (sentinel if unknown)
+            // FIX: Always filter by current user's UserId regardless of role.
+            // "My Progress" shows only trainings assigned TO the current user.
             var aFilters = [];
-            if (sRole === "User") {
-                aFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId || "__NOUSER__"));
-            } else if (sUserId) {
-                aFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId));
-            }
+            aFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId || "__NOUSER__"));
 
             // Single OData read — count statuses client-side for reliability
             oModel.read("/" + sEntitySet, {
@@ -369,16 +366,13 @@ sap.ui.define([
                 mBindingParams.filters[i] = fnSanitize(mBindingParams.filters[i]);
             }
 
-            // BUG-1 FIX: End users only see their own assignments
+            // FIX: "My Assignments" always shows trainings assigned TO the current user,
+            // regardless of role. Team-level view is on catalog page (Team Analytics).
             var oComponent = this.getOwnerComponent();
-            var sRole = oComponent._role || "User";
             var sCurrentUserId = oComponent.getCurrentUserId();
-            if (sRole === "User") {
-                // Always filter by userId for end users; if unknown, use impossible value to show 0 results
-                var sFilterId = sCurrentUserId || "__NOUSER__";
-                mBindingParams.filters.push(new Filter("UserId", FilterOperator.EQ, sFilterId));
-                Log.info("[AssignFilter] UserId filter for end user: " + sFilterId);
-            }
+            var sFilterId = sCurrentUserId || "__NOUSER__";
+            mBindingParams.filters.push(new Filter("UserId", FilterOperator.EQ, sFilterId));
+            Log.info("[AssignFilter] UserId filter (all roles): " + sFilterId);
 
             // Read Status filter from the custom FilterGroupItem Select
             var oStatusSelect = this.byId("filterAssignStatus");
