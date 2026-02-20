@@ -5,7 +5,7 @@
     "type": "application",
     "i18n": "i18n/i18n.properties",
     "applicationVersion": {
-      "version": "1.9.0"
+      "version": "2.0.0"
     },
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
@@ -44,6 +44,12 @@
           "action": "display",
           "title": "{{sap-courses-display.flpTitle}}",
           "subTitle": "{{sap-courses-display.flpSubtitle}}",
+          "icon": "sap-icon://education",
+          "indicatorDataSource": {
+            "dataSource": "mainService",
+            "path": "Trainings/$count",
+            "refresh": 300
+          },
           "signature": {
             "parameters": {},
             "additionalParameters": "allowed"
@@ -54,6 +60,7 @@
           "action": "mytrainings",
           "title": "{{myTrainingsTileTitle}}",
           "subTitle": "",
+          "icon": "sap-icon://task",
           "signature": {
             "parameters": {},
             "additionalParameters": "allowed"

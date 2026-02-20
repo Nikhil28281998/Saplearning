@@ -14,6 +14,20 @@
             <!-- ========== Training Entity ========== -->
             <Annotations Target="ZCOURSES_SRV.Training">
 
+                <!-- PresentationVariant: default sort -->
+                <Annotation Term="UI.PresentationVariant">
+                    <Record>
+                        <PropertyValue Property="SortOrder">
+                            <Collection>
+                                <Record Type="Common.SortOrderType">
+                                    <PropertyValue Property="Property" PropertyPath="LastUpdated"/>
+                                    <PropertyValue Property="Descending" Bool="true"/>
+                                </Record>
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
+
                 <!-- SmartFilterBar: which fields appear as filter inputs (rectangles) -->
                 <!-- Title removed: basic search box handles title search -->
                 <!-- Role + SapModule: custom filterGroupItems with cross-reference dropdowns -->
@@ -53,14 +67,16 @@
                             <PropertyValue Property="Label" String="Last Updated"/>
                             <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/Low"/>
                         </Record>
-                        <Record Type="UI.DataField">
+                        <Record Type="UI.DataFieldWithUrl">
                             <PropertyValue Property="Value" Path="Url"/>
                             <PropertyValue Property="Label" String="Training Link"/>
+                            <PropertyValue Property="Url" Path="Url"/>
                             <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/Medium"/>
                         </Record>
-                        <Record Type="UI.DataField">
+                        <Record Type="UI.DataFieldWithUrl">
                             <PropertyValue Property="Value" Path="SapHelpLink"/>
                             <PropertyValue Property="Label" String="SAP Help"/>
+                            <PropertyValue Property="Url" Path="SapHelpLink"/>
                             <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/Low"/>
                         </Record>
                     </Collection>
@@ -138,6 +154,20 @@
 
             <!-- ========== TrainingAssignment Entity ========== -->
             <Annotations Target="ZCOURSES_SRV.TrainingAssignment">
+
+                <!-- PresentationVariant: default sort by DueDate descending -->
+                <Annotation Term="UI.PresentationVariant">
+                    <Record>
+                        <PropertyValue Property="SortOrder">
+                            <Collection>
+                                <Record Type="Common.SortOrderType">
+                                    <PropertyValue Property="Property" PropertyPath="DueDate"/>
+                                    <PropertyValue Property="Descending" Bool="true"/>
+                                </Record>
+                            </Collection>
+                        </PropertyValue>
+                    </Record>
+                </Annotation>
 
                 <Annotation Term="UI.SelectionFields">
                     <Collection>

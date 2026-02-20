@@ -13,7 +13,7 @@ METHOD trainings_delete_entity.
         lv_check  TYPE char36.
 
 * -- FIX #3: Authorization check (Admin only) ------------------------
-  AUTHORITY-CHECK OBJECT 'Z_COURSES_MGR'
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
     ID 'ACTVT' FIELD '06'.
   IF sy-subrc <> 0.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception

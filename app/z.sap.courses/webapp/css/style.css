@@ -263,12 +263,14 @@ html, body, html.sap-desktop, .sapUiBody {
 .analyticsCardTeal  { border-top: 3px solid var(--sapAccent3); }
 .analyticsCardGreen { border-top: 3px solid var(--sapAccent4); }
 .analyticsCardPurple { border-top: 3px solid var(--sapAccent5); }
+.analyticsCardRed   { border-top: 3px solid var(--sapNegativeColor, #bb0000); }
 
 .analyticsCardBlue::before  { background: var(--sapAccent1); }
 .analyticsCardOrange::before { background: var(--sapAccent2); }
 .analyticsCardTeal::before  { background: var(--sapAccent3); }
 .analyticsCardGreen::before { background: var(--sapAccent4); }
 .analyticsCardPurple::before { background: var(--sapAccent5); }
+.analyticsCardRed::before   { background: var(--sapNegativeColor, #bb0000); }
 
 /* Analytics number – large, tabular figures, NO overflow clipping */
 .analyticsCard .sapMObjectNumber {
@@ -1376,4 +1378,64 @@ html, body, html.sap-desktop, .sapUiBody {
 .detailLinksRow {
     gap: 0.5rem;
     flex-wrap: wrap;
+}
+
+/* ================================================================== */
+/* DARK MODE – SAP Quartz Dark / Horizon Dark theme support            */
+/* Uses prefers-color-scheme media query + SAP theme CSS variables     */
+/* ================================================================== */
+@media (prefers-color-scheme: dark) {
+    .analyticsCard {
+        background: var(--sapBackgroundColor, #1c2228);
+        border-color: var(--sapGroup_ContentBorderColor, #39444d);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+    .analyticsCard::before {
+        opacity: 0.15;
+    }
+    .analyticsCard:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    }
+    .chartCard {
+        background: var(--sapBackgroundColor, #1c2228);
+    }
+    .teamUserProgressItem {
+        background: var(--sapList_Background, #1c2228);
+        border-color: var(--sapList_BorderColor, #39444d);
+    }
+    .teamUserProgressItem:hover {
+        background: var(--sapList_Hover_Background, #283038);
+    }
+    .analyticsContainer,
+    .roleBoxContainer {
+        background: transparent;
+    }
+}
+
+/* Explicit SAP Quartz Dark / Horizon Dark theme class fallback */
+html[data-sap-ui-theme*="dark"] .analyticsCard,
+html[data-sap-ui-theme="sap_horizon_dark"] .analyticsCard,
+html[data-sap-ui-theme="sap_fiori_3_dark"] .analyticsCard {
+    background: var(--sapBackgroundColor);
+    border-color: var(--sapGroup_ContentBorderColor);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+html[data-sap-ui-theme*="dark"] .analyticsCard::before,
+html[data-sap-ui-theme="sap_horizon_dark"] .analyticsCard::before,
+html[data-sap-ui-theme="sap_fiori_3_dark"] .analyticsCard::before {
+    opacity: 0.12;
+}
+
+html[data-sap-ui-theme*="dark"] .chartCard,
+html[data-sap-ui-theme="sap_horizon_dark"] .chartCard,
+html[data-sap-ui-theme="sap_fiori_3_dark"] .chartCard {
+    background: var(--sapBackgroundColor);
+}
+
+html[data-sap-ui-theme*="dark"] .teamUserProgressItem,
+html[data-sap-ui-theme="sap_horizon_dark"] .teamUserProgressItem,
+html[data-sap-ui-theme="sap_fiori_3_dark"] .teamUserProgressItem {
+    background: var(--sapList_Background);
+    border-color: var(--sapList_BorderColor);
 }

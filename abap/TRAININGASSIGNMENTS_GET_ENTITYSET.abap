@@ -76,9 +76,17 @@ METHOD trainingassignme_get_entityset.
   ENDIF.
 
 * -- Read filter: ManagerSort2 (manager team filtering via ADRP.SORT2) -
+*   NM-1 FIX: Accept both 'Manager' and 'ManagerSort2' as property names
+*   (frontend may send 'Manager' which is the actual OData property name,
+*    or 'ManagerSort2' which was used in older versions)
   READ TABLE it_filter_select_options
-    WITH KEY property = 'ManagerSort2'
+    WITH KEY property = 'Manager'
     INTO ls_filter_mgr.
+  IF sy-subrc <> 0.
+    READ TABLE it_filter_select_options
+      WITH KEY property = 'ManagerSort2'
+      INTO ls_filter_mgr.
+  ENDIF.
   IF sy-subrc <> 0.
     READ TABLE it_filter_select_options
       WITH KEY property = 'MANAGER_SORT2'
@@ -109,6 +117,20 @@ METHOD trainingassignme_get_entityset.
     ENDIF.
   ENDIF.
 
+* -- SEC-3 FIX: Server-side UserId enforcement for User role ----------
+*   Users with only ACTVT 03 (Display) may NOT see other users' data.
+*   Force lv_user_id = sy-uname unless Admin (06) or Manager (01).
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
+    ID 'ACTVT' FIELD '06'.
+  IF sy-subrc <> 0.
+    AUTHORITY-CHECK OBJECT 'Z_COURSES'
+      ID 'ACTVT' FIELD '01'.
+    IF sy-subrc <> 0.
+*     User role: force filter to own user only (cannot override via $filter)
+      lv_user_id = sy-uname.
+    ENDIF.
+  ENDIF.
+
 * -- Query ZCOURSE_ASGN with dynamic WHERE ---------------------------
   IF lv_user_id IS NOT INITIAL AND lv_status IS NOT INITIAL.
     SELECT * FROM zcourse_asgn INTO TABLE lt_asgn
@@ -131,6 +153,12 @@ METHOD trainingassignme_get_entityset.
 * -- Post-filter: ManagerSort2 (applied after SELECT for flexibility) --
   IF lv_mgr_sort2 IS NOT INITIAL.
     DELETE lt_asgn WHERE manager_sort2 <> lv_mgr_sort2.
+  ENDIF.
+
+* -- ABP-1 FIX: Set $inlinecount BEFORE pagination -------------------
+  IF io_tech_request_context->has_inlinecount( ) = abap_true.
+    es_response_context-inlinecount = lines( lt_asgn ).
+    es_response_context-count = es_response_context-inlinecount.
   ENDIF.
 
 * -- Pagination: $skip / $top ----------------------------------------

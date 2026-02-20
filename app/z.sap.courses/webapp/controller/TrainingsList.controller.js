@@ -9,8 +9,10 @@ sap.ui.define([
     "sap/m/Text",
     "sap/base/Log",
     "sap/m/library",
+    "sap/m/MessagePopover",
+    "sap/m/MessageItem",
     "z/sap/courses/services/AnalyticsService"
-], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, mLibrary, AnalyticsService) {
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, mLibrary, MessagePopover, MessageItem, AnalyticsService) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingsList", {
@@ -215,11 +217,27 @@ sap.ui.define([
                         if (a.Status === "Completed") { oUserMap[sUser].completed++; }
                     });
 
+                    // Overdue: DueDate < today AND not Completed
+                    var sToday = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+                    var iOverdue = 0;
+                    aAll.forEach(function (a) {
+                        if (a.Status !== "Completed" && a.DueDate) {
+                            var sDue = "";
+                            if (a.DueDate instanceof Date) {
+                                sDue = a.DueDate.toISOString().slice(0, 10).replace(/-/g, "");
+                            } else if (typeof a.DueDate === "string") {
+                                sDue = a.DueDate.replace(/-/g, "").slice(0, 8);
+                            }
+                            if (sDue && sDue < sToday) { iOverdue++; }
+                        }
+                    });
+
                     var iPct = iTotal > 0 ? Math.round((iCompleted / iTotal) * 100) : 0;
                     oTeamModel.setProperty("/totalAssignments", iTotal);
                     oTeamModel.setProperty("/assigned", iAssigned);
                     oTeamModel.setProperty("/inProgress", iInProgress);
                     oTeamModel.setProperty("/completed", iCompleted);
+                    oTeamModel.setProperty("/overdue", iOverdue);
                     oTeamModel.setProperty("/completionPercent", iPct);
 
                     var aUsers = Object.keys(oUserMap).map(function (k) { return oUserMap[k]; });
@@ -811,14 +829,14 @@ sap.ui.define([
                 mBindingParams.filters[i] = fnSanitize(mBindingParams.filters[i]);
             }
 
-            // ---- Step 4: Basic search box → Title EQ filter ----
+            // ---- Step 4: Basic search box → Title Contains filter (ABAP does LIKE) ----
             var sSearchVal = "";
             if (oSmartFilterBar && oSmartFilterBar.getBasicSearchValue) {
                 sSearchVal = (oSmartFilterBar.getBasicSearchValue() || "").trim();
             }
             if (sSearchVal) {
-                mBindingParams.filters.push(new Filter("Title", FilterOperator.EQ, sSearchVal));
-                Log.info("[Filter] Title EQ (from basic search): " + sSearchVal);
+                mBindingParams.filters.push(new Filter("Title", FilterOperator.Contains, sSearchVal));
+                Log.info("[Filter] Title Contains (from basic search): " + sSearchVal);
             }
 
             // Remove $search parameter that SEGW doesn't support
@@ -842,11 +860,9 @@ sap.ui.define([
             }
         },
 
-        /* ===== Admin CRUD: Create New Training ===== */
+        /* ===== Admin CRUD: Create New Training (XML Fragment + VH Selects) ===== */
         onCreateTraining: function () {
             var that = this;
-            var oModel = this.getOwnerComponent().getModel();
-            var i18n = this.getView().getModel("i18n").getResourceBundle();
             if (this._createDlg) {
                 this._createDlg.destroy();
                 this._createDlg = null;
@@ -863,162 +879,155 @@ sap.ui.define([
                 error: ""
             });
 
-            sap.ui.require(["sap/ui/layout/form/SimpleForm"], function (SimpleForm) {
-                var oForm = new SimpleForm({
-                    editable: true,
-                    layout: "ResponsiveGridLayout",
-                    labelSpanXL: 3, labelSpanL: 3, labelSpanM: 4, labelSpanS: 12,
-                    columnsXL: 1, columnsL: 1, columnsM: 1,
-                    content: [
-                        new sap.m.Label({ text: i18n.getText("titleLabel"), required: true }),
-                        new sap.m.Input({ value: "{/title}", placeholder: "Training title" }),
-                        new sap.m.Label({ text: i18n.getText("roleLabel") }),
-                        new sap.m.Input({ value: "{/role}", placeholder: "e.g. Developer, Consultant" }),
-                        new sap.m.Label({ text: i18n.getText("moduleLabel") }),
-                        new sap.m.Input({ value: "{/sapModule}", placeholder: "e.g. FI, MM, SD" }),
-                        new sap.m.Label({ text: i18n.getText("descriptionLabel") }),
-                        new sap.m.TextArea({ value: "{/description}", rows: 3, placeholder: "Brief description" }),
-                        new sap.m.Label({ text: "URL", required: true }),
-                        new sap.m.Input({ value: "{/url}", type: "Url", placeholder: "https://learning.sap.com/..." }),
-                        new sap.m.Label({ text: i18n.getText("sapHelpLabel") }),
-                        new sap.m.Input({ value: "{/sapHelpLink}", type: "Url", placeholder: "https://help.sap.com/..." })
-                    ]
+            this.loadFragment({
+                name: "z.sap.courses.fragments.CreateTrainingDialog"
+            }).then(function (oDialog) {
+                that._createDlg = oDialog;
+                oDialog.setModel(oDlgModel, "createModel");
+                // Attach OData model for VH selects (RolesVH/ModulesVH entity sets)
+                oDialog.setModel(that.getOwnerComponent().getModel());
+                oDialog.setModel(that.getView().getModel("i18n"), "i18n");
+                oDialog.attachAfterClose(function () {
+                    oDialog.destroy();
+                    that._createDlg = null;
                 });
-
-                var oErrorStrip = new sap.m.MessageStrip({
-                    text: "{/error}",
-                    visible: "{= !!${/error} }",
-                    type: "Error",
-                    showIcon: true
-                });
-                oErrorStrip.addStyleClass("sapUiSmallMarginTop");
-
-                var oContent = new sap.m.VBox({ items: [oForm, oErrorStrip] });
-                oContent.addStyleClass("sapUiSmallMargin");
-
-                that._createDlg = new sap.m.Dialog({
-                    title: i18n.getText("createTrainingTitle"),
-                    contentWidth: "560px",
-                    draggable: true,
-                    resizable: true,
-                    content: [oContent],
-                    beginButton: new sap.m.Button({
-                        text: i18n.getText("createBtn"),
-                        type: "Emphasized",
-                        icon: "sap-icon://save",
-                        enabled: "{= !${/submitting} }",
-                        press: function () {
-                            var data = oDlgModel.getData();
-                            if (!data.title || !data.title.trim()) {
-                                oDlgModel.setProperty("/error", i18n.getText("titleRequired"));
-                                return;
-                            }
-                            if (!data.url || !data.url.trim()) {
-                                oDlgModel.setProperty("/error", i18n.getText("urlRequired"));
-                                return;
-                            }
-                            oDlgModel.setProperty("/error", "");
-                            oDlgModel.setProperty("/submitting", true);
-
-                            var payload = {
-                                Title: data.title.trim(),
-                                Description: (data.description || "").trim(),
-                                Role: (data.role || "").trim(),
-                                SapModule: (data.sapModule || "").trim(),
-                                Url: data.url.trim(),
-                                SapHelpLink: (data.sapHelpLink || "").trim()
-                            };
-
-                            oModel.refreshSecurityToken(function () {
-                                oModel.create("/Trainings", payload, {
-                                    success: function () {
-                                        that._createDlg.close();
-                                        oDlgModel.setProperty("/submitting", false);
-                                        MessageToast.show(i18n.getText("trainingCreated"));
-                                        that.byId("smartTable").rebindTable(true);
-                                        that._loadAnalytics();
-                                    },
-                                    error: function (err) {
-                                        oDlgModel.setProperty("/submitting", false);
-                                        var msg = i18n.getText("createFailed");
-                                        try {
-                                            var parsed = JSON.parse(err.responseText);
-                                            msg = parsed.error.message.value || msg;
-                                        } catch (e) {
-                                            msg = (err && err.message) || msg;
-                                        }
-                                        oDlgModel.setProperty("/error", msg);
-                                    }
-                                });
-                            }, function () {
-                                oDlgModel.setProperty("/submitting", false);
-                                oDlgModel.setProperty("/error", i18n.getText("securityTokenFailed"));
-                            });
-                        }
-                    }),
-                    endButton: new sap.m.Button({
-                        text: i18n.getText("cancelButton"),
-                        press: function () { that._createDlg.close(); }
-                    }),
-                    afterClose: function () {
-                        that._createDlg.destroy();
-                        that._createDlg = null;
-                    }
-                });
-                that._createDlg.setModel(oDlgModel);
-                that._createDlg.open();
+                oDialog.open();
             });
         },
 
-        /* ===== Admin CRUD: Delete Training ===== */
+        onCreateTrainingSave: function () {
+            var that = this;
+            var oDlgModel = this._createDlg.getModel("createModel");
+            var oModel = this.getOwnerComponent().getModel();
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+            var data = oDlgModel.getData();
+
+            if (!data.title || !data.title.trim()) {
+                oDlgModel.setProperty("/error", i18n.getText("titleRequired"));
+                return;
+            }
+            if (!data.url || !data.url.trim()) {
+                oDlgModel.setProperty("/error", i18n.getText("urlRequired"));
+                return;
+            }
+            oDlgModel.setProperty("/error", "");
+            oDlgModel.setProperty("/submitting", true);
+
+            var payload = {
+                Title: data.title.trim(),
+                Description: (data.description || "").trim(),
+                Role: (data.role || "").trim(),
+                SapModule: (data.sapModule || "").trim(),
+                Url: data.url.trim(),
+                SapHelpLink: (data.sapHelpLink || "").trim()
+            };
+
+            oModel.refreshSecurityToken(function () {
+                oModel.create("/Trainings", payload, {
+                    success: function () {
+                        that._createDlg.close();
+                        oDlgModel.setProperty("/submitting", false);
+                        MessageToast.show(i18n.getText("trainingCreated"));
+                        that.byId("smartTable").rebindTable(true);
+                        that._loadAnalytics();
+                    },
+                    error: function (err) {
+                        oDlgModel.setProperty("/submitting", false);
+                        var msg = i18n.getText("createFailed");
+                        try {
+                            var parsed = JSON.parse(err.responseText);
+                            msg = parsed.error.message.value || msg;
+                        } catch (e) {
+                            msg = (err && err.message) || msg;
+                        }
+                        oDlgModel.setProperty("/error", msg);
+                    }
+                });
+            }, function () {
+                oDlgModel.setProperty("/submitting", false);
+                oDlgModel.setProperty("/error", i18n.getText("securityTokenFailed"));
+            });
+        },
+
+        onCreateTrainingCancel: function () {
+            if (this._createDlg) { this._createDlg.close(); }
+        },
+
+        /* ===== Admin CRUD: Delete Training (multi-select) ===== */
         onDeleteTraining: function () {
             var that = this;
             var oSmartTable = this.byId("smartTable");
             var oTable = oSmartTable.getTable();
-            var iIndex = oTable.getSelectedIndex();
             var i18n = this.getView().getModel("i18n").getResourceBundle();
-            if (iIndex < 0) {
-                MessageToast.show(i18n.getText("selectTrainingToDelete"));
+
+            // WF-7: Support multi-select delete
+            var aIndices = oTable.getSelectedIndices();
+            if (!aIndices || aIndices.length === 0) {
+                MessageToast.show(i18n.getText("selectTrainingsToDelete"));
                 return;
             }
-            var oContext = oTable.getContextByIndex(iIndex);
-            if (!oContext) { return; }
-            var oTraining = oContext.getObject();
 
-            MessageBox.confirm(
-                "Delete training \"" + (oTraining.Title || "") + "\"?\n\nThis action cannot be undone.",
-                {
-                    title: i18n.getText("confirmDeleteTitle"),
-                    emphasizedAction: MessageBox.Action.CANCEL,
-                    onClose: function (sAction) {
-                        if (sAction === MessageBox.Action.OK) {
-                            var sPath = oContext.getPath();
-                            var oModel = that.getOwnerComponent().getModel();
-                            oModel.refreshSecurityToken(function () {
-                                oModel.remove(sPath, {
+            // Gather all selected contexts
+            var aContexts = [];
+            aIndices.forEach(function (iIdx) {
+                var oCtx = oTable.getContextByIndex(iIdx);
+                if (oCtx) { aContexts.push(oCtx); }
+            });
+
+            if (aContexts.length === 0) { return; }
+
+            // Build confirmation message
+            var sMsg;
+            if (aContexts.length === 1) {
+                var oTraining = aContexts[0].getObject();
+                sMsg = "Delete training \"" + (oTraining.Title || "") + "\"?\n\nThis action cannot be undone.";
+            } else {
+                sMsg = i18n.getText("confirmBulkDeleteText", [aContexts.length]);
+            }
+
+            MessageBox.confirm(sMsg, {
+                title: i18n.getText("confirmDeleteTitle"),
+                emphasizedAction: MessageBox.Action.CANCEL,
+                onClose: function (sAction) {
+                    if (sAction === MessageBox.Action.OK) {
+                        var oModel = that.getOwnerComponent().getModel();
+                        oModel.refreshSecurityToken(function () {
+                            var iDone = 0, iFail = 0, iTotal = aContexts.length;
+                            aContexts.forEach(function (oCtx) {
+                                oModel.remove(oCtx.getPath(), {
                                     success: function () {
-                                        MessageToast.show(i18n.getText("dataRefreshed"));
-                                        oSmartTable.rebindTable(true);
-                                        that._loadAnalytics();
+                                        iDone++;
+                                        if (iDone + iFail === iTotal) {
+                                            MessageToast.show(i18n.getText("bulkDeleteSuccess", [iDone]));
+                                            oSmartTable.rebindTable(true);
+                                            that._loadAnalytics();
+                                        }
                                     },
                                     error: function (err) {
-                                        var msg = i18n.getText("deleteFailed");
-                                        try {
-                                            var parsed = JSON.parse(err.responseText);
-                                            msg = parsed.error.message.value || msg;
-                                        } catch (e) {
-                                            msg = (err && err.message) || msg;
+                                        iFail++;
+                                        if (iDone + iFail === iTotal) {
+                                            if (iDone > 0) {
+                                                MessageToast.show(i18n.getText("bulkDeleteSuccess", [iDone]));
+                                            } else {
+                                                var msg = i18n.getText("deleteFailed");
+                                                try {
+                                                    var parsed = JSON.parse(err.responseText);
+                                                    msg = parsed.error.message.value || msg;
+                                                } catch (e) { /* keep default */ }
+                                                MessageBox.error(msg);
+                                            }
+                                            oSmartTable.rebindTable(true);
+                                            that._loadAnalytics();
                                         }
-                                        MessageBox.error(msg);
                                     }
                                 });
-                            }, function () {
-                                MessageBox.error(i18n.getText("securityTokenFailed"));
                             });
-                        }
+                        }, function () {
+                            MessageBox.error(i18n.getText("securityTokenFailed"));
+                        });
                     }
                 }
-            );
+            });
         },
 
         onRefresh: function () {
@@ -1028,6 +1037,85 @@ sap.ui.define([
             }
             this._loadAnalytics();
             MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("dataRefreshed"));
+        },
+
+        /* ===== Self-Enrollment: User enrolls themselves (PG-7) ===== */
+        onEnrollMe: function () {
+            var that = this;
+            var oSmartTable = this.byId("smartTable");
+            var oTable = oSmartTable.getTable();
+            var iIndex = oTable.getSelectedIndex();
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+
+            if (iIndex < 0) {
+                MessageToast.show(i18n.getText("selectTrainingToEnroll"));
+                return;
+            }
+            var oContext = oTable.getContextByIndex(iIndex);
+            if (!oContext) { return; }
+            var oTraining = oContext.getObject();
+
+            var oComponent = this.getOwnerComponent();
+            var sUserId = oComponent.getCurrentUserId();
+            var sEntitySet = oComponent.getAssignmentEntitySet();
+            var oModel = oComponent.getModel();
+
+            // Build self-enrollment payload
+            var oPayload = {
+                TrainingId: oTraining.Id,
+                Title: oTraining.Title,
+                Role: oTraining.Role || "",
+                SapModule: oTraining.SapModule || "",
+                Url: oTraining.Url || "",
+                Status: "Assigned",
+                UserId: sUserId,
+                UserName: sUserId,
+                DueDate: null,
+                AssignedBy: sUserId,
+                AssignedByName: sUserId
+            };
+
+            oModel.refreshSecurityToken(function () {
+                oModel.create("/" + sEntitySet, oPayload, {
+                    success: function () {
+                        MessageToast.show(i18n.getText("enrollSuccess"));
+                    },
+                    error: function (err) {
+                        var msg = i18n.getText("createFailed");
+                        try {
+                            var parsed = JSON.parse(err.responseText);
+                            msg = parsed.error.message.value || msg;
+                        } catch (e) { /* keep default */ }
+                        // Duplicate check returns business error
+                        if (msg.indexOf("already assigned") > -1 || msg.indexOf("duplicate") > -1) {
+                            MessageToast.show(i18n.getText("alreadyEnrolled"));
+                        } else {
+                            MessageBox.error(msg);
+                        }
+                    }
+                });
+            }, function () {
+                MessageBox.error(i18n.getText("securityTokenFailed"));
+            });
+        },
+
+        /* ===== UI-11: MessagePopover for global error display ===== */
+        onMessagePopoverPress: function (oEvent) {
+            if (!this._oMessagePopover) {
+                this._oMessagePopover = new MessagePopover({
+                    items: {
+                        path: "message>/",
+                        template: new MessageItem({
+                            type: "{message>type}",
+                            title: "{message>message}",
+                            subtitle: "{message>additionalText}",
+                            description: "{message>description}"
+                        })
+                    }
+                });
+                this.getView().addDependent(this._oMessagePopover);
+            }
+            this._oMessagePopover.toggle(oEvent.getSource());
         },
 
         onViewDetails: function () {

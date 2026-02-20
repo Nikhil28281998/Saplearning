@@ -27,7 +27,7 @@ METHOD trainingassignments_get_entityset.
         lv_total    TYPE i.
 
 * -- FIX #3: Authorization check (read access) ----------------------
-  AUTHORITY-CHECK OBJECT 'Z_COURSES_MGR'
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
     ID 'ACTVT' FIELD '03'.
   IF sy-subrc <> 0.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
@@ -165,18 +165,18 @@ METHOD trainingassignments_get_entityset.
 * -- Map database records to OData entity structure -------------------
   LOOP AT lt_asgn INTO ls_asgn.
     CLEAR ls_entity.
-    ls_entity-id            = ls_asgn-id.
-    ls_entity-training_id   = ls_asgn-training_id.
-    ls_entity-title         = ls_asgn-title.
-    ls_entity-role          = ls_asgn-role.
-    ls_entity-sap_module    = ls_asgn-sap_module.
-    ls_entity-url           = ls_asgn-url.
-    ls_entity-status        = ls_asgn-status.
-    ls_entity-user_id       = ls_asgn-user_id.
-    ls_entity-user_name     = ls_asgn-user_name.
-    ls_entity-user_email    = ls_asgn-user_email.
-    ls_entity-due_date      = ls_asgn-due_date.
-    ls_entity-completion_date = ls_asgn-completion_dt.
+    ls_entity-id              = ls_asgn-id.
+    ls_entity-trainingid      = ls_asgn-training_id.
+    ls_entity-title           = ls_asgn-title.
+    ls_entity-role            = ls_asgn-role.
+    ls_entity-sapmodule       = ls_asgn-sap_module.
+    ls_entity-url             = ls_asgn-url.
+    ls_entity-status          = ls_asgn-status.
+    ls_entity-userid          = ls_asgn-user_id.
+    ls_entity-username        = ls_asgn-user_name.
+    ls_entity-useremail       = ls_asgn-user_email.
+    ls_entity-duedate         = ls_asgn-due_date.
+    ls_entity-completiondate  = ls_asgn-completion_dt.
     APPEND ls_entity TO et_entityset.
   ENDLOOP.
 

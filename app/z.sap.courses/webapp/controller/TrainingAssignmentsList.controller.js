@@ -118,11 +118,28 @@ sap.ui.define([
                         else if (a.Status === "In Progress") { iInProgress++; }
                         else if (a.Status === "Completed") { iCompleted++; }
                     });
+
+                    // Overdue: DueDate < today AND not Completed
+                    var sToday = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+                    var iOverdue = 0;
+                    aAll.forEach(function (a) {
+                        if (a.Status !== "Completed" && a.DueDate) {
+                            var sDue = "";
+                            if (a.DueDate instanceof Date) {
+                                sDue = a.DueDate.toISOString().slice(0, 10).replace(/-/g, "");
+                            } else if (typeof a.DueDate === "string") {
+                                sDue = a.DueDate.replace(/-/g, "").slice(0, 8);
+                            }
+                            if (sDue && sDue < sToday) { iOverdue++; }
+                        }
+                    });
+
                     var iTotal = iAssigned + iInProgress + iCompleted;
                     var iPct = iTotal > 0 ? Math.round((iCompleted / iTotal) * 100) : 0;
                     oAnalyticsModel.setProperty("/assigned", iAssigned);
                     oAnalyticsModel.setProperty("/inProgress", iInProgress);
                     oAnalyticsModel.setProperty("/completed", iCompleted);
+                    oAnalyticsModel.setProperty("/overdue", iOverdue);
                     oAnalyticsModel.setProperty("/completionPercent", iPct);
                     if (oPanel) { oPanel.setBusy(false); }
                 },
@@ -384,13 +401,13 @@ sap.ui.define([
                 }
             }
 
-            // Basic search → Title EQ filter
+            // Basic search → Title Contains filter (ABAP does LIKE)
             var sSearchVal = "";
             if (oSmartFilterBar && oSmartFilterBar.getBasicSearchValue) {
                 sSearchVal = (oSmartFilterBar.getBasicSearchValue() || "").trim();
             }
             if (sSearchVal) {
-                mBindingParams.filters.push(new Filter("Title", FilterOperator.EQ, sSearchVal));
+                mBindingParams.filters.push(new Filter("Title", FilterOperator.Contains, sSearchVal));
             }
 
             // Remove $search parameter
@@ -505,6 +522,81 @@ sap.ui.define([
                 this._loadAnalytics();
                 MessageToast.show("Switched to " + sNewRole + " view");
             }
+        },
+
+        /* ================================================================== */
+        /* START TRAINING – Set status to "In Progress"                       */
+        /* ================================================================== */
+
+        onStartTraining: function () {
+            var oSmartTable = this.byId("assignSmartTable");
+            var oTable = oSmartTable.getTable();
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+            var that = this;
+
+            var aSelectedItems = oTable.getSelectedItems();
+            if (!aSelectedItems || aSelectedItems.length === 0) {
+                MessageToast.show(i18n.getText("selectAssignmentFirst"));
+                return;
+            }
+
+            var oComponent = this.getOwnerComponent();
+            var sCurrentUserId = oComponent.getCurrentUserId();
+
+            // Filter to only "Assigned" status items belonging to current user
+            var aValidContexts = [];
+            aSelectedItems.forEach(function (oItem) {
+                var oCtx = oItem.getBindingContext();
+                if (!oCtx) { return; }
+                var oData = oCtx.getObject();
+                if (oData.Status !== "Assigned") { return; }
+                if (sCurrentUserId && oData.UserId !== sCurrentUserId) { return; }
+                aValidContexts.push(oCtx);
+            });
+
+            if (aValidContexts.length === 0) {
+                MessageToast.show(i18n.getText("noValidStartAssignments"));
+                return;
+            }
+
+            var sMsg = i18n.getText("startTrainingConfirm", [aValidContexts.length]);
+            MessageBox.confirm(sMsg, {
+                title: i18n.getText("confirmTitle"),
+                onClose: function (sAction) {
+                    if (sAction !== MessageBox.Action.OK) { return; }
+                    var oModel = oComponent.getModel();
+                    oModel.refreshSecurityToken(function () {
+                        var iDone = 0, iFail = 0, iTotal = aValidContexts.length;
+                        aValidContexts.forEach(function (oCtx) {
+                            var sPath = oCtx.getPath();
+                            oModel.update(sPath, { Status: "In Progress" }, {
+                                success: function () {
+                                    iDone++;
+                                    if (iDone + iFail === iTotal) {
+                                        MessageToast.show(i18n.getText("startTrainingSuccess", [iDone]));
+                                        oSmartTable.rebindTable(true);
+                                        that._loadAnalytics();
+                                    }
+                                },
+                                error: function () {
+                                    iFail++;
+                                    if (iDone + iFail === iTotal) {
+                                        if (iDone > 0) {
+                                            MessageToast.show(i18n.getText("startTrainingSuccess", [iDone]));
+                                        } else {
+                                            MessageBox.error(i18n.getText("updateFailed"));
+                                        }
+                                        oSmartTable.rebindTable(true);
+                                        that._loadAnalytics();
+                                    }
+                                }
+                            });
+                        });
+                    }, function () {
+                        MessageBox.error(i18n.getText("securityTokenFailed"));
+                    });
+                }
+            });
         },
 
         /* ================================================================== */

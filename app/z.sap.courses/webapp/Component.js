@@ -52,12 +52,30 @@ sap.ui.define([
                     this._detectEntitySets();
                     this._fetchRole();
                 }
+
+                // UI-11: Register OData model with MessageManager for global error collection
+                this._initMessageHandling();
             } catch (e) {
                 Log.error('UserContext initialization failed: ' + e.message);
                 this._role = 'User';
             }
 
             Log.info('Component initialization completed');
+        },
+
+        /**
+         * UI-11: Initialize sap.ui.core.message.MessageManager for OData error collection.
+         * Registers the OData model's message processor so that backend errors are
+         * automatically captured and available for MessagePopover consumption.
+         */
+        _initMessageHandling: function () {
+            var oMessageManager = sap.ui.getCore().getMessageManager();
+            var oModel = this.getModel();
+            if (oModel) {
+                oMessageManager.registerMessageProcessor(oModel);
+            }
+            // Expose message model on the component for views to bind to
+            this.setModel(oMessageManager.getMessageModel(), "message");
         },
 
         _diagnosticsInit: function () {

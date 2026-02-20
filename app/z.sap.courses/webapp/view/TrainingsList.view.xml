@@ -44,6 +44,13 @@
                         icon="sap-icon://task"
                         press="onViewAssignments"
                         type="Emphasized" />
+                    <Button
+                        id="messagePopoverBtn"
+                        icon="sap-icon://message-popup"
+                        text="{= ${message>/}.length > 0 ? ${message>/}.length : '' }"
+                        type="{= ${message>/}.length > 0 ? 'Negative' : 'Default' }"
+                        press="onMessagePopoverPress"
+                        visible="{= ${message>/}.length > 0 }" />
                 </contentRight>
             </Bar>
         </customHeader>
@@ -75,6 +82,11 @@
                         <core:Icon id="teamAssignedIcon" src="sap-icon://pending" size="1.5rem" color="#e76500" class="sapUiTinyMarginBottom" />
                         <ObjectNumber id="teamAssignedCount" number="{teamAnalytics>/assigned}" state="Warning" class="analyticsNumber" />
                         <Text id="teamAssignedLabel" text="{i18n>teamPending}" class="analyticsLabel" />
+                    </VBox>
+                    <VBox id="teamOverdueBox" alignItems="Center" class="analyticsCard analyticsCardRed">
+                        <core:Icon id="teamOverdueIcon" src="sap-icon://alert" size="1.5rem" color="#bb0000" class="sapUiTinyMarginBottom" />
+                        <ObjectNumber id="teamOverdueCount" number="{teamAnalytics>/overdue}" state="Error" class="analyticsNumber" />
+                        <Text id="teamOverdueLabel" text="{i18n>teamOverdue}" class="analyticsLabel" />
                     </VBox>
                     <VBox id="teamCompletedBox" alignItems="Center" class="analyticsCard analyticsCardGreen">
                         <core:Icon id="teamCompletedIcon" src="sap-icon://accept" size="1.5rem" color="#107e3e" class="sapUiTinyMarginBottom" />
@@ -201,6 +213,15 @@
                 initiallyVisibleFields="Title,Role,SapModule,Description,LastUpdated,Url,SapHelpLink"
                 requestAtLeastFields="Id,Url,SapHelpLink">
 
+                <smartTable:noData>
+                    <IllustratedMessage
+                        id="trainingsEmptyState"
+                        illustrationType="sapIllus-NoEntries"
+                        title="No Trainings Found"
+                        description="No trainings match your search criteria. Try adjusting your filters."
+                        illustrationSize="Spot" />
+                </smartTable:noData>
+
                 <!-- Custom buttons added to SmartTable toolbar alongside auto-generated ones -->
                 <smartTable:customToolbar>
                     <OverflowToolbar id="tableToolbar">
@@ -231,6 +252,13 @@
                             type="Attention"
                             press="onAssignTraining"
                             visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
+                        <Button
+                            id="enrollMeBtn"
+                            icon="sap-icon://add-coursebook"
+                            text="{i18n>enrollMe}"
+                            type="Ghost"
+                            press="onEnrollMe"
+                            visible="{= ${user>/role} === 'User' }" />
                         <Button
                             id="refreshButton"
                             icon="sap-icon://refresh"

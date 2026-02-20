@@ -3,7 +3,7 @@
 *& Class: ZCL_ZCOURSES_DPC_EXT (Redefine in SE24)
 *&
 *& FIXES APPLIED:
-*&   - Audit #3: Added AUTHORITY-CHECK for Z_COURSES_MGR authorization object
+*&   - Audit #3: Added AUTHORITY-CHECK for Z_COURSES authorization object
 *&   - Audit #4: Added duplicate assignment check (prevents same user+training twice)
 *&---------------------------------------------------------------------*
 METHOD trainingassignments_create_entity.
@@ -32,7 +32,7 @@ METHOD trainingassignments_create_entity.
   ENDIF.
 
 * -- Validate required fields ----------------------------------------
-  IF ls_entity-training_id IS INITIAL OR ls_entity-user_id IS INITIAL.
+  IF ls_entity-trainingid IS INITIAL OR ls_entity-userid IS INITIAL.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
@@ -42,8 +42,8 @@ METHOD trainingassignments_create_entity.
 * -- FIX #4: Duplicate assignment check ------------------------------
 *   Prevent assigning the same training to the same user when active
   SELECT SINGLE id FROM zcourse_asgn INTO lv_check
-    WHERE training_id = ls_entity-training_id
-      AND user_id     = ls_entity-user_id
+    WHERE training_id = ls_entity-trainingid
+      AND user_id     = ls_entity-userid
       AND status     <> 'Completed'.
 
   IF sy-subrc = 0.
@@ -66,17 +66,17 @@ METHOD trainingassignments_create_entity.
 * -- Map OData entity to database structure --------------------------
   CLEAR ls_asgn.
   ls_asgn-id            = ls_entity-id.
-  ls_asgn-training_id   = ls_entity-training_id.
+  ls_asgn-training_id   = ls_entity-trainingid.
   ls_asgn-title         = ls_entity-title.
   ls_asgn-role          = ls_entity-role.
-  ls_asgn-sap_module    = ls_entity-sap_module.
+  ls_asgn-sap_module    = ls_entity-sapmodule.
   ls_asgn-url           = ls_entity-url.
   ls_asgn-status        = ls_entity-status.
-  ls_asgn-user_id       = ls_entity-user_id.
-  ls_asgn-user_name     = ls_entity-user_name.
-  ls_asgn-user_email    = ls_entity-user_email.
-  ls_asgn-due_date      = ls_entity-due_date.
-  ls_asgn-completion_dt = ls_entity-completion_date.
+  ls_asgn-user_id       = ls_entity-userid.
+  ls_asgn-user_name     = ls_entity-username.
+  ls_asgn-user_email    = ls_entity-useremail.
+  ls_asgn-due_date      = ls_entity-duedate.
+  ls_asgn-completion_dt = ls_entity-completiondate.
 
 * -- Insert into database table ZCOURSE_ASGN ------------------------
   INSERT zcourse_asgn FROM ls_asgn.

@@ -36,6 +36,7 @@ METHOD trainingassignme_create_entity.
   DATA: ls_entity   TYPE zcl_zcourses_mpc=>ts_trainingassignment,
         ls_asgn     TYPE zcourse_asgn,
         lv_guid     TYPE sysuuid_c36,
+        lv_dup_id   TYPE char36,
         lv_errmsg   TYPE bapi_msg,
         lv_ftype    TYPE c,
         lv_ts_conv  TYPE timestamp,
@@ -81,6 +82,19 @@ METHOD trainingassignme_create_entity.
       EXPORTING
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
         message = 'UserId must contain only uppercase letters, digits, or underscores (A-Z, 0-9, _)'.
+  ENDIF.
+
+* -- WF-2 FIX: Duplicate assignment check ----------------------------
+*   Prevent assigning the same training to the same user when active
+  SELECT SINGLE id FROM zcourse_asgn INTO lv_dup_id
+    WHERE training_id = ls_entity-trainingid
+      AND user_id     = ls_entity-userid
+      AND status     <> 'Completed'.
+  IF sy-subrc = 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'User already has an active assignment for this training'.
   ENDIF.
 
 * -- Generate UUID for the new assignment ----------------------------

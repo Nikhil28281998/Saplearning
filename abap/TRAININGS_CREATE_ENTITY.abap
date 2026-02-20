@@ -34,6 +34,21 @@ METHOD trainings_create_entity.
         message = 'Title and URL are required'.
   ENDIF.
 
+* -- SEC-5: Input sanitization – strip HTML/script tags ---------------
+*   Prevent XSS: Remove < > from free-text fields
+  REPLACE ALL OCCURRENCES OF '<' IN ls_entity-title WITH ''.
+  REPLACE ALL OCCURRENCES OF '>' IN ls_entity-title WITH ''.
+  REPLACE ALL OCCURRENCES OF '<' IN ls_entity-description WITH ''.
+  REPLACE ALL OCCURRENCES OF '>' IN ls_entity-description WITH ''.
+
+* -- Validate URL format: must start with http:// or https:// --------
+  IF ls_entity-url NS 'http://' AND ls_entity-url NS 'https://'.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'URL must start with http:// or https://'.
+  ENDIF.
+
 * -- Generate UUID if caller did not provide one ---------------------
   IF ls_entity-id IS INITIAL.
     TRY.

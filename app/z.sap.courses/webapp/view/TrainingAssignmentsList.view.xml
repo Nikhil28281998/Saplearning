@@ -62,6 +62,16 @@
                         <Text id="myAssignedLabel" text="{i18n>toStart}" class="analyticsLabel" />
                     </VBox>
 
+                    <VBox id="myOverdueBox" alignItems="Center" class="analyticsCard analyticsCardRed">
+                        <core:Icon id="myOverdueIcon" src="sap-icon://alert" size="1.5rem" color="#bb0000" class="sapUiTinyMarginBottom" />
+                        <ObjectNumber
+                            id="myOverdueCount"
+                            number="{assignAnalytics>/overdue}"
+                            state="Error"
+                            class="analyticsNumber" />
+                        <Text id="myOverdueLabel" text="{i18n>overdue}" class="analyticsLabel" />
+                    </VBox>
+
                     <VBox id="myCompletedBox" alignItems="Center" class="analyticsCard analyticsCardGreen">
                         <core:Icon id="myCompletedIcon" src="sap-icon://accept" size="1.5rem" color="#107e3e" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
@@ -131,8 +141,23 @@
                 beforeRebindTable="onBeforeRebindTable"
                 requestAtLeastFields="Url,Status">
 
+                <smartTable:noData>
+                    <IllustratedMessage
+                        id="assignmentsEmptyState"
+                        illustrationType="sapIllus-NoTasks"
+                        title="No Assignments Found"
+                        description="You have no training assignments matching the current filters."
+                        illustrationSize="Spot" />
+                </smartTable:noData>
+
                 <smartTable:customToolbar>
                     <OverflowToolbar id="assignTableToolbar">
+                        <Button
+                            id="startTrainingBtn"
+                            text="{i18n>startTraining}"
+                            icon="sap-icon://begin"
+                            type="Accept"
+                            press="onStartTraining" />
                         <Button
                             id="markCompletedBtn"
                             text="{i18n>markCompleted}"

@@ -48,16 +48,6 @@ METHOD trainings_get_entityset.
         lv_top         TYPE i,
         lv_total       TYPE i.
 
-* -- FIX #3: Authorization check (read access) ----------------------
-  AUTHORITY-CHECK OBJECT 'Z_COURSES_MGR'
-    ID 'ACTVT' FIELD '03'.
-  IF sy-subrc <> 0.
-    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
-      EXPORTING
-        textid  = /iwbep/cx_mgw_busi_exception=>business_error
-        message = 'Not authorized to view trainings'.
-  ENDIF.
-
 * -- Read filter: Role -----------------------------------------------
   READ TABLE it_filter_select_options
     WITH KEY property = 'Role'

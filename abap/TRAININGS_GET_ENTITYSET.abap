@@ -28,10 +28,15 @@ METHOD trainings_get_entityset.
         ls_entity      TYPE zcl_zcourses_mpc=>ts_training,
         ls_filter_role TYPE /iwbep/s_mgw_select_option,
         ls_filter_mod  TYPE /iwbep/s_mgw_select_option,
+        ls_filter_ttl  TYPE /iwbep/s_mgw_select_option,
         ls_role_opt    TYPE /iwbep/s_cod_select_option,
         ls_module_opt  TYPE /iwbep/s_cod_select_option,
+        ls_title_opt   TYPE /iwbep/s_cod_select_option,
         lv_role        TYPE char50,
         lv_module      TYPE char50,
+        lv_title       TYPE char255,
+        lv_title_pat   TYPE char255,
+        lv_title_up    TYPE char255,
         lv_skip        TYPE i,
         lv_top         TYPE i.
 
@@ -70,6 +75,23 @@ METHOD trainings_get_entityset.
     ENDIF.
   ENDIF.
 
+* -- ABP-1/WF-1: Read filter: Title (supports Contains/LIKE) --------
+  READ TABLE it_filter_select_options
+    WITH KEY property = 'Title'
+    INTO ls_filter_ttl.
+  IF sy-subrc <> 0.
+    READ TABLE it_filter_select_options
+      WITH KEY property = 'TITLE'
+      INTO ls_filter_ttl.
+  ENDIF.
+  IF sy-subrc = 0.
+    READ TABLE ls_filter_ttl-select_options INDEX 1
+      INTO ls_title_opt.
+    IF sy-subrc = 0.
+      lv_title = ls_title_opt-low.
+    ENDIF.
+  ENDIF.
+
 * -- Query ZCOURSES with dynamic WHERE (classic syntax) --------------
   IF lv_role IS NOT INITIAL AND lv_module IS NOT INITIAL.
     SELECT * FROM zcourses INTO TABLE lt_training
@@ -89,6 +111,20 @@ METHOD trainings_get_entityset.
       ORDER BY last_updated DESCENDING.
   ENDIF.
 
+* -- ABP-1/WF-1: Post-filter Title (case-insensitive LIKE pattern) --
+  IF lv_title IS NOT INITIAL.
+    TRANSLATE lv_title TO UPPER CASE.
+    CONCATENATE '%' lv_title '%' INTO lv_title_pat.
+    LOOP AT lt_training INTO ls_training.
+      CLEAR lv_title_up.
+      lv_title_up = ls_training-title.
+      TRANSLATE lv_title_up TO UPPER CASE.
+      IF lv_title_up NP lv_title_pat.
+        DELETE lt_training.
+      ENDIF.
+    ENDLOOP.
+  ENDIF.
+
 * -- Convert database rows to OData entity format --------------------
   LOOP AT lt_training INTO ls_training.
     CLEAR ls_entity.
@@ -102,6 +138,12 @@ METHOD trainings_get_entityset.
     ls_entity-sap_help_link = ls_training-sap_help_link.
     APPEND ls_entity TO et_entityset.
   ENDLOOP.
+
+* -- ABP-1: Set $inlinecount BEFORE pagination -----------------------
+  IF io_tech_request_context->has_inlinecount( ) = abap_true.
+    es_response_context-inlinecount = lines( et_entityset ).
+    es_response_context-count = es_response_context-inlinecount.
+  ENDIF.
 
 * -- Server-side pagination ($top / $skip) ---------------------------
 *   BUG-FIX: previous version skipped pagination when skip = 0
