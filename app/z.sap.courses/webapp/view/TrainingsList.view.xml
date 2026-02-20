@@ -239,6 +239,13 @@
                             type="Reject"
                             press="onDeleteTraining"
                             visible="{= ${user>/role} === 'Admin' }" />
+                        <Button
+                            id="importCsvBtn"
+                            icon="sap-icon://upload"
+                            text="{i18n>importButton}"
+                            type="Default"
+                            press="onImportCSV"
+                            visible="{= ${user>/role} === 'Admin' }" />
                         <ToolbarSpacer id="toolbarSpacer" />
                         <Button
                             id="detailsButton"

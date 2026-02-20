@@ -20,9 +20,9 @@ METHOD trainingassignments_create_entity.
 
 * -- FIX #3: Authorization check (PFCG role enforcement) -------------
 *   Only Admin and Manager roles can create assignments.
-*   Create authorization object Z_COURSES_MGR in SU21 with:
+*   Authorization object Z_COURSES in SU21 with:
 *     ACTVT (Activity): 01=Create, 02=Update, 03=Display, 06=Delete
-  AUTHORITY-CHECK OBJECT 'Z_COURSES_MGR'
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
     ID 'ACTVT' FIELD '01'.
   IF sy-subrc <> 0.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception

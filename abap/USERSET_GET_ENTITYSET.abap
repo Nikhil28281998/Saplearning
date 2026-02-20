@@ -29,6 +29,13 @@ METHOD userset_get_entityset.
         ls_filter      TYPE /iwbep/s_mgw_select_option,
         ls_range       TYPE /iwbep/s_cod_select_option.
 
+* -- Local variables for FOR ALL ENTRIES optimization -----
+  DATA: lt_adrp        TYPE TABLE OF adrp,
+        ls_adrp_entry  TYPE adrp,
+        lt_adr6        TYPE TABLE OF adr6,
+        ls_adr6_entry  TYPE adr6,
+        lv_has_mgr_auth TYPE abap_bool.
+
 * -- Authorization check: Display (ACTVT 03) or any higher privilege ---
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
     ID 'ACTVT' FIELD '03'.
@@ -100,14 +107,41 @@ METHOD userset_get_entityset.
     DELETE lt_usr21 FROM 501.
   ENDIF.
 
-* -- Build entity set with address data --
+* -- ABP-8: FOR ALL ENTRIES optimization (replaces N+1 selects) -------
+*   Bulk-load ADRP and ADR6 for all users at once instead of per-user
+  IF lt_usr21 IS NOT INITIAL.
+    SELECT * FROM adrp INTO TABLE lt_adrp
+      FOR ALL ENTRIES IN lt_usr21
+      WHERE persnumber = lt_usr21-persnumber.
+
+    SELECT * FROM adr6 INTO TABLE lt_adr6
+      FOR ALL ENTRIES IN lt_usr21
+      WHERE persnumber = lt_usr21-persnumber.
+  ENDIF.
+
+* -- SEC-2: Check if caller has Manager/Admin authority for email -----
+  lv_has_mgr_auth = abap_false.
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
+    ID 'ACTVT' FIELD '01'.
+  IF sy-subrc = 0.
+    lv_has_mgr_auth = abap_true.
+  ELSE.
+    AUTHORITY-CHECK OBJECT 'Z_COURSES'
+      ID 'ACTVT' FIELD '02'.
+    IF sy-subrc = 0.
+      lv_has_mgr_auth = abap_true.
+    ENDIF.
+  ENDIF.
+
+* -- Build entity set from bulk-loaded data --
   LOOP AT lt_usr21 INTO ls_usr21.
     CLEAR: ls_entity, ls_adrp, ls_adr6.
 
-*   Get person name from ADRP using PERSNUMBER
-    IF ls_usr21-persnumber IS NOT INITIAL.
-      SELECT SINGLE * FROM adrp INTO ls_adrp
-        WHERE persnumber = ls_usr21-persnumber.
+*   Read person name from bulk-loaded ADRP
+    READ TABLE lt_adrp INTO ls_adrp_entry
+      WITH KEY persnumber = ls_usr21-persnumber.
+    IF sy-subrc = 0.
+      ls_adrp = ls_adrp_entry.
     ENDIF.
 
 *   -- If Sort2 filter is active, skip users whose SORT2 doesn't match
@@ -117,43 +151,29 @@ METHOD userset_get_entityset.
       ENDIF.
     ENDIF.
 
-*   Get email: first try ADR6 via PERSNUMBER (user-specific),
-*   then fallback to ADDRNUMBER (company address)
+*   Read email from bulk-loaded ADR6 (prefer flgdefault = 'X')
     CLEAR ls_adr6.
-    IF ls_usr21-persnumber IS NOT INITIAL.
-      SELECT SINGLE * FROM adr6 INTO ls_adr6
-        WHERE persnumber = ls_usr21-persnumber
-          AND flgdefault = 'X'.
-      IF sy-subrc <> 0.
-        SELECT SINGLE * FROM adr6 INTO ls_adr6
-          WHERE persnumber = ls_usr21-persnumber.
+    READ TABLE lt_adr6 INTO ls_adr6_entry
+      WITH KEY persnumber = ls_usr21-persnumber flgdefault = 'X'.
+    IF sy-subrc = 0.
+      ls_adr6 = ls_adr6_entry.
+    ELSE.
+      READ TABLE lt_adr6 INTO ls_adr6_entry
+        WITH KEY persnumber = ls_usr21-persnumber.
+      IF sy-subrc = 0.
+        ls_adr6 = ls_adr6_entry.
       ENDIF.
-    ENDIF.
-
-*   Fallback: company address (ADDRNUMBER) if personal had no email
-    IF ls_adr6-smtp_addr IS INITIAL AND ls_usr21-addrnumber IS NOT INITIAL.
-      SELECT SINGLE * FROM adr6 INTO ls_adr6
-        WHERE addrnumber = ls_usr21-addrnumber
-          AND persnumber = ls_usr21-persnumber
-          AND flgdefault = 'X'.
-      IF sy-subrc <> 0.
-        SELECT SINGLE * FROM adr6 INTO ls_adr6
-          WHERE addrnumber = ls_usr21-addrnumber
-            AND persnumber = ls_usr21-persnumber.
-      ENDIF.
-    ENDIF.
-
-*   Last fallback: just ADDRNUMBER without persnumber filter
-    IF ls_adr6-smtp_addr IS INITIAL AND ls_usr21-addrnumber IS NOT INITIAL.
-      SELECT SINGLE smtp_addr FROM adr6 INTO ls_adr6-smtp_addr
-        WHERE addrnumber = ls_usr21-addrnumber
-          AND flgdefault = 'X'.
     ENDIF.
 
     ls_entity-userid    = ls_usr21-bname.
     ls_entity-firstname = ls_adrp-name_first.
     ls_entity-lastname  = ls_adrp-name_last.
-    ls_entity-email     = ls_adr6-smtp_addr.
+*   SEC-2: Only expose email to Admin/Manager (ACTVT 01 or 02)
+    IF lv_has_mgr_auth = abap_true.
+      ls_entity-email   = ls_adr6-smtp_addr.
+    ELSE.
+      CLEAR ls_entity-email.
+    ENDIF.
     ls_entity-manager   = ls_adrp-sort2.   "ABAP field MANAGER = ADRP.SORT2 (manager's user ID)
 
     APPEND ls_entity TO et_entityset.

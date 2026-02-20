@@ -628,7 +628,7 @@ sap.ui.define([
                 if (!oCtx) { return; }
                 var oData = oCtx.getObject();
                 if (oData.Status === "Completed") { iSkippedCompleted++; return; }
-                if (sRole === "User" && sCurrentUserId && oData.UserId !== sCurrentUserId) { iSkippedOthers++; return; }
+                if (sRole === "User" && (!sCurrentUserId || oData.UserId !== sCurrentUserId)) { iSkippedOthers++; return; }
                 aValidContexts.push(oCtx);
             });
 
@@ -805,7 +805,7 @@ sap.ui.define([
             var sRole = oComponent._role || "User";
             var sCurrentUserId = oComponent.getCurrentUserId();
             var oAssignment = oContext.getObject();
-            if (sRole === "User" && sCurrentUserId && oAssignment.UserId !== sCurrentUserId) {
+            if (sRole === "User" && (!sCurrentUserId || oAssignment.UserId !== sCurrentUserId)) {
                 MessageToast.show(i18n.getText("cannotCompleteOthers"));
                 return;
             }

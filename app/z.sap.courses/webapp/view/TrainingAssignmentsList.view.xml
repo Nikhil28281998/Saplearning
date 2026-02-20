@@ -18,12 +18,11 @@
 
         <headerContent>
             <!-- FEAT-4: Role switcher for multi-role users -->
-            <HBox id="assignRoleBox" alignItems="Center" class="sapUiSmallMarginEnd roleBoxContainer">
+            <HBox id="assignRoleBox" alignItems="Center" class="sapUiSmallMarginEnd roleBoxContainer" visible="{user>/showRoleSwitcher}">
                 <core:Icon id="assignRoleIcon" src="sap-icon://role" size="1rem" class="sapUiTinyMarginEnd headerIcon" />
-                <Select id="assignRoleSwitcher" selectedKey="{user>/role}" change="onSwitchRole" class="roleSwitcherSelect">
-                    <core:Item id="assignRoleAdmin" key="Admin" text="Admin" />
-                    <core:Item id="assignRoleManager" key="Manager" text="Manager" />
-                    <core:Item id="assignRoleUser" key="User" text="End User" />
+                <Select id="assignRoleSwitcher" selectedKey="{user>/role}" change="onSwitchRole" class="roleSwitcherSelect"
+                        items="{user>/availableRoles}">
+                    <core:Item id="assignRoleItem" key="{user>key}" text="{user>text}" />
                 </Select>
             </HBox>
             <!-- Role badge -->

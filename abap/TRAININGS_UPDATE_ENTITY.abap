@@ -53,6 +53,16 @@ METHOD trainings_update_entity.
 * -- Read incoming update payload ------------------------------------
   io_data_provider->read_entry_data( IMPORTING es_data = ls_entity ).
 
+* -- SEC-5: XSS sanitization — strip HTML angle brackets from text fields
+  IF ls_entity-title IS NOT INITIAL.
+    REPLACE ALL OCCURRENCES OF '<' IN ls_entity-title WITH ''.
+    REPLACE ALL OCCURRENCES OF '>' IN ls_entity-title WITH ''.
+  ENDIF.
+  IF ls_entity-description IS NOT INITIAL.
+    REPLACE ALL OCCURRENCES OF '<' IN ls_entity-description WITH ''.
+    REPLACE ALL OCCURRENCES OF '>' IN ls_entity-description WITH ''.
+  ENDIF.
+
 * -- Merge: only overwrite fields that were actually provided --------
 *   (IS NOT INITIAL check = partial update / PATCH support)
   IF ls_entity-title IS NOT INITIAL.

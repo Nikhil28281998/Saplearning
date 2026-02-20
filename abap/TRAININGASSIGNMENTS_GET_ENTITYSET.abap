@@ -17,12 +17,17 @@ METHOD trainingassignme_get_entityset.
         ls_filter_uid  TYPE /iwbep/s_mgw_select_option,
         ls_filter_stat TYPE /iwbep/s_mgw_select_option,
         ls_filter_mgr  TYPE /iwbep/s_mgw_select_option,
+        ls_filter_ttl  TYPE /iwbep/s_mgw_select_option,
         ls_uid_opt     TYPE /iwbep/s_cod_select_option,
         ls_stat_opt    TYPE /iwbep/s_cod_select_option,
         ls_mgr_opt     TYPE /iwbep/s_cod_select_option,
+        ls_title_opt   TYPE /iwbep/s_cod_select_option,
         lv_user_id     TYPE char12,
         lv_status      TYPE char20,
         lv_mgr_sort2   TYPE char20,
+        lv_title       TYPE char255,
+        lv_title_pat   TYPE char255,
+        lv_title_up    TYPE char255,
         lv_skip        TYPE i,
         lv_top         TYPE i,
         lv_ftype       TYPE c,
@@ -117,6 +122,23 @@ METHOD trainingassignme_get_entityset.
     ENDIF.
   ENDIF.
 
+* -- ABP-3: Read filter: Title (supports Contains/LIKE) ---------------
+  READ TABLE it_filter_select_options
+    WITH KEY property = 'Title'
+    INTO ls_filter_ttl.
+  IF sy-subrc <> 0.
+    READ TABLE it_filter_select_options
+      WITH KEY property = 'TITLE'
+      INTO ls_filter_ttl.
+  ENDIF.
+  IF sy-subrc = 0.
+    READ TABLE ls_filter_ttl-select_options INDEX 1
+      INTO ls_title_opt.
+    IF sy-subrc = 0.
+      lv_title = ls_title_opt-low.
+    ENDIF.
+  ENDIF.
+
 * -- SEC-3 FIX: Server-side UserId enforcement for User role ----------
 *   Users with only ACTVT 03 (Display) may NOT see other users' data.
 *   Force lv_user_id = sy-uname unless Admin (06) or Manager (01).
@@ -153,6 +175,20 @@ METHOD trainingassignme_get_entityset.
 * -- Post-filter: ManagerSort2 (applied after SELECT for flexibility) --
   IF lv_mgr_sort2 IS NOT INITIAL.
     DELETE lt_asgn WHERE manager_sort2 <> lv_mgr_sort2.
+  ENDIF.
+
+* -- ABP-3: Post-filter Title (case-insensitive LIKE pattern) ---------
+  IF lv_title IS NOT INITIAL.
+    TRANSLATE lv_title TO UPPER CASE.
+    CONCATENATE '%' lv_title '%' INTO lv_title_pat.
+    LOOP AT lt_asgn INTO ls_asgn.
+      CLEAR lv_title_up.
+      lv_title_up = ls_asgn-title.
+      TRANSLATE lv_title_up TO UPPER CASE.
+      IF lv_title_up NP lv_title_pat.
+        DELETE lt_asgn.
+      ENDIF.
+    ENDLOOP.
   ENDIF.
 
 * -- ABP-1 FIX: Set $inlinecount BEFORE pagination -------------------
