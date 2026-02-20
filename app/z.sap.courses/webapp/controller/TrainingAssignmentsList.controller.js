@@ -73,6 +73,8 @@ sap.ui.define([
             // FEAT-2: Analytics click-through — click card to filter table
             var aClickCards = [
                 { id: "myAssignedBox",    status: "Assigned" },
+                { id: "myInProgressBox",  status: "In Progress" },
+                { id: "myOverdueBox",     status: "Overdue" },
                 { id: "myCompletedBox",   status: "Completed" }
             ];
             aClickCards.forEach(function (card) {
@@ -348,8 +350,12 @@ sap.ui.define([
          * Pass empty string to clear the status filter.
          */
         _filterByStatus: function (sStatus) {
+            // Store Overdue flag for onBeforeRebindTable (not a real OData status)
+            this._overdueFilter = (sStatus === "Overdue");
+
             var oSelect = this.byId("filterAssignStatus");
             if (oSelect) {
+                // For Overdue, set dropdown to "Overdue"; for others set normally
                 oSelect.setSelectedKey(sStatus);
             }
             var oSmartFilterBar = this.byId("assignSmartFilterBar");
@@ -395,9 +401,15 @@ sap.ui.define([
             var oStatusSelect = this.byId("filterAssignStatus");
             if (oStatusSelect) {
                 var sStatusKey = oStatusSelect.getSelectedKey();
-                if (sStatusKey) {
+                if (sStatusKey && sStatusKey !== "Overdue") {
                     mBindingParams.filters.push(new Filter("Status", FilterOperator.EQ, sStatusKey));
                     Log.info("[AssignFilter] Status filter: " + sStatusKey);
+                } else if (sStatusKey === "Overdue") {
+                    // Overdue = not Completed + DueDate < today
+                    // Exclude Completed records; client-side DueDate filter applied in dataReceived
+                    mBindingParams.filters.push(new Filter("Status", FilterOperator.NE, "Completed"));
+                    this._overdueFilter = true;
+                    Log.info("[AssignFilter] Overdue filter active (Status NE Completed + client DueDate check)");
                 }
             }
 

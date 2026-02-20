@@ -115,6 +115,7 @@
                                 <core:Item id="assignStatusAssigned" key="Assigned" text="{i18n>statusAssigned}" />
                                 <core:Item id="assignStatusInProgress" key="In Progress" text="{i18n>inProgress}" />
                                 <core:Item id="assignStatusCompleted" key="Completed" text="{i18n>completed}" />
+                                <core:Item id="assignStatusOverdue" key="Overdue" text="{i18n>overdue}" />
                             </Select>
                         </filterBar:control>
                     </filterBar:FilterGroupItem>
