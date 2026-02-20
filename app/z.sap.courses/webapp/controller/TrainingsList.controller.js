@@ -538,7 +538,7 @@ sap.ui.define([
                 // Manager/Admin: MultiToggle for bulk assign; User: Single for view details
                 var sRole = this.getOwnerComponent()._role || 'User';
                 oTable.setSelectionMode(sRole === 'User' ? 'Single' : 'MultiToggle');
-                oTable.setSelectionBehavior("RowOnly");
+                oTable.setSelectionBehavior("RowSelector");
                 oTable.setAlternateRowColors(true);
                 oTable.setEnableColumnFreeze(true);
                 oTable.setEnableColumnReordering(true);

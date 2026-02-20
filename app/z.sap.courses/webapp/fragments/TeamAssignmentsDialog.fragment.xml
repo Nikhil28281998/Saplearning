@@ -5,8 +5,8 @@
     <Dialog
         id="teamDrillDownDialog"
         title="{drillDown>/dialogTitle}"
-        contentWidth="780px"
-        contentHeight="480px"
+        contentWidth="90%"
+        contentHeight="520px"
         verticalScrolling="true"
         draggable="true"
         resizable="true"
@@ -20,30 +20,25 @@
                 growing="true"
                 growingThreshold="50"
                 alternateRowColors="true"
+                fixedLayout="false"
                 noDataText="{i18n>noAssignmentsFound}">
-                <headerToolbar>
-                    <OverflowToolbar id="drillDownToolbar">
-                        <Title id="drillDownTableTitle" text="{drillDown>/dialogTitle}" level="H5" />
-                        <ToolbarSpacer id="drillDownSpacer" />
-                    </OverflowToolbar>
-                </headerToolbar>
                 <columns>
-                    <Column id="ddColUserId" width="8rem">
+                    <Column id="ddColUserId">
                         <header><Text id="ddColUserIdText" text="{i18n>idLabel}" /></header>
                     </Column>
-                    <Column id="ddColUserName" width="10rem">
+                    <Column id="ddColUserName">
                         <header><Text id="ddColUserNameText" text="{i18n>nameLabel}" /></header>
                     </Column>
                     <Column id="ddColTitle">
                         <header><Text id="ddColTitleText" text="{i18n>titleLabel}" /></header>
                     </Column>
-                    <Column id="ddColModule" width="6rem" demandPopin="true" minScreenWidth="Tablet">
+                    <Column id="ddColModule" demandPopin="true" minScreenWidth="Tablet">
                         <header><Text id="ddColModuleText" text="{i18n>moduleLabel}" /></header>
                     </Column>
-                    <Column id="ddColStatus" width="7rem">
+                    <Column id="ddColStatus">
                         <header><Text id="ddColStatusText" text="{i18n>columnStatus}" /></header>
                     </Column>
-                    <Column id="ddColDueDate" width="7rem" demandPopin="true" minScreenWidth="Tablet">
+                    <Column id="ddColDueDate" demandPopin="true" minScreenWidth="Tablet">
                         <header><Text id="ddColDueDateText" text="{i18n>dueDateLabel}" /></header>
                     </Column>
                 </columns>
@@ -52,7 +47,7 @@
                         <cells>
                             <Text id="ddCellUserId" text="{drillDown>UserId}" />
                             <Text id="ddCellUserName" text="{drillDown>UserName}" />
-                            <Text id="ddCellTitle" text="{drillDown>Title}" wrapping="false" />
+                            <Text id="ddCellTitle" text="{drillDown>Title}" />
                             <Text id="ddCellModule" text="{drillDown>SapModule}" />
                             <ObjectStatus id="ddCellStatus"
                                 text="{drillDown>Status}"
