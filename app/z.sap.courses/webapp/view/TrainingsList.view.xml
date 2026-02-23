@@ -17,9 +17,7 @@
         <!-- Page Header: Title + Role badge + My Assignments -->
         <customHeader>
             <Bar id="headerBar">
-                <contentLeft>
-                    <Title id="pageTitle" text="{i18n>appTitle}" level="H2" />
-                </contentLeft>
+                <contentLeft />
                 <contentRight>
                     <!-- Role badge: shows the PFCG-detected role (read-only) -->
                     <ObjectStatus
@@ -94,7 +92,7 @@
                         <Text id="teamCompletionLabel" text="{i18n>teamCompletionRate}" class="analyticsLabel" />
                     </VBox>
                 </HBox>
-                <HBox id="teamChartsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin">
+                <HBox id="teamChartsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin chartsRow">
                     <VBox id="teamStatusChartBox" class="analyticsCard analyticsCardBlue chartCard">
                         <HBox id="teamStatusHeader" alignItems="Center" class="sapUiTinyMarginBottom">
                             <core:Icon id="teamStatusIcon" src="sap-icon://horizontal-bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
