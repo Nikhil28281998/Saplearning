@@ -196,9 +196,10 @@ sap.ui.define([
                     oTeamModel.setProperty("/completionPercent", oResult.completionPercent || 0);
                     oTeamModel.setProperty("/userBreakdown", oResult.userBreakdown || []);
 
-                    // Store flat assignments for drill-down (server returns aggregated only)
-                    // Drill-down still works from the server counts
                     if (oPanel) { oPanel.setBusy(false); }
+
+                    // FIX-1: Always load flat assignments for drill-down clicks
+                    that._loadTeamAssignmentsForDrillDown();
                 },
                 error: function (err) {
                     oModel.setUseBatch(bWasBatch);
@@ -206,6 +207,38 @@ sap.ui.define([
                     // Fallback: load client-side (backward compat with older ABAP backends)
                     that._loadTeamAnalyticsFallback();
                     if (oPanel) { oPanel.setBusy(false); }
+                }
+            });
+        },
+
+        /**
+         * FIX-1: Load flat assignment data for drill-down dialogs.
+         * Server-side getTeamAnalytics returns aggregated counts only;
+         * drill-down needs the individual assignment records.
+         */
+        _loadTeamAssignmentsForDrillDown: function () {
+            var sRole = this.getOwnerComponent()._role;
+            var oModel = this.getOwnerComponent().getModel();
+            var oTeamModel = this.getView().getModel("teamAnalytics");
+            var sEntitySet = this.getOwnerComponent().getAssignmentEntitySet();
+
+            var aFilters = [];
+            if (sRole === "Manager") {
+                var sManagerId = this.getOwnerComponent().getCurrentUserId();
+                if (sManagerId) {
+                    aFilters.push(new Filter("ManagerSort2", FilterOperator.EQ, sManagerId));
+                }
+            }
+
+            oModel.read("/" + sEntitySet, {
+                filters: aFilters,
+                urlParameters: { "$inlinecount": "allpages", "$top": "500" },
+                success: function (oData) {
+                    oTeamModel.setProperty("/allAssignments", oData.results || []);
+                },
+                error: function (err) {
+                    Log.warning("[TeamAnalytics] Failed to load flat assignments for drill-down: " + (err && err.message || ""));
+                    oTeamModel.setProperty("/allAssignments", []);
                 }
             });
         },
@@ -361,8 +394,15 @@ sap.ui.define([
             }
             sTitle += " (" + aFiltered.length + ")";
 
-            // Destroy previous
-            if (this._teamDrillDownDlg) { this._teamDrillDownDlg.destroy(); this._teamDrillDownDlg = null; }
+            // FIX-1: Always destroy previous dialog + model completely
+            if (this._teamDrillDownDlg) {
+                this._teamDrillDownDlg.destroy();
+                this._teamDrillDownDlg = null;
+            }
+            if (this._drillDownModel) {
+                this._drillDownModel.destroy();
+                this._drillDownModel = null;
+            }
 
             // Create local model for filtered data
             var oDrillModel = new JSONModel({ assignments: aFiltered, dialogTitle: sTitle });
@@ -370,8 +410,12 @@ sap.ui.define([
             this._drillDownModel = oDrillModel;
 
             var that = this;
-            this.loadFragment({
-                name: "z.sap.courses.fragments.TeamAssignmentsDialog"
+            // FIX-1: Use Fragment.load() with unique id each time instead of
+            // this.loadFragment() which caches by name and returns destroyed instance
+            sap.ui.core.Fragment.load({
+                name: "z.sap.courses.fragments.TeamAssignmentsDialog",
+                controller: this,
+                id: this.getView().getId() + "--drillDown" + Date.now()
             }).then(function (oDialog) {
                 that._teamDrillDownDlg = oDialog;
                 oDialog.setModel(oDrillModel, "drillDown");
@@ -379,6 +423,10 @@ sap.ui.define([
                 oDialog.attachAfterClose(function () {
                     oDialog.destroy();
                     that._teamDrillDownDlg = null;
+                    if (that._drillDownModel) {
+                        that._drillDownModel.destroy();
+                        that._drillDownModel = null;
+                    }
                 });
                 oDialog.open();
             });

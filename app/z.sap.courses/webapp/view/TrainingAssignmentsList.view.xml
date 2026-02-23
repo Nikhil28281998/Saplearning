@@ -10,9 +10,8 @@
 
     <Page
         id="assignmentsListPage"
-        title="{i18n>trainingAssignments}"
-        showNavButton="true"
-        navButtonPress="onNavBack"
+        title="{i18n>myAssignments}"
+        showNavButton="false"
         enableScrolling="true"
         class="sapUiResponsivePadding--header sapUiResponsivePadding--content assignmentsPage">
 
@@ -172,8 +171,7 @@
                             text="{i18n>deassign}"
                             icon="sap-icon://delete"
                             type="Reject"
-                            press="onDeassignBtn"
-                            visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
+                            press="onDeassignBtn" />
                         <ToolbarSpacer id="assignToolbarSpacer" />
                         <Button
                             id="assignRefreshBtn"

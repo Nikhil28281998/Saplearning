@@ -306,13 +306,16 @@ html, body, html.sap-desktop, .sapUiBody {
     transform: scale(1.15);
 }
 
-/* ===== Chart Cards – side by side, no overlap ===== */
+/* ===== Chart Cards – side by side, compact outer boxes ===== */
 .chartCard {
-    min-width: 280px;
-    max-width: 48%;
-    flex: 1 1 48%;
-    min-height: 240px;
+    min-width: 240px;
+    max-width: 32%;
+    flex: 1 1 30%;
+    min-height: auto;
+    max-height: 16rem;
+    overflow-y: auto;
     box-sizing: border-box;
+    padding: 0.5rem 0.75rem !important;
 }
 
 .chartTitle {
