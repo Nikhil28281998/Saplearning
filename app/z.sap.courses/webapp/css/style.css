@@ -319,7 +319,7 @@ html, body, html.sap-desktop, .sapUiBody {
     flex-wrap: nowrap !important;
 }
 
-/* ===== Chart Cards – original generous size, grid prevents overlap ===== */
+/* ===== Chart Cards – generous size, rounded bar indicators ===== */
 .chartCard {
     min-width: 0;
     max-width: 100%;
@@ -332,6 +332,20 @@ html, body, html.sap-desktop, .sapUiBody {
     margin: 0 !important;
 }
 
+/* Status Distribution + Module chart bars — rounded corners */
+.sapCoursesApp .chartCard .sapMPI {
+    border-radius: 8px;
+}
+
+.sapCoursesApp .chartCard .sapMPI .sapMPIBar {
+    border-radius: 8px;
+}
+
+/* Status distribution row spacing */
+.sapCoursesApp .chartCard .sapUiTinyMarginBottom {
+    margin-bottom: 0.625rem !important;
+}
+
 .chartTitle {
     font-size: 0.875rem;
     font-weight: 700;
@@ -339,9 +353,11 @@ html, body, html.sap-desktop, .sapUiBody {
 }
 
 .chartLegendText {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     color: var(--sapNeutral);
-    font-weight: 500;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .chartLegendRow {
@@ -421,6 +437,41 @@ html, body, html.sap-desktop, .sapUiBody {
     font-size: 0.8125rem;
     color: var(--sapNeutral);
     font-weight: 500;
+}
+
+/* Motivational text with emoji — slightly larger, brand tint */
+.sapCoursesApp .motivationalTextEmoji {
+    font-size: 0.875rem;
+    color: var(--sapAccent1);
+    font-weight: 600;
+    font-style: italic;
+}
+
+/* Module bar chart — label + ProgressIndicator row */
+.sapCoursesApp .moduleBarRow {
+    gap: 0.5rem;
+}
+
+.sapCoursesApp .moduleBarLabel {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--sapText);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 6rem;
+}
+
+.sapCoursesApp .moduleProgressBar.sapMPI {
+    border-radius: 8px;
+    height: 2rem !important;
+}
+
+.sapCoursesApp .moduleProgressBar .sapMPIBar {
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--sapAccent3), var(--sapAccent1)) !important;
 }
 
 /* Charts 2-column grid (replaces old 3-column chartsRow) */

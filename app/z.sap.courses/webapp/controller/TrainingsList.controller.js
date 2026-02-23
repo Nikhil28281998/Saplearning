@@ -148,8 +148,8 @@ sap.ui.define([
         },
 
         /**
-         * AN-2: Populate module distribution model data for declarative ComparisonMicroChart.
-         * The view binds to analyticsModel>/moduleDistribution — no programmatic UI creation.
+         * AN-2: Populate module distribution data for ProgressIndicator bars.
+         * The view binds to analyticsModel>/moduleDistribution — declarative.
          */
         _buildModuleChart: function (moduleArr) {
             var oAnalyticsModel = this.getView().getModel("analyticsModel");
@@ -160,16 +160,17 @@ sap.ui.define([
                 return;
             }
 
-            var colors = ["Good", "Neutral", "Critical", "Good", "Neutral", "Critical", "Good", "Neutral"];
+            var aTop = moduleArr.slice(0, 5);
+            var iMaxCount = aTop.length > 0 ? aTop[0].count : 1; // already sorted desc
             var iTotalModules = moduleArr.reduce(function (sum, m) { return sum + m.count; }, 0);
-            var aTop = moduleArr.slice(0, 8);
 
-            var aChartData = aTop.map(function (m, i) {
+            var aChartData = aTop.map(function (m) {
                 var iPct = iTotalModules > 0 ? Math.round((m.count / iTotalModules) * 100) : 0;
+                var iBarPct = iMaxCount > 0 ? Math.round((m.count / iMaxCount) * 100) : 0;
                 return {
                     label: m.label,
                     count: m.count,
-                    color: colors[i % colors.length],
+                    percentOfMax: iBarPct,
                     displayValue: m.count + " (" + iPct + "%)"
                 };
             });

@@ -5,8 +5,7 @@
     xmlns:core="sap.ui.core"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:filterBar="sap.ui.comp.filterbar"
-    xmlns:smartTable="sap.ui.comp.smarttable"
-    xmlns:mc="sap.suite.ui.microchart">
+    xmlns:smartTable="sap.ui.comp.smarttable">
 
     <Page
         id="assignmentsListPage"
@@ -46,13 +45,16 @@
                         id="heroProgressBar"
                         percentValue="{assignAnalytics>/completionPercent}"
                         displayValue="{= ${assignAnalytics>/completionPercent} + '%' }"
-                        state="{= ${assignAnalytics>/completionPercent} >= 80 ? 'Success' : ${assignAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Error' }"
+                        state="{= ${assignAnalytics>/completionPercent} >= 80 ? 'Success' : ${assignAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Information' }"
                         showValue="true"
                         height="2.5rem"
                         class="heroProgressBar" />
                     <Text id="heroSubtitle"
                         text="{= ${assignAnalytics>/completed} + ' of ' + (${assignAnalytics>/assigned} + ${assignAnalytics>/inProgress} + ${assignAnalytics>/completed}) + ' completed' }"
                         class="motivationalText sapUiTinyMarginTop" />
+                    <Text id="heroMotivational"
+                        text="{= ${assignAnalytics>/completionPercent} === 100 ? ${i18n>motivationalDone} : ${assignAnalytics>/completionPercent} >= 75 ? ${i18n>motivationalAlmost} : ${assignAnalytics>/completionPercent} >= 50 ? ${i18n>motivationalHalfway} : ${assignAnalytics>/completionPercent} >= 25 ? ${i18n>motivationalProgress} : ${i18n>motivationalStart} }"
+                        class="motivationalTextEmoji sapUiTinyMarginTop" />
                 </VBox>
 
                 <!-- 4 KPI Cards -->

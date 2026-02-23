@@ -3,7 +3,11 @@
   "sap.app": {
     "id": "z.sap.courses",
     "type": "application",
-    "i18n": "i18n/i18n.properties",
+    "i18n": {
+      "bundleUrl": "i18n/i18n.properties",
+      "supportedLocales": ["en", ""],
+      "fallbackLocale": "en"
+    },
     "applicationVersion": {
       "version": "2.1.0"
     },
@@ -111,7 +115,9 @@
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
-          "bundleName": "z.sap.courses.i18n.i18n"
+          "bundleName": "z.sap.courses.i18n.i18n",
+          "supportedLocales": ["en", ""],
+          "fallbackLocale": "en"
         }
       },
       "": {

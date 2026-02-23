@@ -5,8 +5,7 @@
     xmlns:core="sap.ui.core"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:smartTable="sap.ui.comp.smarttable"
-    xmlns:filterBar="sap.ui.comp.filterbar"
-    xmlns:mc="sap.suite.ui.microchart">
+    xmlns:filterBar="sap.ui.comp.filterbar">
 
     <Page
         id="trainingsListPage"
@@ -103,7 +102,7 @@
                         id="teamCompletionBar"
                         percentValue="{teamAnalytics>/completionPercent}"
                         displayValue="{= ${teamAnalytics>/completionPercent} + '%' }"
-                        state="{= ${teamAnalytics>/completionPercent} >= 80 ? 'Success' : ${teamAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Error' }"
+                        state="{= ${teamAnalytics>/completionPercent} >= 80 ? 'Success' : ${teamAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Information' }"
                         showValue="true"
                         height="2.5rem"
                         class="teamCompletionProgressBar" />
@@ -176,26 +175,26 @@
                             <core:Icon id="moduleChartIcon" src="sap-icon://bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
                             <Text id="moduleChartTitle" text="{i18n>topModules}" class="chartTitle" />
                         </HBox>
-                        <VBox id="moduleChartContainer">
-                            <mc:ComparisonMicroChart
-                                id="moduleComparisonChart"
-                                size="L"
-                                shrinkable="true"
-                                width="100%"
-                                data="{path: 'analyticsModel>/moduleDistribution'}"
-                                visible="{= ${analyticsModel>/moduleDistribution}.length > 0 }">
-                                <mc:data>
-                                    <mc:ComparisonMicroChartData
-                                        title="{analyticsModel>label}"
-                                        value="{analyticsModel>count}"
-                                        color="{analyticsModel>color}"
-                                        displayValue="{analyticsModel>displayValue}" />
-                                </mc:data>
-                            </mc:ComparisonMicroChart>
-                            <Text id="moduleChartNoData"
-                                  text="{i18n>noModuleData}"
-                                  visible="{= !${analyticsModel>/moduleDistribution} || ${analyticsModel>/moduleDistribution}.length === 0 }" />
+                        <VBox id="moduleChartContainer"
+                              items="{path: 'analyticsModel>/moduleDistribution'}"
+                              visible="{= ${analyticsModel>/moduleDistribution}.length > 0 }">
+                            <items>
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom moduleBarRow">
+                                    <Text text="{analyticsModel>label}" class="moduleBarLabel sapUiTinyMarginEnd" width="8rem" wrapping="false" />
+                                    <ProgressIndicator
+                                        percentValue="{analyticsModel>percentOfMax}"
+                                        displayValue="{analyticsModel>displayValue}"
+                                        state="Information"
+                                        showValue="true"
+                                        width="100%"
+                                        height="2rem"
+                                        class="moduleProgressBar" />
+                                </HBox>
+                            </items>
                         </VBox>
+                        <Text id="moduleChartNoData"
+                              text="{i18n>noModuleData}"
+                              visible="{= !${analyticsModel>/moduleDistribution} || ${analyticsModel>/moduleDistribution}.length === 0 }" />
                     </VBox>
                 </HBox>
 
