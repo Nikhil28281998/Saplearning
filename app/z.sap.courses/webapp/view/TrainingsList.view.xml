@@ -17,7 +17,9 @@
         <!-- Page Header: Title + Role badge + My Assignments -->
         <customHeader>
             <Bar id="headerBar">
-                <contentLeft />
+                <contentLeft>
+                    <Title id="headerTitle" text="{i18n>appTitle}" level="H3" />
+                </contentLeft>
                 <contentRight>
                     <!-- Role badge: shows the PFCG-detected role (read-only) -->
                     <ObjectStatus
@@ -60,39 +62,58 @@
                 headerText="{i18n>teamAnalyticsHeader}"
                 class="sapUiSmallMarginBottom analyticsPanel"
                 visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }">
-                <HBox id="teamAnalyticsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin analyticsContainer">
-                    <VBox id="teamTotalBox" alignItems="Center" class="analyticsCard analyticsCardBlue">
-                        <core:Icon id="teamTotalIcon" src="sap-icon://group" size="1.5rem" color="#0854a0" class="sapUiTinyMarginBottom" />
+
+                <!-- 5 KPI Cards Row -->
+                <HBox id="teamAnalyticsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin teamAnalyticsContainer">
+                    <VBox id="teamTotalBox" alignItems="Center" class="analyticsCard teamKpiCard analyticsCardBlue" tooltip="{i18n>clickToFilter}">
+                        <core:Icon id="teamTotalIcon" src="sap-icon://group" size="2rem" color="#0854a0" class="sapUiTinyMarginBottom" />
                         <ObjectNumber id="teamTotalCount" number="{teamAnalytics>/totalAssignments}" state="Information" class="analyticsNumber" />
                         <Text id="teamTotalLabel" text="{i18n>teamTotalAssignments}" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="teamAssignedBox" alignItems="Center" class="analyticsCard analyticsCardOrange">
-                        <core:Icon id="teamAssignedIcon" src="sap-icon://pending" size="1.5rem" color="#e76500" class="sapUiTinyMarginBottom" />
+                    <VBox id="teamAssignedBox" alignItems="Center" class="analyticsCard teamKpiCard analyticsCardOrange" tooltip="{i18n>clickToFilter}">
+                        <core:Icon id="teamAssignedIcon" src="sap-icon://pending" size="2rem" color="#e76500" class="sapUiTinyMarginBottom" />
                         <ObjectNumber id="teamAssignedCount" number="{teamAnalytics>/assigned}" state="Warning" class="analyticsNumber" />
                         <Text id="teamAssignedLabel" text="{i18n>teamPending}" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="teamInProgressBox" alignItems="Center" class="analyticsCard analyticsCardBlue">
-                        <core:Icon id="teamInProgressIcon" src="sap-icon://activity-2" size="1.5rem" color="#0854a0" class="sapUiTinyMarginBottom" />
+                    <VBox id="teamInProgressBox" alignItems="Center" class="analyticsCard teamKpiCard analyticsCardBlue" tooltip="{i18n>clickToFilter}">
+                        <core:Icon id="teamInProgressIcon" src="sap-icon://activity-2" size="2rem" color="#0854a0" class="sapUiTinyMarginBottom" />
                         <ObjectNumber id="teamInProgressCount" number="{teamAnalytics>/inProgress}" state="Information" class="analyticsNumber" />
                         <Text id="teamInProgressLabel" text="{i18n>teamInProgress}" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="teamOverdueBox" alignItems="Center" class="analyticsCard analyticsCardRed">
-                        <core:Icon id="teamOverdueIcon" src="sap-icon://alert" size="1.5rem" color="#bb0000" class="sapUiTinyMarginBottom" />
+                    <VBox id="teamOverdueBox" alignItems="Center" class="analyticsCard teamKpiCard analyticsCardRed" tooltip="{i18n>clickToFilter}">
+                        <core:Icon id="teamOverdueIcon" src="sap-icon://alert" size="2rem" color="#bb0000" class="sapUiTinyMarginBottom" />
                         <ObjectNumber id="teamOverdueCount" number="{teamAnalytics>/overdue}" state="Error" class="analyticsNumber" />
                         <Text id="teamOverdueLabel" text="{i18n>teamOverdue}" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="teamCompletedBox" alignItems="Center" class="analyticsCard analyticsCardGreen">
-                        <core:Icon id="teamCompletedIcon" src="sap-icon://accept" size="1.5rem" color="#107e3e" class="sapUiTinyMarginBottom" />
+                    <VBox id="teamCompletedBox" alignItems="Center" class="analyticsCard teamKpiCard analyticsCardGreen" tooltip="{i18n>clickToFilter}">
+                        <core:Icon id="teamCompletedIcon" src="sap-icon://accept" size="2rem" color="#107e3e" class="sapUiTinyMarginBottom" />
                         <ObjectNumber id="teamCompletedCount" number="{teamAnalytics>/completed}" state="Success" class="analyticsNumber" />
                         <Text id="teamCompletedLabel" text="{i18n>teamCompleted}" class="analyticsLabel" />
                     </VBox>
-                    <VBox id="teamCompletionBox" alignItems="Center" class="analyticsCard analyticsCardPurple">
-                        <core:Icon id="teamCompletionIcon" src="sap-icon://performance" size="1.5rem" color="#6c32a9" class="sapUiTinyMarginBottom" />
-                        <mc:RadialMicroChart id="teamCompletionRadial" percentage="{teamAnalytics>/completionPercent}" valueColor="{= ${teamAnalytics>/completionPercent} >= 80 ? 'Good' : ${teamAnalytics>/completionPercent} >= 50 ? 'Critical' : 'Error' }" size="L" />
-                        <Text id="teamCompletionLabel" text="{i18n>teamCompletionRate}" class="analyticsLabel" />
-                    </VBox>
                 </HBox>
-                <HBox id="teamChartsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin chartsRow">
+
+                <!-- Full-Width Completion Progress Bar -->
+                <VBox id="teamCompletionBarCard" class="completionBarCard sapUiSmallMargin">
+                    <HBox id="teamCompletionBarHeader" alignItems="Center" class="sapUiTinyMarginBottom">
+                        <core:Icon id="teamCompletionBarIcon" src="sap-icon://performance" size="1.25rem" color="#6c32a9" class="sapUiTinyMarginEnd" />
+                        <Title id="teamCompletionBarTitle" text="{i18n>teamCompletionRate}" level="H5" />
+                        <Text id="teamCompletionPct" text="{= ${teamAnalytics>/completionPercent} + '%' }" class="sapUiSmallMarginBegin completionPctLabel" />
+                    </HBox>
+                    <ProgressIndicator
+                        id="teamCompletionBar"
+                        percentValue="{teamAnalytics>/completionPercent}"
+                        displayValue="{= ${teamAnalytics>/completionPercent} + '%' }"
+                        state="{= ${teamAnalytics>/completionPercent} >= 80 ? 'Success' : ${teamAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Error' }"
+                        showValue="true"
+                        height="2.5rem"
+                        class="teamCompletionProgressBar" />
+                    <Text id="teamCompletionSubtitle"
+                        text="{= 'Completed: ' + ${teamAnalytics>/completed} + '  |  Remaining: ' + (${teamAnalytics>/totalAssignments} - ${teamAnalytics>/completed}) }"
+                        class="motivationalText sapUiTinyMarginTop" />
+                </VBox>
+
+                <!-- Charts 2-Column Grid: Status Distribution + Top Modules -->
+                <HBox id="teamChartsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin teamChartsGrid">
                     <VBox id="teamStatusChartBox" class="analyticsCard analyticsCardBlue chartCard">
                         <HBox id="teamStatusHeader" alignItems="Center" class="sapUiTinyMarginBottom">
                             <core:Icon id="teamStatusIcon" src="sap-icon://horizontal-bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
@@ -100,7 +121,7 @@
                         </HBox>
                         <VBox id="teamStatusChartContent" class="sapUiTinyMarginTop">
                             <HBox id="teamPendingRow" alignItems="Center" class="sapUiTinyMarginBottom">
-                                <core:Icon id="teamPendingDot" src="sap-icon://pending" size="1rem" color="#bb0000" class="sapUiTinyMarginEnd" />
+                                <core:Icon id="teamPendingDot" src="sap-icon://pending" size="1rem" color="#e76500" class="sapUiTinyMarginEnd" />
                                 <Text id="teamPendingLbl" text="{i18n>pending}" class="sapUiTinyMarginEnd chartLegendText" width="5rem" />
                                 <ProgressIndicator
                                     id="teamPendingBar"
@@ -109,7 +130,7 @@
                                     state="Warning"
                                     showValue="true"
                                     width="100%"
-                                    height="2rem" />
+                                    height="2.5rem" />
                             </HBox>
                             <HBox id="teamInProgressRow" alignItems="Center" class="sapUiTinyMarginBottom">
                                 <core:Icon id="teamInProgressDot" src="sap-icon://activity-2" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
@@ -121,7 +142,19 @@
                                     state="Information"
                                     showValue="true"
                                     width="100%"
-                                    height="2rem" />
+                                    height="2.5rem" />
+                            </HBox>
+                            <HBox id="teamOverdueRow" alignItems="Center" class="sapUiTinyMarginBottom">
+                                <core:Icon id="teamOverdueDot" src="sap-icon://alert" size="1rem" color="#bb0000" class="sapUiTinyMarginEnd" />
+                                <Text id="teamOverdueLbl" text="{i18n>overdue}" class="sapUiTinyMarginEnd chartLegendText" width="5rem" />
+                                <ProgressIndicator
+                                    id="teamOverdueBar"
+                                    percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? (${teamAnalytics>/overdue} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
+                                    displayValue="{teamAnalytics>/overdue}"
+                                    state="Error"
+                                    showValue="true"
+                                    width="100%"
+                                    height="2.5rem" />
                             </HBox>
                             <HBox id="teamCompletedRow" alignItems="Center">
                                 <core:Icon id="teamCompletedDot" src="sap-icon://accept" size="1rem" color="#107e3e" class="sapUiTinyMarginEnd" />
@@ -133,29 +166,11 @@
                                     state="Success"
                                     showValue="true"
                                     width="100%"
-                                    height="2rem" />
+                                    height="2.5rem" />
                             </HBox>
                         </VBox>
                     </VBox>
-                    <VBox id="teamUserChartBox" class="analyticsCard analyticsCardTeal chartCard">
-                        <HBox id="teamUserChartHeader" alignItems="Center" class="sapUiTinyMarginBottom">
-                            <core:Icon id="teamUserChartIcon" src="sap-icon://customer" size="1rem" color="#0a6ed1" class="sapUiTinyMarginEnd" />
-                            <Text id="teamUserChartTitle" text="{i18n>teamUserProgress}" class="chartTitle" />
-                        </HBox>
-                        <VBox id="teamUserListContainer">
-                            <!-- UI-1: Declarative List with TeamUserRow fragment template -->
-                            <List id="teamUserList"
-                                  items="{path: 'teamAnalytics>/userBreakdown', length: 10}"
-                                  showNoData="true"
-                                  noDataText="No user assignments found"
-                                  showSeparators="None">
-                                <items>
-                                    <core:Fragment fragmentName="z.sap.courses.fragments.TeamUserRow" type="XML" />
-                                </items>
-                            </List>
-                        </VBox>
-                    </VBox>
-                    <!-- AN-2: Module distribution chart — declarative ComparisonMicroChart -->
+                    <!-- Top Modules Chart -->
                     <VBox id="moduleChartBox" class="analyticsCard analyticsCardBlue chartCard">
                         <HBox id="moduleChartHeader" alignItems="Center" class="sapUiTinyMarginBottom">
                             <core:Icon id="moduleChartIcon" src="sap-icon://bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
@@ -178,11 +193,28 @@
                                 </mc:data>
                             </mc:ComparisonMicroChart>
                             <Text id="moduleChartNoData"
-                                  text="No module data available"
+                                  text="{i18n>noModuleData}"
                                   visible="{= !${analyticsModel>/moduleDistribution} || ${analyticsModel>/moduleDistribution}.length === 0 }" />
                         </VBox>
                     </VBox>
                 </HBox>
+
+                <!-- Team Members List Card -->
+                <VBox id="teamMembersCard" class="teamMembersCard sapUiSmallMargin">
+                    <HBox id="teamMembersHeader" alignItems="Center" class="sapUiSmallMargin">
+                        <core:Icon id="teamMembersIcon" src="sap-icon://customer" size="1rem" color="#0a6ed1" class="sapUiTinyMarginEnd" />
+                        <Text id="teamMembersTitle" text="{i18n>teamUserProgress}" class="chartTitle" />
+                    </HBox>
+                    <List id="teamUserList"
+                          items="{path: 'teamAnalytics>/userBreakdown', length: 10}"
+                          showNoData="true"
+                          noDataText="{i18n>noTeamMembers}"
+                          showSeparators="None">
+                        <items>
+                            <core:Fragment fragmentName="z.sap.courses.fragments.TeamUserRow" type="XML" />
+                        </items>
+                    </List>
+                </VBox>
             </Panel>
 
             <!-- SmartFilterBar: Go + Adapt Filters with explicit Role/Module dropdown filters -->
@@ -260,8 +292,8 @@
                     <IllustratedMessage
                         id="trainingsEmptyState"
                         illustrationType="sapIllus-NoEntries"
-                        title="No Trainings Found"
-                        description="No trainings match your search criteria. Try adjusting your filters."
+                        title="{i18n>noTrainingsFoundTitle}"
+                        description="{i18n>noTrainingsFoundDesc}"
                         illustrationSize="Spot" />
                 </smartTable:noData>
 

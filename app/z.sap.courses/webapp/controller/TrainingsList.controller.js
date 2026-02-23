@@ -58,13 +58,14 @@ sap.ui.define([
 
             // BUG-3 FIX: Re-load analytics when role is fetched to apply correct user filters
             var that = this;
-            sap.ui.getCore().getEventBus().subscribe("sapCourses", "roleChanged", function () {
+            this._onRoleChanged = function () {
                 that._loadAllData();
-                // F1-FIX: Update SmartTable selection mode for new role
                 that._updateTableSelectionMode();
-            }, this);
+            };
+            sap.ui.getCore().getEventBus().subscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
 
             // F2: Wire Team Analytics card click handlers for drill-down
+            this._aTeamCardIds = ["teamTotalBox", "teamAssignedBox", "teamInProgressBox", "teamOverdueBox", "teamCompletedBox"];
             var aTeamCards = [
                 { id: "teamTotalBox",       filter: "" },
                 { id: "teamAssignedBox",    filter: "Assigned" },
@@ -82,6 +83,20 @@ sap.ui.define([
                 }
             });
 
+        },
+
+        /**
+         * D-1: Cleanup EventBus subscriptions and browser events on view destroy.
+         */
+        onExit: function () {
+            sap.ui.getCore().getEventBus().unsubscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
+            var that = this;
+            if (this._aTeamCardIds) {
+                this._aTeamCardIds.forEach(function (id) {
+                    var oCard = that.byId(id);
+                    if (oCard) { oCard.detachBrowserEvent("click"); }
+                });
+            }
         },
 
         /**
@@ -1088,47 +1103,54 @@ sap.ui.define([
             if (!oContext) { return; }
             var oTraining = oContext.getObject();
 
-            var oComponent = this.getOwnerComponent();
-            var sUserId = oComponent.getCurrentUserId();
-            var sEntitySet = oComponent.getAssignmentEntitySet();
-            var oModel = oComponent.getModel();
+            // D-8: Confirmation dialog before enrollment
+            MessageBox.confirm(i18n.getText("confirmEnroll", [oTraining.Title]), {
+                title: i18n.getText("confirmEnrollTitle"),
+                emphasizedAction: MessageBox.Action.OK,
+                onClose: function (sAction) {
+                    if (sAction !== MessageBox.Action.OK) { return; }
 
-            // Build self-enrollment payload
-            var oPayload = {
-                TrainingId: oTraining.Id,
-                Title: oTraining.Title,
-                Role: oTraining.Role || "",
-                SapModule: oTraining.SapModule || "",
-                Url: oTraining.Url || "",
-                Status: "Assigned",
-                UserId: sUserId,
-                UserName: sUserId,
-                DueDate: null,
-                AssignedBy: sUserId,
-                AssignedByName: sUserId
-            };
+                    var oComponent = that.getOwnerComponent();
+                    var sUserId = oComponent.getCurrentUserId();
+                    var sEntitySet = oComponent.getAssignmentEntitySet();
+                    var oModel = oComponent.getModel();
 
-            oModel.refreshSecurityToken(function () {
-                oModel.create("/" + sEntitySet, oPayload, {
-                    success: function () {
-                        MessageToast.show(i18n.getText("enrollSuccess"));
-                    },
-                    error: function (err) {
-                        var msg = i18n.getText("createFailed");
-                        try {
-                            var parsed = JSON.parse(err.responseText);
-                            msg = parsed.error.message.value || msg;
-                        } catch (e) { /* keep default */ }
-                        // Duplicate check returns business error
-                        if (msg.indexOf("already assigned") > -1 || msg.indexOf("duplicate") > -1) {
-                            MessageToast.show(i18n.getText("alreadyEnrolled"));
-                        } else {
-                            MessageBox.error(msg);
-                        }
-                    }
-                });
-            }, function () {
-                MessageBox.error(i18n.getText("securityTokenFailed"));
+                    var oPayload = {
+                        TrainingId: oTraining.Id,
+                        Title: oTraining.Title,
+                        Role: oTraining.Role || "",
+                        SapModule: oTraining.SapModule || "",
+                        Url: oTraining.Url || "",
+                        Status: "Assigned",
+                        UserId: sUserId,
+                        UserName: sUserId,
+                        DueDate: null,
+                        AssignedBy: sUserId,
+                        AssignedByName: sUserId
+                    };
+
+                    oModel.refreshSecurityToken(function () {
+                        oModel.create("/" + sEntitySet, oPayload, {
+                            success: function () {
+                                MessageToast.show(i18n.getText("enrollSuccess"));
+                            },
+                            error: function (err) {
+                                var msg = i18n.getText("createFailed");
+                                try {
+                                    var parsed = JSON.parse(err.responseText);
+                                    msg = parsed.error.message.value || msg;
+                                } catch (e) { /* keep default */ }
+                                if (msg.indexOf("already assigned") > -1 || msg.indexOf("duplicate") > -1) {
+                                    MessageToast.show(i18n.getText("alreadyEnrolled"));
+                                } else {
+                                    MessageBox.error(msg);
+                                }
+                            }
+                        });
+                    }, function () {
+                        MessageBox.error(i18n.getText("securityTokenFailed"));
+                    });
+                }
             });
         },
 

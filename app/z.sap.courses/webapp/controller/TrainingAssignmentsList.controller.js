@@ -47,11 +47,12 @@ sap.ui.define([
             }
 
             // Re-load data when role changes (async fetch may complete after initial load)
-            sap.ui.getCore().getEventBus().subscribe("sapCourses", "roleChanged", function () {
+            this._onRoleChanged = function () {
                 var oST = that.byId("assignSmartTable");
                 if (oST) { oST.rebindTable(true); }
                 that._loadAnalytics();
-            }, this);
+            };
+            sap.ui.getCore().getEventBus().subscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
 
             // Reload data every time user navigates to this page
             var oRouter = oComponent.getRouter();
@@ -180,6 +181,10 @@ sap.ui.define([
                 // (idempotent — skips cells already replaced)
                 oTable.attachUpdateFinished(function () {
                     that._applyAssignmentColumnTemplates(oTable);
+                    // A-2: Apply client overdue filter after data arrives
+                    if (that._overdueFilter) {
+                        that._clientFilterOverdue();
+                    }
                 });
             }
         },
@@ -430,9 +435,57 @@ sap.ui.define([
             Log.info("[AssignFilter] Total filters: " + mBindingParams.filters.length);
         },
 
-        /* ===== Nav Back – explicit route navigation ===== */
+        /* ===== Nav Back – role-aware navigation (Part B fix) ===== */
         onNavBack: function () {
-            this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
+            var sRole = this.getOwnerComponent()._role || "User";
+
+            if (sRole === "User") {
+                // User role: back goes to FLP launchpad (not Training Catalog)
+                var oCrossAppNav = sap.ushell && sap.ushell.Container &&
+                    sap.ushell.Container.getService("CrossApplicationNavigation");
+                if (oCrossAppNav) {
+                    oCrossAppNav.toExternal({ target: { shellHash: "#" } });
+                } else {
+                    window.history.back();
+                }
+            } else {
+                // Manager/Admin: navigate to Training Catalog
+                this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
+            }
+        },
+
+        /**
+         * A-2: Client-side overdue filter — removes non-overdue rows after OData fetch.
+         */
+        _clientFilterOverdue: function () {
+            var oTable = this.byId("assignSmartTable").getTable();
+            if (!oTable) { return; }
+            var oBinding = oTable.getBinding("items");
+            if (!oBinding) { return; }
+
+            var sToday = new Date().toISOString().substring(0, 10);
+            var aClientFilters = [
+                new Filter("Status", FilterOperator.NE, "Completed"),
+                new Filter({
+                    path: "DueDate",
+                    operator: FilterOperator.LT,
+                    value1: new Date(sToday)
+                })
+            ];
+            oBinding.filter(aClientFilters, "Application");
+        },
+
+        /**
+         * D-1: Cleanup EventBus subscriptions and browser events on view destroy.
+         */
+        onExit: function () {
+            sap.ui.getCore().getEventBus().unsubscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
+            var aCards = ["myAssignedBox", "myInProgressBox", "myOverdueBox", "myCompletedBox"];
+            var that = this;
+            aCards.forEach(function (id) {
+                var oCard = that.byId(id);
+                if (oCard) { oCard.detachBrowserEvent("click"); }
+            });
         },
 
         /* ================================================================== */

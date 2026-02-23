@@ -5,23 +5,23 @@
 
 /* ===== CSS Custom Properties (Design Tokens) ===== */
 :root {
-    /* SAP Horizon palette */
-    --sapBrand:        #0070f2;
+    /* SAP Horizon palette — using theme-aware fallbacks (D-6) */
+    --sapBrand:        var(--sapBrandColor, #0070f2);
     --sapBrandDark:    #0054b5;
     --sapBrandLight:   #ebf5ff;
-    --sapAccent1:      #0854a0;
-    --sapAccent2:      #e76500;
-    --sapAccent3:      #0a6ed1;
-    --sapAccent4:      #107e3e;
-    --sapAccent5:      #6c32a9;
+    --sapAccent1:      var(--sapAccentColor1, #0854a0);
+    --sapAccent2:      var(--sapAccentColor2, #e76500);
+    --sapAccent3:      var(--sapAccentColor3, #0a6ed1);
+    --sapAccent4:      var(--sapAccentColor4, #107e3e);
+    --sapAccent5:      var(--sapAccentColor5, #6c32a9);
     --sapAccent6:      #d4e3f5;
     --sapNeutral:      #556b82;
     --sapNeutralLight: #f5f6f7;
-    --sapBg:           #f5f6fa;
-    --sapSurface:      #ffffff;
-    --sapBorder:       #e0e0e0;
+    --sapBg:           var(--sapBackgroundColor, #f5f6fa);
+    --sapSurface:      var(--sapGroup_ContentBackground, #ffffff);
+    --sapBorder:       var(--sapGroup_ContentBorderColor, #e0e0e0);
     --sapBorderFocus:  #0070f2;
-    --sapText:         #1d2d3e;
+    --sapText:         var(--sapTextColor, #1d2d3e);
     --sapTextLight:    #556b82;
     --sapShadowSm:     0 1px 4px rgba(0,0,0,0.06);
     --sapShadowMd:     0 4px 16px rgba(0,0,0,0.08);
@@ -346,6 +346,138 @@ html, body, html.sap-desktop, .sapUiBody {
 
 .chartLegendRow {
     gap: 0.75rem;
+}
+
+/* ===== v2.1.0: Analytics Redesign – New Layout Classes ===== */
+
+/* Team KPI cards — larger, more spacious grid */
+.sapCoursesApp .teamAnalyticsContainer {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.sapCoursesApp .teamKpiCard {
+    min-height: 140px;
+    padding: 1rem;
+}
+
+.sapCoursesApp .teamKpiCard .sapUiIcon {
+    font-size: 2rem !important;
+}
+
+/* User analytics grid — 4 KPI cards responsive */
+.sapCoursesApp .userAnalyticsContainer {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+}
+
+/* Full-width completion bar card */
+.sapCoursesApp .completionBarCard {
+    padding: 1rem 1.5rem;
+    border-radius: var(--sapRadius);
+    background: linear-gradient(135deg, rgba(8,84,160,0.04), rgba(10,110,209,0.04));
+    border: 1px solid var(--sapBorder);
+}
+
+.sapCoursesApp .completionBarCard .sapMPI {
+    height: 2.5rem !important;
+    border-radius: 12px;
+}
+
+.sapCoursesApp .completionBarCard .sapMPI .sapMPIBar {
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Completion Hero Card (end-user) */
+.sapCoursesApp .completionHeroCard {
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--sapRadius);
+    background: linear-gradient(135deg, rgba(0,112,242,0.06) 0%, rgba(16,126,62,0.06) 100%);
+    border: 1px solid var(--sapBorder);
+    margin-bottom: 0.75rem;
+}
+
+.sapCoursesApp .completionHeroCard .sapMPI {
+    height: 2.5rem !important;
+    border-radius: 12px;
+}
+
+.sapCoursesApp .completionHeroCard .sapMPI .sapMPIBar {
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sapCoursesApp .completionPctLabel {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--sapAccent1);
+    font-feature-settings: "tnum";
+}
+
+.sapCoursesApp .motivationalText {
+    font-size: 0.8125rem;
+    color: var(--sapNeutral);
+    font-weight: 500;
+}
+
+/* Charts 2-column grid (replaces old 3-column chartsRow) */
+.sapCoursesApp .teamChartsGrid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    padding: 1rem;
+}
+
+@media (max-width: 900px) {
+    .sapCoursesApp .teamChartsGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Team Members full-width list card */
+.sapCoursesApp .teamMembersCard {
+    border-radius: var(--sapRadius);
+    border: 1px solid var(--sapBorder);
+    background: var(--sapSurface);
+    box-shadow: var(--sapShadowSm);
+    padding: 0.5rem;
+}
+
+.sapCoursesApp .teamMembersCard .sapMListHdr {
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--sapText);
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--sapBorder);
+}
+
+/* Overdue pulse animation when count > 0 */
+@keyframes overduePulse {
+    0%, 100% { box-shadow: var(--sapShadowSm); }
+    50% { box-shadow: 0 0 0 4px rgba(187,0,0,0.12), var(--sapShadowSm); }
+}
+
+.sapCoursesApp .analyticsCardRed.hasOverdue {
+    animation: overduePulse 2.5s ease-in-out infinite;
+}
+
+/* Clickable cards — keyboard focus */
+.sapCoursesApp .analyticsCardClickable:focus-visible {
+    outline: 2px solid var(--sapBorderFocus);
+    outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .sapCoursesApp .analyticsCard { transition: none !important; }
+    .sapCoursesApp .analyticsCard:hover { transform: none; }
+    .sapCoursesApp .completionHeroCard .sapMPI .sapMPIBar { transition: none; }
+    .sapCoursesApp .completionBarCard .sapMPI .sapMPIBar { transition: none; }
+    .sapCoursesApp .analyticsCardRed.hasOverdue { animation: none; }
+    .sapCoursesApp .analyticsCard .sapUiIcon { transition: none; }
 }
 
 .sapSuiteRMC {

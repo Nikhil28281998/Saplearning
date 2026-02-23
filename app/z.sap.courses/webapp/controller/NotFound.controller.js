@@ -6,8 +6,10 @@ sap.ui.define([
     return Controller.extend("z.sap.courses.controller.NotFound", {
 
         onNavBack: function () {
-            var oRouter = this.getOwnerComponent().getRouter();
-            oRouter.navTo("TrainingsList", {}, true);
+            var oComponent = this.getOwnerComponent();
+            var sRole = oComponent._role || "User";
+            var sTarget = (sRole === "User") ? "TrainingAssignmentsList" : "TrainingsList";
+            oComponent.getRouter().navTo(sTarget, {}, true);
         }
 
     });

@@ -27,7 +27,8 @@ sap.ui.define([
             return new Promise(function (resolve, reject) {
                 oModel.read("/Trainings", {
                     urlParameters: {
-                        "$inlinecount": "allpages"
+                        "$inlinecount": "allpages",
+                        "$select": "Role,SapModule,Title"
                     },
                     success: function (oData) {
                         var aResults = oData.results || [];

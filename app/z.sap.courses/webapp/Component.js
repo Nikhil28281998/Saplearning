@@ -317,9 +317,13 @@ sap.ui.define([
             // Notify active controllers to refresh data with correct role-based filters
             sap.ui.getCore().getEventBus().publish("sapCourses", "roleChanged", { role: sRole });
 
-            // Role-based landing: User starts at My Assignments (one-time redirect)
-            if (!this._landingApplied) {
+            // Role-based landing: User starts at My Assignments (one-time per session)
+            var bLandingDone = false;
+            try { bLandingDone = sessionStorage.getItem('saplc-landing-done') === 'true'; } catch (_) {}
+
+            if (!this._landingApplied && !bLandingDone) {
                 this._landingApplied = true;
+                try { sessionStorage.setItem('saplc-landing-done', 'true'); } catch (_) {}
                 if (sRole === 'User') {
                     this.getRouter().navTo('TrainingAssignmentsList');
                 }
@@ -406,7 +410,10 @@ sap.ui.define([
             }).then(function (oDialog) {
                 that._assignDlg = oDialog;
                 that._assignDlg.setModel(that._assignModel, "assignModel");
+                that._assignDlg.setModel(that.getModel("i18n"), "i18n");
+                that._assignDlg.setModel(that._userModel, "user");
                 that._assignDlg.addStyleClass("assignTrainingDialog");
+                if (sap.ui.Device.system.phone) { oDialog.setStretch(true); }
                 that._assignDlg.open();
             });
         },
@@ -435,12 +442,12 @@ sap.ui.define([
             var aTrainings = data.trainings || [];
 
             if (aTrainings.length === 0) {
-                oAssignModel.setProperty('/error', 'No trainings selected. Select trainings from the catalog first.');
+                oAssignModel.setProperty('/error', this.getModel("i18n").getResourceBundle().getText("noTrainingsSelected") || 'No trainings selected.');
                 return;
             }
             var aSelectedKeys = data.selectedUserKeys || [];
             if (aSelectedKeys.length === 0) {
-                oAssignModel.setProperty('/error', 'Please select at least one team member');
+                oAssignModel.setProperty('/error', this.getModel("i18n").getResourceBundle().getText("selectTeamMember") || 'Please select at least one team member');
                 return;
             }
             oAssignModel.setProperty('/error', '');
@@ -495,6 +502,7 @@ sap.ui.define([
             });
 
             var iSuccess = 0, iFailCount = 0, aErrors = [];
+            var i18nBundle = this.getModel("i18n").getResourceBundle();
             var fnCreateNext = function (idx) {
                 if (idx >= aCombinations.length) {
                     // All done
@@ -504,11 +512,9 @@ sap.ui.define([
                         if (that._assignDlg) { that._assignDlg.close(); }
                         oModel.refresh(true);
                         that.navigateToTraining();
-                        MessageToast.show(iSuccess + ' assignment(s) created' +
-                            (aTrainings.length > 1 ? ' (' + aTrainings.length + ' trainings x ' + aSelectedKeys.length + ' users)' : '') +
-                            (iFailCount > 0 ? ' — ' + iFailCount + ' failed' : ''));
+                        MessageToast.show(i18nBundle.getText("assignSuccess") || (iSuccess + ' assignment(s) created'));
                     } else {
-                        oAssignModel.setProperty('/error', 'All assignments failed: ' + aErrors.join('; '));
+                        oAssignModel.setProperty('/error', (i18nBundle.getText("assignFailed") || 'All assignments failed') + ': ' + aErrors.join('; '));
                     }
                     return;
                 }
@@ -553,7 +559,7 @@ sap.ui.define([
             }, function () {
                 oModel.setUseBatch(bWasBatch);
                 oAssignModel.setProperty('/submitting', false);
-                oAssignModel.setProperty('/error', 'Security token refresh failed. Please reload the app.');
+                oAssignModel.setProperty('/error', i18nBundle.getText("securityTokenFailed") || 'Security token refresh failed.');
             });
         },
 
@@ -567,6 +573,9 @@ sap.ui.define([
         },
 
         destroy: function () {
+            // Clear session landing flag
+            try { sessionStorage.removeItem('saplc-landing-done'); } catch (_) {}
+
             // Remove window event listeners (fix memory leaks)
             if (this._fnGlobalError) {
                 window.removeEventListener('error', this._fnGlobalError);
