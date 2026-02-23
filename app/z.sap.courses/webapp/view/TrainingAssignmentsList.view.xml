@@ -11,7 +11,8 @@
     <Page
         id="assignmentsListPage"
         title="{i18n>myAssignments}"
-        showNavButton="false"
+        showNavButton="true"
+        navButtonPress="onNavBack"
         enableScrolling="true"
         class="sapUiResponsivePadding--header sapUiResponsivePadding--content assignmentsPage">
 

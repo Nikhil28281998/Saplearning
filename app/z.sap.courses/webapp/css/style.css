@@ -319,13 +319,13 @@ html, body, html.sap-desktop, .sapUiBody {
     flex-wrap: nowrap !important;
 }
 
-/* ===== Chart Cards – medium-sized, grid-aligned ===== */
+/* ===== Chart Cards – original generous size, grid prevents overlap ===== */
 .chartCard {
     min-width: 0;
     max-width: 100%;
     flex: none;
-    min-height: 16rem;
-    max-height: 22rem;
+    min-height: 240px;
+    max-height: none;
     overflow-y: auto;
     box-sizing: border-box;
     padding: 1rem 1.25rem !important;
