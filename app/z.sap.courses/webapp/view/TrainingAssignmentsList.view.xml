@@ -15,15 +15,7 @@
         enableScrolling="true"
         class="sapUiResponsivePadding--header sapUiResponsivePadding--content assignmentsPage">
 
-        <headerContent>
-            <!-- Role badge -->
-            <ObjectStatus
-                id="assignRoleBadge"
-                text="{user>/role}"
-                icon="sap-icon://role"
-                state="{= ${user>/role} === 'Admin' ? 'Success' : ${user>/role} === 'Manager' ? 'Warning' : 'Information' }"
-                class="sapUiSmallMarginEnd" />
-        </headerContent>
+        <headerContent />
 
         <dependents>
             <core:InvisibleText id="assignmentsFilterLabel" text="{i18n>assignmentsFilterLabel}" />
@@ -166,12 +158,6 @@
                             type="Emphasized"
                             press="onMarkCompletedBtn"
                             class="markCompletedToolbarBtn" />
-                        <Button
-                            id="deassignBtn"
-                            text="{i18n>deassign}"
-                            icon="sap-icon://delete"
-                            type="Reject"
-                            press="onDeassignBtn" />
                         <ToolbarSpacer id="assignToolbarSpacer" />
                         <Button
                             id="assignRefreshBtn"
