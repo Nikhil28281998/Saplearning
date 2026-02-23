@@ -63,7 +63,7 @@
                 visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }">
 
                 <!-- 5 KPI Cards Row -->
-                <HBox id="teamAnalyticsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin teamAnalyticsContainer">
+                <VBox id="teamAnalyticsHBox" class="sapUiSmallMargin teamAnalyticsContainer">
                     <VBox id="teamTotalBox" alignItems="Center" class="analyticsCard teamKpiCard analyticsCardBlue" tooltip="{i18n>clickToFilter}">
                         <core:Icon id="teamTotalIcon" src="sap-icon://group" size="2rem" color="#0854a0" class="sapUiTinyMarginBottom" />
                         <ObjectNumber id="teamTotalCount" number="{teamAnalytics>/totalAssignments}" state="Information" class="analyticsNumber" />
@@ -89,7 +89,7 @@
                         <ObjectNumber id="teamCompletedCount" number="{teamAnalytics>/completed}" state="Success" class="analyticsNumber" />
                         <Text id="teamCompletedLabel" text="{i18n>teamCompleted}" class="analyticsLabel" />
                     </VBox>
-                </HBox>
+                </VBox>
 
                 <!-- Full-Width Completion Progress Bar -->
                 <VBox id="teamCompletionBarCard" class="completionBarCard sapUiSmallMargin">
@@ -112,7 +112,7 @@
                 </VBox>
 
                 <!-- Charts 2-Column Grid: Status Distribution + Top Modules -->
-                <HBox id="teamChartsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin teamChartsGrid">
+                <VBox id="teamChartsHBox" class="sapUiSmallMargin teamChartsGrid">
                     <VBox id="teamStatusChartBox" class="analyticsCard analyticsCardBlue chartCard">
                         <HBox id="teamStatusHeader" alignItems="Center" class="sapUiTinyMarginBottom">
                             <core:Icon id="teamStatusIcon" src="sap-icon://horizontal-bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
@@ -196,7 +196,7 @@
                               text="{i18n>noModuleData}"
                               visible="{= !${analyticsModel>/moduleDistribution} || ${analyticsModel>/moduleDistribution}.length === 0 }" />
                     </VBox>
-                </HBox>
+                </VBox>
 
                 <!-- Team Members List Card -->
                 <VBox id="teamMembersCard" class="teamMembersCard sapUiSmallMargin">

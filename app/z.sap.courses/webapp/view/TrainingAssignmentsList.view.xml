@@ -58,7 +58,7 @@
                 </VBox>
 
                 <!-- 4 KPI Cards -->
-                <HBox id="myProgressHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin userAnalyticsContainer">
+                <VBox id="myProgressHBox" class="sapUiSmallMargin userAnalyticsContainer">
                     <VBox id="myAssignedBox" alignItems="Center" class="analyticsCard analyticsCardOrange" tooltip="{i18n>clickToFilter}">
                         <core:Icon id="myAssignedIcon" src="sap-icon://pending" size="1.5rem" color="#e76500" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
@@ -98,7 +98,7 @@
                             class="analyticsNumber" />
                         <Text id="myCompletedLabel" text="{i18n>completed}" class="analyticsLabel" />
                     </VBox>
-                </HBox>
+                </VBox>
             </Panel>
 
             <!-- SmartFilterBar for Assignments -->
