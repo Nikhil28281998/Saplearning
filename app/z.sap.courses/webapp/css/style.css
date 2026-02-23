@@ -312,23 +312,23 @@ html, body, html.sap-desktop, .sapUiBody {
 .chartsRow {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
-    gap: 1rem !important;
-    padding: 0.5rem 0.75rem !important;
+    gap: 1.25rem !important;
+    padding: 0.75rem 1rem !important;
     width: 100% !important;
     box-sizing: border-box !important;
     flex-wrap: nowrap !important;
 }
 
-/* ===== Chart Cards – compact, grid-aligned ===== */
+/* ===== Chart Cards – medium-sized, grid-aligned ===== */
 .chartCard {
     min-width: 0;
     max-width: 100%;
     flex: none;
-    min-height: auto;
-    max-height: 13rem;
+    min-height: 16rem;
+    max-height: 22rem;
     overflow-y: auto;
     box-sizing: border-box;
-    padding: 0.625rem 0.75rem !important;
+    padding: 1rem 1.25rem !important;
     margin: 0 !important;
 }
 
