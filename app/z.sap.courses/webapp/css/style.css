@@ -364,6 +364,22 @@ html, body, html.sap-desktop, .sapUiBody {
     border-radius: var(--sapRadius);
     background: linear-gradient(135deg, rgba(8,84,160,0.04), rgba(10,110,209,0.04));
     border: 1px solid var(--sapBorder);
+    transition: border-color var(--sapTransition), box-shadow var(--sapTransition);
+}
+
+.completionBarCard:hover {
+    border-color: var(--sapBorderFocus);
+    box-shadow: var(--sapShadowHover);
+    transform: none;
+}
+
+/* Prevent icon/number scaling inside completion bar on hover */
+.completionBarCard:hover .sapUiIcon {
+    transform: none !important;
+}
+
+.completionBarCard:hover .sapMObjectNumber {
+    transform: none !important;
 }
 
 .completionBarCard .sapMPI {
