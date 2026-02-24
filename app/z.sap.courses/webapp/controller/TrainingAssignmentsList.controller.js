@@ -389,7 +389,7 @@ sap.ui.define([
                     }
                     return oFilter;
                 }
-                if ((oFilter.sPath === "Role" || oFilter.sPath === "SapModule" || oFilter.sPath === "Status") &&
+                if ((oFilter.sPath === "Role" || oFilter.sPath === "SapModule") &&
                     oFilter.sOperator && oFilter.sOperator !== FilterOperator.EQ) {
                     return new Filter(oFilter.sPath, FilterOperator.EQ, oFilter.oValue1);
                 }
