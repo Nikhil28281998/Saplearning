@@ -5,23 +5,23 @@
 
 /* ===== CSS Custom Properties (Design Tokens) ===== */
 :root {
-    /* SAP Horizon palette — using theme-aware fallbacks (D-6) */
-    --sapBrand:        var(--sapBrandColor, #0070f2);
+    /* SAP Horizon palette */
+    --sapBrand:        #0070f2;
     --sapBrandDark:    #0054b5;
     --sapBrandLight:   #ebf5ff;
-    --sapAccent1:      var(--sapAccentColor1, #0854a0);
-    --sapAccent2:      var(--sapAccentColor2, #e76500);
-    --sapAccent3:      var(--sapAccentColor3, #0a6ed1);
-    --sapAccent4:      var(--sapAccentColor4, #107e3e);
-    --sapAccent5:      var(--sapAccentColor5, #6c32a9);
+    --sapAccent1:      #0854a0;
+    --sapAccent2:      #e76500;
+    --sapAccent3:      #0a6ed1;
+    --sapAccent4:      #107e3e;
+    --sapAccent5:      #6c32a9;
     --sapAccent6:      #d4e3f5;
     --sapNeutral:      #556b82;
     --sapNeutralLight: #f5f6f7;
-    --sapBg:           var(--sapBackgroundColor, #f5f6fa);
-    --sapSurface:      var(--sapGroup_ContentBackground, #ffffff);
-    --sapBorder:       var(--sapGroup_ContentBorderColor, #e0e0e0);
+    --sapBg:           #f5f6fa;
+    --sapSurface:      #ffffff;
+    --sapBorder:       #e0e0e0;
     --sapBorderFocus:  #0070f2;
-    --sapText:         var(--sapTextColor, #1d2d3e);
+    --sapText:         #1d2d3e;
     --sapTextLight:    #556b82;
     --sapShadowSm:     0 1px 4px rgba(0,0,0,0.06);
     --sapShadowMd:     0 4px 16px rgba(0,0,0,0.08);
@@ -200,22 +200,30 @@ html, body, html.sap-desktop, .sapUiBody {
 
 .analyticsPanel.sapMPanel .sapMPanelContent {
     transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: 1rem !important;
+    padding: 0.5rem !important;
 }
 
-/* ===================================================================
-   ANALYTICS CARDS – FRESH REDESIGN v2.1.2
-   Problem: old cards had max-width:200px, flex constraints, and
-   min-height:120px that fought with CSS Grid, making them tiny.
-   Fix: cards fill grid cells, no max-width, generous sizing.
-   =================================================================== */
+/* Analytics Container – 6 summary cards in a clean row */
+.analyticsContainer {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem 0.75rem;
+}
 
-/* ===== KPI Card Base – fills its grid cell completely ===== */
+/* Analytics Card – Glassmorphism tiles (restored 47d358e sizing) */
 .analyticsCard {
-    min-height: 130px;
+    flex: 1 1 160px;
+    min-width: 160px;
+    max-width: 240px;
+    min-height: 160px;
     padding: 1.25rem 1rem;
     border-radius: var(--sapRadius);
-    background: var(--sapSurface);
+    background: var(--sapGlass);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
     border: 1px solid var(--sapBorder);
     box-shadow: var(--sapShadowSm);
     transition: all var(--sapTransition);
@@ -226,11 +234,32 @@ html, body, html.sap-desktop, .sapUiBody {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    width: 100%;
 }
 
-/* Decorative gradient accent — top border per color */
+/* Decorative gradient orb behind each card */
+.analyticsCard::before {
+    content: '';
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    opacity: 0.08;
+    pointer-events: none;
+    transition: opacity var(--sapTransition);
+}
+
+.analyticsCard:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--sapShadowHover);
+    border-color: var(--sapBorderFocus);
+}
+
+.analyticsCard:hover::before {
+    opacity: 0.14;
+}
+
 .analyticsCardBlue  { border-top: 3px solid var(--sapAccent1); }
 .analyticsCardOrange { border-top: 3px solid var(--sapAccent2); }
 .analyticsCardTeal  { border-top: 3px solid var(--sapAccent3); }
@@ -238,21 +267,21 @@ html, body, html.sap-desktop, .sapUiBody {
 .analyticsCardPurple { border-top: 3px solid var(--sapAccent5); }
 .analyticsCardRed   { border-top: 3px solid var(--sapNegativeColor, #bb0000); }
 
-.analyticsCard:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--sapShadowHover);
-    border-color: var(--sapBorderFocus);
-}
+.analyticsCardBlue::before  { background: var(--sapAccent1); }
+.analyticsCardOrange::before { background: var(--sapAccent2); }
+.analyticsCardTeal::before  { background: var(--sapAccent3); }
+.analyticsCardGreen::before { background: var(--sapAccent4); }
+.analyticsCardPurple::before { background: var(--sapAccent5); }
+.analyticsCardRed::before   { background: var(--sapNegativeColor, #bb0000); }
 
-/* Analytics number – large tabular figures */
+/* Analytics number – tabular figures, NO overflow clipping */
 .analyticsCard .sapMObjectNumber {
-    font-size: 2.5rem !important;
+    font-size: 2rem !important;
     font-weight: 800 !important;
     font-feature-settings: "tnum";
     letter-spacing: -0.02em;
-    line-height: 1.1 !important;
+    line-height: 1.3 !important;
     overflow: visible !important;
-    margin: 0.25rem 0;
 }
 
 .analyticsCard .sapMObjectNumber .sapMObjectNumberText {
@@ -265,275 +294,58 @@ html, body, html.sap-desktop, .sapUiBody {
     font-weight: 700;
     color: var(--sapNeutral);
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-top: 0.25rem;
-    text-align: center;
+    letter-spacing: 0.6px;
+    margin-top: 0.375rem;
 }
 
-/* Analytics icon sizing */
+/* Analytics icon pulse on hover */
 .analyticsCard .sapUiIcon {
     transition: transform var(--sapTransition);
+    font-size: 2.25rem !important;
 }
 
 .analyticsCard:hover .sapUiIcon {
     transform: scale(1.15);
 }
 
-/* ===== Chart Cards – full-width, generous padding ===== */
+/* ===== Charts Row – CSS Grid 3-column layout ===== */
+.chartsRow {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 1.25rem !important;
+    padding: 0.75rem 1rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    flex-wrap: nowrap !important;
+}
+
+/* ===== Chart Cards – original size, CSS Grid prevents overlap ===== */
 .chartCard {
     min-width: 0;
-    width: 100%;
-    min-height: 220px;
+    max-width: 100%;
+    flex: none;
+    min-height: 200px;
     max-height: none;
     overflow-y: auto;
     box-sizing: border-box;
-    padding: 1.25rem 1.5rem !important;
+    padding: 1rem 1.25rem !important;
     margin: 0 !important;
 }
 
-/* Status Distribution + Module chart bars — rounded corners */
-.sapCoursesApp .chartCard .sapMPI {
-    border-radius: 8px;
-}
-
-.sapCoursesApp .chartCard .sapMPI .sapMPIBar {
-    border-radius: 8px;
-}
-
 .chartTitle {
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     font-weight: 700;
     color: var(--sapText);
 }
 
 .chartLegendText {
-    font-size: 0.75rem;
-    color: var(--sapNeutral);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-}
-
-.chartLegendRow {
-    gap: 0.75rem;
-}
-
-/* ===================================================================
-   v2.1.2: ANALYTICS LAYOUT – FRESH REDESIGN
-   Cards fill grid, no max-width cap, generous sizing.
-   =================================================================== */
-
-/* ===== TEAM ANALYTICS (Manager/Admin) – 5 KPI cards ===== */
-.sapCoursesApp .teamAnalyticsContainer {
-    display: grid !important;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 1rem;
-    padding: 0;
-    width: 100%;
-}
-
-/* Responsive: 3 cols on medium, 2 on small, 1 on phone */
-@media (max-width: 1100px) {
-    .sapCoursesApp .teamAnalyticsContainer {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-@media (max-width: 720px) {
-    .sapCoursesApp .teamAnalyticsContainer {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-@media (max-width: 480px) {
-    .sapCoursesApp .teamAnalyticsContainer {
-        grid-template-columns: 1fr;
-    }
-}
-
-.sapCoursesApp .teamKpiCard {
-    min-height: 150px;
-    padding: 1.25rem 1rem;
-}
-
-.sapCoursesApp .teamKpiCard .sapUiIcon {
-    font-size: 2rem !important;
-    margin-bottom: 0.375rem;
-}
-
-.sapCoursesApp .teamKpiCard .sapMObjectNumber {
-    font-size: 2.75rem !important;
-}
-
-/* ===== USER ANALYTICS (End-User) – 4 KPI cards ===== */
-.sapCoursesApp .userAnalyticsContainer {
-    display: grid !important;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    padding: 0;
-    width: 100%;
-}
-
-@media (max-width: 900px) {
-    .sapCoursesApp .userAnalyticsContainer {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-@media (max-width: 480px) {
-    .sapCoursesApp .userAnalyticsContainer {
-        grid-template-columns: 1fr;
-    }
-}
-
-.sapCoursesApp .userAnalyticsContainer .analyticsCard {
-    min-height: 130px;
-}
-
-/* ===== COMPLETION BAR CARD (Team) ===== */
-.sapCoursesApp .completionBarCard {
-    padding: 1.25rem 1.5rem;
-    border-radius: var(--sapRadius);
-    background: linear-gradient(135deg, rgba(8,84,160,0.05), rgba(10,110,209,0.05));
-    border: 1px solid var(--sapBorder);
-    box-shadow: var(--sapShadowSm);
-}
-
-.sapCoursesApp .completionBarCard .sapMPI {
-    height: 2.5rem !important;
-    border-radius: 12px;
-}
-
-.sapCoursesApp .completionBarCard .sapMPI .sapMPIBar {
-    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 12px;
-}
-
-/* ===== COMPLETION HERO CARD (End-User) ===== */
-.sapCoursesApp .completionHeroCard {
-    padding: 1.5rem 1.75rem;
-    border-radius: var(--sapRadius);
-    background: linear-gradient(135deg, rgba(0,112,242,0.06) 0%, rgba(16,126,62,0.06) 100%);
-    border: 1px solid var(--sapBorder);
-    margin-bottom: 0.5rem;
-    box-shadow: var(--sapShadowSm);
-}
-
-.sapCoursesApp .completionHeroCard .sapMPI {
-    height: 3rem !important;
-    border-radius: 12px;
-}
-
-.sapCoursesApp .completionHeroCard .sapMPI .sapMPIBar {
-    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 12px;
-}
-
-/* Completion percentage label */
-.sapCoursesApp .completionPctLabel {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--sapAccent1);
-    font-feature-settings: "tnum";
-}
-
-/* Subtitle text below progress bar */
-.sapCoursesApp .motivationalText {
-    font-size: 0.875rem;
+    font-size: 0.6875rem;
     color: var(--sapNeutral);
     font-weight: 500;
 }
 
-/* Motivational emoji text */
-.sapCoursesApp .motivationalTextEmoji {
-    font-size: 0.9375rem;
-    color: var(--sapAccent1);
-    font-weight: 600;
-    font-style: italic;
-}
-
-/* ===== MODULE BAR CHART ===== */
-.sapCoursesApp .moduleBarRow {
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.sapCoursesApp .moduleBarLabel {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--sapText);
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    min-width: 8rem;
-    flex-shrink: 0;
-}
-
-.sapCoursesApp .moduleProgressBar.sapMPI {
-    border-radius: 8px;
-    height: 2.25rem !important;
-}
-
-.sapCoursesApp .moduleProgressBar .sapMPIBar {
-    border-radius: 8px;
-    background: linear-gradient(135deg, var(--sapAccent3), var(--sapAccent1)) !important;
-}
-
-/* ===== CHARTS 2-COLUMN GRID ===== */
-.sapCoursesApp .teamChartsGrid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-    padding: 0;
-    width: 100%;
-}
-
-@media (max-width: 900px) {
-    .sapCoursesApp .teamChartsGrid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ===== TEAM MEMBERS LIST CARD ===== */
-.sapCoursesApp .teamMembersCard {
-    border-radius: var(--sapRadius);
-    border: 1px solid var(--sapBorder);
-    background: var(--sapSurface);
-    box-shadow: var(--sapShadowSm);
-    padding: 0.75rem;
-}
-
-.sapCoursesApp .teamMembersCard .sapMListHdr {
-    font-weight: 700;
-    font-size: 0.875rem;
-    color: var(--sapText);
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--sapBorder);
-}
-
-/* Overdue pulse animation when count > 0 */
-@keyframes overduePulse {
-    0%, 100% { box-shadow: var(--sapShadowSm); }
-    50% { box-shadow: 0 0 0 4px rgba(187,0,0,0.12), var(--sapShadowSm); }
-}
-
-.sapCoursesApp .analyticsCardRed.hasOverdue {
-    animation: overduePulse 2.5s ease-in-out infinite;
-}
-
-/* Clickable cards — keyboard focus */
-.sapCoursesApp .analyticsCardClickable:focus-visible {
-    outline: 2px solid var(--sapBorderFocus);
-    outline-offset: 2px;
-}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-    .sapCoursesApp .analyticsCard { transition: none !important; }
-    .sapCoursesApp .analyticsCard:hover { transform: none; }
-    .sapCoursesApp .completionHeroCard .sapMPI .sapMPIBar { transition: none; }
-    .sapCoursesApp .completionBarCard .sapMPI .sapMPIBar { transition: none; }
-    .sapCoursesApp .analyticsCardRed.hasOverdue { animation: none; }
-    .sapCoursesApp .analyticsCard .sapUiIcon { transition: none; }
+.chartLegendRow {
+    gap: 0.75rem;
 }
 
 .sapSuiteRMC {
@@ -558,8 +370,8 @@ html, body, html.sap-desktop, .sapUiBody {
 /* Team Completed card – compact number */
 #teamCompletedCount.sapMObjectNumber {
     font-size: 2.5rem !important;
-    min-width: 0;
-    min-height: 0;
+    min-width: auto;
+    min-height: auto;
     display: flex !important;
     align-items: center;
     justify-content: center;
@@ -1112,7 +924,7 @@ html, body, html.sap-desktop, .sapUiBody {
         flex: 1 1 auto;
         min-width: 100% !important;
         max-width: 100% !important;
-        min-height: 80px;
+        min-height: 120px;
     }
 
     .chartsRow {
@@ -1129,7 +941,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .analyticsCard .sapUiIcon {
-        font-size: 1.25rem !important;
+        font-size: 1.75rem !important;
     }
 
     .sapMPage > .sapMPageHeader .sapMBar .sapMTitle {
@@ -1149,9 +961,9 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .analyticsCard {
-        flex: 1 1 calc(33% - 1rem);
-        min-width: 100px;
-        max-width: 33%;
+        flex: 1 1 calc(50% - 1rem);
+        min-width: 140px;
+        max-width: 50%;
     }
 
     .analyticsCard .sapMObjectNumber {
@@ -1159,7 +971,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .analyticsCard .sapUiIcon {
-        font-size: 1.5rem !important;
+        font-size: 2rem !important;
     }
 
     .chartsRow {
@@ -1168,7 +980,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartCard {
-        max-height: 12rem;
+        min-height: 180px;
     }
 }
 
@@ -1176,8 +988,8 @@ html, body, html.sap-desktop, .sapUiBody {
 @media (min-width: 1025px) and (max-width: 1440px) {
     .analyticsCard {
         flex: 1 1 0;
-        min-width: 110px;
-        max-width: 16%;
+        min-width: 128px;
+        max-width: 20%;
     }
 
     .analyticsCard .sapMObjectNumber {
@@ -1185,7 +997,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .analyticsCard .sapUiIcon {
-        font-size: 1.75rem !important;
+        font-size: 2.25rem !important;
     }
 
     .chartsRow {
@@ -1197,8 +1009,8 @@ html, body, html.sap-desktop, .sapUiBody {
 @media (min-width: 1441px) and (max-width: 1920px) {
     .analyticsCard {
         flex: 1 1 0;
-        min-width: 130px;
-        max-width: 16%;
+        min-width: 160px;
+        max-width: 18%;
     }
 
     .chartsRow {
@@ -1214,28 +1026,32 @@ html, body, html.sap-desktop, .sapUiBody {
 @media (min-width: 1921px) and (max-width: 2560px) {
     .analyticsCard {
         flex: 1 1 0;
-        min-width: 160px;
-        max-width: 14%;
+        min-width: 180px;
+        max-width: 16%;
     }
 
     .analyticsCard .sapMObjectNumber {
-        font-size: 2.5rem !important;
+        font-size: 2.25rem !important;
     }
 
     .analyticsCard .sapUiIcon {
-        font-size: 2rem !important;
+        font-size: 2.5rem !important;
     }
 
     .analyticsCard .sapSuiteRMC,
     .analyticsCard .sapSuiteRMC svg {
-        min-width: 100px !important;
-        min-height: 100px !important;
-        width: 100px !important;
-        height: 100px !important;
+        min-width: 120px !important;
+        min-height: 120px !important;
+        width: 120px !important;
+        height: 120px !important;
     }
 
     .chartsRow {
         grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    .chartCard {
+        min-height: 280px;
     }
 
     .sapUiTableCol {
@@ -1251,32 +1067,42 @@ html, body, html.sap-desktop, .sapUiBody {
 @media (min-width: 2561px) {
     .analyticsCard {
         flex: 1 1 0;
-        min-width: 180px;
-        max-width: 12%;
+        min-width: 220px;
+        max-width: 14%;
     }
 
     .analyticsCard .sapMObjectNumber {
-        font-size: 2.75rem !important;
+        font-size: 2.5rem !important;
     }
 
     .analyticsCard .sapUiIcon {
-        font-size: 2.25rem !important;
+        font-size: 3rem !important;
     }
 
     .analyticsLabel {
-        font-size: 0.9375rem;
+        font-size: 0.875rem;
     }
 
     .analyticsCard .sapSuiteRMC,
     .analyticsCard .sapSuiteRMC svg {
-        min-width: 110px !important;
-        min-height: 110px !important;
-        width: 110px !important;
-        height: 110px !important;
+        min-width: 140px !important;
+        min-height: 140px !important;
+        width: 140px !important;
+        height: 140px !important;
     }
 
     .chartsRow {
         grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    .chartCard {
+        min-height: 320px;
+    }
+
+    .chartCard .sapSuiteSBMCBarCntr,
+    .chartCard .sapSuiteSBMCBar {
+        min-height: 140px !important;
+        height: 140px !important;
     }
 
     .sapUiTableCol {
