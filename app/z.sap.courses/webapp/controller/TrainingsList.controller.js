@@ -64,6 +64,12 @@ sap.ui.define([
             };
             sap.ui.getCore().getEventBus().subscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
 
+            // Re-load data when userId is resolved from backend (async)
+            this._onUserIdResolved = function () {
+                that._loadAllData();
+            };
+            sap.ui.getCore().getEventBus().subscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
+
             // F2: Wire Team Analytics card click handlers for drill-down
             this._aTeamCardIds = ["teamTotalBox", "teamAssignedBox", "teamInProgressBox", "teamOverdueBox", "teamCompletedBox"];
             var aTeamCards = [
@@ -90,6 +96,7 @@ sap.ui.define([
          */
         onExit: function () {
             sap.ui.getCore().getEventBus().unsubscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
+            sap.ui.getCore().getEventBus().unsubscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
             var that = this;
             if (this._aTeamCardIds) {
                 this._aTeamCardIds.forEach(function (id) {

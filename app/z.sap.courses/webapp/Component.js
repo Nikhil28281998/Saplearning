@@ -38,17 +38,19 @@ sap.ui.define([
                 this._userContext = new UserContext();
                 this._diagnosticsInit();
 
-                // Wait for OData metadata, then detect entity sets, fetch role, verify health
+                // Wait for OData metadata, then detect entity sets, fetch role + userId
                 var oModel = this.getModel();
                 if (oModel && oModel.metadataLoaded) {
                     oModel.metadataLoaded().then(function () {
                         this._detectEntitySets();
                         this._fetchRole();
+                        this._fetchUserIdFromBackend();
                     }.bind(this));
                 } else {
                     // Fallback if model not yet available
                     this._detectEntitySets();
                     this._fetchRole();
+                    this._fetchUserIdFromBackend();
                 }
 
                 // UI-11: Register OData model with MessageManager for global error collection
@@ -209,9 +211,54 @@ sap.ui.define([
                     }
                 } catch (_) { /* ignore */ }
                 this._userModel.setProperty("/userId", "DEVUSER");
-                Log.info("User ID defaulted to DEVUSER (dev mode)");
+                Log.info("User ID defaulted to DEVUSER (dev mode, will be updated from backend)");
             }
         },
+
+        /**
+         * Fetch userId from backend getCurrentUser function.
+         * This resolves the correct sapUsername from the authenticated session
+         * regardless of environment (BAS, localhost, FLP).
+         */
+        _fetchUserIdFromBackend: function () {
+            var that = this;
+            var oModel = this.getModel();
+            if (!oModel || !oModel.callFunction) { return; }
+
+            var bWasBatch = oModel.bUseBatch;
+            oModel.setUseBatch(false);
+            oModel.callFunction("/getCurrentUser", {
+                method: "GET",
+                success: function (oData) {
+                    oModel.setUseBatch(bWasBatch);
+                    var sUserId = "";
+                    if (oData) {
+                        if (oData.getCurrentUser && typeof oData.getCurrentUser === "object") {
+                            sUserId = oData.getCurrentUser.value || oData.getCurrentUser.Value || "";
+                        } else if (typeof oData.getCurrentUser === "string") {
+                            sUserId = oData.getCurrentUser;
+                        } else if (oData.value) {
+                            sUserId = oData.value;
+                        } else if (typeof oData === "string") {
+                            sUserId = oData;
+                        }
+                    }
+                    if (sUserId) {
+                        sUserId = sUserId.toUpperCase();
+                        that._userModel.setProperty("/userId", sUserId);
+                        Log.info("User ID from backend getCurrentUser: " + sUserId);
+                        // Refresh any data that was loaded with the old userId
+                        sap.ui.getCore().getEventBus().publish("sapCourses", "userIdResolved", { userId: sUserId });
+                    }
+                },
+                error: function (err) {
+                    oModel.setUseBatch(bWasBatch);
+                    Log.warning("getCurrentUser failed: " + (err && err.message || "") +
+                        ". Using fallback userId: " + that._userModel.getProperty("/userId"));
+                }
+            });
+        },
+
 
         /**
          * Fetch user role from S/4 via UserContext service

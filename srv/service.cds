@@ -62,6 +62,7 @@ service SAPLearningService {
     // ========================================================================
     
     function getCurrentRole() returns String;
+    function getCurrentUser() returns String;
 
     // NEW-8: Server-side team analytics aggregation
     // Returns pre-aggregated counts + user breakdown so the client

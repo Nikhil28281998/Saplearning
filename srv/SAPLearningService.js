@@ -156,6 +156,15 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
     });
 
     // ============================================================================
+    // FUNCTION: Get Current User's SAP Username (for UI data filtering)
+    // ============================================================================
+
+    this.on('getCurrentUser', async (req) => {
+      const userCtx = getUserContext(req);
+      return userCtx.sapUsername;
+    });
+
+    // ============================================================================
     // NEW-8: FUNCTION: Server-side Team Analytics Aggregation
     // ============================================================================
 
