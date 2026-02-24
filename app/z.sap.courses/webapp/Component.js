@@ -317,17 +317,8 @@ sap.ui.define([
             // Notify active controllers to refresh data with correct role-based filters
             sap.ui.getCore().getEventBus().publish("sapCourses", "roleChanged", { role: sRole });
 
-            // Role-based landing: User starts at My Assignments (one-time per session)
-            var bLandingDone = false;
-            try { bLandingDone = sessionStorage.getItem('saplc-landing-done') === 'true'; } catch (_) {}
-
-            if (!this._landingApplied && !bLandingDone) {
-                this._landingApplied = true;
-                try { sessionStorage.setItem('saplc-landing-done', 'true'); } catch (_) {}
-                if (sRole === 'User') {
-                    this.getRouter().navTo('TrainingAssignmentsList');
-                }
-            }
+            // All roles land on TrainingsList (default route) — no redirect needed.
+            // Users can navigate to My Assignments via the "My Assignments" button.
         },
 
         // Navigate to TrainingAssignments
@@ -573,9 +564,6 @@ sap.ui.define([
         },
 
         destroy: function () {
-            // Clear session landing flag
-            try { sessionStorage.removeItem('saplc-landing-done'); } catch (_) {}
-
             // Remove window event listeners (fix memory leaks)
             if (this._fnGlobalError) {
                 window.removeEventListener('error', this._fnGlobalError);

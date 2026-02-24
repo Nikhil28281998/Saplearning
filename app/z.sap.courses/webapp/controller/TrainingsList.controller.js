@@ -456,7 +456,10 @@ sap.ui.define([
             var oDialog = this._teamDrillDownDlg;
             if (!oDialog) { return; }
 
-            var oTable = this.byId("teamDrillDownTable");
+            // Fragment is loaded with a dynamic id prefix (Date.now()),
+            // so this.byId() cannot find the table. Get it from dialog content instead.
+            var aContent = oDialog.getContent();
+            var oTable = aContent && aContent.length > 0 ? aContent[0] : null;
             if (!oTable) { return; }
 
             var aSelectedItems = oTable.getSelectedItems();
