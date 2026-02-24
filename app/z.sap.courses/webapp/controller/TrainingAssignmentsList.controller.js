@@ -132,7 +132,7 @@ sap.ui.define([
                         else if (sStat === "Completed") { iCompleted++; }
                     });
 
-                    // Overdue: DueDate < today AND not Completed
+                    // Overdue: DueDate <= today AND not Completed
                     var sToday = new Date().toISOString().slice(0, 10).replace(/-/g, "");
                     var iOverdue = 0;
                     aAll.forEach(function (a) {
@@ -145,7 +145,7 @@ sap.ui.define([
                             } else if (typeof dDue === "string") {
                                 sDue = dDue.replace(/-/g, "").slice(0, 8);
                             }
-                            if (sDue && sDue < sToday) { iOverdue++; }
+                            if (sDue && sDue <= sToday) { iOverdue++; }
                         }
                     });
 
@@ -277,14 +277,17 @@ sap.ui.define([
                             text: {
                                 parts: [{ path: "Status" }, { path: "DueDate" }],
                                 formatter: function (sStatus, dDue) {
-                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < new Date();
+                                    // Overdue = due today or in the past, and not Completed
+                                    var dNow = new Date(); dNow.setHours(23, 59, 59, 999);
+                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) <= dNow;
                                     return bOverdue ? sStatus + " (Overdue)" : sStatus;
                                 }
                             },
                             state: {
                                 parts: [{ path: "Status" }, { path: "DueDate" }],
                                 formatter: function (sStatus, dDue) {
-                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < new Date();
+                                    var dNow = new Date(); dNow.setHours(23, 59, 59, 999);
+                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) <= dNow;
                                     if (bOverdue) { return "Error"; }
                                     return sStatus === "Completed" ? "Success" :
                                            sStatus === "In Progress" ? "Information" : "Warning";
@@ -293,7 +296,8 @@ sap.ui.define([
                             icon: {
                                 parts: [{ path: "Status" }, { path: "DueDate" }],
                                 formatter: function (sStatus, dDue) {
-                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < new Date();
+                                    var dNow = new Date(); dNow.setHours(23, 59, 59, 999);
+                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) <= dNow;
                                     if (bOverdue) { return "sap-icon://alert"; }
                                     return sStatus === "Completed" ? "sap-icon://accept" :
                                            sStatus === "In Progress" ? "sap-icon://activity-2" : "sap-icon://pending";
@@ -415,12 +419,20 @@ sap.ui.define([
                     mBindingParams.filters.push(new Filter("Status", FilterOperator.EQ, sStatusKey));
                     Log.info("[AssignFilter] Status filter: " + sStatusKey);
                 } else if (sStatusKey === "Overdue") {
-                    // Overdue = not Completed + DueDate < today (both server-side, same pattern as Assigned/In Progress)
-                    mBindingParams.filters.push(new Filter("Status", FilterOperator.NE, "Completed"));
+                    // Overdue = (Assigned OR In Progress) AND DueDate < today
+                    // Use explicit EQ filters instead of NE (more reliable on ABAP Gateway)
+                    var oStatusFilter = new Filter({
+                        filters: [
+                            new Filter("Status", FilterOperator.EQ, "Assigned"),
+                            new Filter("Status", FilterOperator.EQ, "In Progress")
+                        ],
+                        and: false  // OR
+                    });
+                    mBindingParams.filters.push(oStatusFilter);
                     var dToday = new Date();
-                    dToday.setHours(0, 0, 0, 0);
-                    mBindingParams.filters.push(new Filter("DueDate", FilterOperator.LT, dToday));
-                    Log.info("[AssignFilter] Overdue server-side filter: Status NE Completed AND DueDate LT " + dToday.toISOString());
+                    dToday.setHours(23, 59, 59, 999);
+                    mBindingParams.filters.push(new Filter("DueDate", FilterOperator.LE, dToday));
+                    Log.info("[AssignFilter] Overdue filter: (Assigned OR In Progress) AND DueDate LE " + dToday.toISOString());
                 }
             }
 

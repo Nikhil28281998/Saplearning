@@ -333,7 +333,7 @@ sap.ui.define([
                             } else if (typeof dDue === "string") {
                                 sDue = dDue.replace(/-/g, "").slice(0, 8);
                             }
-                            if (sDue && sDue < sToday) { iOverdue++; }
+                            if (sDue && sDue <= sToday) { iOverdue++; }
                         }
                     });
 
@@ -416,7 +416,7 @@ sap.ui.define([
                     } else if (typeof dDue === "string") {
                         sDue = dDue.replace(/-/g, "").slice(0, 8);
                     }
-                    return sDue && sDue < sToday;
+                    return sDue && sDue <= sToday;
                 });
             } else if (sStatusFilter) {
                 aFiltered = aAll.filter(function (a) {
