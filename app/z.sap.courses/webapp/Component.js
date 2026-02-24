@@ -312,10 +312,14 @@ sap.ui.define([
          */
         _applyRoleUI: function () {
             var sRole = this._role || 'User';
+            var sPrevRole = this._userModel.getProperty('/role');
             Log.info('User role applied: ' + sRole);
             this._userModel.setProperty("/role", sRole);
-            // Notify active controllers to refresh data with correct role-based filters
-            sap.ui.getCore().getEventBus().publish("sapCourses", "roleChanged", { role: sRole });
+            // Only publish roleChanged if the role actually changed — prevents
+            // redundant refreshes that cause navigation flicker/redirect loops
+            if (sRole !== sPrevRole) {
+                sap.ui.getCore().getEventBus().publish("sapCourses", "roleChanged", { role: sRole });
+            }
 
             // All roles land on TrainingsList (default route) — no redirect needed.
             // Users can navigate to My Assignments via the "My Assignments" button.
@@ -502,7 +506,7 @@ sap.ui.define([
                     if (iSuccess > 0) {
                         if (that._assignDlg) { that._assignDlg.close(); }
                         oModel.refresh(true);
-                        that.navigateToTraining();
+                        // Stay on current page (TrainingsList) — do NOT navigate away
                         MessageToast.show(i18nBundle.getText("assignSuccess") || (iSuccess + ' assignment(s) created'));
                     } else {
                         oAssignModel.setProperty('/error', (i18nBundle.getText("assignFailed") || 'All assignments failed') + ': ' + aErrors.join('; '));

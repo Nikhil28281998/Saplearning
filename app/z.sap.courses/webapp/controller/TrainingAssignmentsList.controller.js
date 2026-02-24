@@ -116,22 +116,26 @@ sap.ui.define([
                 success: function (oData) {
                     var aAll = oData.results || [];
                     var iAssigned = 0, iInProgress = 0, iCompleted = 0;
+                    // Handle both PascalCase (ABAP/V2) and camelCase (CAP) field names
                     aAll.forEach(function (a) {
-                        if (a.Status === "Assigned") { iAssigned++; }
-                        else if (a.Status === "In Progress") { iInProgress++; }
-                        else if (a.Status === "Completed") { iCompleted++; }
+                        var sStat = a.Status || a.status || "";
+                        if (sStat === "Assigned") { iAssigned++; }
+                        else if (sStat === "In Progress") { iInProgress++; }
+                        else if (sStat === "Completed") { iCompleted++; }
                     });
 
                     // Overdue: DueDate < today AND not Completed
                     var sToday = new Date().toISOString().slice(0, 10).replace(/-/g, "");
                     var iOverdue = 0;
                     aAll.forEach(function (a) {
-                        if (a.Status !== "Completed" && a.DueDate) {
+                        var sStat2 = a.Status || a.status || "";
+                        var dDue = a.DueDate || a.dueDate;
+                        if (sStat2 !== "Completed" && dDue) {
                             var sDue = "";
-                            if (a.DueDate instanceof Date) {
-                                sDue = a.DueDate.toISOString().slice(0, 10).replace(/-/g, "");
-                            } else if (typeof a.DueDate === "string") {
-                                sDue = a.DueDate.replace(/-/g, "").slice(0, 8);
+                            if (dDue instanceof Date) {
+                                sDue = dDue.toISOString().slice(0, 10).replace(/-/g, "");
+                            } else if (typeof dDue === "string") {
+                                sDue = dDue.replace(/-/g, "").slice(0, 8);
                             }
                             if (sDue && sDue < sToday) { iOverdue++; }
                         }

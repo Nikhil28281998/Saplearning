@@ -13,6 +13,7 @@
         title="{i18n>myAssignments}"
         showNavButton="true"
         navButtonPress="onNavBack"
+        navButtonTooltip="{i18n>backToCourses}"
         enableScrolling="true"
         class="sapUiResponsivePadding--header sapUiResponsivePadding--content assignmentsPage">
 
