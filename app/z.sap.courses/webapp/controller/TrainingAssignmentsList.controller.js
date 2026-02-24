@@ -193,10 +193,6 @@ sap.ui.define([
                 // (idempotent — skips cells already replaced)
                 oTable.attachUpdateFinished(function () {
                     that._applyAssignmentColumnTemplates(oTable);
-                    // A-2: Apply client-side overdue filter after server data arrives
-                    if (that._overdueFilter) {
-                        that._clientFilterOverdue();
-                    }
                 });
             }
         },
@@ -367,14 +363,6 @@ sap.ui.define([
          * Pass empty string to clear the status filter.
          */
         _filterByStatus: function (sStatus) {
-            // Store Overdue flag for onBeforeRebindTable (not a real OData status)
-            this._overdueFilter = (sStatus === "Overdue");
-
-            // Reset row visibility when switching away from Overdue
-            if (!this._overdueFilter) {
-                this._resetOverdueVisibility();
-            }
-
             var oSelect = this.byId("filterAssignStatus");
             if (oSelect) {
                 // For Overdue, set dropdown to "Overdue"; for others set normally
@@ -384,19 +372,6 @@ sap.ui.define([
             if (oSmartFilterBar) {
                 oSmartFilterBar.search();
             }
-        },
-
-        /**
-         * Reset row visibility after overdue client-side filter is cleared.
-         */
-        _resetOverdueVisibility: function () {
-            var oSmartTable = this.byId("assignSmartTable");
-            if (!oSmartTable) { return; }
-            var oTable = oSmartTable.getTable();
-            if (!oTable || !oTable.getItems) { return; }
-            oTable.getItems().forEach(function (oItem) {
-                oItem.setVisible(true);
-            });
         },
 
         /**
@@ -440,11 +415,12 @@ sap.ui.define([
                     mBindingParams.filters.push(new Filter("Status", FilterOperator.EQ, sStatusKey));
                     Log.info("[AssignFilter] Status filter: " + sStatusKey);
                 } else if (sStatusKey === "Overdue") {
-                    // Overdue = not Completed + DueDate < today
-                    // Server-side: exclude Completed; client-side: filter by DueDate in updateFinished
+                    // Overdue = not Completed + DueDate < today (both server-side, same pattern as Assigned/In Progress)
                     mBindingParams.filters.push(new Filter("Status", FilterOperator.NE, "Completed"));
-                    this._overdueFilter = true;
-                    Log.info("[AssignFilter] Overdue filter active (Status NE Completed + client DueDate check)");
+                    var dToday = new Date();
+                    dToday.setHours(0, 0, 0, 0);
+                    mBindingParams.filters.push(new Filter("DueDate", FilterOperator.LT, dToday));
+                    Log.info("[AssignFilter] Overdue server-side filter: Status NE Completed AND DueDate LT " + dToday.toISOString());
                 }
             }
 
@@ -468,36 +444,6 @@ sap.ui.define([
         /* ===== Nav Back – all roles go to Training Catalog ===== */
         onNavBack: function () {
             this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
-        },
-
-        /**
-         * A-2: Client-side overdue filter — hides non-overdue rows after OData fetch.
-         * Uses row visibility instead of oBinding.filter() to avoid losing the UserId filter.
-         */
-        _clientFilterOverdue: function () {
-            var oTable = this.byId("assignSmartTable").getTable();
-            if (!oTable || !oTable.getItems) { return; }
-            var aItems = oTable.getItems();
-            var sToday = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-
-            aItems.forEach(function (oItem) {
-                var oCtx = oItem.getBindingContext();
-                if (!oCtx) { return; }
-                var dDue = oCtx.getProperty("DueDate") || oCtx.getProperty("dueDate");
-                if (!dDue) {
-                    oItem.setVisible(false); // No due date = can't be overdue
-                    return;
-                }
-                var sDue = "";
-                if (dDue instanceof Date) {
-                    sDue = dDue.toISOString().slice(0, 10).replace(/-/g, "");
-                } else if (typeof dDue === "string") {
-                    sDue = dDue.replace(/-/g, "").slice(0, 8);
-                }
-                // Overdue = DueDate is in the past
-                oItem.setVisible(sDue.length > 0 && sDue < sToday);
-            });
-            Log.info("[AssignFilter] Client-side overdue filter applied: " + aItems.length + " items checked");
         },
 
         /**

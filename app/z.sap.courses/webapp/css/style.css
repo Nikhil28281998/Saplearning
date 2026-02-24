@@ -106,6 +106,16 @@ html, body, html.sap-desktop, .sapUiBody {
     overflow: visible !important;
 }
 
+/* Trainings page – section scrollable so Team Analytics panel + table are accessible on all screens */
+.trainingsPage.sapMPage > section {
+    overflow-y: auto !important;
+}
+
+.trainingsPage .sapUiCompSmartTable {
+    flex: 1 1 auto !important;
+    min-height: 400px !important;
+}
+
 /* ===== Modern Header Bar ===== */
 .sapMPage > .sapMPageHeader .sapMBar,
 .sapMPage > header .sapMBar {
@@ -204,20 +214,21 @@ html, body, html.sap-desktop, .sapUiBody {
     overflow: auto !important;
 }
 
-/* Analytics Container – original flex layout with gap */
+/* Analytics Container – CSS Grid for responsive auto-wrapping */
 .analyticsContainer {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
     gap: 0.75rem;
     width: 100%;
     box-sizing: border-box;
     padding: 0.25rem;
 }
 
-/* Analytics Card – Glassmorphism tiles (square: equal width & height) */
+/* Analytics Card – Glassmorphism tiles */
 .analyticsCard {
-    flex: 1 1 200px;
-    min-width: 200px;
-    max-width: 280px;
-    min-height: 200px;
+    min-width: 0;
+    max-width: none;
+    min-height: 140px;
     padding: 1rem 0.75rem;
     border-radius: var(--sapRadius);
     background: var(--sapGlass);
@@ -987,20 +998,18 @@ html, body, html.sap-desktop, .sapUiBody {
 /* Phone (<=600px): ~5" screens */
 @media (max-width: 600px) {
     .analyticsContainer {
-        flex-direction: column;
+        grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .analyticsCard {
-        flex: 1 1 auto;
-        min-width: 100% !important;
-        max-width: 100% !important;
-        min-height: 140px;
+        min-height: 120px;
+    }
+
+    .userAnalyticsContainer {
+        grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .userAnalyticsContainer .analyticsCard {
-        flex: 1 1 calc(50% - 0.5rem);
-        min-width: calc(50% - 0.5rem) !important;
-        max-width: calc(50% - 0.5rem) !important;
         min-height: 100px;
     }
 
@@ -1009,7 +1018,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartCard {
-        min-width: 100% !important;
+        min-width: 0 !important;
         max-width: 100% !important;
     }
 
@@ -1033,10 +1042,12 @@ html, body, html.sap-desktop, .sapUiBody {
 
 /* Tablet (601-1024px): ~10"-13" screens */
 @media (min-width: 601px) and (max-width: 1024px) {
+    .analyticsContainer {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
     .analyticsCard {
-        flex: 1 1 calc(50% - 1rem);
-        min-width: 180px;
-        max-width: 50%;
+        min-height: 130px;
     }
 
     .analyticsCard .sapMObjectNumber {
@@ -1048,22 +1059,20 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: repeat(3, 1fr) !important;
+        grid-template-columns: 1fr !important;
         gap: 0.75rem !important;
     }
 
     .chartCard {
-        min-width: 45%;
-        max-width: 50%;
+        min-width: 0;
+        max-width: 100%;
     }
 }
 
 /* Small desktop (1025-1440px): ~13"-15" screens */
 @media (min-width: 1025px) and (max-width: 1440px) {
-    .analyticsCard {
-        flex: 1 1 0;
-        min-width: 170px;
-        max-width: 20%;
+    .analyticsContainer {
+        grid-template-columns: repeat(5, 1fr) !important;
     }
 
     .analyticsCard .sapMObjectNumber {
@@ -1085,10 +1094,8 @@ html, body, html.sap-desktop, .sapUiBody {
 
 /* Medium desktop (1441-1920px): ~16"-24" screens */
 @media (min-width: 1441px) and (max-width: 1920px) {
-    .analyticsCard {
-        flex: 1 1 0;
-        min-width: 160px;
-        max-width: 18%;
+    .analyticsContainer {
+        grid-template-columns: repeat(5, 1fr) !important;
     }
 
     .chartsRow {
@@ -1106,10 +1113,8 @@ html, body, html.sap-desktop, .sapUiBody {
 
 /* Large desktop (1921-2560px): ~27"-34" ultrawide screens */
 @media (min-width: 1921px) and (max-width: 2560px) {
-    .analyticsCard {
-        flex: 1 1 0;
-        min-width: 220px;
-        max-width: 16%;
+    .analyticsContainer {
+        grid-template-columns: repeat(5, 1fr) !important;
     }
 
     .analyticsCard .sapMObjectNumber {
@@ -1148,10 +1153,8 @@ html, body, html.sap-desktop, .sapUiBody {
 
 /* Ultra-wide / 4K (2561-3840px): ~34"-50" screens */
 @media (min-width: 2561px) {
-    .analyticsCard {
-        flex: 1 1 0;
-        min-width: 260px;
-        max-width: 14%;
+    .analyticsContainer {
+        grid-template-columns: repeat(5, 1fr) !important;
     }
 
     .analyticsCard .sapMObjectNumber {
