@@ -204,13 +204,26 @@ sap.ui.define([
                     // Handle wrapped response: { getTeamAnalytics: { ... } }
                     if (oData && oData.getTeamAnalytics) { oResult = oData.getTeamAnalytics; }
 
-                    oTeamModel.setProperty("/totalAssignments", oResult.totalAssignments || 0);
-                    oTeamModel.setProperty("/assigned", oResult.assigned || 0);
-                    oTeamModel.setProperty("/inProgress", oResult.inProgress || 0);
-                    oTeamModel.setProperty("/completed", oResult.completed || 0);
-                    oTeamModel.setProperty("/overdue", oResult.overdue || 0);
-                    oTeamModel.setProperty("/completionPercent", oResult.completionPercent || 0);
-                    oTeamModel.setProperty("/userBreakdown", oResult.userBreakdown || []);
+                    // Handle both camelCase (CAP/CDS) and PascalCase (ABAP Gateway) property names
+                    var _g = function (o, cc, pc) { return o[cc] !== undefined ? o[cc] : (o[pc] !== undefined ? o[pc] : 0); };
+                    oTeamModel.setProperty("/totalAssignments", _g(oResult, "totalAssignments", "TotalAssignments"));
+                    oTeamModel.setProperty("/assigned", _g(oResult, "assigned", "Assigned"));
+                    oTeamModel.setProperty("/inProgress", _g(oResult, "inProgress", "InProgress"));
+                    oTeamModel.setProperty("/completed", _g(oResult, "completed", "Completed"));
+                    oTeamModel.setProperty("/overdue", _g(oResult, "overdue", "Overdue"));
+                    oTeamModel.setProperty("/completionPercent", _g(oResult, "completionPercent", "CompletionPercent"));
+
+                    // Normalize userBreakdown to camelCase (view binds to camelCase)
+                    var aRawUsers = oResult.userBreakdown || oResult.UserBreakdown || [];
+                    var aNormUsers = aRawUsers.map(function (u) {
+                        return {
+                            userId:    u.userId    || u.UserId    || "",
+                            userName:  u.userName  || u.UserName  || "",
+                            total:     u.total     !== undefined ? u.total     : (u.Total     || 0),
+                            completed: u.completed !== undefined ? u.completed : (u.Completed || 0)
+                        };
+                    });
+                    oTeamModel.setProperty("/userBreakdown", aNormUsers);
 
                     if (oPanel) { oPanel.setBusy(false); }
 
@@ -286,27 +299,32 @@ sap.ui.define([
                     var iAssigned = 0, iInProgress = 0, iCompleted = 0;
                     var oUserMap = {};
 
+                    // Handle both PascalCase (ABAP/V2) and camelCase (CAP/V4) field names
                     aAll.forEach(function (a) {
-                        if (a.Status === "Assigned") { iAssigned++; }
-                        else if (a.Status === "In Progress") { iInProgress++; }
-                        else if (a.Status === "Completed") { iCompleted++; }
-                        var sUser = a.UserId || "UNKNOWN";
+                        var sStat = a.Status || a.status || "";
+                        if (sStat === "Assigned") { iAssigned++; }
+                        else if (sStat === "In Progress") { iInProgress++; }
+                        else if (sStat === "Completed") { iCompleted++; }
+                        var sUser = a.UserId || a.userId || "UNKNOWN";
+                        var sName = a.UserName || a.userName || sUser;
                         if (!oUserMap[sUser]) {
-                            oUserMap[sUser] = { userId: sUser, userName: a.UserName || sUser, total: 0, completed: 0 };
+                            oUserMap[sUser] = { userId: sUser, userName: sName, total: 0, completed: 0 };
                         }
                         oUserMap[sUser].total++;
-                        if (a.Status === "Completed") { oUserMap[sUser].completed++; }
+                        if (sStat === "Completed") { oUserMap[sUser].completed++; }
                     });
 
                     var sToday = new Date().toISOString().slice(0, 10).replace(/-/g, "");
                     var iOverdue = 0;
                     aAll.forEach(function (a) {
-                        if (a.Status !== "Completed" && a.DueDate) {
+                        var sStat2 = a.Status || a.status || "";
+                        var dDue = a.DueDate || a.dueDate;
+                        if (sStat2 !== "Completed" && dDue) {
                             var sDue = "";
-                            if (a.DueDate instanceof Date) {
-                                sDue = a.DueDate.toISOString().slice(0, 10).replace(/-/g, "");
-                            } else if (typeof a.DueDate === "string") {
-                                sDue = a.DueDate.replace(/-/g, "").slice(0, 8);
+                            if (dDue instanceof Date) {
+                                sDue = dDue.toISOString().slice(0, 10).replace(/-/g, "");
+                            } else if (typeof dDue === "string") {
+                                sDue = dDue.replace(/-/g, "").slice(0, 8);
                             }
                             if (sDue && sDue < sToday) { iOverdue++; }
                         }
@@ -377,22 +395,27 @@ sap.ui.define([
             var aAll = oTeamModel.getProperty("/allAssignments") || [];
             var i18n = this.getView().getModel("i18n").getResourceBundle();
 
-            // Filter by status if specified
+            // Filter by status if specified (handle both PascalCase and camelCase)
             var aFiltered = aAll;
             if (sStatusFilter === "Overdue") {
                 var sToday = new Date().toISOString().slice(0, 10).replace(/-/g, "");
                 aFiltered = aAll.filter(function (a) {
-                    if (a.Status === "Completed" || !a.DueDate) { return false; }
+                    var sStat = a.Status || a.status || "";
+                    var dDue = a.DueDate || a.dueDate;
+                    if (sStat === "Completed" || !dDue) { return false; }
                     var sDue = "";
-                    if (a.DueDate instanceof Date) {
-                        sDue = a.DueDate.toISOString().slice(0, 10).replace(/-/g, "");
-                    } else if (typeof a.DueDate === "string") {
-                        sDue = a.DueDate.replace(/-/g, "").slice(0, 8);
+                    if (dDue instanceof Date) {
+                        sDue = dDue.toISOString().slice(0, 10).replace(/-/g, "");
+                    } else if (typeof dDue === "string") {
+                        sDue = dDue.replace(/-/g, "").slice(0, 8);
                     }
                     return sDue && sDue < sToday;
                 });
             } else if (sStatusFilter) {
-                aFiltered = aAll.filter(function (a) { return a.Status === sStatusFilter; });
+                aFiltered = aAll.filter(function (a) {
+                    var sStat = a.Status || a.status || "";
+                    return sStat === sStatusFilter;
+                });
             }
 
             // Build title

@@ -3,7 +3,7 @@ using { Learning_Data as my } from '../db/schema.cds';
 @path : '/service/SAPLearningService'
 @impl: 'srv/SAPLearningService.js'
 @requires: ['Admin','Manager','User']
-@protocol: 'odata-v4'
+@protocol: 'odata-v2'
 @Capabilities.BatchSupported: true
 @Capabilities.KeyAsSegmentSupported: true
 service SAPLearningService {
