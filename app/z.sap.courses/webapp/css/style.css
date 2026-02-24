@@ -668,6 +668,13 @@ html, body, html.sap-desktop, .sapUiBody {
 }
 
 /* ===== Dialogs – Modern Card Style (scoped to this app) ===== */
+
+/* Block layer: semi-transparent backdrop, not opaque full-page takeover */
+#sap-ui-blocklayer-popup {
+    background: rgba(0, 0, 0, 0.4) !important;
+    opacity: 1 !important;
+}
+
 .sapCoursesApp .sapMDialog {
     border-radius: var(--sapRadius) !important;
     box-shadow: var(--sapShadowLg) !important;
