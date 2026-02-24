@@ -111,7 +111,7 @@
                         class="motivationalText sapUiTinyMarginTop" />
                 </VBox>
 
-                <!-- Charts 2-Column Grid: Status Distribution + Top Modules -->
+                <!-- Charts 3-Column Grid: Status Distribution + Top Modules + User Progress -->
                 <HBox id="teamChartsHBox" class="sapUiSmallMargin chartsRow">
                     <VBox id="teamStatusChartBox" class="analyticsCard analyticsCardBlue chartCard">
                         <HBox id="teamStatusHeader" alignItems="Center" class="sapUiTinyMarginBottom">
@@ -129,7 +129,7 @@
                                     state="Warning"
                                     showValue="true"
                                     width="100%"
-                                    height="2.5rem" />
+                                    height="1.75rem" />
                             </HBox>
                             <HBox id="teamInProgressRow" alignItems="Center" class="sapUiTinyMarginBottom">
                                 <core:Icon id="teamInProgressDot" src="sap-icon://activity-2" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
@@ -141,7 +141,7 @@
                                     state="Information"
                                     showValue="true"
                                     width="100%"
-                                    height="2.5rem" />
+                                    height="1.75rem" />
                             </HBox>
                             <HBox id="teamOverdueRow" alignItems="Center" class="sapUiTinyMarginBottom">
                                 <core:Icon id="teamOverdueDot" src="sap-icon://alert" size="1rem" color="#bb0000" class="sapUiTinyMarginEnd" />
@@ -153,7 +153,7 @@
                                     state="Error"
                                     showValue="true"
                                     width="100%"
-                                    height="2.5rem" />
+                                    height="1.75rem" />
                             </HBox>
                             <HBox id="teamCompletedRow" alignItems="Center">
                                 <core:Icon id="teamCompletedDot" src="sap-icon://accept" size="1rem" color="#107e3e" class="sapUiTinyMarginEnd" />
@@ -165,7 +165,7 @@
                                     state="Success"
                                     showValue="true"
                                     width="100%"
-                                    height="2.5rem" />
+                                    height="1.75rem" />
                             </HBox>
                         </VBox>
                     </VBox>
@@ -187,7 +187,7 @@
                                         state="Information"
                                         showValue="true"
                                         width="100%"
-                                        height="2rem"
+                                        height="1.75rem"
                                         class="moduleProgressBar" />
                                 </HBox>
                             </items>
@@ -196,24 +196,23 @@
                               text="{i18n>noModuleData}"
                               visible="{= !${analyticsModel>/moduleDistribution} || ${analyticsModel>/moduleDistribution}.length === 0 }" />
                     </VBox>
+                    <!-- User Progress Chart -->
+                    <VBox id="teamMembersCard" class="analyticsCard analyticsCardBlue chartCard">
+                        <HBox id="teamMembersHeader" alignItems="Center" class="sapUiTinyMarginBottom">
+                            <core:Icon id="teamMembersIcon" src="sap-icon://customer" size="1rem" color="#0a6ed1" class="sapUiTinyMarginEnd" />
+                            <Text id="teamMembersTitle" text="{i18n>teamUserProgress}" class="chartTitle" />
+                        </HBox>
+                        <List id="teamUserList"
+                              items="{path: 'teamAnalytics>/userBreakdown', length: 10}"
+                              showNoData="true"
+                              noDataText="{i18n>noTeamMembers}"
+                              showSeparators="None">
+                            <items>
+                                <core:Fragment fragmentName="z.sap.courses.fragments.TeamUserRow" type="XML" />
+                            </items>
+                        </List>
+                    </VBox>
                 </HBox>
-
-                <!-- Team Members List Card -->
-                <VBox id="teamMembersCard" class="teamMembersCard sapUiSmallMargin">
-                    <HBox id="teamMembersHeader" alignItems="Center" class="sapUiSmallMargin">
-                        <core:Icon id="teamMembersIcon" src="sap-icon://customer" size="1rem" color="#0a6ed1" class="sapUiTinyMarginEnd" />
-                        <Text id="teamMembersTitle" text="{i18n>teamUserProgress}" class="chartTitle" />
-                    </HBox>
-                    <List id="teamUserList"
-                          items="{path: 'teamAnalytics>/userBreakdown', length: 10}"
-                          showNoData="true"
-                          noDataText="{i18n>noTeamMembers}"
-                          showSeparators="None">
-                        <items>
-                            <core:Fragment fragmentName="z.sap.courses.fragments.TeamUserRow" type="XML" />
-                        </items>
-                    </List>
-                </VBox>
             </Panel>
 
             <!-- SmartFilterBar: Go + Adapt Filters with explicit Role/Module dropdown filters -->

@@ -306,27 +306,27 @@ html, body, html.sap-desktop, .sapUiBody {
     transform: scale(1.15);
 }
 
-/* ===== Charts Row – CSS Grid 2-column layout ===== */
+/* ===== Charts Row – CSS Grid 3-column layout ===== */
 .chartsRow {
     display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 1.25rem !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 1rem !important;
     padding: 0.75rem 1rem !important;
     width: 100% !important;
     box-sizing: border-box !important;
     flex-wrap: nowrap !important;
 }
 
-/* ===== Chart Cards – original generous size, CSS Grid prevents overlap ===== */
+/* ===== Chart Cards – compact size, CSS Grid prevents overlap ===== */
 .chartCard {
     min-width: 0;
     max-width: 100%;
     flex: none;
-    min-height: 240px;
+    min-height: 160px;
     max-height: none;
     overflow-y: auto;
     box-sizing: border-box;
-    padding: 1rem 1.25rem !important;
+    padding: 0.75rem 1rem !important;
     margin: 0 !important;
 }
 
@@ -400,6 +400,21 @@ html, body, html.sap-desktop, .sapUiBody {
 
 .moduleProgressBar {
     border-radius: 6px;
+}
+
+/* ===== User Analytics Container (My Assignments) – force horizontal ===== */
+.userAnalyticsContainer {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 0.75rem;
+}
+
+.userAnalyticsContainer .analyticsCard {
+    flex: 1 1 120px;
+    min-width: 120px;
+    max-width: 200px;
+    min-height: 140px;
 }
 
 .sapSuiteRMC {
@@ -981,6 +996,13 @@ html, body, html.sap-desktop, .sapUiBody {
         min-height: 140px;
     }
 
+    .userAnalyticsContainer .analyticsCard {
+        flex: 1 1 calc(50% - 0.5rem);
+        min-width: calc(50% - 0.5rem) !important;
+        max-width: calc(50% - 0.5rem) !important;
+        min-height: 100px;
+    }
+
     .chartsRow {
         grid-template-columns: 1fr !important;
     }
@@ -1025,7 +1047,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-columns: repeat(3, 1fr) !important;
         gap: 0.75rem !important;
     }
 
@@ -1052,11 +1074,11 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-columns: repeat(3, 1fr) !important;
     }
 
     .chartCard {
-        max-width: 48%;
+        max-width: 100%;
     }
 }
 
@@ -1069,11 +1091,11 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-columns: repeat(3, 1fr) !important;
     }
 
     .chartCard {
-        max-width: 48%;
+        max-width: 100%;
     }
 
     .sapUiTableCol {
@@ -1106,12 +1128,12 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-columns: repeat(3, 1fr) !important;
     }
 
     .chartCard {
-        max-width: 48%;
-        min-height: 320px;
+        max-width: 100%;
+        min-height: 200px;
     }
 
     .sapUiTableCol {
@@ -1152,12 +1174,12 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-columns: repeat(3, 1fr) !important;
     }
 
     .chartCard {
-        max-width: 48%;
-        min-height: 360px;
+        max-width: 100%;
+        min-height: 220px;
     }
 
     .chartCard .sapSuiteSBMCBarCntr,

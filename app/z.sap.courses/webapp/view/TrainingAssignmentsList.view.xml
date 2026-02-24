@@ -5,12 +5,13 @@
     xmlns:core="sap.ui.core"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:filterBar="sap.ui.comp.filterbar"
-    xmlns:smartTable="sap.ui.comp.smarttable">
+    xmlns:smartTable="sap.ui.comp.smarttable"
+    xmlns:mc="sap.suite.ui.microchart">
 
     <Page
         id="assignmentsListPage"
         title="{i18n>myAssignments}"
-        showNavButton="{= ${user>/role} !== 'User' }"
+        showNavButton="true"
         navButtonPress="onNavBack"
         enableScrolling="true"
         class="sapUiResponsivePadding--header sapUiResponsivePadding--content assignmentsPage">
@@ -33,33 +34,8 @@
                 expanded="true"
                 headerText="{i18n>myProgress}"
                 class="sapUiSmallMarginBottom analyticsPanel">
-
-                <!-- Completion Hero Card -->
-                <VBox id="completionHeroCard" class="completionHeroCard sapUiSmallMargin">
-                    <HBox id="heroHeaderRow" alignItems="Center" class="sapUiTinyMarginBottom">
-                        <core:Icon id="heroTargetIcon" src="sap-icon://target-group" size="1.25rem" color="#0070f2" class="sapUiTinyMarginEnd" />
-                        <Title id="heroTitle" text="{i18n>yourCompletion}" level="H5" />
-                        <Text id="heroPctText" text="{= ${assignAnalytics>/completionPercent} + '%' }" class="sapUiSmallMarginBegin completionPctLabel" />
-                    </HBox>
-                    <ProgressIndicator
-                        id="heroProgressBar"
-                        percentValue="{assignAnalytics>/completionPercent}"
-                        displayValue="{= ${assignAnalytics>/completionPercent} + '%' }"
-                        state="{= ${assignAnalytics>/completionPercent} >= 80 ? 'Success' : ${assignAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Information' }"
-                        showValue="true"
-                        height="2.5rem"
-                        class="heroProgressBar" />
-                    <Text id="heroSubtitle"
-                        text="{= ${assignAnalytics>/completed} + ' of ' + (${assignAnalytics>/assigned} + ${assignAnalytics>/inProgress} + ${assignAnalytics>/completed}) + ' completed' }"
-                        class="motivationalText sapUiTinyMarginTop" />
-                    <Text id="heroMotivational"
-                        text="{= ${assignAnalytics>/completionPercent} === 100 ? ${i18n>motivationalDone} : ${assignAnalytics>/completionPercent} >= 75 ? ${i18n>motivationalAlmost} : ${assignAnalytics>/completionPercent} >= 50 ? ${i18n>motivationalHalfway} : ${assignAnalytics>/completionPercent} >= 25 ? ${i18n>motivationalProgress} : ${i18n>motivationalStart} }"
-                        class="motivationalTextEmoji sapUiTinyMarginTop" />
-                </VBox>
-
-                <!-- 4 KPI Cards -->
-                <VBox id="myProgressHBox" class="sapUiSmallMargin userAnalyticsContainer">
-                    <VBox id="myAssignedBox" alignItems="Center" class="analyticsCard analyticsCardOrange" tooltip="{i18n>clickToFilter}">
+                <HBox id="myProgressHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin analyticsContainer userAnalyticsContainer">
+                    <VBox id="myAssignedBox" alignItems="Center" class="analyticsCard analyticsCardOrange">
                         <core:Icon id="myAssignedIcon" src="sap-icon://pending" size="1.5rem" color="#e76500" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="myAssignedCount"
@@ -69,7 +45,7 @@
                         <Text id="myAssignedLabel" text="{i18n>toStart}" class="analyticsLabel" />
                     </VBox>
 
-                    <VBox id="myInProgressBox" alignItems="Center" class="analyticsCard analyticsCardBlue" tooltip="{i18n>clickToFilter}">
+                    <VBox id="myInProgressBox" alignItems="Center" class="analyticsCard analyticsCardBlue">
                         <core:Icon id="myInProgressIcon" src="sap-icon://activity-2" size="1.5rem" color="#0854a0" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="myInProgressCount"
@@ -79,7 +55,7 @@
                         <Text id="myInProgressLabel" text="{i18n>inProgress}" class="analyticsLabel" />
                     </VBox>
 
-                    <VBox id="myOverdueBox" alignItems="Center" class="analyticsCard analyticsCardRed" tooltip="{i18n>clickToFilter}">
+                    <VBox id="myOverdueBox" alignItems="Center" class="analyticsCard analyticsCardRed">
                         <core:Icon id="myOverdueIcon" src="sap-icon://alert" size="1.5rem" color="#bb0000" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="myOverdueCount"
@@ -89,7 +65,7 @@
                         <Text id="myOverdueLabel" text="{i18n>overdue}" class="analyticsLabel" />
                     </VBox>
 
-                    <VBox id="myCompletedBox" alignItems="Center" class="analyticsCard analyticsCardGreen" tooltip="{i18n>clickToFilter}">
+                    <VBox id="myCompletedBox" alignItems="Center" class="analyticsCard analyticsCardGreen">
                         <core:Icon id="myCompletedIcon" src="sap-icon://accept" size="1.5rem" color="#107e3e" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="myCompletedCount"
@@ -98,7 +74,7 @@
                             class="analyticsNumber" />
                         <Text id="myCompletedLabel" text="{i18n>completed}" class="analyticsLabel" />
                     </VBox>
-                </VBox>
+                </HBox>
             </Panel>
 
             <!-- SmartFilterBar for Assignments -->
@@ -163,8 +139,8 @@
                     <IllustratedMessage
                         id="assignmentsEmptyState"
                         illustrationType="sapIllus-NoTasks"
-                        title="{i18n>noAssignmentsFoundTitle}"
-                        description="{i18n>noAssignmentsFoundDesc}"
+                        title="No Assignments Found"
+                        description="You have no training assignments matching the current filters."
                         illustrationSize="Spot" />
                 </smartTable:noData>
 
@@ -183,13 +159,6 @@
                             type="Emphasized"
                             press="onMarkCompletedBtn"
                             class="markCompletedToolbarBtn" />
-                        <Button
-                            id="deassignBtn"
-                            text="{i18n>deassign}"
-                            icon="sap-icon://decline"
-                            type="Reject"
-                            press="onDeassignBtn"
-                            visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
                         <ToolbarSpacer id="assignToolbarSpacer" />
                         <Button
                             id="assignRefreshBtn"
