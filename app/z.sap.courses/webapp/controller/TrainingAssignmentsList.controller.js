@@ -499,7 +499,6 @@ sap.ui.define([
             });
             Log.info("[AssignFilter] Client-side overdue filter applied: " + aItems.length + " items checked");
         },
-        },
 
         /**
          * D-1: Cleanup EventBus subscriptions and browser events on view destroy.
