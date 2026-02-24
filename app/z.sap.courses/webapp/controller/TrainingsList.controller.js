@@ -698,6 +698,16 @@ sap.ui.define([
                         bFoundExport = true;
                     }
                 }
+
+                // Fix: Convert export split button to regular (single icon, no arrow)
+                aToolbarContent = oInternalToolbar.getContent();
+                aToolbarContent.forEach(function (oCtrl) {
+                    if (oCtrl.getMetadata && oCtrl.getMetadata().getName() === "sap.m.MenuButton") {
+                        if (typeof oCtrl.setButtonMode === "function") {
+                            oCtrl.setButtonMode("Regular");
+                        }
+                    }
+                });
             }
         },
 
@@ -793,6 +803,7 @@ sap.ui.define([
                 var sText = oLabel.getText();
                 if (sText === "Training Link" || sText === "Url") { return "Url"; }
                 if (sText === "SAP Help" || sText === "SapHelpLink") { return "SapHelpLink"; }
+                if (sText === "Last Updated" || sText === "LastUpdated") { return "LastUpdated"; }
             }
             return "";
         },
@@ -1004,30 +1015,48 @@ sap.ui.define([
                 SapHelpLink: (data.sapHelpLink || "").trim()
             };
 
-            oModel.refreshSecurityToken(function () {
-                oModel.create("/Trainings", payload, {
-                    success: function () {
-                        that._createDlg.close();
+            // Duplicate check: read existing trainings with same title
+            var sTitleFilter = new Filter("Title", FilterOperator.EQ, payload.Title);
+            oModel.read("/Trainings", {
+                filters: [sTitleFilter],
+                urlParameters: { "$top": "1" },
+                success: function (oData) {
+                    if (oData.results && oData.results.length > 0) {
                         oDlgModel.setProperty("/submitting", false);
-                        MessageToast.show(i18n.getText("trainingCreated"));
-                        that.byId("smartTable").rebindTable(true);
-                        that._loadAnalytics();
-                    },
-                    error: function (err) {
-                        oDlgModel.setProperty("/submitting", false);
-                        var msg = i18n.getText("createFailed");
-                        try {
-                            var parsed = JSON.parse(err.responseText);
-                            msg = parsed.error.message.value || msg;
-                        } catch (e) {
-                            msg = (err && err.message) || msg;
-                        }
-                        oDlgModel.setProperty("/error", msg);
+                        oDlgModel.setProperty("/error", "A training with title '" + payload.Title + "' already exists. Please use a different title.");
+                        return;
                     }
-                });
-            }, function () {
-                oDlgModel.setProperty("/submitting", false);
-                oDlgModel.setProperty("/error", i18n.getText("securityTokenFailed"));
+                    // No duplicate — proceed to create
+                    oModel.refreshSecurityToken(function () {
+                        oModel.create("/Trainings", payload, {
+                            success: function () {
+                                that._createDlg.close();
+                                oDlgModel.setProperty("/submitting", false);
+                                MessageToast.show(i18n.getText("trainingCreated"));
+                                that.byId("smartTable").rebindTable(true);
+                                that._loadAnalytics();
+                            },
+                            error: function (err) {
+                                oDlgModel.setProperty("/submitting", false);
+                                var msg = i18n.getText("createFailed");
+                                try {
+                                    var parsed = JSON.parse(err.responseText);
+                                    msg = parsed.error.message.value || msg;
+                                } catch (e) {
+                                    msg = (err && err.message) || msg;
+                                }
+                                oDlgModel.setProperty("/error", msg);
+                            }
+                        });
+                    }, function () {
+                        oDlgModel.setProperty("/submitting", false);
+                        oDlgModel.setProperty("/error", i18n.getText("securityTokenFailed"));
+                    });
+                },
+                error: function () {
+                    oDlgModel.setProperty("/submitting", false);
+                    oDlgModel.setProperty("/error", "Could not check for duplicates. Please try again.");
+                }
             });
         },
 

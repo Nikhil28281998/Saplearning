@@ -23,28 +23,10 @@
                         <Input id="createInputTitle" value="{createModel>/title}" placeholder="Training title" />
 
                         <Label id="createLabelRole" text="{i18n>roleLabel}" />
-                        <Select
-                            id="createSelectRole"
-                            selectedKey="{createModel>/role}"
-                            forceSelection="false"
-                            items="{
-                                path: '/RolesVH',
-                                sorter: { path: 'Role', descending: false }
-                            }">
-                            <core:Item id="createRoleItem" key="{Role}" text="{Role}" />
-                        </Select>
+                        <Input id="createInputRole" value="{createModel>/role}" placeholder="e.g. Developer, Admin, Consultant" />
 
                         <Label id="createLabelModule" text="{i18n>moduleLabel}" />
-                        <Select
-                            id="createSelectModule"
-                            selectedKey="{createModel>/sapModule}"
-                            forceSelection="false"
-                            items="{
-                                path: '/ModulesVH',
-                                sorter: { path: 'SapModule', descending: false }
-                            }">
-                            <core:Item id="createModuleItem" key="{SapModule}" text="{SapModule}" />
-                        </Select>
+                        <Input id="createInputModule" value="{createModel>/sapModule}" placeholder="e.g. ABAP, UI_UX, FI_CO, MM" />
 
                         <Label id="createLabelDesc" text="{i18n>descriptionLabel}" />
                         <TextArea id="createInputDesc" value="{createModel>/description}" rows="3" placeholder="Brief description" />

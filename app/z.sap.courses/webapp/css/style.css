@@ -1396,9 +1396,18 @@ html, body, html.sap-desktop, .sapUiBody {
     border-color: var(--sapBorderFocus) !important;
 }
 
-/* Hide the dropdown arrow to make it a single solid button */
-.sapUiCompSmartTable .sapMMenuBtn.sapMMenuBtnSplit > .sapMBtn:last-child {
+/* Hide the dropdown arrow to make it a single solid button — multiple selectors for compat */
+.sapUiCompSmartTable .sapMMenuBtn.sapMMenuBtnSplit > .sapMBtn:last-child,
+.sapUiCompSmartTable .sapMMenuBtn > .sapMBtn:last-child:not(:first-child),
+.sapUiCompSmartTable .sapMMenuBtn > .sapMBtn:nth-child(2) {
     display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+    position: absolute !important;
+    pointer-events: none !important;
 }
 
 /* ===== View Details Dialog – no overlap, proper spacing ===== */

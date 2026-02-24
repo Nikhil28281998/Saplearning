@@ -195,6 +195,19 @@ sap.ui.define([
                     that._applyAssignmentColumnTemplates(oTable);
                 });
             }
+
+            // Fix: Convert export split button to regular (single icon, no arrow)
+            var oInternalToolbar = oSmartTable._oToolbar || oSmartTable.getAggregation("_toolbar");
+            if (oInternalToolbar) {
+                var aToolbarContent = oInternalToolbar.getContent();
+                aToolbarContent.forEach(function (oCtrl) {
+                    if (oCtrl.getMetadata && oCtrl.getMetadata().getName() === "sap.m.MenuButton") {
+                        if (typeof oCtrl.setButtonMode === "function") {
+                            oCtrl.setButtonMode("Regular");
+                        }
+                    }
+                });
+            }
         },
 
         /**
@@ -419,8 +432,8 @@ sap.ui.define([
                     mBindingParams.filters.push(new Filter("Status", FilterOperator.EQ, sStatusKey));
                     Log.info("[AssignFilter] Status filter: " + sStatusKey);
                 } else if (sStatusKey === "Overdue") {
-                    // Overdue = (Assigned OR In Progress) AND DueDate < today
-                    // Use explicit EQ filters instead of NE (more reliable on ABAP Gateway)
+                    // Overdue = (Assigned OR In Progress) AND DueDate <= end-of-today
+                    // Wrap into single AND multi-filter for reliable OData V2 serialization
                     var oStatusFilter = new Filter({
                         filters: [
                             new Filter("Status", FilterOperator.EQ, "Assigned"),
@@ -428,10 +441,16 @@ sap.ui.define([
                         ],
                         and: false  // OR
                     });
-                    mBindingParams.filters.push(oStatusFilter);
                     var dToday = new Date();
                     dToday.setHours(23, 59, 59, 999);
-                    mBindingParams.filters.push(new Filter("DueDate", FilterOperator.LE, dToday));
+                    var oCombinedOverdue = new Filter({
+                        filters: [
+                            oStatusFilter,
+                            new Filter("DueDate", FilterOperator.LE, dToday)
+                        ],
+                        and: true  // AND
+                    });
+                    mBindingParams.filters.push(oCombinedOverdue);
                     Log.info("[AssignFilter] Overdue filter: (Assigned OR In Progress) AND DueDate LE " + dToday.toISOString());
                 }
             }
