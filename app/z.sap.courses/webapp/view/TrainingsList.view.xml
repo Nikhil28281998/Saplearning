@@ -63,7 +63,7 @@
                 visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }">
 
                 <!-- 5 KPI Cards Row -->
-                <HBox id="teamAnalyticsHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin analyticsContainer">
+                <HBox id="teamAnalyticsHBox" justifyContent="SpaceAround" wrap="Wrap" class="analyticsContainer">
                     <VBox id="teamTotalBox" alignItems="Center" class="analyticsCard teamKpiCard analyticsCardBlue" tooltip="{i18n>clickToFilter}">
                         <core:Icon id="teamTotalIcon" src="sap-icon://group" size="2rem" color="#0854a0" class="sapUiTinyMarginBottom" />
                         <ObjectNumber id="teamTotalCount" number="{teamAnalytics>/totalAssignments}" state="Information" class="analyticsNumber" />
