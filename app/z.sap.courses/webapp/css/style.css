@@ -306,10 +306,10 @@ html, body, html.sap-desktop, .sapUiBody {
     transform: scale(1.15);
 }
 
-/* ===== Charts Row – CSS Grid 3-column layout ===== */
+/* ===== Charts Row – CSS Grid 2-column layout ===== */
 .chartsRow {
     display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 1.25rem !important;
     padding: 0.75rem 1rem !important;
     width: 100% !important;
@@ -344,6 +344,62 @@ html, body, html.sap-desktop, .sapUiBody {
 
 .chartLegendRow {
     gap: 0.75rem;
+}
+
+/* ===== Completion Progress Bar Card ===== */
+.completionBarCard {
+    padding: 1rem 1.5rem;
+    border-radius: var(--sapRadius);
+    background: linear-gradient(135deg, rgba(8,84,160,0.04), rgba(10,110,209,0.04));
+    border: 1px solid var(--sapBorder);
+}
+
+.completionBarCard .sapMPI {
+    height: 2.5rem !important;
+    border-radius: 12px;
+}
+
+.completionPctLabel {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--sapAccent5);
+}
+
+.motivationalText {
+    font-size: 0.8125rem;
+    color: var(--sapNeutral);
+    font-weight: 500;
+}
+
+.teamCompletionProgressBar {
+    border-radius: 12px;
+}
+
+/* ===== Team Members List Card ===== */
+.teamMembersCard {
+    border-radius: var(--sapRadius);
+    border: 1px solid var(--sapBorder);
+    background: var(--sapSurface);
+    box-shadow: var(--sapShadowSm);
+    padding: 0.5rem;
+}
+
+/* ===== Module Chart Bar Rows ===== */
+.moduleBarRow {
+    gap: 0.5rem;
+}
+
+.moduleBarLabel {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--sapText);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.moduleProgressBar {
+    border-radius: 6px;
 }
 
 .sapSuiteRMC {
@@ -969,7 +1025,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: repeat(3, 1fr) !important;
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 0.75rem !important;
     }
 
@@ -996,7 +1052,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: repeat(3, 1fr) !important;
+        grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .chartCard {
@@ -1013,7 +1069,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: repeat(3, 1fr) !important;
+        grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .chartCard {
@@ -1050,7 +1106,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: repeat(3, 1fr) !important;
+        grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .chartCard {
@@ -1096,7 +1152,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: repeat(3, 1fr) !important;
+        grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .chartCard {
