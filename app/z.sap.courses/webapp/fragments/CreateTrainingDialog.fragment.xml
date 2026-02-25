@@ -22,8 +22,21 @@
                         <Label id="createLabelTitle" text="{i18n>titleLabel}" required="true" />
                         <Input id="createInputTitle" value="{createModel>/title}" placeholder="Training title" />
 
-                        <Label id="createLabelRole" text="{i18n>roleLabel}" />
-                        <Input id="createInputRole" value="{createModel>/role}" placeholder="e.g. Developer, Admin, Consultant" />
+                        <Label id="createLabelTopic" text="{i18n>topicLabel}" />
+                        <Select id="createInputTopic" selectedKey="{createModel>/topic}" forceSelection="false">
+                            <core:Item id="topicFinance" key="Finance" text="Finance" />
+                            <core:Item id="topicSCM" key="Supply Chain" text="Supply Chain" />
+                            <core:Item id="topicSales" key="Sales" text="Sales" />
+                            <core:Item id="topicProcurement" key="Procurement" text="Procurement" />
+                            <core:Item id="topicManufacturing" key="Manufacturing" text="Manufacturing" />
+                            <core:Item id="topicBTP" key="BTP" text="Business Technology Platform" />
+                            <core:Item id="topicAnalytics" key="Analytics" text="Analytics" />
+                            <core:Item id="topicHR" key="HR" text="Human Resources" />
+                            <core:Item id="topicSecurity" key="Security" text="Security &amp; GRC" />
+                            <core:Item id="topicBasis" key="Basis" text="Basis &amp; Administration" />
+                            <core:Item id="topicDev" key="Development" text="Development" />
+                            <core:Item id="topicIntegration" key="Integration" text="Integration" />
+                        </Select>
 
                         <Label id="createLabelModule" text="{i18n>moduleLabel}" />
                         <Input id="createInputModule" value="{createModel>/sapModule}" placeholder="e.g. ABAP, UI_UX, FI_CO, MM" />

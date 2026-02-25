@@ -17,7 +17,7 @@ type Status : String(20) enum {
 entity Trainings : managed {
     key ID          : UUID;
         @mandatory url         : String(2048);
-        @mandatory role        : String(20);       // Target role: Admin, Manager, User
+        @mandatory topic       : String(100);      // SAP product line / topic (Finance, BTP, SCM, etc.)
         @mandatory title       : String(255);
         sap_module  : String(20);       // SAP module (MM, SD, FICO, etc.)
         description : String(2000);
@@ -43,7 +43,7 @@ entity TrainingAssignments : managed {
 
         // Denormalized fields from training — set by server, not client
         @readonly title      : String(255);
-        @readonly role       : String(20);
+        @readonly topic      : String(100);
         @readonly sap_module : String(20);
         @readonly url        : String(2048);
 
@@ -74,15 +74,15 @@ annotate TrainingAssignments with @(
 annotate Trainings with @(
     cds.persistence.skip : false
 ) {
-    role       @cds.persistence.index;
+    topic      @cds.persistence.index;
     sap_module @cds.persistence.index;
 };
 
 // ============================================================================
 // VALUE HELP VIEWS - For UI dropdowns (filter NULLs)
 // ============================================================================
-view Roles as select from Trainings { key role }
-    where role is not null group by role;
+view Topics as select from Trainings { key topic }
+    where topic is not null group by topic;
 
-view Modules as select from Trainings { key sap_module, role }
-    where sap_module is not null group by sap_module, role;
+view Modules as select from Trainings { key sap_module, topic }
+    where sap_module is not null group by sap_module, topic;

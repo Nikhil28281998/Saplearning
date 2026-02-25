@@ -18,9 +18,9 @@
                     <core:Icon src="sap-icon://course-book" size="2rem" color="#0070f2" class="sapUiSmallMarginEnd" />
                     <Title text="{detail>/Title}" level="H3" wrapping="true" />
                 </HBox>
-                <FlexBox wrap="Wrap" visible="{= !!${detail>/SapModule} || !!${detail>/Role} || !!${detail>/LastUpdatedText} }">
+                <FlexBox wrap="Wrap" visible="{= !!${detail>/SapModule} || !!${detail>/Topic} || !!${detail>/LastUpdatedText} }">
                     <GenericTag text="{detail>/SapModule}" design="StatusIconHidden" status="Information" visible="{= !!${detail>/SapModule} }" class="sapUiSmallMarginEnd" />
-                    <GenericTag text="{detail>/Role}" design="StatusIconHidden" status="None" visible="{= !!${detail>/Role} }" class="sapUiSmallMarginEnd" />
+                    <GenericTag text="{detail>/Topic}" design="StatusIconHidden" status="None" visible="{= !!${detail>/Topic} }" class="sapUiSmallMarginEnd" />
                     <GenericTag text="{detail>/LastUpdatedText}" design="StatusIconHidden" status="Success" visible="{= !!${detail>/LastUpdatedText} }" />
                 </FlexBox>
             </VBox>

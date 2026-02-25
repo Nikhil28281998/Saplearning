@@ -28,7 +28,7 @@ sap.ui.define([
                 oModel.read("/Trainings", {
                     urlParameters: {
                         "$inlinecount": "allpages",
-                        "$select": "Role,SapModule,Title"
+                        "$select": "Topic,SapModule,Title"
                     },
                     success: function (oData) {
                         var aResults = oData.results || [];
@@ -36,22 +36,22 @@ sap.ui.define([
 
                         // Module distribution for chart
                         var oModuleMap = {};
-                        var oRoleSet = {};
+                        var oTopicSet = {};
                         var oModuleSet = {};
-                        var oRoleModuleMap = {};
-                        var oModuleRoleMap = {};
+                        var oTopicModuleMap = {};
+                        var oModuleTopicMap = {};
 
                         aResults.forEach(function (t) {
                             if (t.SapModule) {
                                 oModuleMap[t.SapModule] = (oModuleMap[t.SapModule] || 0) + 1;
                                 oModuleSet[t.SapModule] = true;
-                                if (!oModuleRoleMap[t.SapModule]) { oModuleRoleMap[t.SapModule] = {}; }
-                                if (t.Role) { oModuleRoleMap[t.SapModule][t.Role] = true; }
+                                if (!oModuleTopicMap[t.SapModule]) { oModuleTopicMap[t.SapModule] = {}; }
+                                if (t.Topic) { oModuleTopicMap[t.SapModule][t.Topic] = true; }
                             }
-                            if (t.Role) {
-                                oRoleSet[t.Role] = true;
-                                if (!oRoleModuleMap[t.Role]) { oRoleModuleMap[t.Role] = {}; }
-                                if (t.SapModule) { oRoleModuleMap[t.Role][t.SapModule] = true; }
+                            if (t.Topic) {
+                                oTopicSet[t.Topic] = true;
+                                if (!oTopicModuleMap[t.Topic]) { oTopicModuleMap[t.Topic] = {}; }
+                                if (t.SapModule) { oTopicModuleMap[t.Topic][t.SapModule] = true; }
                             }
                         });
 
@@ -59,9 +59,9 @@ sap.ui.define([
                             return { label: m, count: oModuleMap[m] };
                         }).sort(function (a, b) { return b.count - a.count; }).slice(0, 5);
 
-                        var aRoles = [{ key: "", text: "All" }];
-                        Object.keys(oRoleSet).sort().forEach(function (r) {
-                            aRoles.push({ key: r, text: r });
+                        var aTopics = [{ key: "", text: "All" }];
+                        Object.keys(oTopicSet).sort().forEach(function (t) {
+                            aTopics.push({ key: t, text: t });
                         });
 
                         var aModules = [{ key: "", text: "All" }];
@@ -72,10 +72,10 @@ sap.ui.define([
                         resolve({
                             totalTrainings: iTotal,
                             moduleDistribution: aModuleDist,
-                            roles: aRoles,
+                            topics: aTopics,
                             modules: aModules,
-                            roleModuleMap: oRoleModuleMap,
-                            moduleRoleMap: oModuleRoleMap
+                            topicModuleMap: oTopicModuleMap,
+                            moduleTopicMap: oModuleTopicMap
                         });
                     },
                     error: function (err) {

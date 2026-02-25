@@ -568,7 +568,7 @@ sap.ui.define([
                 var payload = {
                     TrainingId: tr.Id || '',
                     Title: tr.Title || '',
-                    Role: tr.Role || '',
+                    Topic: tr.Topic || '',
                     SapModule: tr.SapModule || '',
                     Url: tr.Url || '',
                     Status: 'Assigned',

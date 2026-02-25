@@ -121,10 +121,10 @@ sap.ui.define([
 			mParams.success({
 				__count: "4",
 				results: [
-					{ Role: "Developer", SapModule: "ABAP" },
-					{ Role: "Developer", SapModule: "ABAP" },
-					{ Role: "Admin", SapModule: "BASIS" },
-					{ Role: "Admin", SapModule: "FICO" }
+					{ Topic: "Development", SapModule: "ABAP" },
+					{ Topic: "Development", SapModule: "ABAP" },
+					{ Topic: "Basis", SapModule: "BASIS" },
+					{ Topic: "Finance", SapModule: "FICO" }
 				]
 			});
 		});
@@ -137,40 +137,40 @@ sap.ui.define([
 		});
 	});
 
-	QUnit.test("Should build role and module dropdown lists", function (assert) {
+	QUnit.test("Should build topic and module dropdown lists", function (assert) {
 		var oModel = createModelStub(function (_sPath, mParams) {
 			mParams.success({
 				__count: "2",
 				results: [
-					{ Role: "Developer", SapModule: "ABAP" },
-					{ Role: "Admin", SapModule: "BASIS" }
+					{ Topic: "Development", SapModule: "ABAP" },
+					{ Topic: "Finance", SapModule: "BASIS" }
 				]
 			});
 		});
 
 		return this.oSvc.getTrainingStats(oModel).then(function (oStats) {
 			// First item is always "All"
-			assert.strictEqual(oStats.roles[0].key, "", "'All' entry first in roles");
-			assert.ok(oStats.roles.length >= 3, "At least 'All' + 2 roles");
+			assert.strictEqual(oStats.topics[0].key, "", "'All' entry first in topics");
+			assert.ok(oStats.topics.length >= 3, "At least 'All' + 2 topics");
 			assert.strictEqual(oStats.modules[0].key, "", "'All' entry first in modules");
 		});
 	});
 
-	QUnit.test("Should build roleModuleMap for dependent filtering", function (assert) {
+	QUnit.test("Should build topicModuleMap for dependent filtering", function (assert) {
 		var oModel = createModelStub(function (_sPath, mParams) {
 			mParams.success({
 				__count: "2",
 				results: [
-					{ Role: "Developer", SapModule: "ABAP" },
-					{ Role: "Developer", SapModule: "CDS" }
+					{ Topic: "Development", SapModule: "ABAP" },
+					{ Topic: "Development", SapModule: "CDS" }
 				]
 			});
 		});
 
 		return this.oSvc.getTrainingStats(oModel).then(function (oStats) {
-			assert.ok(oStats.roleModuleMap.Developer, "Developer key in roleModuleMap");
-			assert.ok(oStats.roleModuleMap.Developer.ABAP, "ABAP mapped under Developer");
-			assert.ok(oStats.roleModuleMap.Developer.CDS, "CDS mapped under Developer");
+			assert.ok(oStats.topicModuleMap.Development, "Development key in topicModuleMap");
+			assert.ok(oStats.topicModuleMap.Development.ABAP, "ABAP mapped under Development");
+			assert.ok(oStats.topicModuleMap.Development.CDS, "CDS mapped under Development");
 		});
 	});
 });

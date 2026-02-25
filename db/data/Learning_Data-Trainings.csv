@@ -1,4 +1,4 @@
-ID,url,role,title,sap_module,description,lastUpdated,sapHelpLink
+﻿ID,url,topic,title,sap_module,description,lastUpdated,sapHelpLink
 11111111-1111-4111-a111-111111111111,https://learning.sap.com/fiori-fundamentals,Developer,SAP Fiori Fundamentals,UI_UX,Master SAP Fiori design principles and best practices for building intuitive user interfaces,2026-02-01T00:00:00Z,https://help.sap.com/docs/fiori
 22222222-2222-4222-a222-222222222222,https://learning.sap.com/abap-objects,Developer,ABAP Objects Programming,ABAP,Learn object-oriented ABAP programming for S/4HANA applications,2026-02-01T00:00:00Z,https://help.sap.com/docs/abap
 33333333-3333-4333-a333-333333333333,https://learning.sap.com/rap-development,Developer,RAP Development Guide,ABAP,Build Fiori apps using RESTful ABAP Programming model,2026-02-02T00:00:00Z,https://help.sap.com/docs/rap

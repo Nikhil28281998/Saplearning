@@ -280,7 +280,7 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
 
       // Denormalize training fields for performance (search/filter without joins)
       req.data.title = training.title;
-      req.data.role = training.role;
+      req.data.topic = training.topic;
       req.data.sap_module = training.sap_module;
       req.data.url = training.url;
 
@@ -417,7 +417,7 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
       // Build SET clause with only the denormalized fields that changed
       const updateFields = {};
       if (data.title !== undefined) updateFields.title = data.title;
-      if (data.role !== undefined) updateFields.role = data.role;
+      if (data.topic !== undefined) updateFields.topic = data.topic;
       if (data.sap_module !== undefined) updateFields.sap_module = data.sap_module;
       if (data.url !== undefined) updateFields.url = data.url;
 

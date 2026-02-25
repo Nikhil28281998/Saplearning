@@ -229,20 +229,20 @@
                 showFilterConfiguration="true"
                 useDateRangeType="true">
                 <smartFilterBar:controlConfiguration>
-                    <smartFilterBar:ControlConfiguration id="ccRole" key="Role" filterType="single" />
+                    <smartFilterBar:ControlConfiguration id="ccTopic" key="Topic" filterType="single" />
                     <smartFilterBar:ControlConfiguration id="ccSapModule" key="SapModule" filterType="single" />
                 </smartFilterBar:controlConfiguration>
                 <smartFilterBar:filterGroupItems>
                     <filterBar:FilterGroupItem
-                        id="fgiRole"
-                        name="Role"
-                        label="{i18n>roleLabel}"
+                        id="fgiTopic"
+                        name="Topic"
+                        label="{i18n>topicLabel}"
                         groupName="_BASIC"
                         visibleInFilterBar="true">
                         <filterBar:control>
-                            <Select id="filterRole" forceSelection="false" selectedKey="" change="onRoleFilterChange"
-                                items="{filterData>/roles}">
-                                <core:Item id="roleItem" key="{filterData>key}" text="{filterData>text}" />
+                            <Select id="filterTopic" forceSelection="false" selectedKey="" change="onTopicFilterChange"
+                                items="{filterData>/topics}">
+                                <core:Item id="topicItem" key="{filterData>key}" text="{filterData>text}" />
                             </Select>
                         </filterBar:control>
                     </filterBar:FilterGroupItem>
@@ -283,8 +283,8 @@
                 fitContainer="true"
                 enableAutoColumnWidth="true"
                 ignoredFields="Id"
-                initiallyVisibleFields="Title,Role,SapModule,Description,LastUpdated,Url,SapHelpLink"
-                requestAtLeastFields="Id,Url,SapHelpLink">
+                initiallyVisibleFields="Title,Topic,SapModule,Description,LastUpdated,Url,SapHelpLink"
+                requestAtLeastFields="Id,Url,SapHelpLink,Topic">
 
                 <smartTable:noData>
                     <IllustratedMessage

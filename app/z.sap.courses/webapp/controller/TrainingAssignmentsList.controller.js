@@ -405,7 +405,7 @@ sap.ui.define([
                     }
                     return oFilter;
                 }
-                if ((oFilter.sPath === "Role" || oFilter.sPath === "SapModule") &&
+                if ((oFilter.sPath === "Topic" || oFilter.sPath === "SapModule") &&
                     oFilter.sOperator && oFilter.sOperator !== FilterOperator.EQ) {
                     return new Filter(oFilter.sPath, FilterOperator.EQ, oFilter.oValue1);
                 }
@@ -654,7 +654,7 @@ sap.ui.define([
                 StatusState: sStatusState,
                 StatusIcon: sStatusIcon,
                 SapModule: oAssignment.SapModule || "",
-                Role: oAssignment.Role || "",
+                Topic: oAssignment.Topic || "",
                 UserDisplayText: (oAssignment.UserName || "") + " (" + (oAssignment.UserId || "") + ")",
                 DueDateText: sDueDate,
                 CompletionDateText: sCompDate,

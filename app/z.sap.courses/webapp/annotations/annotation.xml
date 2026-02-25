@@ -30,10 +30,10 @@
 
                 <!-- SmartFilterBar: which fields appear as filter inputs (rectangles) -->
                 <!-- Title removed: basic search box handles title search -->
-                <!-- Role + SapModule: custom filterGroupItems with cross-reference dropdowns -->
+                <!-- Topic + SapModule: custom filterGroupItems with cross-reference dropdowns -->
                 <Annotation Term="UI.SelectionFields">
                     <Collection>
-                        <PropertyPath>Role</PropertyPath>
+                        <PropertyPath>Topic</PropertyPath>
                         <PropertyPath>SapModule</PropertyPath>
                         <PropertyPath>LastUpdated</PropertyPath>
                     </Collection>
@@ -48,8 +48,8 @@
                             <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/High"/>
                         </Record>
                         <Record Type="UI.DataField">
-                            <PropertyValue Property="Value" Path="Role"/>
-                            <PropertyValue Property="Label" String="Role"/>
+                            <PropertyValue Property="Value" Path="Topic"/>
+                            <PropertyValue Property="Label" String="Topic"/>
                             <Annotation Term="UI.Importance" EnumMember="UI.ImportanceType/High"/>
                         </Record>
                         <Record Type="UI.DataField">
@@ -127,8 +127,8 @@
                                     <PropertyValue Property="Label" String="Description"/>
                                 </Record>
                                 <Record Type="UI.DataField">
-                                    <PropertyValue Property="Value" Path="Role"/>
-                                    <PropertyValue Property="Label" String="Role"/>
+                                    <PropertyValue Property="Value" Path="Topic"/>
+                                    <PropertyValue Property="Label" String="Topic"/>
                                 </Record>
                                 <Record Type="UI.DataField">
                                     <PropertyValue Property="Value" Path="SapModule"/>
