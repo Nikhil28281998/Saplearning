@@ -112,11 +112,9 @@ sap.ui.define([
             var oPanel = this.byId("myProgressPanel");
             if (oPanel) { oPanel.setBusy(true); }
 
-            // Admin/Manager: show ALL assignments; User: filter by own UserId
+            // My Assignments: always filter by current user's UserId (all roles)
             var aFilters = [];
-            if (sRole === "User") {
-                aFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId || "__NOUSER__"));
-            }
+            aFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId || "__NOUSER__"));
 
             // Single OData read — count statuses client-side for reliability
             oModel.read("/" + sEntitySet, {
@@ -431,17 +429,12 @@ sap.ui.define([
             };
             mBindingParams.filters = fnStripStatus(mBindingParams.filters);
 
-            // Admin/Manager: show ALL assignments; User: filter by own UserId
+            // My Assignments: always filter by current user's UserId (all roles)
             var oComponent = this.getOwnerComponent();
             var sCurrentUserId = oComponent.getCurrentUserId();
-            var sRole = oComponent._role || "User";
-            if (sRole === "User") {
-                var sFilterId = sCurrentUserId || "__NOUSER__";
-                mBindingParams.filters.push(new Filter("UserId", FilterOperator.EQ, sFilterId));
-                Log.info("[AssignFilter] UserId filter (User role): " + sFilterId);
-            } else {
-                Log.info("[AssignFilter] No UserId filter (" + sRole + " role - show all)");
-            }
+            var sFilterId = sCurrentUserId || "__NOUSER__";
+            mBindingParams.filters.push(new Filter("UserId", FilterOperator.EQ, sFilterId));
+            Log.info("[AssignFilter] UserId filter: " + sFilterId);
 
             // Read Status filter from the custom FilterGroupItem Select
             var oStatusSelect = this.byId("filterAssignStatus");
