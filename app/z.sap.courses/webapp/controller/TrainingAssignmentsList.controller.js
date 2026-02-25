@@ -112,10 +112,11 @@ sap.ui.define([
             var oPanel = this.byId("myProgressPanel");
             if (oPanel) { oPanel.setBusy(true); }
 
-            // FIX: Always filter by current user's UserId regardless of role.
-            // "My Progress" shows only trainings assigned TO the current user.
+            // Admin/Manager: show ALL assignments; User: filter by own UserId
             var aFilters = [];
-            aFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId || "__NOUSER__"));
+            if (sRole === "User") {
+                aFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId || "__NOUSER__"));
+            }
 
             // Single OData read — count statuses client-side for reliability
             oModel.read("/" + sEntitySet, {
@@ -430,13 +431,17 @@ sap.ui.define([
             };
             mBindingParams.filters = fnStripStatus(mBindingParams.filters);
 
-            // FIX: "My Assignments" always shows trainings assigned TO the current user,
-            // regardless of role. Team-level view is on catalog page (Team Analytics).
+            // Admin/Manager: show ALL assignments; User: filter by own UserId
             var oComponent = this.getOwnerComponent();
             var sCurrentUserId = oComponent.getCurrentUserId();
-            var sFilterId = sCurrentUserId || "__NOUSER__";
-            mBindingParams.filters.push(new Filter("UserId", FilterOperator.EQ, sFilterId));
-            Log.info("[AssignFilter] UserId filter (all roles): " + sFilterId);
+            var sRole = oComponent._role || "User";
+            if (sRole === "User") {
+                var sFilterId = sCurrentUserId || "__NOUSER__";
+                mBindingParams.filters.push(new Filter("UserId", FilterOperator.EQ, sFilterId));
+                Log.info("[AssignFilter] UserId filter (User role): " + sFilterId);
+            } else {
+                Log.info("[AssignFilter] No UserId filter (" + sRole + " role - show all)");
+            }
 
             // Read Status filter from the custom FilterGroupItem Select
             var oStatusSelect = this.byId("filterAssignStatus");

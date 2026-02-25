@@ -11,9 +11,8 @@ sap.ui.define([
     "sap/m/library",
     "sap/m/MessagePopover",
     "sap/m/MessageItem",
-    "z/sap/courses/services/AnalyticsService",
-    "z/sap/courses/utils/CSVParser"
-], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, mLibrary, MessagePopover, MessageItem, AnalyticsService, CSVParser) {
+    "z/sap/courses/services/AnalyticsService"
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, mLibrary, MessagePopover, MessageItem, AnalyticsService) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingsList", {
@@ -1332,139 +1331,6 @@ sap.ui.define([
             }
 
             oComponent.openAssignDialog(aSelectedTrainings);
-        },
-
-        /* ===== CSV Import: Admin bulk import trainings from CSV file ===== */
-        onImportCSV: function () {
-            var that = this;
-            if (this._importDlg) {
-                this._importDlg.destroy();
-                this._importDlg = null;
-            }
-
-            this._importModel = new JSONModel({ data: [], errors: [], warnings: [] });
-
-            this.loadFragment({
-                name: "z.sap.courses.fragments.ImportDialog"
-            }).then(function (oDialog) {
-                that._importDlg = oDialog;
-                oDialog.setModel(that._importModel, "import");
-                oDialog.setModel(that.getView().getModel("i18n"), "i18n");
-                oDialog.attachAfterClose(function () {
-                    oDialog.destroy();
-                    that._importDlg = null;
-                });
-                oDialog.open();
-            });
-        },
-
-        onFileChange: function (oEvent) {
-            var aFiles = oEvent.getParameter("files");
-            if (!aFiles || aFiles.length === 0) { return; }
-            var oFile = aFiles[0];
-            var that = this;
-
-            var oReader = new FileReader();
-            oReader.onload = function (e) {
-                var sContent = e.target.result;
-                var oResult = CSVParser.parseTrainingsCSV(sContent);
-                that._importModel.setProperty("/data", oResult.data);
-                that._importModel.setProperty("/errors", oResult.errors.map(function (m) { return { message: m }; }));
-                that._importModel.setProperty("/warnings", oResult.warnings.map(function (m) { return { message: m }; }));
-
-                if (that._importDlg) {
-                    var oPreviewPanel = sap.ui.getCore().byId("previewPanel");
-                    var oValidationPanel = sap.ui.getCore().byId("validationPanel");
-                    var oRecordCount = sap.ui.getCore().byId("recordCount");
-                    var oImportBtn = sap.ui.getCore().byId("importButton");
-                    if (oPreviewPanel) { oPreviewPanel.setVisible(true); oPreviewPanel.setExpanded(true); }
-                    if (oValidationPanel) { oValidationPanel.setVisible(oResult.errors.length > 0 || oResult.warnings.length > 0); }
-                    if (oRecordCount) { oRecordCount.setNumber(oResult.data.length); }
-                    if (oImportBtn) { oImportBtn.setEnabled(oResult.data.length > 0 && oResult.errors.length === 0); }
-                }
-            };
-            oReader.readAsText(oFile);
-        },
-
-        onImport: function () {
-            var that = this;
-            var aData = this._importModel.getProperty("/data") || [];
-            if (aData.length === 0) { return; }
-
-            var oModel = this.getOwnerComponent().getModel();
-            var i18n = this.getView().getModel("i18n").getResourceBundle();
-            var oProgressBox = sap.ui.getCore().byId("progressBox");
-            var oProgress = sap.ui.getCore().byId("importProgress");
-            var oImportBtn = sap.ui.getCore().byId("importButton");
-            var oSuccessMsg = sap.ui.getCore().byId("successMessage");
-            var oErrorMsg = sap.ui.getCore().byId("errorMessage");
-
-            if (oProgressBox) { oProgressBox.setVisible(true); }
-            if (oImportBtn) { oImportBtn.setEnabled(false); }
-            if (oSuccessMsg) { oSuccessMsg.setVisible(false); }
-            if (oErrorMsg) { oErrorMsg.setVisible(false); }
-
-            var iSuccess = 0, iFail = 0, iTotal = aData.length;
-            var bWasBatch = oModel.bUseBatch;
-            oModel.setUseBatch(false);
-
-            var fnCreateNext = function (idx) {
-                if (idx >= iTotal) {
-                    oModel.setUseBatch(bWasBatch);
-                    if (oProgress) { oProgress.setPercentValue(100); oProgress.setDisplayValue(iSuccess + "/" + iTotal); }
-                    if (iSuccess > 0) {
-                        if (oSuccessMsg) { oSuccessMsg.setVisible(true); }
-                        MessageToast.show(i18n.getText("importSuccess"));
-                        that.byId("smartTable").rebindTable(true);
-                        that._loadAnalytics();
-                    }
-                    if (iFail > 0 && oErrorMsg) {
-                        oErrorMsg.setText(iFail + " record(s) failed to import");
-                        oErrorMsg.setVisible(true);
-                    }
-                    return;
-                }
-
-                var rec = aData[idx];
-                var payload = {
-                    Id: rec.ID,
-                    Title: rec.title,
-                    Role: rec.role,
-                    SapModule: rec.sap_module,
-                    Url: rec.url || "",
-                    Description: rec.description || "",
-                    SapHelpLink: rec.sapHelpLink || ""
-                };
-
-                oModel.create("/Trainings", payload, {
-                    success: function () {
-                        iSuccess++;
-                        if (oProgress) {
-                            var pct = Math.round(((idx + 1) / iTotal) * 100);
-                            oProgress.setPercentValue(pct);
-                            oProgress.setDisplayValue((idx + 1) + "/" + iTotal);
-                        }
-                        fnCreateNext(idx + 1);
-                    },
-                    error: function () {
-                        iFail++;
-                        fnCreateNext(idx + 1);
-                    }
-                });
-            };
-
-            oModel.refreshSecurityToken(function () {
-                fnCreateNext(0);
-            }, function () {
-                oModel.setUseBatch(bWasBatch);
-                MessageBox.error(i18n.getText("securityTokenFailed"));
-            });
-        },
-
-        onCloseImportDialog: function () {
-            if (this._importDlg) {
-                this._importDlg.close();
-            }
         },
 
         onViewAssignments: function () {
