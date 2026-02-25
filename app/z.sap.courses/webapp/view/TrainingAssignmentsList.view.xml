@@ -92,7 +92,6 @@
                 showFilterConfiguration="true"
                 useDateRangeType="true">
                 <smartFilterBar:controlConfiguration>
-                    <smartFilterBar:ControlConfiguration id="ccAssignStatus" key="Status" filterType="single" />
                     <smartFilterBar:ControlConfiguration id="ccAssignModule" key="SapModule" filterType="single" />
                 </smartFilterBar:controlConfiguration>
                 <smartFilterBar:filterGroupItems>

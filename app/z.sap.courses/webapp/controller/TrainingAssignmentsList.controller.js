@@ -416,6 +416,20 @@ sap.ui.define([
                 mBindingParams.filters[i] = fnSanitize(mBindingParams.filters[i]);
             }
 
+            // Strip auto-generated Status filters from SmartFilterBar
+            // (we handle Status manually below to support "Overdue" pseudo-status)
+            var fnStripStatus = function (aFilters) {
+                return aFilters.filter(function (f) {
+                    if (f.sPath === "Status") { return false; }
+                    if (f.aFilters) {
+                        f.aFilters = fnStripStatus(f.aFilters);
+                        return f.aFilters.length > 0;
+                    }
+                    return true;
+                });
+            };
+            mBindingParams.filters = fnStripStatus(mBindingParams.filters);
+
             // FIX: "My Assignments" always shows trainings assigned TO the current user,
             // regardless of role. Team-level view is on catalog page (Team Analytics).
             var oComponent = this.getOwnerComponent();
