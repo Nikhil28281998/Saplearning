@@ -20,6 +20,15 @@ sap.ui.define([
         onInit: function () {
             this._analyticsService = new AnalyticsService();
 
+            // View mode model for card/table toggle
+            var oViewModeModel = new JSONModel({
+                showCards: true,
+                showTable: false,
+                mode: "cards",
+                cardCount: 0
+            });
+            this.getView().setModel(oViewModeModel, "viewMode");
+
             // Analytics model for dashboard + charts
             var oAnalyticsModel = new JSONModel({
                 totalTrainings: 0,
@@ -146,10 +155,12 @@ sap.ui.define([
                 MessageToast.show(that.getView().getModel("i18n").getResourceBundle().getText("loadFailed"));
             });
 
-            // Training stats loaded — clear busy + skeletons
+            // Training stats loaded — clear busy + skeletons, then bind card grid
             pTrainings.finally(function () {
                 if (oPanel) { oPanel.setBusy(false); }
                 that._setTeamCardSkeletons(false);
+                // Initial card grid binding after data is available
+                that._rebindCardGrid();
             });
 
             // Load team analytics on home page (Manager/Admin only)
@@ -1031,6 +1042,9 @@ sap.ui.define([
                 this._applyLinkTemplates(oTable);
                 this._formatDateColumns(oTable);
             }
+
+            // Keep card grid in sync with same filters
+            this._rebindCardGrid();
         },
 
         /* ===== Admin CRUD: Create New Training (XML Fragment + VH Selects) ===== */
@@ -1500,20 +1514,219 @@ sap.ui.define([
             }
         },
 
+        /* ===== Card Grid View Handlers ===== */
+
+        /**
+         * Toggle between Card and Table view modes.
+         */
+        onViewModeChange: function (oEvent) {
+            var sKey = oEvent.getParameter("key") || oEvent.getSource().getSelectedKey();
+            var oViewMode = this.getView().getModel("viewMode");
+            if (sKey === "cards") {
+                oViewMode.setProperty("/showCards", true);
+                oViewMode.setProperty("/showTable", false);
+                oViewMode.setProperty("/mode", "cards");
+                this._rebindCardGrid();
+            } else {
+                oViewMode.setProperty("/showCards", false);
+                oViewMode.setProperty("/showTable", true);
+                oViewMode.setProperty("/mode", "table");
+                // SmartTable will auto-rebind when made visible
+                var oSmartTable = this.byId("smartTable");
+                if (oSmartTable) { oSmartTable.rebindTable(); }
+            }
+        },
+
+        /**
+         * Rebind the card grid with current SmartFilterBar filters.
+         * Reads filters the same way onBeforeRebindTable does.
+         */
+        _rebindCardGrid: function () {
+            var oCardGrid = this.byId("cardGrid");
+            if (!oCardGrid) { return; }
+
+            var oSmartFilterBar = this.byId("smartFilterBar");
+            var aFilters = [];
+
+            // Read filter values from FilterGroupItems (same as onBeforeRebindTable Step 2)
+            if (oSmartFilterBar && oSmartFilterBar.getFilterGroupItems) {
+                var aFGItems = oSmartFilterBar.getFilterGroupItems();
+                for (var g = 0; g < aFGItems.length; g++) {
+                    var oFGI = aFGItems[g];
+                    var sName = oFGI.getName ? oFGI.getName() : "";
+                    var oControl = oFGI.getControl ? oFGI.getControl() : null;
+                    if (oControl && typeof oControl.getSelectedKey === "function") {
+                        var sKey = oControl.getSelectedKey();
+                        if (sKey) {
+                            aFilters.push(new Filter(sName, FilterOperator.EQ, sKey));
+                        }
+                    }
+                }
+            }
+
+            // Basic search → Title Contains filter
+            if (oSmartFilterBar && oSmartFilterBar.getBasicSearchValue) {
+                var sSearch = (oSmartFilterBar.getBasicSearchValue() || "").trim();
+                if (sSearch) {
+                    aFilters.push(new Filter("Title", FilterOperator.Contains, sSearch));
+                }
+            }
+
+            // Bind/rebind card grid to Trainings entity set
+            var oTemplate = this.byId("cardItem");
+            oCardGrid.bindItems({
+                path: "/Trainings",
+                template: oTemplate ? oTemplate.clone() : oCardGrid.getBindingInfo("items").template,
+                filters: aFilters,
+                sorter: new sap.ui.model.Sorter("Title", false),
+                events: {
+                    dataReceived: this._onCardDataReceived.bind(this)
+                }
+            });
+
+            Log.info("[CardGrid] Rebound with " + aFilters.length + " filters");
+        },
+
+        /**
+         * Update card count when card grid data is received.
+         */
+        _onCardDataReceived: function (oEvent) {
+            var oViewMode = this.getView().getModel("viewMode");
+            var oCardGrid = this.byId("cardGrid");
+            if (oCardGrid) {
+                var oBinding = oCardGrid.getBinding("items");
+                var iCount = oBinding ? oBinding.getLength() : 0;
+                oViewMode.setProperty("/cardCount", iCount);
+            }
+        },
+
+        /**
+         * Card press handler — toggle card selection (for multi-select operations like Assign).
+         */
+        onCardPress: function (oEvent) {
+            // Default Active type handles selection; nothing extra needed for MultiSelect mode
+        },
+
+        /**
+         * Card detail button press — open Training Detail Dialog.
+         */
+        onCardDetailPress: function (oEvent) {
+            var oSource = oEvent.getSource();
+            // Navigate up to the CustomListItem to get the binding context
+            var oItem = oSource;
+            while (oItem && !oItem.getBindingContext()) {
+                oItem = oItem.getParent();
+            }
+            if (!oItem) { return; }
+            var oCtx = oItem.getBindingContext();
+            if (!oCtx) { return; }
+            var oTraining = oCtx.getObject();
+            // Reuse existing detail dialog logic
+            this._openTrainingDetail(oTraining);
+        },
+
+        /**
+         * Card open URL button press — open exercise URL in new tab.
+         */
+        onCardOpenUrl: function (oEvent) {
+            var oSource = oEvent.getSource();
+            var oItem = oSource;
+            while (oItem && !oItem.getBindingContext()) {
+                oItem = oItem.getParent();
+            }
+            if (!oItem) { return; }
+            var oCtx = oItem.getBindingContext();
+            if (!oCtx) { return; }
+            var sUrl = oCtx.getProperty("Url");
+            if (sUrl) {
+                sap.m.URLHelper.redirect(sUrl, true);
+            } else {
+                MessageToast.show("No URL available for this exercise.");
+            }
+        },
+
+        /**
+         * Opens the training detail dialog for a training object.
+         * Reused by both table row press and card detail press.
+         */
+        _openTrainingDetail: function (oTraining) {
+            if (!oTraining) { return; }
+            var that = this;
+
+            // Destroy previous dialog
+            if (this._detailDlg) {
+                this._detailDlg.destroy();
+                this._detailDlg = null;
+            }
+
+            // Format LastUpdated
+            var sLastUpdated = "";
+            if (oTraining.LastUpdated) {
+                sLastUpdated = oTraining.LastUpdated instanceof Date
+                    ? "Updated: " + oTraining.LastUpdated.toLocaleDateString()
+                    : "Updated: " + oTraining.LastUpdated;
+            }
+
+            var oDetailModel = new JSONModel({
+                Title: oTraining.Title || "Untitled",
+                SapModule: oTraining.SapModule || "",
+                Role: oTraining.Role || "",
+                Topic: oTraining.Topic || "",
+                LastUpdatedText: sLastUpdated,
+                Description: oTraining.Description || "",
+                Url: oTraining.Url || "",
+                SapHelpLink: oTraining.SapHelpLink || "",
+                Id: oTraining.Id || "N/A"
+            });
+
+            this.loadFragment({
+                name: "z.sap.courses.fragments.TrainingDetailDialog"
+            }).then(function (oDialog) {
+                that._detailDlg = oDialog;
+                oDialog.setModel(oDetailModel, "detail");
+                oDialog.setModel(that.getView().getModel("i18n"), "i18n");
+                if (sap.ui.Device.system.phone) {
+                    oDialog.setStretch(true);
+                }
+                oDialog.addStyleClass("sapUiContentPadding detailDialog");
+                oDialog.attachAfterClose(function () {
+                    oDialog.destroy();
+                    that._detailDlg = null;
+                });
+                oDialog.open();
+            });
+        },
+
         onAssignTraining: function () {
             var oComponent = this.getOwnerComponent();
             if (!oComponent || !oComponent.openAssignDialog) { return; }
 
-            // Collect selected trainings from SmartTable (multi-select)
-            var oSmartTable = this.byId("smartTable");
-            var oTable = oSmartTable ? oSmartTable.getTable() : null;
+            // Collect selected trainings from SmartTable OR card grid (multi-select)
             var aSelectedTrainings = [];
-            if (oTable && oTable.getSelectedIndices) {
-                var aIndices = oTable.getSelectedIndices();
-                aIndices.forEach(function (idx) {
-                    var oCtx = oTable.getContextByIndex(idx);
-                    if (oCtx) { aSelectedTrainings.push(oCtx.getObject()); }
-                });
+            var oViewMode = this.getView().getModel("viewMode");
+            var sMode = oViewMode ? oViewMode.getProperty("/mode") : "table";
+
+            if (sMode === "cards") {
+                // Card grid selection
+                var oCardGrid = this.byId("cardGrid");
+                if (oCardGrid) {
+                    var aSelectedItems = oCardGrid.getSelectedItems();
+                    aSelectedItems.forEach(function (oItem) {
+                        var oCtx = oItem.getBindingContext();
+                        if (oCtx) { aSelectedTrainings.push(oCtx.getObject()); }
+                    });
+                }
+            } else {
+                // SmartTable selection
+                var oSmartTable = this.byId("smartTable");
+                var oTable = oSmartTable ? oSmartTable.getTable() : null;
+                if (oTable && oTable.getSelectedIndices) {
+                    var aIndices = oTable.getSelectedIndices();
+                    aIndices.forEach(function (idx) {
+                        var oCtx = oTable.getContextByIndex(idx);
+                        if (oCtx) { aSelectedTrainings.push(oCtx.getObject()); }
+                    });
+                }
             }
 
             if (aSelectedTrainings.length === 0) {

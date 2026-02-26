@@ -5,7 +5,8 @@
     xmlns:core="sap.ui.core"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:smartTable="sap.ui.comp.smarttable"
-    xmlns:filterBar="sap.ui.comp.filterbar">
+    xmlns:filterBar="sap.ui.comp.filterbar"
+    xmlns:f="sap.f">
 
     <Page
         id="trainingsListPage"
@@ -276,6 +277,95 @@
                 </smartFilterBar:filterGroupItems>
             </smartFilterBar:SmartFilterBar>
 
+            <!-- ====== CARD GRID VIEW (Learning Hub style) ====== -->
+            <ScrollContainer
+                id="cardScrollContainer"
+                height="100%"
+                width="100%"
+                vertical="true"
+                horizontal="false"
+                visible="{viewMode>/showCards}">
+                <VBox id="cardGridWrapper" class="cardGridWrapper">
+                    <!-- Card count + View toggle toolbar -->
+                    <Toolbar id="cardToolbar" class="sapUiSmallMarginBottom">
+                        <Title id="cardCountTitle" text="{= 'Learning Content (' + ${viewMode>/cardCount} + ')' }" level="H5" />
+                        <ToolbarSpacer id="cardToolbarSpacer1" />
+                        <Button
+                            id="createTrainingBtnCard"
+                            icon="sap-icon://add"
+                            text="{i18n>createBtn}"
+                            type="Emphasized"
+                            press="onCreateTraining"
+                            visible="{= ${user>/role} === 'Admin' }" />
+                        <Button
+                            id="assignButtonCard"
+                            icon="sap-icon://person-placeholder"
+                            text="{i18n>assignTraining}"
+                            type="Attention"
+                            press="onAssignTraining"
+                            visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
+                        <ToolbarSpacer id="cardToolbarSpacer2" />
+                        <SegmentedButton id="viewModeToggle" selectedKey="{viewMode>/mode}" selectionChange="onViewModeChange">
+                            <items>
+                                <SegmentedButtonItem id="viewModeCards" key="cards" icon="sap-icon://grid" tooltip="Card View" />
+                                <SegmentedButtonItem id="viewModeTable" key="table" icon="sap-icon://table-view" tooltip="Table View" />
+                            </items>
+                        </SegmentedButton>
+                        <Button
+                            id="refreshButtonCard"
+                            icon="sap-icon://refresh"
+                            tooltip="{i18n>refreshData}"
+                            press="onRefresh" />
+                    </Toolbar>
+                    <!-- Card Grid Container -->
+                    <f:GridList
+                        id="cardGrid"
+                        mode="MultiSelect"
+                        growing="true"
+                        growingThreshold="30"
+                        growingScrollToLoad="true"
+                        noDataText="No learning content found. Adjust your filters.">
+                        <f:customLayout>
+                            <f:GridListLayout
+                                defaultSpan="XL4 L4 M6 S12"
+                                gap="0.75rem" />
+                        </f:customLayout>
+                        <f:items>
+                            <CustomListItem id="cardItem" type="Active" press="onCardPress" class="learningCard">
+                                <HBox class="learningCardContent">
+                                    <VBox class="learningCardIcon" alignItems="Center" justifyContent="Center">
+                                        <core:Icon
+                                            src="{= ${Role} === 'Developer' ? 'sap-icon://source-code' : ${Role} === 'Admin' ? 'sap-icon://settings' : 'sap-icon://course-book' }"
+                                            size="2rem"
+                                            color="{= ${Role} === 'Developer' ? '#0854a0' : ${Role} === 'Admin' ? '#e76500' : '#0854a0' }" />
+                                    </VBox>
+                                    <VBox class="learningCardBody sapUiSmallMarginBegin" width="100%">
+                                        <Text text="{Title}" class="learningCardTitle" maxLines="2" />
+                                        <Text text="{Description}" class="learningCardDesc" maxLines="2" />
+                                        <HBox class="learningCardMeta sapUiTinyMarginTop" wrap="Wrap">
+                                            <ObjectStatus text="{Topic}" state="Information" icon="sap-icon://tag" class="sapUiTinyMarginEnd" inverted="false" />
+                                            <ObjectStatus text="{SapModule}" state="None" icon="sap-icon://tree" inverted="false" />
+                                        </HBox>
+                                    </VBox>
+                                    <VBox class="learningCardActions" alignItems="Center" justifyContent="Center">
+                                        <Button
+                                            icon="sap-icon://inspect"
+                                            type="Transparent"
+                                            tooltip="View Details"
+                                            press="onCardDetailPress" />
+                                        <Button
+                                            icon="sap-icon://open-command-field"
+                                            type="Transparent"
+                                            tooltip="Open Exercise"
+                                            press="onCardOpenUrl" />
+                                    </VBox>
+                                </HBox>
+                            </CustomListItem>
+                        </f:items>
+                    </f:GridList>
+                </VBox>
+            </ScrollContainer>
+
             <!-- SmartTable: auto-generates columns from annotations
                  Provides: Variant Management, Column Settings, Export to Excel,
                  auto-column width, responsive popin, row count, full screen -->
@@ -298,7 +388,8 @@
                 enableAutoColumnWidth="true"
                 ignoredFields="Id"
                 initiallyVisibleFields="Title,Role,Topic,SapModule,Description,LastUpdated,Url,SapHelpLink"
-                requestAtLeastFields="Id,Url,SapHelpLink,Role,Topic">
+                requestAtLeastFields="Id,Url,SapHelpLink,Role,Topic"
+                visible="{viewMode>/showTable}">
 
                 <smartTable:noData>
                     <IllustratedMessage
@@ -359,6 +450,12 @@
                             tooltip="{i18n>refreshData}"
                             ariaLabelledBy="refreshButtonLabel"
                             press="onRefresh" />
+                        <SegmentedButton id="viewModeToggleTable" selectedKey="{viewMode>/mode}" selectionChange="onViewModeChange">
+                            <items>
+                                <SegmentedButtonItem id="viewModeCardsTable" key="cards" icon="sap-icon://grid" tooltip="Card View" />
+                                <SegmentedButtonItem id="viewModeTableTable" key="table" icon="sap-icon://table-view" tooltip="Table View" />
+                            </items>
+                        </SegmentedButton>
                     </OverflowToolbar>
                 </smartTable:customToolbar>
             </smartTable:SmartTable>
