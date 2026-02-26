@@ -20,6 +20,7 @@ sap.ui.define([
                 assigned: 0,
                 inProgress: 0,
                 completed: 0,
+                total: 0,
                 completionPercent: 0
             });
             this.getView().setModel(oAnalyticsModel, "assignAnalytics");
@@ -154,6 +155,7 @@ sap.ui.define([
                     oAnalyticsModel.setProperty("/inProgress", iInProgress);
                     oAnalyticsModel.setProperty("/completed", iCompleted);
                     oAnalyticsModel.setProperty("/overdue", iOverdue);
+                    oAnalyticsModel.setProperty("/total", iTotal);
                     oAnalyticsModel.setProperty("/completionPercent", iPct);
                     if (oPanel) { oPanel.setBusy(false); }
                 },
@@ -405,7 +407,7 @@ sap.ui.define([
                     }
                     return oFilter;
                 }
-                if ((oFilter.sPath === "Topic" || oFilter.sPath === "SapModule") &&
+                if ((oFilter.sPath === "Role" || oFilter.sPath === "Topic" || oFilter.sPath === "SapModule") &&
                     oFilter.sOperator && oFilter.sOperator !== FilterOperator.EQ) {
                     return new Filter(oFilter.sPath, FilterOperator.EQ, oFilter.oValue1);
                 }
@@ -654,6 +656,7 @@ sap.ui.define([
                 StatusState: sStatusState,
                 StatusIcon: sStatusIcon,
                 SapModule: oAssignment.SapModule || "",
+                Role: oAssignment.Role || "",
                 Topic: oAssignment.Topic || "",
                 UserDisplayText: (oAssignment.UserName || "") + " (" + (oAssignment.UserId || "") + ")",
                 DueDateText: sDueDate,

@@ -284,9 +284,9 @@ html, body, html.sap-desktop, .sapUiBody {
 .analyticsCardPurple::before { background: var(--sapAccent5); }
 .analyticsCardRed::before   { background: var(--sapNegativeColor, #bb0000); }
 
-/* Analytics number – large, tabular figures, NO overflow clipping */
+/* Analytics number – tabular figures, NO overflow clipping */
 .analyticsCard .sapMObjectNumber {
-    font-size: 3.25rem !important;
+    font-size: 2.25rem !important;
     font-weight: 800 !important;
     font-feature-settings: "tnum";
     letter-spacing: -0.02em;
@@ -311,7 +311,7 @@ html, body, html.sap-desktop, .sapUiBody {
 /* Analytics icon pulse on hover */
 .analyticsCard .sapUiIcon {
     transition: transform var(--sapTransition);
-    font-size: 3.5rem !important;
+    font-size: 2rem !important;
 }
 
 .analyticsCard:hover .sapUiIcon {
@@ -430,19 +430,18 @@ html, body, html.sap-desktop, .sapUiBody {
     border-radius: 6px;
 }
 
-/* ===== User Analytics Container (My Assignments) – force horizontal ===== */
+/* ===== User Analytics Container (My Assignments) – responsive grid ===== */
 .userAnalyticsContainer {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
     gap: 0.75rem;
+    width: 100%;
 }
 
 .userAnalyticsContainer .analyticsCard {
-    flex: 1 1 120px;
-    min-width: 120px;
-    max-width: 200px;
-    min-height: 140px;
+    width: 100%;
+    max-width: none;
+    min-height: 150px;
 }
 
 .sapSuiteRMC {

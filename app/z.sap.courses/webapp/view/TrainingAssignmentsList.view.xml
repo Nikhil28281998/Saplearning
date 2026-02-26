@@ -5,8 +5,7 @@
     xmlns:core="sap.ui.core"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:filterBar="sap.ui.comp.filterbar"
-    xmlns:smartTable="sap.ui.comp.smarttable"
-    xmlns:mc="sap.suite.ui.microchart">
+    xmlns:smartTable="sap.ui.comp.smarttable">
 
     <Page
         id="assignmentsListPage"
@@ -35,7 +34,28 @@
                 expanded="true"
                 headerText="{i18n>myProgress}"
                 class="sapUiSmallMarginBottom analyticsPanel">
-                <HBox id="myProgressHBox" justifyContent="SpaceAround" wrap="Wrap" class="sapUiSmallMargin analyticsContainer userAnalyticsContainer">
+
+                <!-- Hero Completion Card -->
+                <VBox id="completionHeroCard" class="completionBarCard sapUiSmallMargin">
+                    <HBox id="completionHeroHeader" alignItems="Center" class="sapUiTinyMarginBottom">
+                        <core:Icon id="completionHeroIcon" src="sap-icon://competitor" size="1.25rem" color="#6c32a9" class="sapUiTinyMarginEnd" />
+                        <Title id="completionHeroTitle" text="{i18n>yourCompletion}" level="H5" />
+                        <Text id="completionHeroPct" text="{= ${assignAnalytics>/completionPercent} + '%' }" class="sapUiSmallMarginBegin completionPctLabel" />
+                    </HBox>
+                    <ProgressIndicator
+                        id="completionHeroBar"
+                        percentValue="{assignAnalytics>/completionPercent}"
+                        displayValue="{= ${assignAnalytics>/completionPercent} + '%' }"
+                        state="{= ${assignAnalytics>/completionPercent} >= 80 ? 'Success' : ${assignAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Information' }"
+                        showValue="true"
+                        height="2.5rem"
+                        class="teamCompletionProgressBar" />
+                    <Text id="completionHeroSubtitle"
+                        text="{= 'Completed: ' + ${assignAnalytics>/completed} + '  |  Remaining: ' + (${assignAnalytics>/total} - ${assignAnalytics>/completed}) }"
+                        class="motivationalText sapUiTinyMarginTop" />
+                </VBox>
+
+                <VBox id="myProgressHBox" class="sapUiSmallMargin analyticsContainer userAnalyticsContainer">
                     <VBox id="myAssignedBox" alignItems="Center" class="analyticsCard analyticsCardOrange">
                         <core:Icon id="myAssignedIcon" src="sap-icon://pending" size="1.5rem" color="#e76500" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
@@ -75,7 +95,7 @@
                             class="analyticsNumber" />
                         <Text id="myCompletedLabel" text="{i18n>completed}" class="analyticsLabel" />
                     </VBox>
-                </HBox>
+                </VBox>
             </Panel>
 
             <!-- SmartFilterBar for Assignments -->

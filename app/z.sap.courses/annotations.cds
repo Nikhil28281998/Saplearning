@@ -1,11 +1,12 @@
 using { SAPLearningService as S } from '../../srv/service.cds';
 
 // Selection fields for FilterBar
-annotate S.Trainings with @UI.SelectionFields: [ topic, sap_module, title ];
+annotate S.Trainings with @UI.SelectionFields: [ role, topic, sap_module, title ];
 
 // List columns (hide ID, keep links clickable)
 annotate S.Trainings with @UI.LineItem: [
 	{ $Type: 'UI.DataFieldWithUrl', Value: title, Url: url, Label: 'Title' },
+	{ $Type: 'UI.DataField',        Value: role,                    Label: 'Role' },
 	{ $Type: 'UI.DataField',        Value: topic,                   Label: 'Topic' },
 	{ $Type: 'UI.DataField',        Value: sap_module,              Label: 'Module' },
 	{ $Type: 'UI.DataField',        Value: description,             Label: 'Description' },
@@ -32,6 +33,7 @@ annotate S.Trainings with @UI.Facets: [
 annotate S.Trainings with @UI.FieldGroup #Main: {
 	Data: [
 		{ $Type: 'UI.DataField', Value: title,        Label: 'Title' },
+		{ $Type: 'UI.DataField', Value: role,         Label: 'Role' },
 		{ $Type: 'UI.DataField', Value: topic,        Label: 'Topic' },
 		{ $Type: 'UI.DataField', Value: description,  Label: 'Description' },
 		{ $Type: 'UI.DataField', Value: sap_module,   Label: 'Module' },
@@ -41,8 +43,16 @@ annotate S.Trainings with @UI.FieldGroup #Main: {
 	]
 };
 
-// Value help: Topic (distinct) and Module (dependent on Topic)
+// Value help: Role (distinct), Topic (distinct) and Module (dependent on Topic)
 annotate S.Trainings with {
+	role @Common.ValueList: {
+		$Type: 'Common.ValueListType',
+		CollectionPath: 'RolesVH',
+		Parameters: [
+			{ $Type: 'Common.ValueListParameterOut', LocalDataProperty: role, ValueListProperty: 'role' }
+		]
+	};
+
 	topic @Common.ValueList: {
 		$Type: 'Common.ValueListType',
 		CollectionPath: 'TopicsVH',
@@ -62,10 +72,11 @@ annotate S.Trainings with {
 };
 
 // TrainingAssignments list configuration and action
-annotate S.TrainingAssignments with @UI.SelectionFields: [ topic, sap_module, status, dueDate ];
+annotate S.TrainingAssignments with @UI.SelectionFields: [ role, topic, sap_module, status, dueDate ];
 
 annotate S.TrainingAssignments with @UI.LineItem: [
 		{ $Type: 'UI.DataField', Value: title,      Label: 'Title' },
+		{ $Type: 'UI.DataField', Value: role,       Label: 'Role' },
 		{ $Type: 'UI.DataField', Value: topic,      Label: 'Topic' },
 		{ $Type: 'UI.DataField', Value: sap_module, Label: 'Module' },
 		{ $Type: 'UI.DataField', Value: userId,     Label: 'User' },
@@ -86,6 +97,7 @@ annotate S.TrainingAssignments with @UI.Facets: [
 annotate S.TrainingAssignments with @UI.FieldGroup #Main: {
 	Data: [
 		{ $Type: 'UI.DataField', Value: title,      Label: 'Title' },
+		{ $Type: 'UI.DataField', Value: role,       Label: 'Role' },
 		{ $Type: 'UI.DataField', Value: topic,      Label: 'Topic' },
 		{ $Type: 'UI.DataField', Value: sap_module, Label: 'Module' },
 		{ $Type: 'UI.DataField', Value: userId,     Label: 'User' },
@@ -98,12 +110,13 @@ annotate S.TrainingAssignments with @UI.FieldGroup #Main: {
 // Default view variants: ensure columns Topic, Module, Status visible and sorted
 annotate S.TrainingAssignments with @UI.PresentationVariant: {
 	SortOrder: [ { Property: 'status', Descending: false } ],
-	RequestAtLeast: [ 'topic', 'sap_module', 'status' ],
+	RequestAtLeast: [ 'role', 'topic', 'sap_module', 'status' ],
 	Visualizations: [ '@UI.LineItem' ]
 };
 
 annotate S.TrainingAssignments with @UI.SelectionVariant: {
 	SelectOptions: [
+		{ PropertyName: 'role' },
 		{ PropertyName: 'topic' },
 		{ PropertyName: 'sap_module' },
 		{ PropertyName: 'status' }

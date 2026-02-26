@@ -42,12 +42,15 @@ sap.ui.define([
             });
             this.getView().setModel(oTeamModel, "teamAnalytics");
 
-            // Filter data model for Topic/Module dropdowns + cross-filtering
+            // Filter data model for Role/Topic/Module dropdowns + cross-filtering
             var oFilterModel = new JSONModel({
+                roles: [{ key: "", text: "All" }],
                 topics: [{ key: "", text: "All" }],
                 modules: [{ key: "", text: "All" }],
+                allRoles: [{ key: "", text: "All" }],
                 allTopics: [{ key: "", text: "All" }],
                 allModules: [{ key: "", text: "All" }],
+                roleModuleMap: {},
                 topicModuleMap: {},
                 moduleTopicMap: {}
             });
@@ -126,10 +129,13 @@ sap.ui.define([
                 oAnalyticsModel.setProperty("/totalTrainings", oStats.totalTrainings);
                 that._buildModuleChart(oStats.moduleDistribution);
 
+                oFilterModel.setProperty("/roles", oStats.roles);
                 oFilterModel.setProperty("/topics", oStats.topics);
                 oFilterModel.setProperty("/modules", oStats.modules);
+                oFilterModel.setProperty("/allRoles", oStats.roles.slice(0));
                 oFilterModel.setProperty("/allTopics", oStats.topics.slice(0));
                 oFilterModel.setProperty("/allModules", oStats.modules.slice(0));
+                oFilterModel.setProperty("/roleModuleMap", oStats.roleModuleMap);
                 oFilterModel.setProperty("/topicModuleMap", oStats.topicModuleMap);
                 oFilterModel.setProperty("/moduleTopicMap", oStats.moduleTopicMap || {});
             }).catch(function () {
@@ -579,6 +585,30 @@ sap.ui.define([
         },
 
         /**
+         * Cross-filtering: when Role changes, filter Module dropdown.
+         */
+        onRoleFilterChange: function (oEvent) {
+            var oItem = oEvent.getParameter("selectedItem");
+            var sRole = oItem ? oItem.getKey() : "";
+            var oFilterModel = this.getView().getModel("filterData");
+            var roleModuleMap = oFilterModel.getProperty("/roleModuleMap") || {};
+            var allModules = oFilterModel.getProperty("/allModules") || [];
+
+            if (!sRole) {
+                oFilterModel.setProperty("/modules", allModules.slice(0));
+            } else {
+                var modulesForRole = roleModuleMap[sRole] || {};
+                var filtered = [{ key: "", text: "All" }];
+                Object.keys(modulesForRole).sort().forEach(function (m) {
+                    filtered.push({ key: m, text: m });
+                });
+                oFilterModel.setProperty("/modules", filtered);
+            }
+            var oModuleSelect = this.byId("filterModule");
+            if (oModuleSelect) { oModuleSelect.setSelectedKey(""); }
+        },
+
+        /**
          * Cross-filtering: when Topic changes, filter Module dropdown
          * to only show modules available for the selected topic.
          */
@@ -867,7 +897,7 @@ sap.ui.define([
             var mBindingParams = oEvent.getParameter("bindingParams");
             var oSmartFilterBar = this.byId("smartFilterBar");
 
-            // ---- Step 1: Remove any existing Topic/SapModule filters ----
+            // ---- Step 1: Remove any existing Role/Topic/SapModule filters ----
             // SmartFilterBar may generate malformed filters from sap.m.Select controls
             // (Select lacks getValue()). We strip them and re-inject clean EQ filters.
             var fnStripTopicModule = function (aFilters) {
@@ -876,7 +906,7 @@ sap.ui.define([
                     if (oF.aFilters) {
                         fnStripTopicModule(oF.aFilters);
                         if (oF.aFilters.length === 0) { aFilters.splice(i, 1); }
-                    } else if (oF.sPath === "Topic" || oF.sPath === "SapModule") {
+                    } else if (oF.sPath === "Role" || oF.sPath === "Topic" || oF.sPath === "SapModule") {
                         aFilters.splice(i, 1);
                     }
                 }
@@ -963,6 +993,7 @@ sap.ui.define([
             var oDlgModel = new JSONModel({
                 title: "",
                 description: "",
+                role: "",
                 topic: "",
                 sapModule: "",
                 url: "",
@@ -1008,6 +1039,7 @@ sap.ui.define([
             var payload = {
                 Title: data.title.trim(),
                 Description: (data.description || "").trim(),
+                Role: (data.role || "").trim(),
                 Topic: (data.topic || "").trim(),
                 SapModule: (data.sapModule || "").trim(),
                 Url: data.url.trim(),
@@ -1180,6 +1212,7 @@ sap.ui.define([
                     var oPayload = {
                         TrainingId: oTraining.Id,
                         Title: oTraining.Title,
+                        Role: oTraining.Role || "",
                         Topic: oTraining.Topic || "",
                         SapModule: oTraining.SapModule || "",
                         Url: oTraining.Url || "",
@@ -1265,6 +1298,7 @@ sap.ui.define([
             var oDetailModel = new JSONModel({
                 Title: oTraining.Title || "Untitled",
                 SapModule: oTraining.SapModule || "",
+                Role: oTraining.Role || "",
                 Topic: oTraining.Topic || "",
                 LastUpdatedText: sLastUpdated,
                 Description: oTraining.Description || "",

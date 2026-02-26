@@ -28,7 +28,7 @@ sap.ui.define([
                 oModel.read("/Trainings", {
                     urlParameters: {
                         "$inlinecount": "allpages",
-                        "$select": "Topic,SapModule,Title"
+                        "$select": "Role,Topic,SapModule,Title"
                     },
                     success: function (oData) {
                         var aResults = oData.results || [];
@@ -36,8 +36,10 @@ sap.ui.define([
 
                         // Module distribution for chart
                         var oModuleMap = {};
+                        var oRoleSet = {};
                         var oTopicSet = {};
                         var oModuleSet = {};
+                        var oRoleModuleMap = {};
                         var oTopicModuleMap = {};
                         var oModuleTopicMap = {};
 
@@ -47,6 +49,11 @@ sap.ui.define([
                                 oModuleSet[t.SapModule] = true;
                                 if (!oModuleTopicMap[t.SapModule]) { oModuleTopicMap[t.SapModule] = {}; }
                                 if (t.Topic) { oModuleTopicMap[t.SapModule][t.Topic] = true; }
+                            }
+                            if (t.Role) {
+                                oRoleSet[t.Role] = true;
+                                if (!oRoleModuleMap[t.Role]) { oRoleModuleMap[t.Role] = {}; }
+                                if (t.SapModule) { oRoleModuleMap[t.Role][t.SapModule] = true; }
                             }
                             if (t.Topic) {
                                 oTopicSet[t.Topic] = true;
@@ -58,6 +65,11 @@ sap.ui.define([
                         var aModuleDist = Object.keys(oModuleMap).map(function (m) {
                             return { label: m, count: oModuleMap[m] };
                         }).sort(function (a, b) { return b.count - a.count; }).slice(0, 5);
+
+                        var aRoles = [{ key: "", text: "All" }];
+                        Object.keys(oRoleSet).sort().forEach(function (r) {
+                            aRoles.push({ key: r, text: r });
+                        });
 
                         var aTopics = [{ key: "", text: "All" }];
                         Object.keys(oTopicSet).sort().forEach(function (t) {
@@ -72,8 +84,10 @@ sap.ui.define([
                         resolve({
                             totalTrainings: iTotal,
                             moduleDistribution: aModuleDist,
+                            roles: aRoles,
                             topics: aTopics,
                             modules: aModules,
+                            roleModuleMap: oRoleModuleMap,
                             topicModuleMap: oTopicModuleMap,
                             moduleTopicMap: oModuleTopicMap
                         });

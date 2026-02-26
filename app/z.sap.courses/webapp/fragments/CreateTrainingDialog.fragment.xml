@@ -22,6 +22,13 @@
                         <Label id="createLabelTitle" text="{i18n>titleLabel}" required="true" />
                         <Input id="createInputTitle" value="{createModel>/title}" placeholder="Training title" />
 
+                        <Label id="createLabelRole" text="{i18n>roleLabel}" />
+                        <Select id="createInputRole" selectedKey="{createModel>/role}" forceSelection="false">
+                            <core:Item id="roleConsultant" key="Consultant" text="Consultant" />
+                            <core:Item id="roleDeveloper" key="Developer" text="Developer" />
+                            <core:Item id="roleAdmin" key="Admin" text="Admin" />
+                        </Select>
+
                         <Label id="createLabelTopic" text="{i18n>topicLabel}" />
                         <Select id="createInputTopic" selectedKey="{createModel>/topic}" forceSelection="false">
                             <core:Item id="topicFinance" key="Finance" text="Finance" />

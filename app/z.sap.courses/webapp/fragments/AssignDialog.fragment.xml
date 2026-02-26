@@ -20,7 +20,7 @@
                         <StandardListItem
                             id="assignTrainingListItem"
                             title="{assignModel>Title}"
-                            description="{assignModel>Topic} | {assignModel>SapModule}"
+                            description="{assignModel>Role} | {assignModel>Topic} | {assignModel>SapModule}"
                             icon="sap-icon://course-book"
                             type="Inactive" />
                     </List>

@@ -20,8 +20,23 @@ function csvEscape(val) {
 }
 
 function csvRow(obj) {
-  return [obj.id, obj.url, obj.topic, obj.title, obj.sap_module, obj.description,
+  return [obj.id, obj.url, obj.topic, obj.title, obj.sap_module, obj.role, obj.description,
           obj.lastUpdated, obj.sapHelpLink].map(csvEscape).join(',');
+}
+
+// Map topic → default role
+function topicToRole(topic) {
+  var map = {
+    'Finance': 'Consultant', 'Sales': 'Consultant', 'Procurement': 'Consultant',
+    'Supply Chain': 'Consultant', 'Manufacturing': 'Consultant', 'HR': 'Consultant',
+    'Asset Management': 'Consultant', 'Professional Services': 'Consultant',
+    'BTP': 'Developer', 'Development': 'Developer', 'Integration': 'Developer',
+    'Low-Code': 'Developer', 'AI': 'Developer',
+    'Security': 'Admin', 'Basis': 'Admin',
+    'Analytics': 'Consultant', 'Process Mining': 'Consultant',
+    'Cross-Functional': 'Consultant', 'Sustainability': 'Consultant'
+  };
+  return map[topic] || 'Consultant';
 }
 
 // ── 1. Read existing seed courses ──────────────────────────────────────────
@@ -56,6 +71,7 @@ const existingCourses = existingCsv.trim().split('\n').slice(1).map(line => {
   if (title.includes('Project System')) topic = 'Professional Services';
 
   return { id: p[0], url: p[1], topic, title, sap_module: mod,
+           role: topicToRole(topic),
            description: p.slice(5, p.length - 2).join(','), // handle commas in desc
            lastUpdated: p[p.length - 2], sapHelpLink: p[p.length - 1] };
 });
@@ -187,6 +203,7 @@ for (const c of curated) {
   if (!urlSet.has(c.url)) {
     urlSet.add(c.url);
     c.id = uuid();
+    c.role = topicToRole(c.topic);
     all.push(c);
   }
 }
@@ -203,7 +220,7 @@ for (const c of existingCourses) {
 all.sort((a, b) => a.topic.localeCompare(b.topic) || a.title.localeCompare(b.title));
 
 // ── 5. Write CSV ───────────────────────────────────────────────────────────
-const header = 'ID,url,topic,title,sap_module,description,lastUpdated,sapHelpLink';
+const header = 'ID,url,topic,title,sap_module,role,description,lastUpdated,sapHelpLink';
 const rows = all.map(csvRow);
 const outPath = 'db/data/SAP_Learning_Hub_Complete_Catalog.csv';
 fs.writeFileSync(outPath, header + '\n' + rows.join('\n') + '\n');

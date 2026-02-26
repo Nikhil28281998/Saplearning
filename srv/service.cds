@@ -39,6 +39,7 @@ service SAPLearningService {
     // ========================================================================
     // VALUE HELP - For UI dropdowns
     // ========================================================================
+    @readonly entity RolesVH   as projection on my.Roles;
     @readonly entity TopicsVH  as projection on my.Topics;
     @readonly entity ModulesVH as projection on my.Modules;
 

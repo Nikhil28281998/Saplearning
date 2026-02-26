@@ -63,7 +63,7 @@
                 visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }">
 
                 <!-- 5 KPI Cards Row -->
-                <HBox id="teamAnalyticsHBox" justifyContent="SpaceAround" wrap="Wrap" class="analyticsContainer">
+                <VBox id="teamAnalyticsHBox" class="analyticsContainer">
                     <VBox id="teamTotalBox" alignItems="Center" class="analyticsCard teamKpiCard analyticsCardBlue" tooltip="{i18n>clickToFilter}">
                         <core:Icon id="teamTotalIcon" src="sap-icon://group" size="2rem" color="#0854a0" class="sapUiTinyMarginBottom" />
                         <ObjectNumber id="teamTotalCount" number="{teamAnalytics>/totalAssignments}" state="Information" class="analyticsNumber" />
@@ -89,7 +89,7 @@
                         <ObjectNumber id="teamCompletedCount" number="{teamAnalytics>/completed}" state="Success" class="analyticsNumber" />
                         <Text id="teamCompletedLabel" text="{i18n>teamCompleted}" class="analyticsLabel" />
                     </VBox>
-                </HBox>
+                </VBox>
 
                 <!-- Full-Width Completion Progress Bar -->
                 <VBox id="teamCompletionBarCard" class="completionBarCard sapUiSmallMargin">
@@ -112,7 +112,7 @@
                 </VBox>
 
                 <!-- Charts 3-Column Grid: Status Distribution + Top Modules + User Progress -->
-                <HBox id="teamChartsHBox" class="sapUiSmallMargin chartsRow">
+                <VBox id="teamChartsHBox" class="sapUiSmallMargin chartsRow">
                     <VBox id="teamStatusChartBox" class="analyticsCard analyticsCardBlue chartCard">
                         <HBox id="teamStatusHeader" alignItems="Center" class="sapUiTinyMarginBottom">
                             <core:Icon id="teamStatusIcon" src="sap-icon://horizontal-bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
@@ -212,7 +212,7 @@
                             </items>
                         </List>
                     </VBox>
-                </HBox>
+                </VBox>
             </Panel>
 
             <!-- SmartFilterBar: Go + Adapt Filters with explicit Role/Module dropdown filters -->
@@ -229,10 +229,24 @@
                 showFilterConfiguration="true"
                 useDateRangeType="true">
                 <smartFilterBar:controlConfiguration>
+                    <smartFilterBar:ControlConfiguration id="ccRole" key="Role" filterType="single" />
                     <smartFilterBar:ControlConfiguration id="ccTopic" key="Topic" filterType="single" />
                     <smartFilterBar:ControlConfiguration id="ccSapModule" key="SapModule" filterType="single" />
                 </smartFilterBar:controlConfiguration>
                 <smartFilterBar:filterGroupItems>
+                    <filterBar:FilterGroupItem
+                        id="fgiRole"
+                        name="Role"
+                        label="{i18n>roleLabel}"
+                        groupName="_BASIC"
+                        visibleInFilterBar="true">
+                        <filterBar:control>
+                            <Select id="filterRole" forceSelection="false" selectedKey="" change="onRoleFilterChange"
+                                items="{filterData>/roles}">
+                                <core:Item id="roleItem" key="{filterData>key}" text="{filterData>text}" />
+                            </Select>
+                        </filterBar:control>
+                    </filterBar:FilterGroupItem>
                     <filterBar:FilterGroupItem
                         id="fgiTopic"
                         name="Topic"
@@ -283,8 +297,8 @@
                 fitContainer="true"
                 enableAutoColumnWidth="true"
                 ignoredFields="Id"
-                initiallyVisibleFields="Title,Topic,SapModule,Description,LastUpdated,Url,SapHelpLink"
-                requestAtLeastFields="Id,Url,SapHelpLink,Topic">
+                initiallyVisibleFields="Title,Role,Topic,SapModule,Description,LastUpdated,Url,SapHelpLink"
+                requestAtLeastFields="Id,Url,SapHelpLink,Role,Topic">
 
                 <smartTable:noData>
                     <IllustratedMessage
