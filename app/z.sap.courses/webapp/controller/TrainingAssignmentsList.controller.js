@@ -21,7 +21,11 @@ sap.ui.define([
                 inProgress: 0,
                 completed: 0,
                 total: 0,
-                completionPercent: 0
+                completionPercent: 0,
+                dueSoonCount: 0,
+                badge: "",
+                badgeIcon: "",
+                badgeDescription: ""
             });
             this.getView().setModel(oAnalyticsModel, "assignAnalytics");
 
@@ -113,6 +117,9 @@ sap.ui.define([
             var oPanel = this.byId("myProgressPanel");
             if (oPanel) { oPanel.setBusy(true); }
 
+            // M-6 FIX: Add skeleton class to my progress KPI cards during load
+            this._setMyCardSkeletons(true);
+
             // My Assignments: always filter by current user's UserId (all roles)
             var aFilters = [];
             aFilters.push(new Filter("UserId", FilterOperator.EQ, sUserId || "__NOUSER__"));
@@ -151,17 +158,66 @@ sap.ui.define([
 
                     var iTotal = iAssigned + iInProgress + iCompleted;
                     var iPct = iTotal > 0 ? Math.round((iCompleted / iTotal) * 100) : 0;
+
+                    // U-3: Count assignments due within 3 days (not overdue, not completed)
+                    var dNow3 = new Date();
+                    var dIn3Days = new Date();
+                    dIn3Days.setDate(dIn3Days.getDate() + 3);
+                    var iDueSoon = 0;
+                    aAll.forEach(function (a) {
+                        var sStat3 = a.Status || a.status || "";
+                        var dDue3 = a.DueDate || a.dueDate;
+                        if (sStat3 !== "Completed" && dDue3) {
+                            var dDueDate = (dDue3 instanceof Date) ? dDue3 : new Date(dDue3);
+                            if (dDueDate > dNow3 && dDueDate <= dIn3Days) { iDueSoon++; }
+                        }
+                    });
+
+                    // U-4: Gamification badges based on completion milestones
+                    var sBadge = "", sBadgeIcon = "", sBadgeDesc = "";
+                    if (iCompleted >= 50) {
+                        sBadge = "\uD83C\uDFC6 Learning Legend";
+                        sBadgeIcon = "sap-icon://competitor";
+                        sBadgeDesc = "You've completed 50+ trainings! Legendary achievement!";
+                    } else if (iCompleted >= 25) {
+                        sBadge = "\u2B50 Knowledge Master";
+                        sBadgeIcon = "sap-icon://favorite";
+                        sBadgeDesc = "25+ completed! You're mastering SAP. Keep it up!";
+                    } else if (iCompleted >= 10) {
+                        sBadge = "\uD83D\uDE80 Fast Learner";
+                        sBadgeIcon = "sap-icon://accelerated";
+                        sBadgeDesc = "10+ trainings done! You're on a great trajectory.";
+                    } else if (iCompleted >= 5) {
+                        sBadge = "\uD83D\uDCAA Dedicated Learner";
+                        sBadgeIcon = "sap-icon://education";
+                        sBadgeDesc = "5 trainings completed. Building strong foundations!";
+                    } else if (iCompleted >= 1) {
+                        sBadge = "\uD83C\uDF1F First Steps";
+                        sBadgeIcon = "sap-icon://journey-arrive";
+                        sBadgeDesc = "You completed your first training! Great start!";
+                    }
+                    // Streak badge: all non-completed have future due dates (no overdue = on track)
+                    if (iTotal > 0 && iOverdue === 0 && iCompleted >= 1 && !sBadge.includes("Legend")) {
+                        sBadgeDesc += (sBadgeDesc ? " " : "") + "\u2705 On track \u2014 no overdue assignments!";
+                    }
+
                     oAnalyticsModel.setProperty("/assigned", iAssigned);
                     oAnalyticsModel.setProperty("/inProgress", iInProgress);
                     oAnalyticsModel.setProperty("/completed", iCompleted);
                     oAnalyticsModel.setProperty("/overdue", iOverdue);
                     oAnalyticsModel.setProperty("/total", iTotal);
                     oAnalyticsModel.setProperty("/completionPercent", iPct);
+                    oAnalyticsModel.setProperty("/dueSoonCount", iDueSoon);
+                    oAnalyticsModel.setProperty("/badge", sBadge);
+                    oAnalyticsModel.setProperty("/badgeIcon", sBadgeIcon);
+                    oAnalyticsModel.setProperty("/badgeDescription", sBadgeDesc);
                     if (oPanel) { oPanel.setBusy(false); }
+                    that._setMyCardSkeletons(false);
                 },
                 error: function (err) {
                     Log.warning("[AssignAnalytics] Failed to load: " + (err && err.message || ""));
                     if (oPanel) { oPanel.setBusy(false); }
+                    that._setMyCardSkeletons(false);
                 }
             });
         },
@@ -209,6 +265,21 @@ sap.ui.define([
                     }
                 });
             }
+        },
+
+        /**
+         * M-6 FIX: Toggle skeleton loading animation on my progress KPI cards.
+         */
+        _setMyCardSkeletons: function (bShow) {
+            var aCardIds = ["myAssignedBox", "myInProgressBox", "myOverdueBox", "myCompletedBox"];
+            var that = this;
+            aCardIds.forEach(function (id) {
+                var oCard = that.byId(id);
+                if (oCard) {
+                    if (bShow) { oCard.addStyleClass("analyticsCardSkeleton"); }
+                    else { oCard.removeStyleClass("analyticsCardSkeleton"); }
+                }
+            });
         },
 
         /**
@@ -390,6 +461,16 @@ sap.ui.define([
             if (oSmartFilterBar) {
                 oSmartFilterBar.search();
             }
+        },
+
+        /**
+         * U-3: Filter to show assignments due within 3 days.
+         * Uses Overdue status filter as closest match, or clears and manually filters.
+         */
+        onFilterDueSoon: function () {
+            // Filter by "Assigned" to show non-completed items — user can see due dates
+            this._filterByStatus("Assigned");
+            MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("filteringDueSoon"));
         },
 
         /**
@@ -791,8 +872,13 @@ sap.ui.define([
                     var oSmartTable = that.byId("assignSmartTable");
                     if (oSmartTable) { oSmartTable.setBusy(true); }
 
-                    // Use batch mode: defer updates, then submitChanges
-                    oModel.setDeferredGroups(["bulkComplete"]);
+                    // M-2 FIX: Save original deferred groups and restore after completion
+                    var aOriginalDeferred = oModel.getDeferredGroups() || [];
+                    var aNewDeferred = aOriginalDeferred.indexOf("bulkComplete") >= 0
+                        ? aOriginalDeferred
+                        : aOriginalDeferred.concat(["bulkComplete"]);
+                    oModel.setDeferredGroups(aNewDeferred);
+
                     var dNow = new Date();
                     aContexts.forEach(function (oCtx) {
                         oModel.update(oCtx.getPath(), {
@@ -804,12 +890,14 @@ sap.ui.define([
                     oModel.submitChanges({
                         groupId: "bulkComplete",
                         success: function () {
+                            oModel.setDeferredGroups(aOriginalDeferred);
                             if (oSmartTable) { oSmartTable.setBusy(false); }
                             MessageToast.show(i18n.getText("bulkCompleteSuccess", [iCount]));
                             that._filterByStatus("Completed");
                             that._loadAnalytics();
                         },
                         error: function (err) {
+                            oModel.setDeferredGroups(aOriginalDeferred);
                             if (oSmartTable) { oSmartTable.setBusy(false); }
                             var msg = i18n.getText("updateFailed");
                             try {

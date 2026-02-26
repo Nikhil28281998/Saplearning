@@ -326,6 +326,13 @@
                             type="Reject"
                             press="onDeleteTraining"
                             visible="{= ${user>/role} === 'Admin' }" />
+                        <Button
+                            id="editTrainingBtn"
+                            icon="sap-icon://edit"
+                            text="{i18n>editBtn}"
+                            type="Default"
+                            press="onEditTraining"
+                            visible="{= ${user>/role} === 'Admin' }" />
                         <ToolbarSpacer id="toolbarSpacer" />
                         <Button
                             id="detailsButton"

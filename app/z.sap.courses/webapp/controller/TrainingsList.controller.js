@@ -124,6 +124,9 @@ sap.ui.define([
             var oPanel = this.byId("teamAnalyticsPanel");
             if (oPanel) { oPanel.setBusy(true); }
 
+            // M-6 FIX: Add skeleton class to team KPI cards during load
+            this._setTeamCardSkeletons(true);
+
             // Training stats: total count + module chart + filter dropdowns
             var pTrainings = this._analyticsService.getTrainingStats(oModel).then(function (oStats) {
                 oAnalyticsModel.setProperty("/totalTrainings", oStats.totalTrainings);
@@ -143,9 +146,10 @@ sap.ui.define([
                 MessageToast.show(that.getView().getModel("i18n").getResourceBundle().getText("loadFailed"));
             });
 
-            // Training stats loaded — clear busy
+            // Training stats loaded — clear busy + skeletons
             pTrainings.finally(function () {
                 if (oPanel) { oPanel.setBusy(false); }
+                that._setTeamCardSkeletons(false);
             });
 
             // Load team analytics on home page (Manager/Admin only)
@@ -157,6 +161,21 @@ sap.ui.define([
          */
         _loadAnalytics: function () {
             this._loadAllData();
+        },
+
+        /**
+         * M-6 FIX: Toggle skeleton loading animation on team KPI cards.
+         */
+        _setTeamCardSkeletons: function (bShow) {
+            var aCardIds = ["teamTotalBox", "teamAssignedBox", "teamInProgressBox", "teamOverdueBox", "teamCompletedBox"];
+            var that = this;
+            aCardIds.forEach(function (id) {
+                var oCard = that.byId(id);
+                if (oCard) {
+                    if (bShow) { oCard.addStyleClass("analyticsCardSkeleton"); }
+                    else { oCard.removeStyleClass("analyticsCardSkeleton"); }
+                }
+            });
         },
 
         /**
@@ -257,6 +276,10 @@ sap.ui.define([
          * Server-side getTeamAnalytics returns aggregated counts only;
          * drill-down needs the individual assignment records.
          */
+        /**
+         * M-1 FIX: Recursive pagination — loads ALL assignments (no $top cap).
+         * Fetches in pages of 500 until server returns fewer than requested.
+         */
         _loadTeamAssignmentsForDrillDown: function () {
             var sRole = this.getOwnerComponent()._role;
             var oModel = this.getOwnerComponent().getModel();
@@ -271,17 +294,31 @@ sap.ui.define([
                 }
             }
 
-            oModel.read("/" + sEntitySet, {
-                filters: aFilters,
-                urlParameters: { "$inlinecount": "allpages", "$top": "500" },
-                success: function (oData) {
-                    oTeamModel.setProperty("/allAssignments", oData.results || []);
-                },
-                error: function (err) {
-                    Log.warning("[TeamAnalytics] Failed to load flat assignments for drill-down: " + (err && err.message || ""));
-                    oTeamModel.setProperty("/allAssignments", []);
-                }
-            });
+            var iPageSize = 500;
+            var aAll = [];
+
+            var fnLoadPage = function (iSkip) {
+                oModel.read("/" + sEntitySet, {
+                    filters: aFilters,
+                    urlParameters: { "$inlinecount": "allpages", "$top": String(iPageSize), "$skip": String(iSkip) },
+                    success: function (oData) {
+                        var aPage = oData.results || [];
+                        aAll = aAll.concat(aPage);
+                        if (aPage.length >= iPageSize) {
+                            fnLoadPage(iSkip + iPageSize);
+                        } else {
+                            oTeamModel.setProperty("/allAssignments", aAll);
+                            Log.info("[TeamAnalytics] Loaded " + aAll.length + " assignments for drill-down");
+                        }
+                    },
+                    error: function (err) {
+                        Log.warning("[TeamAnalytics] Failed to load flat assignments for drill-down: " + (err && err.message || ""));
+                        oTeamModel.setProperty("/allAssignments", aAll);
+                    }
+                });
+            };
+
+            fnLoadPage(0);
         },
 
         /**
@@ -302,67 +339,81 @@ sap.ui.define([
                 }
             }
 
-            oModel.read("/" + sEntitySet, {
-                filters: aFilters,
-                urlParameters: { "$inlinecount": "allpages", "$top": "500" },
-                success: function (oData) {
-                    var aAll = oData.results || [];
-                    var iTotal = oData.__count ? parseInt(oData.__count, 10) : aAll.length;
-                    var iAssigned = 0, iInProgress = 0, iCompleted = 0;
-                    var oUserMap = {};
+            var iPageSize = 500;
+            var aAllPages = [];
 
-                    // Handle both PascalCase (ABAP/V2) and camelCase (CAP/V4) field names
-                    aAll.forEach(function (a) {
-                        var sStat = a.Status || a.status || "";
-                        if (sStat === "Assigned") { iAssigned++; }
-                        else if (sStat === "In Progress") { iInProgress++; }
-                        else if (sStat === "Completed") { iCompleted++; }
-                        var sUser = a.UserId || a.userId || "UNKNOWN";
-                        var sName = a.UserName || a.userName || sUser;
-                        if (!oUserMap[sUser]) {
-                            oUserMap[sUser] = { userId: sUser, userName: sName, total: 0, completed: 0 };
+            var fnLoadFallbackPage = function (iSkip) {
+                oModel.read("/" + sEntitySet, {
+                    filters: aFilters,
+                    urlParameters: { "$inlinecount": "allpages", "$top": String(iPageSize), "$skip": String(iSkip) },
+                    success: function (oData) {
+                        var aPage = oData.results || [];
+                        aAllPages = aAllPages.concat(aPage);
+                        if (aPage.length >= iPageSize) {
+                            fnLoadFallbackPage(iSkip + iPageSize);
+                            return;
                         }
-                        oUserMap[sUser].total++;
-                        if (sStat === "Completed") { oUserMap[sUser].completed++; }
-                    });
+                        // All pages loaded — aggregate
+                        var aAll = aAllPages;
+                        var iTotal = oData.__count ? parseInt(oData.__count, 10) : aAll.length;
+                        var iAssigned = 0, iInProgress = 0, iCompleted = 0;
+                        var oUserMap = {};
 
-                    var sToday = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-                    var iOverdue = 0;
-                    aAll.forEach(function (a) {
-                        var sStat2 = a.Status || a.status || "";
-                        var dDue = a.DueDate || a.dueDate;
-                        if (sStat2 !== "Completed" && dDue) {
-                            var sDue = "";
-                            if (dDue instanceof Date) {
-                                sDue = dDue.toISOString().slice(0, 10).replace(/-/g, "");
-                            } else if (typeof dDue === "string") {
-                                sDue = dDue.replace(/-/g, "").slice(0, 8);
+                        // Handle both PascalCase (ABAP/V2) and camelCase (CAP/V4) field names
+                        aAll.forEach(function (a) {
+                            var sStat = a.Status || a.status || "";
+                            if (sStat === "Assigned") { iAssigned++; }
+                            else if (sStat === "In Progress") { iInProgress++; }
+                            else if (sStat === "Completed") { iCompleted++; }
+                            var sUser = a.UserId || a.userId || "UNKNOWN";
+                            var sName = a.UserName || a.userName || sUser;
+                            if (!oUserMap[sUser]) {
+                                oUserMap[sUser] = { userId: sUser, userName: sName, total: 0, completed: 0 };
                             }
-                            if (sDue && sDue <= sToday) { iOverdue++; }
-                        }
-                    });
+                            oUserMap[sUser].total++;
+                            if (sStat === "Completed") { oUserMap[sUser].completed++; }
+                        });
 
-                    var iPct = iTotal > 0 ? Math.round((iCompleted / iTotal) * 100) : 0;
-                    oTeamModel.setProperty("/totalAssignments", iTotal);
-                    oTeamModel.setProperty("/assigned", iAssigned);
-                    oTeamModel.setProperty("/inProgress", iInProgress);
-                    oTeamModel.setProperty("/completed", iCompleted);
-                    oTeamModel.setProperty("/overdue", iOverdue);
-                    oTeamModel.setProperty("/completionPercent", iPct);
+                        var sToday = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+                        var iOverdue = 0;
+                        aAll.forEach(function (a) {
+                            var sStat2 = a.Status || a.status || "";
+                            var dDue = a.DueDate || a.dueDate;
+                            if (sStat2 !== "Completed" && dDue) {
+                                var sDue = "";
+                                if (dDue instanceof Date) {
+                                    sDue = dDue.toISOString().slice(0, 10).replace(/-/g, "");
+                                } else if (typeof dDue === "string") {
+                                    sDue = dDue.replace(/-/g, "").slice(0, 8);
+                                }
+                                if (sDue && sDue <= sToday) { iOverdue++; }
+                            }
+                        });
 
-                    var aUsers = Object.keys(oUserMap).map(function (k) { return oUserMap[k]; });
-                    aUsers.sort(function (a, b) {
-                        var pctA = a.total > 0 ? a.completed / a.total : 0;
-                        var pctB = b.total > 0 ? b.completed / b.total : 0;
-                        return pctB - pctA;
-                    });
-                    oTeamModel.setProperty("/userBreakdown", aUsers);
-                    oTeamModel.setProperty("/allAssignments", aAll);
-                },
-                error: function (err) {
-                    Log.warning("[TeamAnalytics] Fallback load failed: " + (err && err.message || ""));
-                }
-            });
+                        var iPct = iTotal > 0 ? Math.round((iCompleted / iTotal) * 100) : 0;
+                        oTeamModel.setProperty("/totalAssignments", iTotal);
+                        oTeamModel.setProperty("/assigned", iAssigned);
+                        oTeamModel.setProperty("/inProgress", iInProgress);
+                        oTeamModel.setProperty("/completed", iCompleted);
+                        oTeamModel.setProperty("/overdue", iOverdue);
+                        oTeamModel.setProperty("/completionPercent", iPct);
+
+                        var aUsers = Object.keys(oUserMap).map(function (k) { return oUserMap[k]; });
+                        aUsers.sort(function (a, b) {
+                            var pctA = a.total > 0 ? a.completed / a.total : 0;
+                            var pctB = b.total > 0 ? b.completed / b.total : 0;
+                            return pctB - pctA;
+                        });
+                        oTeamModel.setProperty("/userBreakdown", aUsers);
+                        oTeamModel.setProperty("/allAssignments", aAll);
+                    },
+                    error: function (err) {
+                        Log.warning("[TeamAnalytics] Fallback load failed: " + (err && err.message || ""));
+                    }
+                });
+            };
+
+            fnLoadFallbackPage(0);
         },
 
         /**
@@ -1093,6 +1144,112 @@ sap.ui.define([
 
         onCreateTrainingCancel: function () {
             if (this._createDlg) { this._createDlg.close(); }
+        },
+
+        /* ===== U-1: Admin Inline Edit Training (via Dialog) ===== */
+        onEditTraining: function () {
+            var that = this;
+            var oSmartTable = this.byId("smartTable");
+            var oTable = oSmartTable.getTable();
+            var iIndex = oTable.getSelectedIndex();
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+
+            if (iIndex < 0) {
+                MessageToast.show(i18n.getText("selectTrainingFirst"));
+                return;
+            }
+            var oContext = oTable.getContextByIndex(iIndex);
+            if (!oContext) { return; }
+            var oTraining = oContext.getObject();
+
+            // Destroy previous dialog
+            if (this._editDlg) { this._editDlg.destroy(); this._editDlg = null; }
+
+            this._editTrainingPath = oContext.getPath();
+            var oDlgModel = new JSONModel({
+                title: oTraining.Title || "",
+                description: oTraining.Description || "",
+                role: oTraining.Role || "",
+                topic: oTraining.Topic || "",
+                sapModule: oTraining.SapModule || "",
+                url: oTraining.Url || "",
+                sapHelpLink: oTraining.SapHelpLink || "",
+                submitting: false,
+                error: ""
+            });
+
+            this.loadFragment({
+                name: "z.sap.courses.fragments.EditTrainingDialog"
+            }).then(function (oDialog) {
+                that._editDlg = oDialog;
+                oDialog.setModel(oDlgModel, "editModel");
+                oDialog.setModel(that.getView().getModel("i18n"), "i18n");
+                oDialog.attachAfterClose(function () {
+                    oDialog.destroy();
+                    that._editDlg = null;
+                    that._editTrainingPath = null;
+                });
+                oDialog.open();
+            });
+        },
+
+        onEditTrainingSave: function () {
+            var that = this;
+            var oDlgModel = this._editDlg.getModel("editModel");
+            var oModel = this.getOwnerComponent().getModel();
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+            var data = oDlgModel.getData();
+
+            if (!data.title || !data.title.trim()) {
+                oDlgModel.setProperty("/error", i18n.getText("titleRequired"));
+                return;
+            }
+            if (!data.url || !data.url.trim()) {
+                oDlgModel.setProperty("/error", i18n.getText("urlRequired"));
+                return;
+            }
+            oDlgModel.setProperty("/error", "");
+            oDlgModel.setProperty("/submitting", true);
+
+            var payload = {
+                Title: data.title.trim(),
+                Description: (data.description || "").trim(),
+                Role: (data.role || "").trim(),
+                Topic: (data.topic || "").trim(),
+                SapModule: (data.sapModule || "").trim(),
+                Url: data.url.trim(),
+                SapHelpLink: (data.sapHelpLink || "").trim()
+            };
+
+            oModel.refreshSecurityToken(function () {
+                oModel.update(that._editTrainingPath, payload, {
+                    success: function () {
+                        that._editDlg.close();
+                        oDlgModel.setProperty("/submitting", false);
+                        MessageToast.show(i18n.getText("trainingUpdated"));
+                        that.byId("smartTable").rebindTable(true);
+                        that._loadAnalytics();
+                    },
+                    error: function (err) {
+                        oDlgModel.setProperty("/submitting", false);
+                        var msg = i18n.getText("updateFailed");
+                        try {
+                            var parsed = JSON.parse(err.responseText);
+                            msg = parsed.error.message.value || msg;
+                        } catch (e) {
+                            msg = (err && err.message) || msg;
+                        }
+                        oDlgModel.setProperty("/error", msg);
+                    }
+                });
+            }, function () {
+                oDlgModel.setProperty("/submitting", false);
+                oDlgModel.setProperty("/error", i18n.getText("securityTokenFailed"));
+            });
+        },
+
+        onEditTrainingCancel: function () {
+            if (this._editDlg) { this._editDlg.close(); }
         },
 
         /* ===== Admin CRUD: Delete Training (multi-select) ===== */

@@ -26,6 +26,34 @@
 
         <content>
             <!-- ============================================================ -->
+            <!-- U-3: Due Date Warning Banner                                  -->
+            <!-- ============================================================ -->
+            <HBox id="dueDateWarningBanner"
+                  class="dueDateWarningBar sapUiSmallMarginBottom sapUiSmallMarginBeginEnd"
+                  alignItems="Center"
+                  visible="{= ${assignAnalytics>/dueSoonCount} > 0 }">
+                <core:Icon id="dueDateWarningIcon" src="sap-icon://warning2" size="1.25rem" color="#e76500" class="sapUiTinyMarginEnd" />
+                <Text id="dueDateWarningText"
+                      text="{= ${assignAnalytics>/dueSoonCount} === 1 ? '1 assignment is due within 3 days!' : ${assignAnalytics>/dueSoonCount} + ' assignments are due within 3 days!'}"
+                      class="sapUiTinyMarginEnd" />
+                <Button id="dueDateWarningBtn" text="{i18n>viewDueSoon}" type="Transparent" press="onFilterDueSoon" />
+            </HBox>
+
+            <!-- ============================================================ -->
+            <!-- U-4: Gamification Achievement Banner                          -->
+            <!-- ============================================================ -->
+            <HBox id="gamificationBanner"
+                  class="gamificationBanner sapUiSmallMarginBottom sapUiSmallMarginBeginEnd"
+                  alignItems="Center"
+                  visible="{= ${assignAnalytics>/badge} !== '' }">
+                <core:Icon id="gamificationIconBadge" src="{assignAnalytics>/badgeIcon}" size="1.5rem" color="#f59e0b" class="gamificationIcon" />
+                <VBox id="gamificationTextBox">
+                    <Text id="gamificationBadgeText" text="{assignAnalytics>/badge}" class="gamificationText" />
+                    <Text id="gamificationSubtext" text="{assignAnalytics>/badgeDescription}" class="gamificationSubtext" />
+                </VBox>
+            </HBox>
+
+            <!-- ============================================================ -->
             <!-- MY PROGRESS – User's own assignment stats (always visible)   -->
             <!-- ============================================================ -->
             <Panel

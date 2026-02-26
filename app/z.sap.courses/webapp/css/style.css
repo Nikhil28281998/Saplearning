@@ -430,6 +430,62 @@ html, body, html.sap-desktop, .sapUiBody {
     border-radius: 6px;
 }
 
+/* U-2: Enhanced Chart Visuals — themed gradient progress bars */
+.chartCard .sapMPI .sapMPIBar {
+    border-radius: 6px !important;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Status chart bars — gradient fills for visual richness */
+#teamPendingBar .sapMPIBar.sapMPIBarRemaining + .sapMPIBar,
+.chartCard .sapMPI[class*="Warning"] .sapMPIBar:not(.sapMPIBarRemaining) {
+    background: linear-gradient(90deg, #e76500, #f59e0b) !important;
+}
+
+#teamInProgressBar .sapMPIBar.sapMPIBarRemaining + .sapMPIBar,
+.chartCard .sapMPI[class*="Information"] .sapMPIBar:not(.sapMPIBarRemaining) {
+    background: linear-gradient(90deg, #0854a0, #2196f3) !important;
+}
+
+#teamOverdueBar .sapMPIBar.sapMPIBarRemaining + .sapMPIBar,
+.chartCard .sapMPI[class*="Error"] .sapMPIBar:not(.sapMPIBarRemaining) {
+    background: linear-gradient(90deg, #bb0000, #ef5350) !important;
+}
+
+#teamCompletedBar .sapMPIBar.sapMPIBarRemaining + .sapMPIBar,
+.chartCard .sapMPI[class*="Success"] .sapMPIBar:not(.sapMPIBarRemaining) {
+    background: linear-gradient(90deg, #107e3e, #4caf50) !important;
+}
+
+/* Module chart bars — blue gradient */
+.moduleProgressBar .sapMPIBar:not(.sapMPIBarRemaining) {
+    background: linear-gradient(90deg, #0854a0, #42a5f5) !important;
+}
+
+/* Chart display values — bolder text */
+.chartCard .sapMPITextRight,
+.chartCard .sapMPIText {
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+}
+
+/* Chart legend text styling */
+.chartLegendText {
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em;
+}
+
+/* Team completion bar — purple gradient */
+.teamCompletionProgressBar .sapMPIBar:not(.sapMPIBarRemaining) {
+    background: linear-gradient(90deg, #6c32a9, #9c27b0) !important;
+}
+
+/* Hero completion bar — purple gradient matching team style */
+#completionHeroBar .sapMPIBar:not(.sapMPIBarRemaining) {
+    background: linear-gradient(90deg, #6c32a9, #ba68c8) !important;
+}
+
 /* ===== User Analytics Container (My Assignments) – responsive grid ===== */
 .userAnalyticsContainer {
     display: grid !important;
@@ -1561,4 +1617,94 @@ html[data-sap-ui-theme="sap_horizon_dark"] .teamUserProgressItem,
 html[data-sap-ui-theme="sap_fiori_3_dark"] .teamUserProgressItem {
     background: var(--sapList_Background);
     border-color: var(--sapList_BorderColor);
+}
+
+/* ===== M-6 FIX: Loading Skeleton Animation ===== */
+@keyframes skeletonShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.analyticsCardSkeleton {
+    position: relative;
+    overflow: hidden;
+}
+
+.analyticsCardSkeleton > * {
+    visibility: hidden;
+}
+
+.analyticsCardSkeleton::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: var(--sapRadius, 12px);
+    background: linear-gradient(
+        90deg,
+        var(--sapNeutralLight, #f5f6f7) 25%,
+        rgba(255,255,255,0.5) 50%,
+        var(--sapNeutralLight, #f5f6f7) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.5s ease-in-out infinite;
+}
+
+/* Dark theme skeleton */
+html[data-sap-ui-theme*="dark"] .analyticsCardSkeleton::after,
+html[data-sap-ui-theme="sap_horizon_dark"] .analyticsCardSkeleton::after {
+    background: linear-gradient(
+        90deg,
+        rgba(60,60,60,0.6) 25%,
+        rgba(80,80,80,0.4) 50%,
+        rgba(60,60,60,0.6) 75%
+    );
+    background-size: 200% 100%;
+}
+
+/* ===== U-4: Gamification Badges ===== */
+.gamificationBanner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--sapRadiusSm, 8px);
+    background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%);
+    border: 1px solid #ffe082;
+    margin-bottom: 0.5rem;
+}
+
+.gamificationBanner .gamificationIcon {
+    font-size: 1.5rem;
+}
+
+.gamificationBanner .gamificationText {
+    font-weight: 600;
+    color: var(--sapText, #1d2d3e);
+}
+
+.gamificationBanner .gamificationSubtext {
+    font-size: 0.8rem;
+    color: var(--sapTextLight, #556b82);
+}
+
+html[data-sap-ui-theme*="dark"] .gamificationBanner {
+    background: linear-gradient(135deg, rgba(255,248,225,0.1) 0%, rgba(255,253,231,0.05) 100%);
+    border-color: rgba(255,224,130,0.3);
+}
+
+/* ===== U-3: Due Date Warning Bar ===== */
+.dueDateWarningBar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--sapRadiusSm, 8px);
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border: 1px solid #ffcc80;
+    margin-bottom: 0.5rem;
+}
+
+html[data-sap-ui-theme*="dark"] .dueDateWarningBar {
+    background: linear-gradient(135deg, rgba(255,243,224,0.1) 0%, rgba(255,224,178,0.05) 100%);
+    border-color: rgba(255,204,128,0.3);
 }

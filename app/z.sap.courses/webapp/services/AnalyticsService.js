@@ -10,6 +10,8 @@ sap.ui.define([
      * Instead of loading ALL assignments client-side and counting in JS,
      * sends 3 server-side filtered requests with $top=0&$inlinecount=allpages
      * so only the count is returned — no entity payloads transferred.
+     *
+     * M-3 FIX: Uses paged reads for module aggregation to handle large catalogs.
      */
     return BaseObject.extend("z.sap.courses.services.AnalyticsService", {
 
@@ -18,21 +20,36 @@ sap.ui.define([
 
         /**
          * Get training catalog stats: total count + module distribution for chart.
-         * Uses $inlinecount for the total, reads entities only for module/role aggregation.
+         * M-3 FIX: Uses $select to minimize payload and paged reads for large catalogs.
          *
          * @param {sap.ui.model.odata.v2.ODataModel} oModel - The OData V2 model
          * @returns {Promise<{totalTrainings: number, moduleDistribution: Array, roles: Array, modules: Array, roleModuleMap: Object}>}
          */
         getTrainingStats: function (oModel) {
             return new Promise(function (resolve, reject) {
-                oModel.read("/Trainings", {
-                    urlParameters: {
-                        "$inlinecount": "allpages",
-                        "$select": "Role,Topic,SapModule,Title"
-                    },
-                    success: function (oData) {
-                        var aResults = oData.results || [];
-                        var iTotal = oData.__count ? parseInt(oData.__count, 10) : aResults.length;
+                var iPageSize = 500;
+                var aAllResults = [];
+
+                var fnLoadPage = function (iSkip) {
+                    oModel.read("/Trainings", {
+                        urlParameters: {
+                            "$inlinecount": "allpages",
+                            "$select": "Role,Topic,SapModule,Title",
+                            "$top": String(iPageSize),
+                            "$skip": String(iSkip)
+                        },
+                        success: function (oData) {
+                            var aPage = oData.results || [];
+                            aAllResults = aAllResults.concat(aPage);
+                            var iTotal = oData.__count ? parseInt(oData.__count, 10) : aAllResults.length;
+
+                            if (aPage.length >= iPageSize) {
+                                fnLoadPage(iSkip + iPageSize);
+                                return;
+                            }
+
+                            // All pages loaded — aggregate
+                            var aResults = aAllResults;
 
                         // Module distribution for chart
                         var oModuleMap = {};
@@ -91,12 +108,15 @@ sap.ui.define([
                             topicModuleMap: oTopicModuleMap,
                             moduleTopicMap: oModuleTopicMap
                         });
-                    },
-                    error: function (err) {
-                        Log.error("[AnalyticsService] Failed to load trainings: " + (err && err.message || ""));
-                        reject(err);
-                    }
-                });
+                        },
+                        error: function (err) {
+                            Log.error("[AnalyticsService] Failed to load trainings: " + (err && err.message || ""));
+                            reject(err);
+                        }
+                    });
+                };
+
+                fnLoadPage(0);
             });
         }
     });

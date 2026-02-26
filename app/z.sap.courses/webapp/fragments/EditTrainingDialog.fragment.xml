@@ -1,0 +1,88 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:form="sap.ui.layout.form">
+
+    <Dialog
+        id="editTrainingDialog"
+        title="{i18n>editTrainingTitle}"
+        contentWidth="560px"
+        draggable="true"
+        resizable="true">
+
+        <content>
+            <VBox id="editDialogVBox" class="sapUiSmallMargin">
+                <form:SimpleForm
+                    id="editForm"
+                    editable="true"
+                    layout="ResponsiveGridLayout"
+                    labelSpanXL="3" labelSpanL="3" labelSpanM="4" labelSpanS="12"
+                    columnsXL="1" columnsL="1" columnsM="1">
+                    <form:content>
+                        <Label id="editLabelTitle" text="{i18n>titleLabel}" required="true" />
+                        <Input id="editInputTitle" value="{editModel>/title}" placeholder="Training title" />
+
+                        <Label id="editLabelRole" text="{i18n>roleLabel}" />
+                        <Select id="editInputRole" selectedKey="{editModel>/role}" forceSelection="false">
+                            <core:Item id="editRoleConsultant" key="Consultant" text="Consultant" />
+                            <core:Item id="editRoleDeveloper" key="Developer" text="Developer" />
+                            <core:Item id="editRoleAdmin" key="Admin" text="Admin" />
+                        </Select>
+
+                        <Label id="editLabelTopic" text="{i18n>topicLabel}" />
+                        <Select id="editInputTopic" selectedKey="{editModel>/topic}" forceSelection="false">
+                            <core:Item id="editTopicFinance" key="Finance" text="Finance" />
+                            <core:Item id="editTopicSCM" key="Supply Chain" text="Supply Chain" />
+                            <core:Item id="editTopicSales" key="Sales" text="Sales" />
+                            <core:Item id="editTopicProcurement" key="Procurement" text="Procurement" />
+                            <core:Item id="editTopicManufacturing" key="Manufacturing" text="Manufacturing" />
+                            <core:Item id="editTopicBTP" key="BTP" text="Business Technology Platform" />
+                            <core:Item id="editTopicAnalytics" key="Analytics" text="Analytics" />
+                            <core:Item id="editTopicHR" key="HR" text="Human Resources" />
+                            <core:Item id="editTopicSecurity" key="Security" text="Security &amp; GRC" />
+                            <core:Item id="editTopicBasis" key="Basis" text="Basis &amp; Administration" />
+                            <core:Item id="editTopicDev" key="Development" text="Development" />
+                            <core:Item id="editTopicIntegration" key="Integration" text="Integration" />
+                        </Select>
+
+                        <Label id="editLabelModule" text="{i18n>moduleLabel}" />
+                        <Input id="editInputModule" value="{editModel>/sapModule}" placeholder="e.g. ABAP, UI_UX, FI_CO, MM" />
+
+                        <Label id="editLabelDesc" text="{i18n>descriptionLabel}" />
+                        <TextArea id="editInputDesc" value="{editModel>/description}" rows="3" placeholder="Brief description" />
+
+                        <Label id="editLabelUrl" text="URL" required="true" />
+                        <Input id="editInputUrl" value="{editModel>/url}" type="Url" placeholder="https://learning.sap.com/..." />
+
+                        <Label id="editLabelHelp" text="{i18n>sapHelpLabel}" />
+                        <Input id="editInputHelp" value="{editModel>/sapHelpLink}" type="Url" placeholder="https://help.sap.com/..." />
+                    </form:content>
+                </form:SimpleForm>
+
+                <MessageStrip
+                    id="editErrorStrip"
+                    text="{editModel>/error}"
+                    visible="{= !!${editModel>/error} }"
+                    type="Error"
+                    showIcon="true"
+                    class="sapUiSmallMarginTop" />
+            </VBox>
+        </content>
+
+        <beginButton>
+            <Button
+                id="editSaveBtn"
+                text="{i18n>saveBtn}"
+                type="Emphasized"
+                icon="sap-icon://save"
+                enabled="{= !${editModel>/submitting} }"
+                press=".onEditTrainingSave" />
+        </beginButton>
+        <endButton>
+            <Button
+                id="editCancelBtn"
+                text="{i18n>cancelButton}"
+                press=".onEditTrainingCancel" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

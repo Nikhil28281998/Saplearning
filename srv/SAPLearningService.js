@@ -285,10 +285,15 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
       req.data.sap_module = training.sap_module;
       req.data.url = training.url;
 
-      // Populate managerSort2 — the manager who assigned this training
-      // In production (ABAP Gateway), ADRP.SORT2 is read for the assignee's manager
-      // In CAP dev mode, store the assigning manager's username as the sort2 value
-      req.data.managerSort2 = userCtx.sapUsername;
+      // M-4 FIX: Populate managerSort2 — use ADRP.SORT2 in production,
+      // fallback to assigning user's SORT2 or username in dev.
+      // Manager sees team filtered by managerSort2 = their own username,
+      // so we store who created the assignment for team-context drill-down.
+      if (req.data.assignedBy) {
+        req.data.managerSort2 = req.data.assignedBy;
+      } else {
+        req.data.managerSort2 = userCtx.sapUsername;
+      }
 
       secureLog('info', 'Training assignment created', {
         assigneeId, trainingId, createdBy: userCtx.username
@@ -388,12 +393,14 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
 
       if (!validateInput(req.data, req)) return;
 
-      // Validate URL format — only HTTPS allowed
+      // M-5 FIX: Allow HTTP URLs in development, enforce HTTPS in production only
       if (req.data.url) {
         try {
           const parsed = new URL(req.data.url);
-          if (parsed.protocol !== 'https:') {
-            return req.reject(400, 'Only HTTPS URLs are allowed');
+          const isProduction = process.env.NODE_ENV === 'production';
+          const allowedProtocols = isProduction ? ['https:'] : ['https:', 'http:'];
+          if (!allowedProtocols.includes(parsed.protocol)) {
+            return req.reject(400, isProduction ? 'Only HTTPS URLs are allowed' : 'Only HTTP or HTTPS URLs are allowed');
           }
         } catch (err) {
           return req.reject(400, 'Invalid URL format');
