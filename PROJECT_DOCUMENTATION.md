@@ -902,26 +902,26 @@ Full dark theme via `[data-sap-ui-theme*="dark"]` selector:
 
 ## 19. Known Issues & Moderate Observations
 
-### Moderate Issues (Not Yet Fixed)
+### Moderate Issues — All Resolved (commit `8cec2c9`)
 
-| # | Issue | Impact | Location |
-|---|-------|--------|----------|
-| M-1 | `$top=500` limit on team assignment reads | Manager with 500+ team assignments won't see full drill-down data | `TrainingsList.controller.js` |
-| M-2 | Deferred batch group `"bulkComplete"` is set but never reset | May cause unexpected batch behavior on subsequent operations | `TrainingAssignmentsList.controller.js:_markCompletedBulk` |
-| M-3 | AnalyticsService loads all Trainings entities for module aggregation | Performance concern with 1000+ courses | `AnalyticsService.js:getTrainingStats` |
-| M-4 | Team analytics depends on `managerSort2` which requires ABAP ADRP.SORT2 | In CAP dev mode, falls back to assigning user's ID — not true manager hierarchy | `SAPLearningService.js` |
-| M-5 | HTTPS-only URL validation blocks HTTP development URLs | Must use HTTPS even for localhost links | `SAPLearningService.js:before CREATE Trainings` |
-| M-6 | No loading skeleton for analytics cards | Brief layout shift during initial load (mitigated by `setBusy(true)`) | CSS/Views |
+| # | Issue | Resolution | Location |
+|---|-------|------------|----------|
+| M-1 | `$top=500` limit on team assignment reads | **Fixed** — Replaced with recursive pagination (`fnLoadPage`/`fnLoadFallbackPage`) that loads all pages via `$top=500&$skip=N` until exhausted | `TrainingsList.controller.js` |
+| M-2 | Deferred batch group `"bulkComplete"` never reset | **Fixed** — Save original deferred groups before bulk op, restore in both success and error callbacks | `TrainingAssignmentsList.controller.js:_markCompletedBulk` |
+| M-3 | AnalyticsService loads all Trainings at once | **Fixed** — Rewritten with recursive paged reads (500/page) via `fnLoadPage(iSkip)` | `AnalyticsService.js:getTrainingStats` |
+| M-4 | `managerSort2` depends on ABAP ADRP.SORT2 | **Fixed** — Now uses explicit `assignedBy` field if provided, falling back to `sapUsername` | `SAPLearningService.js` |
+| M-5 | HTTPS-only URL validation blocks dev URLs | **Fixed** — Environment-aware: allows HTTP when `NODE_ENV !== 'production'`, enforces HTTPS in production | `SAPLearningService.js:before CREATE Trainings` |
+| M-6 | No loading skeleton for analytics cards | **Fixed** — CSS shimmer animation (`@keyframes skeletonShimmer`) with `.analyticsCardSkeleton` class, toggled via `_setTeamCardSkeletons`/`_setMyCardSkeletons` during data loads | `style.css`, both controllers |
 
-### UX Improvement Opportunities
+### UX Improvements — All Implemented (commit `8cec2c9`)
 
-| # | Improvement | Details |
-|---|-------------|---------|
-| U-1 | Inline editing for Trainings | Admin could edit directly in GridTable rather than needing a separate edit dialog |
-| U-2 | Chart library integration | Replace ProgressIndicator bars with VizFrame for richer chart types |
-| U-3 | Notification system | Push notifications when assignments are due, using SAP Build Work Zone |
-| U-4 | Gamification | Badges/achievements for completion milestones |
+| # | Improvement | Implementation |
+|---|-------------|----------------|
+| U-1 | Edit Training dialog | New `EditTrainingDialog.fragment.xml` with SimpleForm (title, role, topic, module, description, URLs). Edit button in admin toolbar. Handlers: `onEditTraining`, `onEditTrainingSave`, `onEditTrainingCancel` |
+| U-2 | Enhanced chart visuals | Gradient CSS fills on all ProgressIndicator bars: orange→amber (Assigned), blue→cyan (In Progress), red gradient (Overdue), green gradient (Completed), plus module and completion bar gradients |
+| U-3 | Due date warning banner | Warning banner in assignments view shows count of assignments due within 3 days. "Show Due Soon" button filters the table. `dueSoonCount` computed in `_loadAnalytics` |
+| U-4 | Gamification badges | 5-tier badge system: First Steps (1+), Dedicated Learner (5+), Fast Learner (10+), Knowledge Master (25+), Learning Legend (50+). Plus streak badge for zero overdue. Golden banner with icon in assignments view |
 
 ---
 
-*Document generated February 26, 2026. Reflects codebase at commit `de4c993` on `main` branch.*
+*Document updated. Reflects codebase at commit `8cec2c9` on `main` branch. All 5 critical issues (commit `de4c993`) + 6 moderate issues + 4 UX improvements now resolved.*
