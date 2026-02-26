@@ -68,6 +68,7 @@ METHOD trainings_get_entity.
   ls_entity-id            = ls_training-id.
   ls_entity-url           = ls_training-url.
   ls_entity-role          = ls_training-role.
+  ls_entity-topic         = ls_training-topic.
   ls_entity-title         = ls_training-title.
   ls_entity-sap_module    = ls_training-sap_module.
   ls_entity-description   = ls_training-description.

@@ -78,6 +78,9 @@ METHOD trainings_update_entity.
   IF ls_entity-role IS NOT INITIAL.
     ls_training-role = ls_entity-role.
   ENDIF.
+  IF ls_entity-topic IS NOT INITIAL.
+    ls_training-topic = ls_entity-topic.
+  ENDIF.
   IF ls_entity-sap_module IS NOT INITIAL.
     ls_training-sap_module = ls_entity-sap_module.
   ENDIF.
@@ -101,6 +104,7 @@ METHOD trainings_update_entity.
 *     Only update fields that were actually changed in the payload
     DATA: lv_cascade_needed TYPE abap_bool VALUE abap_false.
     IF ls_entity-title IS NOT INITIAL OR ls_entity-role IS NOT INITIAL
+       OR ls_entity-topic IS NOT INITIAL
        OR ls_entity-sap_module IS NOT INITIAL OR ls_entity-url IS NOT INITIAL.
       lv_cascade_needed = abap_true.
     ENDIF.
@@ -108,6 +112,7 @@ METHOD trainings_update_entity.
       UPDATE zcourse_asgn
         SET title      = ls_training-title
             role       = ls_training-role
+            topic      = ls_training-topic
             sap_module = ls_training-sap_module
             url        = ls_training-url
         WHERE training_id = lv_id.
@@ -118,6 +123,7 @@ METHOD trainings_update_entity.
     ls_entity-id            = ls_training-id.
     ls_entity-url           = ls_training-url.
     ls_entity-role          = ls_training-role.
+    ls_entity-topic         = ls_training-topic.
     ls_entity-title         = ls_training-title.
     ls_entity-sap_module    = ls_training-sap_module.
     ls_entity-description   = ls_training-description.

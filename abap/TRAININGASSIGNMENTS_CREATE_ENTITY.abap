@@ -11,6 +11,7 @@
 *&   TRAINING_ID   CHAR 36  (FK to ZCOURSES-ID)
 *&   TITLE         CHAR 255
 *&   ROLE          CHAR 20
+*&   TOPIC         CHAR 100
 *&   SAP_MODULE    CHAR 20
 *&   URL           CHAR 500
 *&   STATUS        CHAR 20  (Assigned / In Progress / Completed)
@@ -148,6 +149,7 @@ METHOD trainingassignme_create_entity.
   ls_asgn-training_id   = ls_entity-trainingid.
   ls_asgn-title         = ls_entity-title.
   ls_asgn-role          = ls_entity-role.
+  ls_asgn-topic         = ls_entity-topic.
   ls_asgn-sap_module    = ls_entity-sapmodule.
   ls_asgn-url           = ls_entity-url.
   ls_asgn-status        = ls_entity-status.

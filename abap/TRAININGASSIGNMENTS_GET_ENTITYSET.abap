@@ -18,14 +18,17 @@ METHOD trainingassignme_get_entityset.
         ls_filter_stat TYPE /iwbep/s_mgw_select_option,
         ls_filter_mgr  TYPE /iwbep/s_mgw_select_option,
         ls_filter_ttl  TYPE /iwbep/s_mgw_select_option,
+        ls_filter_top  TYPE /iwbep/s_mgw_select_option,
         ls_uid_opt     TYPE /iwbep/s_cod_select_option,
         ls_stat_opt    TYPE /iwbep/s_cod_select_option,
         ls_mgr_opt     TYPE /iwbep/s_cod_select_option,
         ls_title_opt   TYPE /iwbep/s_cod_select_option,
+        ls_topic_opt   TYPE /iwbep/s_cod_select_option,
         lv_user_id     TYPE char12,
         lv_status      TYPE char20,
         lv_mgr_sort2   TYPE char20,
         lv_title       TYPE char255,
+        lv_topic       TYPE char100,
         lv_title_pat   TYPE char255,
         lv_title_up    TYPE char255,
         lv_skip        TYPE i,
@@ -139,6 +142,23 @@ METHOD trainingassignme_get_entityset.
     ENDIF.
   ENDIF.
 
+* -- Read filter: Topic -----------------------------------------------
+  READ TABLE it_filter_select_options
+    WITH KEY property = 'Topic'
+    INTO ls_filter_top.
+  IF sy-subrc <> 0.
+    READ TABLE it_filter_select_options
+      WITH KEY property = 'TOPIC'
+      INTO ls_filter_top.
+  ENDIF.
+  IF sy-subrc = 0.
+    READ TABLE ls_filter_top-select_options INDEX 1
+      INTO ls_topic_opt.
+    IF sy-subrc = 0.
+      lv_topic = ls_topic_opt-low.
+    ENDIF.
+  ENDIF.
+
 * -- SEC-3 FIX: Server-side UserId enforcement for User role ----------
 *   Users with only ACTVT 03 (Display) may NOT see other users' data.
 *   Force lv_user_id = sy-uname unless Admin (06) or Manager (01).
@@ -191,6 +211,11 @@ METHOD trainingassignme_get_entityset.
     ENDLOOP.
   ENDIF.
 
+* -- Post-filter: Topic (exact match) --------------------------------
+  IF lv_topic IS NOT INITIAL.
+    DELETE lt_asgn WHERE topic <> lv_topic.
+  ENDIF.
+
 * -- ABP-1 FIX: Set $inlinecount BEFORE pagination -------------------
   IF io_tech_request_context->has_inlinecount( ) = abap_true.
     es_response_context-inlinecount = lines( lt_asgn ).
@@ -220,6 +245,7 @@ METHOD trainingassignme_get_entityset.
     ls_entity-trainingid      = ls_asgn-training_id.
     ls_entity-title           = ls_asgn-title.
     ls_entity-role            = ls_asgn-role.
+    ls_entity-topic           = ls_asgn-topic.
     ls_entity-sapmodule       = ls_asgn-sap_module.
     ls_entity-url             = ls_asgn-url.
     ls_entity-status          = ls_asgn-status.

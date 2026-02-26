@@ -33,14 +33,17 @@ METHOD trainings_get_entityset.
         ls_filter_role TYPE /iwbep/s_mgw_select_option,
         ls_filter_mod  TYPE /iwbep/s_mgw_select_option,
         ls_filter_ttl  TYPE /iwbep/s_mgw_select_option,
+        ls_filter_top  TYPE /iwbep/s_mgw_select_option,
         ls_filter_upd  TYPE /iwbep/s_mgw_select_option,
         ls_role_opt    TYPE /iwbep/s_cod_select_option,
         ls_module_opt  TYPE /iwbep/s_cod_select_option,
         ls_title_opt   TYPE /iwbep/s_cod_select_option,
+        ls_topic_opt   TYPE /iwbep/s_cod_select_option,
         ls_upd_opt     TYPE /iwbep/s_cod_select_option,
         lv_role        TYPE char50,
         lv_module      TYPE char50,
         lv_title       TYPE char255,
+        lv_topic       TYPE char100,
         lv_title_pat   TYPE char255,
         lv_title_up    TYPE char255,
         lv_upd_date    TYPE sydatum,
@@ -116,6 +119,23 @@ METHOD trainings_get_entityset.
     ENDIF.
   ENDIF.
 
+* -- Read filter: Topic -----------------------------------------------
+  READ TABLE it_filter_select_options
+    WITH KEY property = 'Topic'
+    INTO ls_filter_top.
+  IF sy-subrc <> 0.
+    READ TABLE it_filter_select_options
+      WITH KEY property = 'TOPIC'
+      INTO ls_filter_top.
+  ENDIF.
+  IF sy-subrc = 0.
+    READ TABLE ls_filter_top-select_options INDEX 1
+      INTO ls_topic_opt.
+    IF sy-subrc = 0.
+      lv_topic = ls_topic_opt-low.
+    ENDIF.
+  ENDIF.
+
 * -- Query ZCOURSES: apply Role + Module at DB level -----------------
   IF lv_role IS NOT INITIAL AND lv_module IS NOT INITIAL.
     SELECT * FROM zcourses INTO TABLE lt_training
@@ -154,6 +174,11 @@ METHOD trainings_get_entityset.
     DELETE lt_training WHERE last_updated < lv_upd_date.
   ENDIF.
 
+* -- Post-filter: Topic (exact match) --------------------------------
+  IF lv_topic IS NOT INITIAL.
+    DELETE lt_training WHERE topic <> lv_topic.
+  ENDIF.
+
 * -- FIX #24: Set $inlinecount BEFORE pagination ---------------------
   lv_total = lines( lt_training ).
   es_response_context-inlinecount = lv_total.
@@ -164,6 +189,7 @@ METHOD trainings_get_entityset.
     ls_entity-id            = ls_training-id.
     ls_entity-url           = ls_training-url.
     ls_entity-role          = ls_training-role.
+    ls_entity-topic         = ls_training-topic.
     ls_entity-title         = ls_training-title.
     ls_entity-sap_module    = ls_training-sap_module.
     ls_entity-description   = ls_training-description.

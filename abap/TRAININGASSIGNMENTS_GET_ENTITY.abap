@@ -79,6 +79,7 @@ METHOD trainingassignme_get_entity.
   ls_entity-trainingid      = ls_asgn-training_id.
   ls_entity-title           = ls_asgn-title.
   ls_entity-role            = ls_asgn-role.
+  ls_entity-topic           = ls_asgn-topic.
   ls_entity-sapmodule       = ls_asgn-sap_module.
   ls_entity-url             = ls_asgn-url.
   ls_entity-status          = ls_asgn-status.

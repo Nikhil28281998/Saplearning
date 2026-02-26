@@ -69,6 +69,7 @@ METHOD trainingassignments_create_entity.
   ls_asgn-training_id   = ls_entity-trainingid.
   ls_asgn-title         = ls_entity-title.
   ls_asgn-role          = ls_entity-role.
+  ls_asgn-topic         = ls_entity-topic.
   ls_asgn-sap_module    = ls_entity-sapmodule.
   ls_asgn-url           = ls_entity-url.
   ls_asgn-status        = ls_entity-status.
