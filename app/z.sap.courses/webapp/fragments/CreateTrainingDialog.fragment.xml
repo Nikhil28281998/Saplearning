@@ -23,30 +23,28 @@
                         <Input id="createInputTitle" value="{createModel>/title}" placeholder="Training title" />
 
                         <Label id="createLabelRole" text="{i18n>roleLabel}" />
-                        <Select id="createInputRole" selectedKey="{createModel>/role}" forceSelection="false">
-                            <core:Item id="roleConsultant" key="Consultant" text="Consultant" />
-                            <core:Item id="roleDeveloper" key="Developer" text="Developer" />
-                            <core:Item id="roleAdmin" key="Admin" text="Admin" />
-                        </Select>
+                        <Input id="createInputRole" value="{createModel>/role}" placeholder="e.g. Consultant, Developer, Admin"
+                            showSuggestion="true" suggestionItems="{filterData>/roles}">
+                            <suggestionItems>
+                                <core:Item key="{filterData>key}" text="{filterData>text}" />
+                            </suggestionItems>
+                        </Input>
 
                         <Label id="createLabelTopic" text="{i18n>topicLabel}" />
-                        <Select id="createInputTopic" selectedKey="{createModel>/topic}" forceSelection="false">
-                            <core:Item id="topicFinance" key="Finance" text="Finance" />
-                            <core:Item id="topicSCM" key="Supply Chain" text="Supply Chain" />
-                            <core:Item id="topicSales" key="Sales" text="Sales" />
-                            <core:Item id="topicProcurement" key="Procurement" text="Procurement" />
-                            <core:Item id="topicManufacturing" key="Manufacturing" text="Manufacturing" />
-                            <core:Item id="topicBTP" key="BTP" text="Business Technology Platform" />
-                            <core:Item id="topicAnalytics" key="Analytics" text="Analytics" />
-                            <core:Item id="topicHR" key="HR" text="Human Resources" />
-                            <core:Item id="topicSecurity" key="Security" text="Security &amp; GRC" />
-                            <core:Item id="topicBasis" key="Basis" text="Basis &amp; Administration" />
-                            <core:Item id="topicDev" key="Development" text="Development" />
-                            <core:Item id="topicIntegration" key="Integration" text="Integration" />
-                        </Select>
+                        <Input id="createInputTopic" value="{createModel>/topic}" placeholder="e.g. Finance, Supply Chain, Analytics"
+                            showSuggestion="true" suggestionItems="{filterData>/topics}">
+                            <suggestionItems>
+                                <core:Item key="{filterData>key}" text="{filterData>text}" />
+                            </suggestionItems>
+                        </Input>
 
                         <Label id="createLabelModule" text="{i18n>moduleLabel}" />
-                        <Input id="createInputModule" value="{createModel>/sapModule}" placeholder="e.g. ABAP, UI_UX, FI_CO, MM" />
+                        <Input id="createInputModule" value="{createModel>/sapModule}" placeholder="e.g. ABAP, UI_UX, FI_CO, MM"
+                            showSuggestion="true" suggestionItems="{filterData>/modules}">
+                            <suggestionItems>
+                                <core:Item key="{filterData>key}" text="{filterData>text}" />
+                            </suggestionItems>
+                        </Input>
 
                         <Label id="createLabelDesc" text="{i18n>descriptionLabel}" />
                         <TextArea id="createInputDesc" value="{createModel>/description}" rows="3" placeholder="Brief description" />

@@ -1075,6 +1075,7 @@ sap.ui.define([
                 // Attach OData model for VH selects (RolesVH/ModulesVH entity sets)
                 oDialog.setModel(that.getOwnerComponent().getModel());
                 oDialog.setModel(that.getView().getModel("i18n"), "i18n");
+                oDialog.setModel(that.getView().getModel("filterData"), "filterData");
                 oDialog.attachAfterClose(function () {
                     oDialog.destroy();
                     that._createDlg = null;
@@ -1198,6 +1199,7 @@ sap.ui.define([
                 that._editDlg = oDialog;
                 oDialog.setModel(oDlgModel, "editModel");
                 oDialog.setModel(that.getView().getModel("i18n"), "i18n");
+                oDialog.setModel(that.getView().getModel("filterData"), "filterData");
                 oDialog.attachAfterClose(function () {
                     oDialog.destroy();
                     that._editDlg = null;

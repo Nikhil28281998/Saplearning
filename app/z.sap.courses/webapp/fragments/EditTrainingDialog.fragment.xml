@@ -23,30 +23,28 @@
                         <Input id="editInputTitle" value="{editModel>/title}" placeholder="Training title" />
 
                         <Label id="editLabelRole" text="{i18n>roleLabel}" />
-                        <Select id="editInputRole" selectedKey="{editModel>/role}" forceSelection="false">
-                            <core:Item id="editRoleConsultant" key="Consultant" text="Consultant" />
-                            <core:Item id="editRoleDeveloper" key="Developer" text="Developer" />
-                            <core:Item id="editRoleAdmin" key="Admin" text="Admin" />
-                        </Select>
+                        <Input id="editInputRole" value="{editModel>/role}" placeholder="e.g. Consultant, Developer, Admin"
+                            showSuggestion="true" suggestionItems="{filterData>/roles}">
+                            <suggestionItems>
+                                <core:Item key="{filterData>key}" text="{filterData>text}" />
+                            </suggestionItems>
+                        </Input>
 
                         <Label id="editLabelTopic" text="{i18n>topicLabel}" />
-                        <Select id="editInputTopic" selectedKey="{editModel>/topic}" forceSelection="false">
-                            <core:Item id="editTopicFinance" key="Finance" text="Finance" />
-                            <core:Item id="editTopicSCM" key="Supply Chain" text="Supply Chain" />
-                            <core:Item id="editTopicSales" key="Sales" text="Sales" />
-                            <core:Item id="editTopicProcurement" key="Procurement" text="Procurement" />
-                            <core:Item id="editTopicManufacturing" key="Manufacturing" text="Manufacturing" />
-                            <core:Item id="editTopicBTP" key="BTP" text="Business Technology Platform" />
-                            <core:Item id="editTopicAnalytics" key="Analytics" text="Analytics" />
-                            <core:Item id="editTopicHR" key="HR" text="Human Resources" />
-                            <core:Item id="editTopicSecurity" key="Security" text="Security &amp; GRC" />
-                            <core:Item id="editTopicBasis" key="Basis" text="Basis &amp; Administration" />
-                            <core:Item id="editTopicDev" key="Development" text="Development" />
-                            <core:Item id="editTopicIntegration" key="Integration" text="Integration" />
-                        </Select>
+                        <Input id="editInputTopic" value="{editModel>/topic}" placeholder="e.g. Finance, Supply Chain, Analytics"
+                            showSuggestion="true" suggestionItems="{filterData>/topics}">
+                            <suggestionItems>
+                                <core:Item key="{filterData>key}" text="{filterData>text}" />
+                            </suggestionItems>
+                        </Input>
 
                         <Label id="editLabelModule" text="{i18n>moduleLabel}" />
-                        <Input id="editInputModule" value="{editModel>/sapModule}" placeholder="e.g. ABAP, UI_UX, FI_CO, MM" />
+                        <Input id="editInputModule" value="{editModel>/sapModule}" placeholder="e.g. ABAP, UI_UX, FI_CO, MM"
+                            showSuggestion="true" suggestionItems="{filterData>/modules}">
+                            <suggestionItems>
+                                <core:Item key="{filterData>key}" text="{filterData>text}" />
+                            </suggestionItems>
+                        </Input>
 
                         <Label id="editLabelDesc" text="{i18n>descriptionLabel}" />
                         <TextArea id="editInputDesc" value="{editModel>/description}" rows="3" placeholder="Brief description" />
