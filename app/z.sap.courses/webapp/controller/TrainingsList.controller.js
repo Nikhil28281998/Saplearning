@@ -254,51 +254,59 @@ sap.ui.define([
             var oPanel = this.byId("teamAnalyticsPanel");
             if (oPanel) { oPanel.setBusy(true); }
 
+            Log.info("[TeamAnalytics] Loading for role: " + sRole);
+
             // NEW-8: Call server-side getTeamAnalytics function for aggregated data
-            var bWasBatch = oModel.bUseBatch;
-            oModel.setUseBatch(false);
-            oModel.callFunction("/getTeamAnalytics", {
-                method: "GET",
-                success: function (oData) {
-                    oModel.setUseBatch(bWasBatch);
-                    var oResult = oData;
-                    // Handle wrapped response: { getTeamAnalytics: { ... } }
-                    if (oData && oData.getTeamAnalytics) { oResult = oData.getTeamAnalytics; }
+            try {
+                var bWasBatch = oModel.bUseBatch;
+                oModel.setUseBatch(false);
+                oModel.callFunction("/getTeamAnalytics", {
+                    method: "GET",
+                    success: function (oData) {
+                        oModel.setUseBatch(bWasBatch);
+                        var oResult = oData;
+                        // Handle wrapped response: { getTeamAnalytics: { ... } }
+                        if (oData && oData.getTeamAnalytics) { oResult = oData.getTeamAnalytics; }
 
-                    // Handle both camelCase (CAP/CDS) and PascalCase (ABAP Gateway) property names
-                    var _g = function (o, cc, pc) { return o[cc] !== undefined ? o[cc] : (o[pc] !== undefined ? o[pc] : 0); };
-                    oTeamModel.setProperty("/totalAssignments", _g(oResult, "totalAssignments", "TotalAssignments"));
-                    oTeamModel.setProperty("/assigned", _g(oResult, "assigned", "Assigned"));
-                    oTeamModel.setProperty("/inProgress", _g(oResult, "inProgress", "InProgress"));
-                    oTeamModel.setProperty("/completed", _g(oResult, "completed", "Completed"));
-                    oTeamModel.setProperty("/overdue", _g(oResult, "overdue", "Overdue"));
-                    oTeamModel.setProperty("/completionPercent", _g(oResult, "completionPercent", "CompletionPercent"));
+                        // Handle both camelCase (CAP/CDS) and PascalCase (ABAP Gateway) property names
+                        var _g = function (o, cc, pc) { return o[cc] !== undefined ? o[cc] : (o[pc] !== undefined ? o[pc] : 0); };
+                        oTeamModel.setProperty("/totalAssignments", _g(oResult, "totalAssignments", "TotalAssignments"));
+                        oTeamModel.setProperty("/assigned", _g(oResult, "assigned", "Assigned"));
+                        oTeamModel.setProperty("/inProgress", _g(oResult, "inProgress", "InProgress"));
+                        oTeamModel.setProperty("/completed", _g(oResult, "completed", "Completed"));
+                        oTeamModel.setProperty("/overdue", _g(oResult, "overdue", "Overdue"));
+                        oTeamModel.setProperty("/completionPercent", _g(oResult, "completionPercent", "CompletionPercent"));
 
-                    // Normalize userBreakdown to camelCase (view binds to camelCase)
-                    var aRawUsers = oResult.userBreakdown || oResult.UserBreakdown || [];
-                    var aNormUsers = aRawUsers.map(function (u) {
-                        return {
-                            userId:    u.userId    || u.UserId    || "",
-                            userName:  u.userName  || u.UserName  || "",
-                            total:     u.total     !== undefined ? u.total     : (u.Total     || 0),
-                            completed: u.completed !== undefined ? u.completed : (u.Completed || 0)
-                        };
-                    });
-                    oTeamModel.setProperty("/userBreakdown", aNormUsers);
+                        // Normalize userBreakdown to camelCase (view binds to camelCase)
+                        var aRawUsers = oResult.userBreakdown || oResult.UserBreakdown || [];
+                        var aNormUsers = aRawUsers.map(function (u) {
+                            return {
+                                userId:    u.userId    || u.UserId    || "",
+                                userName:  u.userName  || u.UserName  || "",
+                                total:     u.total     !== undefined ? u.total     : (u.Total     || 0),
+                                completed: u.completed !== undefined ? u.completed : (u.Completed || 0)
+                            };
+                        });
+                        oTeamModel.setProperty("/userBreakdown", aNormUsers);
 
-                    if (oPanel) { oPanel.setBusy(false); }
+                        if (oPanel) { oPanel.setBusy(false); }
 
-                    // FIX-1: Always load flat assignments for drill-down clicks
-                    that._loadTeamAssignmentsForDrillDown();
-                },
-                error: function (err) {
-                    oModel.setUseBatch(bWasBatch);
-                    Log.warning("[TeamAnalytics] getTeamAnalytics failed, falling back to client-side: " + (err && err.message || ""));
-                    // Fallback: load client-side (backward compat with older ABAP backends)
-                    that._loadTeamAnalyticsFallback();
-                    if (oPanel) { oPanel.setBusy(false); }
-                }
-            });
+                        // FIX-1: Always load flat assignments for drill-down clicks
+                        that._loadTeamAssignmentsForDrillDown();
+                    },
+                    error: function (err) {
+                        oModel.setUseBatch(bWasBatch);
+                        Log.warning("[TeamAnalytics] getTeamAnalytics failed, falling back to client-side: " + (err && err.message || ""));
+                        // Fallback: load client-side (backward compat with older ABAP backends)
+                        that._loadTeamAnalyticsFallback();
+                        if (oPanel) { oPanel.setBusy(false); }
+                    }
+                });
+            } catch (ex) {
+                Log.warning("[TeamAnalytics] callFunction threw: " + ex.message + ", using fallback");
+                that._loadTeamAnalyticsFallback();
+                if (oPanel) { oPanel.setBusy(false); }
+            }
         },
 
         /**
@@ -440,6 +448,7 @@ sap.ui.define([
                     },
                     error: function (err) {
                         Log.warning("[TeamAnalytics] Fallback load failed: " + (err && err.message || ""));
+                        MessageToast.show("Team analytics could not be loaded. Please refresh.");
                     }
                 });
             };
@@ -1882,14 +1891,14 @@ sap.ui.define([
                     "<li><strong>Card View:</strong> Visual card layout with key training information at a glance.</li>" +
                     "<li><strong>Table View:</strong> Detailed tabular view with sorting and column personalization.</li>" +
                     "<li><strong>Smart Filters:</strong> Filter by Role, Topic, and Module to find relevant courses quickly.</li>" +
-                    "<li><strong>Training URLs:</strong> Direct links to SAP Learning Hub resources.</li>" +
+                    "<li><strong>Training URLs:</strong> Direct links to SAP Courses resources.</li>" +
                     "</ul>";
                 oContent.tips =
                     "<ul>" +
                     "<li>Use the search bar for quick keyword lookups.</li>" +
                     "<li>Check <em>My Assignments</em> regularly to stay on top of your learning tasks.</li>" +
                     "<li>Look for the due date warnings — complete overdue tasks first!</li>" +
-                    "<li>Click training URLs to open SAP Learning Hub content directly.</li>" +
+                    "<li>Click training URLs to open SAP Courses content directly.</li>" +
                     "</ul>";
             }
 

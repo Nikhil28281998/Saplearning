@@ -8,8 +8,9 @@ sap.ui.define([
     "sap/base/Log",
     "sap/m/Link",
     "sap/m/Text",
-    "sap/m/ObjectStatus"
-], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Log, Link, Text, ObjectStatus) {
+    "sap/m/ObjectStatus",
+    "sap/ui/core/routing/History"
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Log, Link, Text, ObjectStatus, History) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingAssignmentsList", {
@@ -49,7 +50,7 @@ sap.ui.define([
             });
             this.getView().setModel(oAnalyticsModel, "assignAnalytics");
 
-            // Dynamically set entity set name on SmartFilterBar + SmartTable
+            // Dynamically set entity set name on SmartFilterBar + SmartTable + CardGrid
             var that = this;
             var oComponent = this.getOwnerComponent();
             var oModel = oComponent.getModel();
@@ -64,6 +65,18 @@ sap.ui.define([
                     }
                     if (oSmartTable && sEntitySet !== "TrainingAssignments") {
                         oSmartTable.setEntitySet(sEntitySet);
+                    }
+                    // Also update card grid binding path if entity set differs
+                    if (sEntitySet !== "TrainingAssignments") {
+                        var oCardGrid = that.byId("assignCardGrid");
+                        if (oCardGrid) {
+                            var oBindingInfo = oCardGrid.getBindingInfo("items");
+                            if (oBindingInfo) {
+                                oBindingInfo.path = "/" + sEntitySet;
+                                oCardGrid.bindAggregation("items", oBindingInfo);
+                                Log.info("[Assignments] Card grid rebound to /" + sEntitySet);
+                            }
+                        }
                     }
                     that._loadAnalytics();
                 });
@@ -94,9 +107,11 @@ sap.ui.define([
             sap.ui.getCore().getEventBus().subscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
 
             // Reload data every time user navigates to this page
+            this._bIsActive = false;
             var oRouter = oComponent.getRouter();
             if (oRouter) {
                 oRouter.getRoute("TrainingAssignmentsList").attachPatternMatched(function () {
+                    that._bIsActive = true;
                     var oST = that.byId("assignSmartTable");
                     if (oST) { oST.rebindTable(true); }
                     that._loadAnalytics();
@@ -107,6 +122,13 @@ sap.ui.define([
                     if (sPending) {
                         oComponent._pendingAssignmentFilter = null;
                         setTimeout(function () { that._filterByStatus(sPending); }, 300);
+                    }
+                }, this);
+                // Deactivate when navigating away from this route
+                oRouter.attachRouteMatched(function (oEvent) {
+                    var sRouteName = oEvent.getParameter("name");
+                    if (sRouteName !== "TrainingAssignmentsList") {
+                        that._bIsActive = false;
                     }
                 }, this);
             }
@@ -168,7 +190,7 @@ sap.ui.define([
                     });
 
                     // Overdue: DueDate < today AND not Completed (strictly past due)
-                    // MD-10 FIX: Use local date for overdue comparison (not UTC)
+                    // Use local date for both sides of comparison
                     var dToday = new Date();
                     var sToday = String(dToday.getFullYear()) +
                         String(dToday.getMonth() + 1).padStart(2, '0') +
@@ -180,7 +202,9 @@ sap.ui.define([
                         if (sStat2 !== "Completed" && dDue) {
                             var sDue = "";
                             if (dDue instanceof Date) {
-                                sDue = dDue.toISOString().slice(0, 10).replace(/-/g, "");
+                                sDue = String(dDue.getFullYear()) +
+                                    String(dDue.getMonth() + 1).padStart(2, '0') +
+                                    String(dDue.getDate()).padStart(2, '0');
                             } else if (typeof dDue === "string") {
                                 sDue = dDue.replace(/-/g, "").slice(0, 8);
                             }
@@ -569,9 +593,15 @@ sap.ui.define([
             Log.info("[AssignFilter] Total filters: " + mBindingParams.filters.length);
         },
 
-        /* ===== Nav Back – all roles go to Training Catalog ===== */
+        /* ===== Nav Back – use browser history for reliable back navigation ===== */
         onNavBack: function () {
-            this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
+            var oHistory = History.getInstance();
+            var sPreviousHash = oHistory.getPreviousHash();
+            if (sPreviousHash !== undefined) {
+                window.history.go(-1);
+            } else {
+                this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
+            }
         },
 
         /* ================================================================== */
@@ -680,7 +710,7 @@ sap.ui.define([
                     "<ul>" +
                     "<li>Prioritize <em>Overdue</em> assignments — complete them before other tasks.</li>" +
                     "<li>Click a KPI card to instantly filter the list by that status.</li>" +
-                    "<li>Open training URLs directly to access SAP Learning Hub content.</li>" +
+                    "<li>Open training URLs directly to access SAP Courses content.</li>" +
                     "<li>Check back regularly for newly assigned trainings.</li>" +
                     "</ul>";
             }

@@ -20,12 +20,6 @@
 
         <headerContent>
             <Button
-                id="navToHomeBtn"
-                text="{i18n>trainingCatalog}"
-                icon="sap-icon://home"
-                press="onNavBack"
-                type="Transparent" />
-            <Button
                 id="assignTutorialBtn"
                 icon="sap-icon://sys-help"
                 tooltip="{i18n>howToUsePage}"
@@ -191,7 +185,7 @@
                     <!-- Assignment Card Grid Container -->
                     <f:GridList
                         id="assignCardGrid"
-                        mode="MultiSelect"
+                        mode="None"
                         growing="true"
                         growingThreshold="30"
                         growingScrollToLoad="true"

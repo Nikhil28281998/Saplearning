@@ -411,8 +411,12 @@ sap.ui.define([
             var sUserId = that.getCurrentUserId();
             var sRole = that._role;
             var aUserFilters = [];
+            Log.info('[AssignDlg] Role=' + sRole + ', UserId=' + sUserId);
             if (sRole === 'Manager' && sUserId) {
                 aUserFilters.push(new sap.ui.model.Filter("Sort2", sap.ui.model.FilterOperator.EQ, sUserId));
+                Log.info('[AssignDlg] Manager filter: Sort2 EQ ' + sUserId);
+            } else if (sRole === 'Manager' && !sUserId) {
+                Log.warning('[AssignDlg] Manager userId not resolved — cannot filter team members');
             }
 
             var sUserEntitySet = that._userEntitySet || 'UserSet';

@@ -31,10 +31,10 @@ entity Users {
 entity Trainings : managed {
     key ID          : UUID;
         @mandatory url         : String(2048);
-        @mandatory role        : String(50);        // Learner role (Developer, Consultant, Admin)
-        @mandatory topic       : String(100);       // Course subject / topic (Asset, Consolidation, BTP, etc.)
+        @mandatory role        : String(255);       // Learner role(s) — may contain multiple comma-separated roles
+        @mandatory topic       : String(150);       // Course subject / topic (Accelerated Customer Returns, etc.)
         @mandatory title       : String(255);
-        sap_module  : String(20);       // SAP module (MM, SD, FICO, etc.)
+        sap_module  : String(100);      // SAP module with description (e.g. "Finance - General Ledger (FI-GL)")
         description : String(2000);
         lastUpdated : DateTime;
         sapHelpLink : String(2048);
@@ -58,9 +58,9 @@ entity TrainingAssignments : managed {
 
         // Denormalized fields from training — set by server, not client
         @readonly title      : String(255);
-        @readonly role       : String(50);
-        @readonly topic      : String(100);
-        @readonly sap_module : String(20);
+        @readonly role       : String(255);
+        @readonly topic      : String(150);
+        @readonly sap_module : String(100);
         @readonly url        : String(2048);
 
         // Assignment tracking

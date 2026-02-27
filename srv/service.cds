@@ -3,7 +3,7 @@ using { Learning_Data as my } from '../db/schema.cds';
 @path : '/service/SAPLearningService'
 @impl: 'srv/SAPLearningService.js'
 @requires: ['Admin','Manager','User']
-@protocol: 'odata-v2'
+// @protocol: 'odata-v2'  -- temporarily disabled for local CAP testing (V2 adapter not installed)
 @Capabilities.BatchSupported: true
 @Capabilities.KeyAsSegmentSupported: true
 service SAPLearningService {

@@ -4,10 +4,10 @@
   },
   "features": {
     "preserve_computed": true,
-    "assert_integrity": "db"
+    "assert_integrity": false
   },
   "odata": {
-    "version": "v2"
+    "version": "v4"
   },
   "log": {
     "levels": {
@@ -19,9 +19,9 @@
       }
     }
   },
+  "sql": {
+    "native_hana_associations": false
+  },
   "requires": {
-    "db": {
-      "kind": "sql"
-    }
   }
 }

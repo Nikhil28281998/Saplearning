@@ -103,7 +103,9 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
     // ============================================================================
 
     this.on('markCompleted', 'TrainingAssignments', async (req) => {
-      const id = req.params?.[0]?.ID;
+      // CDS V4: req.params is an array; each element is either {ID:'uuid'} or a plain string
+      const p0 = req.params?.[0];
+      const id = typeof p0 === 'object' ? p0.ID : p0;
       if (!id) return req.reject(400, 'Missing assignment ID');
 
       const userCtx = getUserContext(req);

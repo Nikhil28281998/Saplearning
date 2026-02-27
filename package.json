@@ -26,7 +26,8 @@
 	"cds": {
 		"requires": {
 			"db": {
-				"kind": "sql"
+				"kind": "sql",
+				"schema_evolution": "auto"
 			},
 			"auth": {
 				"[production]": {

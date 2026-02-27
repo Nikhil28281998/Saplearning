@@ -312,7 +312,7 @@
                     <!-- Card Grid Container -->
                     <f:GridList
                         id="cardGrid"
-                        mode="MultiSelect"
+                        mode="None"
                         growing="true"
                         growingThreshold="30"
                         growingScrollToLoad="true"
