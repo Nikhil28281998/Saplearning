@@ -196,11 +196,7 @@
                         growingThreshold="30"
                         growingScrollToLoad="true"
                         noDataText="No assignments found. Adjust your filters."
-                        items="{
-                            path: '/TrainingAssignments',
-                            sorter: { path: 'DueDate', descending: false },
-                            suspended: true
-                        }">
+                        items="{ path: '/TrainingAssignments', sorter: { path: 'DueDate', descending: false } }">
                         <f:customLayout>
                             <cssgrid:GridBoxLayout
                                 boxMinWidth="20rem"

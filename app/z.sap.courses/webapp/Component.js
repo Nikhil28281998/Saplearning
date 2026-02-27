@@ -402,46 +402,24 @@ sap.ui.define([
             if (this._assignDlg) { this._assignDlg.destroy(); this._assignDlg = null; }
             var oModel = this.getModel();
 
-            // Derive team member list from TrainingAssignments:
-            //   Manager: filter by managerSort2 = own userId (only their team)
+            // Read team members from Users entity:
+            //   Manager: filter by Sort2 = own userId (end users have manager's ID in Sort2)
             //   Admin:   no filter (all users across the org)
             var sUserId = that.getCurrentUserId();
             var sRole = that._role;
-            var aFilters = [];
+            var aUserFilters = [];
             if (sRole === 'Manager' && sUserId) {
-                aFilters.push(new sap.ui.model.Filter("managerSort2", sap.ui.model.FilterOperator.EQ, sUserId));
+                aUserFilters.push(new sap.ui.model.Filter("Sort2", sap.ui.model.FilterOperator.EQ, sUserId));
             }
 
-            var sEntitySet = this._assignmentEntitySet || 'TrainingAssignments';
             var pUsers = new Promise(function (resolve, reject) {
-                oModel.read('/' + sEntitySet, {
-                    filters: aFilters,
-                    urlParameters: { "$select": "UserId,UserName" },
-                    success: function (data) {
-                        // Extract unique userId + userName pairs
-                        var mSeen = {};
-                        var aUniqueUsers = [];
-                        (data.results || []).forEach(function (a) {
-                            var uid = a.UserId || a.userId || '';
-                            if (uid && !mSeen[uid]) {
-                                mSeen[uid] = true;
-                                aUniqueUsers.push({
-                                    UserId: uid,
-                                    FirstName: (a.UserName || a.userName || uid).split(' ')[0] || uid,
-                                    LastName: (a.UserName || a.userName || '').split(' ').slice(1).join(' ') || ''
-                                });
-                            }
-                        });
-                        // Sort alphabetically by UserId
-                        aUniqueUsers.sort(function (a, b) {
-                            return a.UserId.localeCompare(b.UserId);
-                        });
-                        resolve(aUniqueUsers);
-                    },
+                oModel.read('/Users', {
+                    filters: aUserFilters,
+                    success: function (data) { resolve(data.results || []); },
                     error: reject
                 });
             }).catch(function () {
-                Log.warning('[AssignDlg] Failed to load team members – manual entry only');
+                Log.warning('[AssignDlg] Users entity not available – manual entry only');
                 return [];
             });
 
@@ -455,7 +433,7 @@ sap.ui.define([
         /**
          * Build the assignModel and load the AssignDialog fragment.
          * @param {Array} trainings - Pre-selected trainings from SmartTable
-         * @param {Array} users - Unique team members derived from TrainingAssignments
+         * @param {Array} users - Team members from Users entity (filtered by Sort2 for Manager)
          */
         _openAssignFragment: function (trainings, users) {
             var that = this;

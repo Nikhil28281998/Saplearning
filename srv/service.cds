@@ -37,6 +37,15 @@ service SAPLearningService {
     }]);
 
     // ========================================================================
+    // USERS - Team member data for assignment dialog
+    // ========================================================================
+    @restrict: [
+        { grant: '*', to: 'Admin' },
+        { grant: 'READ', to: ['Manager','User'] }
+    ]
+    entity Users as projection on my.Users;
+
+    // ========================================================================
     // VALUE HELP - For UI dropdowns
     // ========================================================================
     @readonly entity RolesVH   as projection on my.Roles;

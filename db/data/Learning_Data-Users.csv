@@ -1,0 +1,13 @@
+userId,firstName,lastName,email,sort2,role
+ADMIN001,Sarah,Mitchell,sarah.mitchell@company.com,,Admin
+MGR001,James,Wilson,james.wilson@company.com,ADMIN001,Manager
+MGR002,Priya,Sharma,priya.sharma@company.com,ADMIN001,Manager
+USER001,Thomas,Weber,thomas.weber@company.com,MGR001,User
+USER002,Anna,Schmidt,anna.schmidt@company.com,MGR001,User
+USER003,Michael,Brown,michael.brown@company.com,MGR001,User
+USER004,Lisa,Kumar,lisa.kumar@company.com,MGR002,User
+USER005,David,Chen,david.chen@company.com,MGR002,User
+USER006,Emma,Garcia,emma.garcia@company.com,MGR002,User
+USER007,Robert,Taylor,robert.taylor@company.com,MGR001,User
+USER008,Sophie,Anderson,sophie.anderson@company.com,MGR002,User
+DEVUSER,Dev,User,devuser@company.com,MGR001,User

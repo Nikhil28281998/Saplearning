@@ -747,19 +747,14 @@ sap.ui.define([
 
             var oBinding = oCardGrid.getBinding("items");
             if (oBinding) {
-                if (oBinding.isSuspended && oBinding.isSuspended()) {
-                    oBinding.resume();
-                }
                 oBinding.filter(aFilters);
                 oBinding.attachEventOnce("dataReceived", this._onAssignCardDataReceived.bind(this));
             } else {
+                // Binding may not exist yet — retry after short delay
                 var that = this;
                 setTimeout(function () {
                     var oB = oCardGrid.getBinding("items");
                     if (oB) {
-                        if (oB.isSuspended && oB.isSuspended()) {
-                            oB.resume();
-                        }
                         oB.filter(aFilters);
                         oB.attachEventOnce("dataReceived", that._onAssignCardDataReceived.bind(that));
                     }

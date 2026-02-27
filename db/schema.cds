@@ -12,6 +12,20 @@ type Status : String(20) enum {
 };
 
 // ============================================================================
+// USERS - SAP user master data (mirrors USR21/ADRP in production)
+// In production S/4HANA: replaced by direct ABAP reads from USR21/ADRP/ADR6
+// In CAP dev: populated via CSV for testing
+// ============================================================================
+entity Users {
+    key userId    : String(12);       // SAP user ID (SY-UNAME)
+        firstName : String(40);       // First name (ADRP.NAME_FIRST)
+        lastName  : String(40);       // Last name (ADRP.NAME_LAST)
+        email     : String(241);      // Email (ADR6.SMTP_ADDR)
+        sort2     : String(20);       // Search term 2 (ADRP.SORT2) = Manager's user ID
+        role      : String(20);       // PFCG role: Admin, Manager, User
+}
+
+// ============================================================================
 // TRAINING CATALOG - External training course data
 // ============================================================================
 entity Trainings : managed {
