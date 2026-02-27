@@ -402,23 +402,47 @@ sap.ui.define([
             if (this._assignDlg) { this._assignDlg.destroy(); this._assignDlg = null; }
             var oModel = this.getModel();
 
-            // For Manager role: filter UserSet by Sort2 = current user ID
-            // (Sort2 = User entity property mapped from ADRP.SORT2 in SU01)
+            // Derive team member list from TrainingAssignments:
+            //   Manager: filter by managerSort2 = own userId (only their team)
+            //   Admin:   no filter (all users across the org)
             var sUserId = that.getCurrentUserId();
             var sRole = that._role;
-            var aUserFilters = [];
+            var aFilters = [];
             if (sRole === 'Manager' && sUserId) {
-                aUserFilters.push(new sap.ui.model.Filter("Sort2", sap.ui.model.FilterOperator.EQ, sUserId));
+                aFilters.push(new sap.ui.model.Filter("managerSort2", sap.ui.model.FilterOperator.EQ, sUserId));
             }
+
+            var sEntitySet = this._assignmentEntitySet || 'TrainingAssignments';
             var pUsers = new Promise(function (resolve, reject) {
-                oModel.read('/UserSet', {
-                    filters: aUserFilters,
-                    success: function (data) { resolve(data.results || []); },
+                oModel.read('/' + sEntitySet, {
+                    filters: aFilters,
+                    urlParameters: { "$select": "UserId,UserName" },
+                    success: function (data) {
+                        // Extract unique userId + userName pairs
+                        var mSeen = {};
+                        var aUniqueUsers = [];
+                        (data.results || []).forEach(function (a) {
+                            var uid = a.UserId || a.userId || '';
+                            if (uid && !mSeen[uid]) {
+                                mSeen[uid] = true;
+                                aUniqueUsers.push({
+                                    UserId: uid,
+                                    FirstName: (a.UserName || a.userName || uid).split(' ')[0] || uid,
+                                    LastName: (a.UserName || a.userName || '').split(' ').slice(1).join(' ') || ''
+                                });
+                            }
+                        });
+                        // Sort alphabetically by UserId
+                        aUniqueUsers.sort(function (a, b) {
+                            return a.UserId.localeCompare(b.UserId);
+                        });
+                        resolve(aUniqueUsers);
+                    },
                     error: reject
                 });
             }).catch(function () {
-                Log.warning('[AssignDlg] UserSet entity set not available – manual entry only');
-                return []; // Graceful fallback if User entity not yet created in SEGW
+                Log.warning('[AssignDlg] Failed to load team members – manual entry only');
+                return [];
             });
 
             pUsers.then(function (users) {
@@ -431,7 +455,7 @@ sap.ui.define([
         /**
          * Build the assignModel and load the AssignDialog fragment.
          * @param {Array} trainings - Pre-selected trainings from SmartTable
-         * @param {Array} users - Team members from UserSet
+         * @param {Array} users - Unique team members derived from TrainingAssignments
          */
         _openAssignFragment: function (trainings, users) {
             var that = this;
