@@ -397,7 +397,7 @@ sap.ui.define([
                                 } else if (typeof dDue === "string") {
                                     sDue = dDue.replace(/-/g, "").slice(0, 8);
                                 }
-                                if (sDue && sDue <= sToday) { iOverdue++; }
+                                if (sDue && sDue < sToday) { iOverdue++; }
                             }
                         });
 

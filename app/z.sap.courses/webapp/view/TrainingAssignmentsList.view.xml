@@ -5,7 +5,9 @@
     xmlns:core="sap.ui.core"
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:filterBar="sap.ui.comp.filterbar"
-    xmlns:smartTable="sap.ui.comp.smarttable">
+    xmlns:smartTable="sap.ui.comp.smarttable"
+    xmlns:f="sap.f"
+    xmlns:cssgrid="sap.ui.layout.cssgrid">
 
     <Page
         id="assignmentsListPage"
@@ -162,6 +164,105 @@
                 </smartFilterBar:filterGroupItems>
             </smartFilterBar:SmartFilterBar>
 
+            <!-- ====== CARD GRID VIEW (Learning Hub style) ====== -->
+            <ScrollContainer
+                id="assignCardScrollContainer"
+                height="100%"
+                width="100%"
+                vertical="true"
+                horizontal="false"
+                visible="{assignViewMode>/showCards}">
+                <VBox id="assignCardGridWrapper" class="cardGridWrapper">
+                    <!-- Card count + View toggle toolbar -->
+                    <Toolbar id="assignCardToolbar" class="sapUiSmallMarginBottom">
+                        <Title id="assignCardCountTitle" text="{= 'My Assignments (' + ${assignViewMode>/cardCount} + ')' }" level="H5" />
+                        <ToolbarSpacer id="assignCardToolbarSpacer1" />
+                        <Button
+                            id="startTrainingBtnCard"
+                            text="{i18n>startTraining}"
+                            icon="sap-icon://begin"
+                            type="Accept"
+                            press="onStartTrainingCard" />
+                        <Button
+                            id="markCompletedBtnCard"
+                            text="{i18n>markCompleted}"
+                            icon="sap-icon://complete"
+                            type="Emphasized"
+                            press="onMarkCompletedCard" />
+                        <ToolbarSpacer id="assignCardToolbarSpacer2" />
+                        <SegmentedButton id="assignViewModeToggle" selectedKey="{assignViewMode>/mode}" selectionChange="onAssignViewModeChange">
+                            <items>
+                                <SegmentedButtonItem id="assignViewModeCards" key="cards" icon="sap-icon://grid" tooltip="Card View" />
+                                <SegmentedButtonItem id="assignViewModeTable" key="table" icon="sap-icon://table-view" tooltip="Table View" />
+                            </items>
+                        </SegmentedButton>
+                        <Button
+                            id="assignRefreshBtnCard"
+                            icon="sap-icon://refresh"
+                            tooltip="{i18n>refreshData}"
+                            press="onRefresh" />
+                    </Toolbar>
+                    <!-- Assignment Card Grid Container -->
+                    <f:GridList
+                        id="assignCardGrid"
+                        mode="MultiSelect"
+                        growing="true"
+                        growingThreshold="30"
+                        growingScrollToLoad="true"
+                        noDataText="No assignments found. Adjust your filters."
+                        items="{
+                            path: '/TrainingAssignments',
+                            sorter: { path: 'DueDate', descending: false }
+                        }">
+                        <f:customLayout>
+                            <cssgrid:GridBoxLayout
+                                boxMinWidth="20rem"
+                                boxWidth="24rem" />
+                        </f:customLayout>
+                        <f:items>
+                            <CustomListItem type="Active" press="onAssignCardPress" class="learningCard">
+                                <HBox class="learningCardContent">
+                                    <VBox class="learningCardIcon" alignItems="Center" justifyContent="Center">
+                                        <core:Icon
+                                            src="{= ${Status} === 'Completed' ? 'sap-icon://accept' : ${Status} === 'In Progress' ? 'sap-icon://activity-2' : 'sap-icon://pending' }"
+                                            size="1.25rem"
+                                            color="{= ${Status} === 'Completed' ? '#107e3e' : ${Status} === 'In Progress' ? '#0854a0' : '#e76500' }" />
+                                    </VBox>
+                                    <VBox class="learningCardBody sapUiSmallMarginBegin" width="100%">
+                                        <Text text="{Title}" class="learningCardTitle" maxLines="2" />
+                                        <HBox class="learningCardMeta sapUiTinyMarginTop" wrap="Wrap">
+                                            <ObjectStatus
+                                                text="{Status}"
+                                                state="{= ${Status} === 'Completed' ? 'Success' : ${Status} === 'In Progress' ? 'Information' : 'Warning' }"
+                                                icon="{= ${Status} === 'Completed' ? 'sap-icon://accept' : ${Status} === 'In Progress' ? 'sap-icon://activity-2' : 'sap-icon://pending' }"
+                                                class="sapUiTinyMarginEnd"
+                                                inverted="true" />
+                                            <ObjectStatus text="{SapModule}" state="None" icon="sap-icon://tree" inverted="false" />
+                                        </HBox>
+                                        <HBox class="learningCardMeta sapUiTinyMarginTop" wrap="Wrap">
+                                            <ObjectStatus
+                                                text="{= 'Due: ' + ${DueDate} }"
+                                                state="None"
+                                                icon="sap-icon://date-time"
+                                                class="sapUiTinyMarginEnd"
+                                                inverted="false" />
+                                            <ObjectStatus text="{UserName}" state="None" icon="sap-icon://person-placeholder" inverted="false" />
+                                        </HBox>
+                                    </VBox>
+                                </HBox>
+                                <Toolbar id="{= 'assignCardActions_' + ${Title} }" class="learningCardActions">
+                                    <Button icon="sap-icon://begin" tooltip="Start Training" press="onAssignCardStart" type="Accept" />
+                                    <Button icon="sap-icon://complete" tooltip="Mark Completed" press="onAssignCardComplete" type="Emphasized" />
+                                    <ToolbarSpacer />
+                                    <Button icon="sap-icon://inspect" tooltip="View Details" press="onAssignCardDetail" type="Transparent" />
+                                    <Button icon="sap-icon://action" tooltip="Open Training URL" press="onAssignCardOpenUrl" type="Transparent" />
+                                </Toolbar>
+                            </CustomListItem>
+                        </f:items>
+                    </f:GridList>
+                </VBox>
+            </ScrollContainer>
+
             <!-- SmartTable for Assignments -->
             <smartTable:SmartTable
                 id="assignSmartTable"
@@ -181,7 +282,8 @@
                 initialise="onSmartTableInit"
                 initiallyVisibleFields="Title,Url,SapModule,UserId,UserName,Status,DueDate,CompletionDate"
                 beforeRebindTable="onBeforeRebindTable"
-                requestAtLeastFields="Url,Status">
+                requestAtLeastFields="Url,Status"
+                visible="{assignViewMode>/showTable}">
 
                 <smartTable:noData>
                     <IllustratedMessage
@@ -208,6 +310,12 @@
                             press="onMarkCompletedBtn"
                             class="markCompletedToolbarBtn" />
                         <ToolbarSpacer id="assignToolbarSpacer" />
+                        <SegmentedButton id="assignViewModeToggle2" selectedKey="{assignViewMode>/mode}" selectionChange="onAssignViewModeChange">
+                            <items>
+                                <SegmentedButtonItem id="assignViewModeCards2" key="cards" icon="sap-icon://grid" tooltip="Card View" />
+                                <SegmentedButtonItem id="assignViewModeTable2" key="table" icon="sap-icon://table-view" tooltip="Table View" />
+                            </items>
+                        </SegmentedButton>
                         <Button
                             id="assignRefreshBtn"
                             icon="sap-icon://refresh"

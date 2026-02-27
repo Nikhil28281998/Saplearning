@@ -15,11 +15,21 @@ sap.ui.define([
     return Controller.extend("z.sap.courses.controller.TrainingAssignmentsList", {
 
         onInit: function () {
+            // Card/Table view mode toggle model
+            var oViewModeModel = new JSONModel({
+                showCards: true,
+                showTable: false,
+                mode: "cards",
+                cardCount: 0
+            });
+            this.getView().setModel(oViewModeModel, "assignViewMode");
+
             // User's own progress model
             var oAnalyticsModel = new JSONModel({
                 assigned: 0,
                 inProgress: 0,
                 completed: 0,
+                overdue: 0,
                 total: 0,
                 completionPercent: 0,
                 dueSoonCount: 0,
@@ -74,6 +84,7 @@ sap.ui.define([
                     var oST = that.byId("assignSmartTable");
                     if (oST) { oST.rebindTable(true); }
                     that._loadAnalytics();
+                    that._rebindAssignCardGrid();
 
                     // FEAT-2: Apply pending status filter from home page click-through
                     var sPending = oComponent._pendingAssignmentFilter;
@@ -107,6 +118,7 @@ sap.ui.define([
         /* ================================================================== */
 
         _loadAnalytics: function () {
+            var that = this;
             var oComponent = this.getOwnerComponent();
             var oModel = oComponent.getModel();
             var oAnalyticsModel = this.getView().getModel("assignAnalytics");
@@ -139,7 +151,7 @@ sap.ui.define([
                         else if (sStat === "Completed") { iCompleted++; }
                     });
 
-                    // Overdue: DueDate <= today AND not Completed
+                    // Overdue: DueDate < today AND not Completed (strictly past due)
                     var sToday = new Date().toISOString().slice(0, 10).replace(/-/g, "");
                     var iOverdue = 0;
                     aAll.forEach(function (a) {
@@ -152,7 +164,7 @@ sap.ui.define([
                             } else if (typeof dDue === "string") {
                                 sDue = dDue.replace(/-/g, "").slice(0, 8);
                             }
-                            if (sDue && sDue <= sToday) { iOverdue++; }
+                            if (sDue && sDue < sToday) { iOverdue++; }
                         }
                     });
 
@@ -187,13 +199,9 @@ sap.ui.define([
                         sBadge = "\uD83D\uDE80 Fast Learner";
                         sBadgeIcon = "sap-icon://accelerated";
                         sBadgeDesc = "10+ trainings done! You're on a great trajectory.";
-                    } else if (iCompleted >= 5) {
+                    } else if (iCompleted >= 1) {
                         sBadge = "\uD83D\uDCAA Dedicated Learner";
                         sBadgeIcon = "sap-icon://education";
-                        sBadgeDesc = "5 trainings completed. Building strong foundations!";
-                    } else if (iCompleted >= 1) {
-                        sBadge = "\uD83C\uDF1F First Steps";
-                        sBadgeIcon = "sap-icon://journey-arrive";
                         sBadgeDesc = "You completed your first training! Great start!";
                     }
                     // Streak badge: all non-completed have future due dates (no overdue = on track)
@@ -362,17 +370,17 @@ sap.ui.define([
                             text: {
                                 parts: [{ path: "Status" }, { path: "DueDate" }],
                                 formatter: function (sStatus, dDue) {
-                                    // Overdue = due today or in the past, and not Completed
-                                    var dNow = new Date(); dNow.setHours(23, 59, 59, 999);
-                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) <= dNow;
+                                    // Overdue = due date strictly before today, and not Completed
+                                    var dNow = new Date(); dNow.setHours(0, 0, 0, 0);
+                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < dNow;
                                     return bOverdue ? sStatus + " (Overdue)" : sStatus;
                                 }
                             },
                             state: {
                                 parts: [{ path: "Status" }, { path: "DueDate" }],
                                 formatter: function (sStatus, dDue) {
-                                    var dNow = new Date(); dNow.setHours(23, 59, 59, 999);
-                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) <= dNow;
+                                    var dNow = new Date(); dNow.setHours(0, 0, 0, 0);
+                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < dNow;
                                     if (bOverdue) { return "Error"; }
                                     return sStatus === "Completed" ? "Success" :
                                            sStatus === "In Progress" ? "Information" : "Warning";
@@ -381,8 +389,8 @@ sap.ui.define([
                             icon: {
                                 parts: [{ path: "Status" }, { path: "DueDate" }],
                                 formatter: function (sStatus, dDue) {
-                                    var dNow = new Date(); dNow.setHours(23, 59, 59, 999);
-                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) <= dNow;
+                                    var dNow = new Date(); dNow.setHours(0, 0, 0, 0);
+                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < dNow;
                                     if (bOverdue) { return "sap-icon://alert"; }
                                     return sStatus === "Completed" ? "sap-icon://accept" :
                                            sStatus === "In Progress" ? "sap-icon://activity-2" : "sap-icon://pending";
@@ -444,6 +452,7 @@ sap.ui.define([
                 oSmartTable.rebindTable(true);
             }
             this._loadAnalytics();
+            this._rebindAssignCardGrid();
             MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("dataRefreshed"));
         },
 
@@ -537,16 +546,16 @@ sap.ui.define([
                         and: false  // OR
                     });
                     var dToday = new Date();
-                    dToday.setHours(23, 59, 59, 999);
+                    dToday.setHours(0, 0, 0, 0);
                     var oCombinedOverdue = new Filter({
                         filters: [
                             oStatusFilter,
-                            new Filter("DueDate", FilterOperator.LE, dToday)
+                            new Filter("DueDate", FilterOperator.LT, dToday)
                         ],
                         and: true  // AND
                     });
                     mBindingParams.filters.push(oCombinedOverdue);
-                    Log.info("[AssignFilter] Overdue filter: (Assigned OR In Progress) AND DueDate LE " + dToday.toISOString());
+                    Log.info("[AssignFilter] Overdue filter: (Assigned OR In Progress) AND DueDate LT " + dToday.toISOString());
                 }
             }
 
@@ -570,6 +579,312 @@ sap.ui.define([
         /* ===== Nav Back – all roles go to Training Catalog ===== */
         onNavBack: function () {
             this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
+        },
+
+        /* ================================================================== */
+        /* CARD/TABLE VIEW TOGGLE                                              */
+        /* ================================================================== */
+
+        /**
+         * Toggle between Card and Table view modes for Assignments.
+         */
+        onAssignViewModeChange: function (oEvent) {
+            var sKey = oEvent.getParameter("key") || oEvent.getSource().getSelectedKey();
+            var oViewMode = this.getView().getModel("assignViewMode");
+            if (sKey === "cards") {
+                oViewMode.setProperty("/showCards", true);
+                oViewMode.setProperty("/showTable", false);
+                oViewMode.setProperty("/mode", "cards");
+                this._rebindAssignCardGrid();
+            } else {
+                oViewMode.setProperty("/showCards", false);
+                oViewMode.setProperty("/showTable", true);
+                oViewMode.setProperty("/mode", "table");
+                var oSmartTable = this.byId("assignSmartTable");
+                if (oSmartTable) { oSmartTable.rebindTable(); }
+            }
+        },
+
+        /**
+         * Rebind the assignment card grid with current SmartFilterBar filters.
+         */
+        _rebindAssignCardGrid: function () {
+            var oCardGrid = this.byId("assignCardGrid");
+            if (!oCardGrid) { return; }
+
+            var oSmartFilterBar = this.byId("assignSmartFilterBar");
+            var oComponent = this.getOwnerComponent();
+            var sCurrentUserId = oComponent.getCurrentUserId();
+            var aFilters = [];
+
+            // Always filter by current user
+            aFilters.push(new Filter("UserId", FilterOperator.EQ, sCurrentUserId || "__NOUSER__"));
+
+            // Read filter values from FilterGroupItems
+            if (oSmartFilterBar && oSmartFilterBar.getFilterGroupItems) {
+                var aFGItems = oSmartFilterBar.getFilterGroupItems();
+                for (var g = 0; g < aFGItems.length; g++) {
+                    var oFGI = aFGItems[g];
+                    var sName = oFGI.getName ? oFGI.getName() : "";
+                    var oControl = oFGI.getControl ? oFGI.getControl() : null;
+                    if (oControl && typeof oControl.getSelectedKey === "function") {
+                        var sKey = oControl.getSelectedKey();
+                        if (sKey && sKey !== "Overdue") {
+                            aFilters.push(new Filter(sName, FilterOperator.EQ, sKey));
+                        } else if (sKey === "Overdue") {
+                            var oStatusFilter = new Filter({
+                                filters: [
+                                    new Filter("Status", FilterOperator.EQ, "Assigned"),
+                                    new Filter("Status", FilterOperator.EQ, "In Progress")
+                                ],
+                                and: false
+                            });
+                            var dToday = new Date();
+                            dToday.setHours(0, 0, 0, 0);
+                            aFilters.push(new Filter({
+                                filters: [oStatusFilter, new Filter("DueDate", FilterOperator.LT, dToday)],
+                                and: true
+                            }));
+                        }
+                    }
+                }
+            }
+
+            // Basic search → Title Contains filter
+            if (oSmartFilterBar && oSmartFilterBar.getBasicSearchValue) {
+                var sSearch = (oSmartFilterBar.getBasicSearchValue() || "").trim();
+                if (sSearch) {
+                    aFilters.push(new Filter("Title", FilterOperator.Contains, sSearch));
+                }
+            }
+
+            var oBinding = oCardGrid.getBinding("items");
+            if (oBinding) {
+                oBinding.filter(aFilters);
+                oBinding.attachEventOnce("dataReceived", this._onAssignCardDataReceived.bind(this));
+            } else {
+                var that = this;
+                setTimeout(function () {
+                    var oB = oCardGrid.getBinding("items");
+                    if (oB) {
+                        oB.filter(aFilters);
+                        oB.attachEventOnce("dataReceived", that._onAssignCardDataReceived.bind(that));
+                    }
+                }, 500);
+            }
+
+            Log.info("[AssignCardGrid] Rebound with " + aFilters.length + " filters");
+        },
+
+        /**
+         * Update card count when assignment card grid data is received.
+         */
+        _onAssignCardDataReceived: function () {
+            var oViewMode = this.getView().getModel("assignViewMode");
+            var oCardGrid = this.byId("assignCardGrid");
+            if (oCardGrid) {
+                var oBinding = oCardGrid.getBinding("items");
+                var iCount = oBinding ? oBinding.getLength() : 0;
+                oViewMode.setProperty("/cardCount", iCount);
+            }
+        },
+
+        /* ================================================================== */
+        /* CARD EVENT HANDLERS                                                 */
+        /* ================================================================== */
+
+        /**
+         * Card press handler — toggle selection for multi-select operations.
+         */
+        onAssignCardPress: function () {
+            // Default Active type handles selection in MultiSelect mode
+        },
+
+        /**
+         * Card Start Training button — set status to In Progress.
+         */
+        onStartTrainingCard: function () {
+            var oCardGrid = this.byId("assignCardGrid");
+            if (!oCardGrid) { return; }
+            var aSelectedItems = oCardGrid.getSelectedItems();
+            if (!aSelectedItems || aSelectedItems.length === 0) {
+                MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("selectAssignmentFirst"));
+                return;
+            }
+
+            var oComponent = this.getOwnerComponent();
+            var sCurrentUserId = oComponent.getCurrentUserId();
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+            var that = this;
+
+            var aValidContexts = [];
+            aSelectedItems.forEach(function (oItem) {
+                var oCtx = oItem.getBindingContext();
+                if (!oCtx) { return; }
+                var oData = oCtx.getObject();
+                if (oData.Status !== "Assigned") { return; }
+                if (sCurrentUserId && oData.UserId !== sCurrentUserId) { return; }
+                aValidContexts.push(oCtx);
+            });
+
+            if (aValidContexts.length === 0) {
+                MessageToast.show(i18n.getText("noValidStartAssignments"));
+                return;
+            }
+
+            var sMsg = i18n.getText("startTrainingConfirm", [aValidContexts.length]);
+            MessageBox.confirm(sMsg, {
+                title: i18n.getText("confirmTitle"),
+                onClose: function (sAction) {
+                    if (sAction !== MessageBox.Action.OK) { return; }
+                    var oModel = oComponent.getModel();
+                    oModel.refreshSecurityToken(function () {
+                        var iDone = 0, iFail = 0, iTotal = aValidContexts.length;
+                        aValidContexts.forEach(function (oCtx) {
+                            oModel.update(oCtx.getPath(), { Status: "In Progress" }, {
+                                success: function () {
+                                    iDone++;
+                                    if (iDone + iFail === iTotal) {
+                                        MessageToast.show(i18n.getText("startTrainingSuccess", [iDone]));
+                                        that._rebindAssignCardGrid();
+                                        that._loadAnalytics();
+                                    }
+                                },
+                                error: function () {
+                                    iFail++;
+                                    if (iDone + iFail === iTotal) {
+                                        if (iDone > 0) { MessageToast.show(i18n.getText("startTrainingSuccess", [iDone])); }
+                                        else { MessageBox.error(i18n.getText("updateFailed")); }
+                                        that._rebindAssignCardGrid();
+                                        that._loadAnalytics();
+                                    }
+                                }
+                            });
+                        });
+                    }, function () { MessageBox.error(i18n.getText("securityTokenFailed")); });
+                }
+            });
+        },
+
+        /**
+         * Card Mark Completed button — mark selected cards as completed.
+         */
+        onMarkCompletedCard: function () {
+            var oCardGrid = this.byId("assignCardGrid");
+            if (!oCardGrid) { return; }
+            var aSelectedItems = oCardGrid.getSelectedItems();
+            if (!aSelectedItems || aSelectedItems.length === 0) {
+                MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("selectAssignmentFirst"));
+                return;
+            }
+
+            var oComponent = this.getOwnerComponent();
+            var sRole = oComponent._role || "User";
+            var sCurrentUserId = oComponent.getCurrentUserId();
+
+            var aValidContexts = [];
+            var iSkippedCompleted = 0, iSkippedOthers = 0;
+            aSelectedItems.forEach(function (oItem) {
+                var oCtx = oItem.getBindingContext();
+                if (!oCtx) { return; }
+                var oData = oCtx.getObject();
+                if (oData.Status === "Completed") { iSkippedCompleted++; return; }
+                if (sRole === "User" && (!sCurrentUserId || oData.UserId !== sCurrentUserId)) { iSkippedOthers++; return; }
+                aValidContexts.push(oCtx);
+            });
+
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+            if (aValidContexts.length === 0) {
+                if (iSkippedCompleted > 0) { MessageToast.show(i18n.getText("alreadyCompleted")); }
+                else if (iSkippedOthers > 0) { MessageToast.show(i18n.getText("cannotCompleteOthers")); }
+                else { MessageToast.show(i18n.getText("selectAssignmentFirst")); }
+                return;
+            }
+
+            if (aValidContexts.length === 1) {
+                this._markCompleted(aValidContexts[0]);
+            } else {
+                this._markCompletedBulk(aValidContexts);
+            }
+        },
+
+        /**
+         * Card inline Start button press — start training for single card item.
+         */
+        onAssignCardStart: function (oEvent) {
+            var oItem = oEvent.getSource();
+            while (oItem && !oItem.getBindingContext()) { oItem = oItem.getParent(); }
+            if (!oItem) { return; }
+            var oCtx = oItem.getBindingContext();
+            if (!oCtx) { return; }
+            var oData = oCtx.getObject();
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
+            var that = this;
+
+            if (oData.Status !== "Assigned") {
+                MessageToast.show(i18n.getText("noValidStartAssignments"));
+                return;
+            }
+
+            MessageBox.confirm(i18n.getText("startTrainingConfirm", [1]), {
+                title: i18n.getText("confirmTitle"),
+                onClose: function (sAction) {
+                    if (sAction !== MessageBox.Action.OK) { return; }
+                    var oModel = that.getOwnerComponent().getModel();
+                    oModel.refreshSecurityToken(function () {
+                        oModel.update(oCtx.getPath(), { Status: "In Progress" }, {
+                            success: function () {
+                                MessageToast.show(i18n.getText("startTrainingSuccess", [1]));
+                                that._rebindAssignCardGrid();
+                                that._loadAnalytics();
+                            },
+                            error: function () { MessageBox.error(i18n.getText("updateFailed")); }
+                        });
+                    }, function () { MessageBox.error(i18n.getText("securityTokenFailed")); });
+                }
+            });
+        },
+
+        /**
+         * Card inline Complete button press — mark single card item as completed.
+         */
+        onAssignCardComplete: function (oEvent) {
+            var oItem = oEvent.getSource();
+            while (oItem && !oItem.getBindingContext()) { oItem = oItem.getParent(); }
+            if (!oItem) { return; }
+            var oCtx = oItem.getBindingContext();
+            if (!oCtx) { return; }
+            this._markCompleted(oCtx);
+        },
+
+        /**
+         * Card inline Detail button press — open assignment detail dialog.
+         */
+        onAssignCardDetail: function (oEvent) {
+            var oItem = oEvent.getSource();
+            while (oItem && !oItem.getBindingContext()) { oItem = oItem.getParent(); }
+            if (!oItem) { return; }
+            var oCtx = oItem.getBindingContext();
+            if (!oCtx) { return; }
+            // Simulate itemPress event for existing detail dialog handler
+            this.onItemPress({ getParameter: function () { return null; }, getSource: function () { return oItem; } });
+        },
+
+        /**
+         * Card inline Open URL button press — open training URL in new tab.
+         */
+        onAssignCardOpenUrl: function (oEvent) {
+            var oItem = oEvent.getSource();
+            while (oItem && !oItem.getBindingContext()) { oItem = oItem.getParent(); }
+            if (!oItem) { return; }
+            var oCtx = oItem.getBindingContext();
+            if (!oCtx) { return; }
+            var sUrl = oCtx.getProperty("Url");
+            if (sUrl && /^https?:\/\//i.test(sUrl)) {
+                sap.m.URLHelper.redirect(sUrl, true);
+            } else {
+                MessageToast.show("No URL available for this assignment.");
+            }
         },
 
         /**
