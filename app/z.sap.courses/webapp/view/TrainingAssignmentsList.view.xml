@@ -222,14 +222,15 @@
                         <f:items>
                             <CustomListItem type="Active" press="onAssignCardPress" class="learningCard">
                                 <HBox class="learningCardContent">
-                                    <VBox class="learningCardIcon" alignItems="Center" justifyContent="Center">
-                                        <core:Icon
-                                            src="{= ${Status} === 'Completed' ? 'sap-icon://accept' : ${Status} === 'In Progress' ? 'sap-icon://activity-2' : 'sap-icon://pending' }"
-                                            size="1.25rem"
-                                            color="{= ${Status} === 'Completed' ? '#107e3e' : ${Status} === 'In Progress' ? '#0854a0' : '#e76500' }" />
-                                    </VBox>
-                                    <VBox class="learningCardBody sapUiSmallMarginBegin" width="100%">
-                                        <Text text="{Title}" class="learningCardTitle" maxLines="2" />
+                                    <VBox class="learningCardBody" width="100%">
+                                        <HBox alignItems="Center" class="learningCardTitleRow">
+                                            <core:Icon
+                                                src="{= ${Status} === 'Completed' ? 'sap-icon://accept' : ${Status} === 'In Progress' ? 'sap-icon://activity-2' : 'sap-icon://pending' }"
+                                                size="1.25rem"
+                                                color="{= ${Status} === 'Completed' ? '#107e3e' : ${Status} === 'In Progress' ? '#0854a0' : '#e76500' }"
+                                                class="sapUiTinyMarginEnd" />
+                                            <Text text="{Title}" class="learningCardTitle" maxLines="2" />
+                                        </HBox>
                                         <HBox class="learningCardMeta sapUiTinyMarginTop" wrap="Wrap">
                                             <ObjectStatus
                                                 text="{Status}"
