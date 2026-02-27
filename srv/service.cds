@@ -23,7 +23,7 @@ service SAPLearningService {
     @cds.redirection.target
     @restrict: [
         { grant: '*', to: 'Admin' },
-        { grant: ['READ', 'CREATE', 'UPDATE'], to: 'Manager' },
+        { grant: ['READ', 'CREATE', 'UPDATE', 'DELETE'], to: 'Manager' },
         { grant: ['READ', 'UPDATE'], to: 'User' }
     ]
     entity TrainingAssignments as projection on my.TrainingAssignments actions {
@@ -31,10 +31,12 @@ service SAPLearningService {
         action markCompleted();
     };
 
-    // Side effects for UI refresh after actions
-    annotate TrainingAssignments with @(com.sap.vocabularies.Common.v1.SideEffects: [{ 
-        TargetProperties: ['status','completionDate'] 
-    }]);
+    // Side effects for UI refresh after markCompleted action
+    annotate TrainingAssignments actions {
+        markCompleted @(Common.SideEffects: {
+            TargetProperties: ['status','completionDate']
+        });
+    };
 
     // ========================================================================
     // USERS - Team member data for assignment dialog

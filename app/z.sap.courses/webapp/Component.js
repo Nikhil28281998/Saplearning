@@ -314,11 +314,14 @@ sap.ui.define([
                     success: function (oData) {
                         oModel.setUseBatch(bWasBatch);
                         var sRole = "User";
-                        // Handle both OData V2 response formats:
+                        // Handle OData V2 response formats:
                         //   Format A: { getCurrentRole: { Role: "Admin" } }
                         //   Format B: { Role: "Admin" }
+                        //   Format C (CAP): { getCurrentRole: "Admin" } (plain string)
                         if (oData) {
-                            if (oData.getCurrentRole && oData.getCurrentRole.Role) {
+                            if (typeof oData.getCurrentRole === 'string') {
+                                sRole = oData.getCurrentRole;
+                            } else if (oData.getCurrentRole && oData.getCurrentRole.Role) {
                                 sRole = oData.getCurrentRole.Role;
                             } else if (oData.Role) {
                                 sRole = oData.Role;
@@ -380,16 +383,8 @@ sap.ui.define([
             // Users can navigate to My Assignments via the "My Assignments" button.
         },
 
-        // Navigate to TrainingAssignments
-        openTrainingAssignmentsAndCreate: function () {
-            var r = this.getRouter();
-            if (r && r.navTo) {
-                r.navTo('TrainingAssignmentsList');
-            }
-        },
-
-        // Navigate to TrainingAssignments LR
-        navigateToTraining: function () {
+        // Navigate to TrainingAssignments (kept for potential future deep-link use)
+        navigateToAssignments: function () {
             var r = this.getRouter();
             if (r && r.navTo) {
                 r.navTo('TrainingAssignmentsList');
@@ -440,6 +435,17 @@ sap.ui.define([
         },
 
         /**
+         * Formatter for the "Selected Trainings (N)" panel header in AssignDialog.
+         */
+        formatSelectedTrainingsHeader: function (sPattern, aTrainings) {
+            var iCount = Array.isArray(aTrainings) ? aTrainings.length : 0;
+            if (sPattern) {
+                return sPattern.replace("{0}", iCount);
+            }
+            return "Selected Trainings (" + iCount + ")";
+        },
+
+        /**
          * Build the assignModel and load the AssignDialog fragment.
          * @param {Array} trainings - Pre-selected trainings from SmartTable
          * @param {Array} users - Team members from Users entity (filtered by Sort2 for Manager)
@@ -467,7 +473,15 @@ sap.ui.define([
                 that._assignDlg.setModel(that._userModel, "user");
                 that._assignDlg.addStyleClass("assignTrainingDialog");
                 if (sap.ui.Device.system.phone) { oDialog.setStretch(true); }
+                // MD-11: Destroy dialog on close to prevent memory leaks
+                that._assignDlg.attachAfterClose(function () {
+                    that._assignDlg.destroy();
+                    that._assignDlg = null;
+                });
                 that._assignDlg.open();
+            }).catch(function (err) {
+                Log.error('Failed to load AssignDialog fragment: ' + (err && err.message || err));
+                MessageToast.show('Failed to open assignment dialog');
             });
         },
 
@@ -577,7 +591,7 @@ sap.ui.define([
                 var sKey = combo.userKey;
                 var oUser = mUserMap[sKey] || {};
                 var payload = {
-                    TrainingId: tr.Id || '',
+                    TrainingId: tr.Id || tr.ID || '',
                     Title: tr.Title || '',
                     Role: tr.Role || '',
                     Topic: tr.Topic || '',

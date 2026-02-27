@@ -13,7 +13,12 @@ METHOD trainings_update_entity.
   DATA: ls_key      TYPE /iwbep/s_mgw_name_value_pair,
         ls_training TYPE zcourses,
         ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
-        lv_id       TYPE char36.
+        lv_id       TYPE char36,
+        lv_errmsg   TYPE bapi_msg,
+        lx_root     TYPE REF TO cx_root,
+        lx_busi     TYPE REF TO /iwbep/cx_mgw_busi_exception.
+
+  TRY.
 
 * -- FIX #3: Authorization check (Admin only) ------------------------
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
@@ -53,6 +58,16 @@ METHOD trainings_update_entity.
 
 * -- Read incoming update payload ------------------------------------
   io_data_provider->read_entry_data( IMPORTING es_data = ls_entity ).
+
+* -- HI-14: XSS sanitization on free-text fields --------------------
+  IF ls_entity-title IS NOT INITIAL.
+    REPLACE ALL OCCURRENCES OF '<' IN ls_entity-title WITH ''.
+    REPLACE ALL OCCURRENCES OF '>' IN ls_entity-title WITH ''.
+  ENDIF.
+  IF ls_entity-description IS NOT INITIAL.
+    REPLACE ALL OCCURRENCES OF '<' IN ls_entity-description WITH ''.
+    REPLACE ALL OCCURRENCES OF '>' IN ls_entity-description WITH ''.
+  ENDIF.
 
 * -- Merge: only overwrite fields that were actually provided --------
 *   NOTE (Audit #25): IS NOT INITIAL check means you cannot clear a field.
@@ -118,5 +133,16 @@ METHOD trainings_update_entity.
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
         message = 'Failed to update training'.
   ENDIF.
+
+* -- HI-9: Catch-all exception handler ------------------------------
+  CATCH /iwbep/cx_mgw_busi_exception INTO lx_busi.
+    RAISE EXCEPTION lx_busi.
+  CATCH cx_root INTO lx_root.
+    lv_errmsg = lx_root->get_text( ).
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = lv_errmsg.
+  ENDTRY.
 
 ENDMETHOD.

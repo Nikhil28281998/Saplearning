@@ -6,7 +6,6 @@
 	"license": "UNLICENSED",
 	"dependencies": {
 		"@sap/cds": "^8",
-		"@sap/xssec": "^4",
 		"express": "^4",
 		"express-rate-limit": "^7.5.1",
 		"helmet": "^7",
@@ -27,13 +26,7 @@
 	"cds": {
 		"requires": {
 			"db": {
-				"kind": "sql",
-				"[production]": {
-					"kind": "hana",
-					"credentials": {
-						"schema": "${env.HDI_SCHEMA}"
-					}
-				}
+				"kind": "sql"
 			},
 			"auth": {
 				"[production]": {

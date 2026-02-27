@@ -5,7 +5,7 @@
 
     <Dialog
         id="assignTrainingDialog"
-        title="Assign Training to Team"
+        title="{i18n>assignDialogTitle}"
         contentWidth="620px"
         verticalScrolling="true"
         draggable="true"
@@ -15,8 +15,8 @@
             <VBox id="assignDialogVBox" class="sapUiSmallMargin">
 
                 <!-- Section 1: Selected Trainings (read-only summary) -->
-                <Panel id="assignTrainingsPanel" headerText="Selected Trainings ({= ${assignModel>/trainings}.length })">
-                    <List id="assignTrainingsList" items="{assignModel>/trainings}" noDataText="No trainings selected">
+                <Panel id="assignTrainingsPanel" headerText="{parts: ['i18n>selectedTrainingsCount', 'assignModel>/trainings'], formatter: '.formatSelectedTrainingsHeader'}">
+                    <List id="assignTrainingsList" items="{assignModel>/trainings}" noDataText="{i18n>noTrainingsSelectedText}">
                         <StandardListItem
                             id="assignTrainingListItem"
                             title="{assignModel>Title}"
@@ -36,12 +36,12 @@
                     adjustLabelSpan="false">
                     <form:content>
                         <!-- Section 2: Assign To -->
-                        <core:Title id="assignTitleAssignTo" text="Assign To" />
-                        <Label id="assignLabelUserId" text="Team Members" required="true" />
+                        <core:Title id="assignTitleAssignTo" text="{i18n>assignToTitle}" />
+                        <Label id="assignLabelUserId" text="{i18n>teamMembersLabel}" required="true" />
                         <MultiComboBox
                             id="assignUserIdInput"
                             width="100%"
-                            placeholder="Select one or more team members..."
+                            placeholder="{i18n>teamMembersPlaceholder}"
                             selectedKeys="{assignModel>/selectedUserKeys}"
                             selectionChange=".onAssignUserSelectionChange"
                             items="{assignModel>/users}">
@@ -51,19 +51,19 @@
                                 text="{assignModel>UserId} - {assignModel>FirstName} {assignModel>LastName}" />
                         </MultiComboBox>
 
-                        <Label id="assignLabelSelectedCount" text="Selected" />
+                        <Label id="assignLabelSelectedCount" text="{i18n>selectedCountLabel}" />
                         <Text id="assignSelectedCount" text="{= ${assignModel>/selectedUserKeys}.length + ' team member(s) x ' + ${assignModel>/trainings}.length + ' training(s) = ' + (${assignModel>/selectedUserKeys}.length * ${assignModel>/trainings}.length) + ' assignment(s)'}" />
 
                         <!-- Section 3: Schedule -->
-                        <core:Title id="assignTitleSchedule" text="Schedule" />
-                        <Label id="assignLabelDueDate" text="Due Date" />
+                        <core:Title id="assignTitleSchedule" text="{i18n>schedule}" />
+                        <Label id="assignLabelDueDate" text="{i18n>dueDateLabel}" />
                         <DatePicker
                             id="assignDueDate"
                             width="100%"
                             valueFormat="yyyy-MM-dd"
                             displayFormat="long"
                             value="{assignModel>/dueDate}"
-                            placeholder="Select due date" />
+                            placeholder="{i18n>selectDueDatePlaceholder}" />
                     </form:content>
                 </form:SimpleForm>
 
@@ -80,14 +80,14 @@
         <beginButton>
             <Button
                 id="assignSubmitBtn"
-                text="Assign"
+                text="{i18n>assignButton}"
                 type="Emphasized"
                 icon="sap-icon://accept"
                 enabled="{= !${assignModel>/submitting} }"
                 press=".onAssignSubmit" />
         </beginButton>
         <endButton>
-            <Button id="assignCancelBtn" text="Cancel" press=".onAssignCancel" />
+            <Button id="assignCancelBtn" text="{i18n>cancelButton}" press=".onAssignCancel" />
         </endButton>
     </Dialog>
 

@@ -52,7 +52,7 @@
             <VBox class="detailCard">
                 <HBox alignItems="Center">
                     <core:Icon src="sap-icon://bar-code" size="1.125rem" color="#556b82" class="sapUiSmallMarginEnd" />
-                    <Label text="Training ID" design="Bold" />
+                    <Label text="{i18n>trainingIdLabel}" design="Bold" />
                 </HBox>
                 <Text text="{detail>/Id}" class="sapUiSmallMarginTop detailIdText" />
             </VBox>

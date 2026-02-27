@@ -15,11 +15,11 @@
             <IconTabBar id="tutorialTabBar" selectedKey="{tutorialData>/selectedTab}" class="sapUiNoContentPadding">
                 <items>
                     <!-- Getting Started Tab -->
-                    <IconTabFilter id="tutorialTabStart" key="start" text="Getting Started" icon="sap-icon://begin">
+                    <IconTabFilter id="tutorialTabStart" key="start" text="{i18n>gettingStartedTab}" icon="sap-icon://begin">
                         <VBox class="sapUiSmallMargin">
-                            <Title text="Welcome to SAP Learning Hub" level="H4" class="sapUiSmallMarginBottom" />
+                            <Title text="{i18n>welcomeTitle}" level="H4" class="sapUiSmallMarginBottom" />
                             <MessageStrip
-                                text="This guide will help you get the most out of the application based on your role."
+                                text="{i18n>tutorialGuideText}"
                                 type="Information"
                                 showIcon="true"
                                 class="sapUiSmallMarginBottom" />
@@ -30,9 +30,9 @@
                     </IconTabFilter>
 
                     <!-- Features Tab -->
-                    <IconTabFilter id="tutorialTabFeatures" key="features" text="Features" icon="sap-icon://list">
+                    <IconTabFilter id="tutorialTabFeatures" key="features" text="{i18n>featuresTab}" icon="sap-icon://list">
                         <VBox class="sapUiSmallMargin">
-                            <Title text="Key Features" level="H4" class="sapUiSmallMarginBottom" />
+                            <Title text="{i18n>keyFeaturesTitle}" level="H4" class="sapUiSmallMarginBottom" />
                             <FormattedText
                                 htmlText="{tutorialData>/features}"
                                 class="sapUiSmallMarginTop" />
@@ -40,9 +40,9 @@
                     </IconTabFilter>
 
                     <!-- Tips Tab -->
-                    <IconTabFilter id="tutorialTabTips" key="tips" text="Tips &amp; Tricks" icon="sap-icon://hint">
+                    <IconTabFilter id="tutorialTabTips" key="tips" text="{i18n>tipsTab}" icon="sap-icon://hint">
                         <VBox class="sapUiSmallMargin">
-                            <Title text="Pro Tips" level="H4" class="sapUiSmallMarginBottom" />
+                            <Title text="{i18n>proTipsTitle}" level="H4" class="sapUiSmallMarginBottom" />
                             <FormattedText
                                 htmlText="{tutorialData>/tips}"
                                 class="sapUiSmallMarginTop" />
@@ -53,7 +53,7 @@
         </content>
 
         <endButton>
-            <Button text="Got it!" type="Emphasized" press="onCloseTutorial" />
+            <Button text="{i18n>gotItButton}" type="Emphasized" press="onCloseTutorial" />
         </endButton>
     </Dialog>
 </core:FragmentDefinition>

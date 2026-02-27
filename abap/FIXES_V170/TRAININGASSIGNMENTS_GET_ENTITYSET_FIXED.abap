@@ -27,7 +27,14 @@ METHOD trainingassignments_get_entityset.
         lv_title_up TYPE char255,
         lv_skip     TYPE i,
         lv_top      TYPE i,
-        lv_total    TYPE i.
+        lv_total    TYPE i,
+        lv_errmsg   TYPE bapi_msg,
+        lv_is_admin TYPE abap_bool,
+        lv_is_mgr   TYPE abap_bool,
+        lx_root     TYPE REF TO cx_root,
+        lx_busi     TYPE REF TO /iwbep/cx_mgw_busi_exception.
+
+  TRY.
 
 * -- FIX #3: Authorization check (read access) ----------------------
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
@@ -49,6 +56,23 @@ METHOD trainingassignments_get_entityset.
   IF sy-subrc = 0.
     READ TABLE ls_filter-select_options INDEX 1 INTO ls_option.
     IF sy-subrc = 0. lv_user_id = ls_option-low. ENDIF.
+  ENDIF.
+
+* -- CR-3 / SEC-3: User role enforcement ----------------------------
+*   Regular users can only see their own assignments.
+*   Admin/Manager can see all (or filter by specific user).
+  AUTHORITY-CHECK OBJECT 'Z_COURSES' ID 'ACTVT' FIELD '01'.
+  IF sy-subrc = 0.
+    lv_is_admin = abap_true.
+  ENDIF.
+  AUTHORITY-CHECK OBJECT 'Z_COURSES' ID 'ACTVT' FIELD '02'.
+  IF sy-subrc = 0.
+    lv_is_mgr = abap_true.
+  ENDIF.
+
+  IF lv_is_admin <> abap_true AND lv_is_mgr <> abap_true.
+*   Force user_id filter to current user for regular users
+    lv_user_id = sy-uname.
   ENDIF.
 
 * -- Read filter: Status ---------------------------------------------
@@ -206,5 +230,16 @@ METHOD trainingassignments_get_entityset.
     ls_entity-completiondate  = ls_asgn-completion_dt.
     APPEND ls_entity TO et_entityset.
   ENDLOOP.
+
+* -- HI-9: Catch-all exception handler ------------------------------
+  CATCH /iwbep/cx_mgw_busi_exception INTO lx_busi.
+    RAISE EXCEPTION lx_busi.
+  CATCH cx_root INTO lx_root.
+    lv_errmsg = lx_root->get_text( ).
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = lv_errmsg.
+  ENDTRY.
 
 ENDMETHOD.

@@ -21,14 +21,14 @@
         <headerContent>
             <Button
                 id="navToHomeBtn"
-                text="Training Catalog"
+                text="{i18n>trainingCatalog}"
                 icon="sap-icon://home"
                 press="onNavBack"
                 type="Transparent" />
             <Button
                 id="assignTutorialBtn"
                 icon="sap-icon://sys-help"
-                tooltip="How to use this page"
+                tooltip="{i18n>howToUsePage}"
                 press="onOpenTutorial"
                 type="Transparent" />
         </headerContent>
@@ -80,7 +80,7 @@
                         height="2.5rem"
                         class="teamCompletionProgressBar" />
                     <Text id="completionHeroSubtitle"
-                        text="{= 'Completed: ' + ${assignAnalytics>/completed} + '  |  Remaining: ' + (${assignAnalytics>/total} - ${assignAnalytics>/completed}) }"
+                        text="{parts: ['i18n>completedVsRemaining', 'assignAnalytics>/completed', 'assignAnalytics>/total'], formatter: '.formatCompletedRemaining'}"
                         class="motivationalText sapUiTinyMarginTop" />
                 </VBox>
 
@@ -174,12 +174,12 @@
                 <VBox id="assignCardGridWrapper" class="cardGridWrapper">
                     <!-- Card count + View toggle toolbar -->
                     <Toolbar id="assignCardToolbar" class="sapUiSmallMarginBottom">
-                        <Title id="assignCardCountTitle" text="{= 'My Assignments (' + ${assignViewMode>/cardCount} + ')' }" level="H5" />
+                        <Title id="assignCardCountTitle" text="{parts: ['i18n>myAssignmentsCount', 'assignViewMode>/cardCount'], formatter: 'jQuery.sap.formatMessage'}" level="H5" />
                         <ToolbarSpacer id="assignCardToolbarSpacer1" />
                         <SegmentedButton id="assignViewModeToggle" selectedKey="{assignViewMode>/mode}" selectionChange="onAssignViewModeChange">
                             <items>
-                                <SegmentedButtonItem id="assignViewModeCards" key="cards" icon="sap-icon://grid" tooltip="Card View" />
-                                <SegmentedButtonItem id="assignViewModeTable" key="table" icon="sap-icon://table-view" tooltip="Table View" />
+                                <SegmentedButtonItem id="assignViewModeCards" key="cards" icon="sap-icon://grid" tooltip="{i18n>cardViewTooltip}" />
+                                <SegmentedButtonItem id="assignViewModeTable" key="table" icon="sap-icon://table-view" tooltip="{i18n>tableViewTooltip}" />
                             </items>
                         </SegmentedButton>
                         <Button
@@ -195,7 +195,7 @@
                         growing="true"
                         growingThreshold="30"
                         growingScrollToLoad="true"
-                        noDataText="No assignments found. Adjust your filters."
+                        noDataText="{i18n>noAssignmentsCardText}"
                         items="{ path: '/TrainingAssignments', sorter: { path: 'DueDate', descending: false } }">
                         <f:customLayout>
                             <cssgrid:GridBoxLayout
@@ -225,7 +225,7 @@
                                         </HBox>
                                         <HBox class="learningCardMeta sapUiTinyMarginTop" wrap="Wrap">
                                             <ObjectStatus
-                                                text="{= 'Due: ' + ${DueDate} }"
+                                                text="{path: 'DueDate', type: 'sap.ui.model.type.Date', formatOptions: {style: 'medium'}}"
                                                 state="None"
                                                 icon="sap-icon://date-time"
                                                 class="sapUiTinyMarginEnd"
@@ -235,11 +235,11 @@
                                     </VBox>
                                 </HBox>
                                 <Toolbar class="learningCardActions">
-                                    <Button icon="sap-icon://begin" tooltip="Start Training" press="onAssignCardStart" type="Accept" />
-                                    <Button icon="sap-icon://complete" tooltip="Mark Completed" press="onAssignCardComplete" type="Emphasized" />
+                                    <Button icon="sap-icon://begin" tooltip="{i18n>startTrainingTooltip}" press="onAssignCardStart" type="Accept" />
+                                    <Button icon="sap-icon://complete" tooltip="{i18n>markCompletedTooltip}" press="onAssignCardComplete" type="Emphasized" />
                                     <ToolbarSpacer />
-                                    <Button icon="sap-icon://inspect" tooltip="View Details" press="onAssignCardDetail" type="Transparent" />
-                                    <Button icon="sap-icon://action" tooltip="Open Training URL" press="onAssignCardOpenUrl" type="Transparent" />
+                                    <Button icon="sap-icon://inspect" tooltip="{i18n>viewDetailsTooltip}" press="onAssignCardDetail" type="Transparent" />
+                                    <Button icon="sap-icon://action" tooltip="{i18n>openTrainingUrlTooltip}" press="onAssignCardOpenUrl" type="Transparent" />
                                 </Toolbar>
                             </CustomListItem>
                         </f:items>
@@ -273,8 +273,8 @@
                     <IllustratedMessage
                         id="assignmentsEmptyState"
                         illustrationType="sapIllus-NoTasks"
-                        title="No Assignments Found"
-                        description="You have no training assignments matching the current filters."
+                        title="{i18n>noAssignmentsFoundTitle}"
+                        description="{i18n>noAssignmentsFoundDesc}"
                         illustrationSize="Spot" />
                 </smartTable:noData>
 
@@ -296,8 +296,8 @@
                         <ToolbarSpacer id="assignToolbarSpacer" />
                         <SegmentedButton id="assignViewModeToggle2" selectedKey="{assignViewMode>/mode}" selectionChange="onAssignViewModeChange">
                             <items>
-                                <SegmentedButtonItem id="assignViewModeCards2" key="cards" icon="sap-icon://grid" tooltip="Card View" />
-                                <SegmentedButtonItem id="assignViewModeTable2" key="table" icon="sap-icon://table-view" tooltip="Table View" />
+                                <SegmentedButtonItem id="assignViewModeCards2" key="cards" icon="sap-icon://grid" tooltip="{i18n>cardViewTooltip}" />
+                                <SegmentedButtonItem id="assignViewModeTable2" key="table" icon="sap-icon://table-view" tooltip="{i18n>tableViewTooltip}" />
                             </items>
                         </SegmentedButton>
                         <Button

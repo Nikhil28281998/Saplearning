@@ -13,15 +13,15 @@ METHOD trainingassignments_create_entity.
         ls_entity  TYPE zcl_zcourses_mpc=>ts_trainingassignment,
         lv_guid    TYPE sysuuid_c36,
         lv_check   TYPE char36,
-        lv_subrc   TYPE sysubrc.
+        lv_subrc   TYPE sysubrc,
+        lv_errmsg  TYPE bapi_msg,
+        lx_root    TYPE REF TO cx_root,
+        lx_busi    TYPE REF TO /iwbep/cx_mgw_busi_exception.
 
-* -- Read incoming OData payload into entity structure ----------------
-  io_data_provider->read_entry_data( IMPORTING es_data = ls_entity ).
+  TRY.
 
-* -- FIX #3: Authorization check (PFCG role enforcement) -------------
+* -- CR-7: Authorization check BEFORE reading payload ----------------
 *   Only Admin and Manager roles can create assignments.
-*   Authorization object Z_COURSES in SU21 with:
-*     ACTVT (Activity): 01=Create, 02=Update, 03=Display, 06=Delete
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
     ID 'ACTVT' FIELD '01'.
   IF sy-subrc <> 0.
@@ -30,6 +30,9 @@ METHOD trainingassignments_create_entity.
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
         message = 'Not authorized to create training assignments'.
   ENDIF.
+
+* -- Read incoming OData payload into entity structure ----------------
+  io_data_provider->read_entry_data( IMPORTING es_data = ls_entity ).
 
 * -- Validate required fields ----------------------------------------
   IF ls_entity-trainingid IS INITIAL OR ls_entity-userid IS INITIAL.
@@ -52,6 +55,15 @@ METHOD trainingassignments_create_entity.
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
         message = 'User already has an active assignment for this training'.
   ENDIF.
+
+* -- HI-4: Default status to 'Assigned' if not provided ---------------
+  IF ls_entity-status IS INITIAL.
+    ls_entity-status = 'Assigned'.
+  ENDIF.
+
+* -- HI-14: XSS sanitization on free-text fields --------------------
+  REPLACE ALL OCCURRENCES OF '<' IN ls_entity-title WITH ''.
+  REPLACE ALL OCCURRENCES OF '>' IN ls_entity-title WITH ''.
 
 * -- Generate UUID if caller did not provide one ---------------------
   IF ls_entity-id IS INITIAL.
@@ -78,6 +90,9 @@ METHOD trainingassignments_create_entity.
   ls_asgn-user_email    = ls_entity-useremail.
   ls_asgn-due_date      = ls_entity-duedate.
   ls_asgn-completion_dt = ls_entity-completiondate.
+* -- HI-4: Populate mandatory fields not provided by payload ---------
+  ls_asgn-assigned_by   = sy-uname.
+  ls_asgn-created_at    = sy-datum.
 
 * -- Insert into database table ZCOURSE_ASGN ------------------------
   INSERT zcourse_asgn FROM ls_asgn.
@@ -90,5 +105,16 @@ METHOD trainingassignments_create_entity.
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
         message = 'Failed to create assignment - record may already exist'.
   ENDIF.
+
+* -- HI-9: Catch-all exception handler ------------------------------
+  CATCH /iwbep/cx_mgw_busi_exception INTO lx_busi.
+    RAISE EXCEPTION lx_busi.
+  CATCH cx_root INTO lx_root.
+    lv_errmsg = lx_root->get_text( ).
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = lv_errmsg.
+  ENDTRY.
 
 ENDMETHOD.

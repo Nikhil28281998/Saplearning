@@ -38,7 +38,7 @@
                     <Button
                         id="tutorialBtn"
                         icon="sap-icon://sys-help"
-                        tooltip="How to use this app"
+                        tooltip="{i18n>howToUseApp}"
                         press="onOpenTutorial"
                         type="Transparent" />
                     <Button
@@ -115,7 +115,7 @@
                         height="2.5rem"
                         class="teamCompletionProgressBar" />
                     <Text id="teamCompletionSubtitle"
-                        text="{= 'Completed: ' + ${teamAnalytics>/completed} + '  |  Remaining: ' + (${teamAnalytics>/totalAssignments} - ${teamAnalytics>/completed}) }"
+                        text="{parts: ['i18n>completedVsRemaining', 'teamAnalytics>/completed', 'teamAnalytics>/totalAssignments'], formatter: '.formatCompletedRemaining'}"
                         class="motivationalText sapUiTinyMarginTop" />
                 </VBox>
 
@@ -295,12 +295,12 @@
                 <VBox id="cardGridWrapper" class="cardGridWrapper">
                     <!-- Card count + View toggle toolbar -->
                     <Toolbar id="cardToolbar" class="sapUiSmallMarginBottom">
-                        <Title id="cardCountTitle" text="{= 'Learning Content (' + ${viewMode>/cardCount} + ')' }" level="H5" />
+                        <Title id="cardCountTitle" text="{parts: ['i18n>learningContentCount', 'viewMode>/cardCount'], formatter: 'jQuery.sap.formatMessage'}" level="H5" />
                         <ToolbarSpacer id="cardToolbarSpacer1" />
                         <SegmentedButton id="viewModeToggle" selectedKey="{viewMode>/mode}" selectionChange="onViewModeChange">
                             <items>
-                                <SegmentedButtonItem id="viewModeCards" key="cards" icon="sap-icon://grid" tooltip="Card View" />
-                                <SegmentedButtonItem id="viewModeTable" key="table" icon="sap-icon://table-view" tooltip="Table View" />
+                                <SegmentedButtonItem id="viewModeCards" key="cards" icon="sap-icon://grid" tooltip="{i18n>cardViewTooltip}" />
+                                <SegmentedButtonItem id="viewModeTable" key="table" icon="sap-icon://table-view" tooltip="{i18n>tableViewTooltip}" />
                             </items>
                         </SegmentedButton>
                         <Button
@@ -316,7 +316,7 @@
                         growing="true"
                         growingThreshold="30"
                         growingScrollToLoad="true"
-                        noDataText="No learning content found. Adjust your filters."
+                        noDataText="{i18n>noLearningContentText}"
                         items="{
                             path: '/Trainings',
                             sorter: { path: 'Title', descending: false }
@@ -348,12 +348,12 @@
                                         <Button
                                             icon="sap-icon://inspect"
                                             type="Transparent"
-                                            tooltip="View Details"
+                                            tooltip="{i18n>viewDetailsTooltip}"
                                             press="onCardDetailPress" />
                                         <Button
                                             icon="sap-icon://open-command-field"
                                             type="Transparent"
-                                            tooltip="Open Exercise"
+                                            tooltip="{i18n>openExerciseTooltip}"
                                             press="onCardOpenUrl" />
                                     </VBox>
                                 </HBox>
@@ -449,8 +449,8 @@
                             press="onRefresh" />
                         <SegmentedButton id="viewModeToggleTable" selectedKey="{viewMode>/mode}" selectionChange="onViewModeChange">
                             <items>
-                                <SegmentedButtonItem id="viewModeCardsTable" key="cards" icon="sap-icon://grid" tooltip="Card View" />
-                                <SegmentedButtonItem id="viewModeTableTable" key="table" icon="sap-icon://table-view" tooltip="Table View" />
+                                <SegmentedButtonItem id="viewModeCardsTable" key="cards" icon="sap-icon://grid" tooltip="{i18n>cardViewTooltip}" />
+                                <SegmentedButtonItem id="viewModeTableTable" key="table" icon="sap-icon://table-view" tooltip="{i18n>tableViewTooltip}" />
                             </items>
                         </SegmentedButton>
                     </OverflowToolbar>

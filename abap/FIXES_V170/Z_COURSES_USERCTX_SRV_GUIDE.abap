@@ -39,11 +39,21 @@ METHOD usercontext_get_entity.
         lv_addrnum  TYPE ad_addrnum,
         ls_adrp     TYPE adrp,
         ls_adr6     TYPE adr6,
-        lv_subrc    TYPE sysubrc.
+        lv_agr_name TYPE agr_name.
 
 * -- Get current user ------------------------------------------------
   lv_username = sy-uname.
   ls_entity-userid = lv_username.
+
+* -- HI-11: Authorization check (read access to own context) ---------
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
+    ID 'ACTVT' FIELD '03'.
+  IF sy-subrc <> 0.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = 'Not authorized to read user context'.
+  ENDIF.
 
 * -- Fetch user name from USR21 + ADRP ------------------------------
   SELECT SINGLE persnumber addrnumber
@@ -72,7 +82,7 @@ METHOD usercontext_get_entity.
 
 * -- Check PFCG roles via AGR_USERS ---------------------------------
 *   Admin role: Z_COURSES_ADMIN
-  SELECT SINGLE agr_name FROM agr_users INTO lv_subrc
+  SELECT SINGLE agr_name FROM agr_users INTO lv_agr_name
     WHERE uname = lv_username
       AND agr_name = 'Z_COURSES_ADMIN'
       AND from_dat <= sy-datum
@@ -80,7 +90,7 @@ METHOD usercontext_get_entity.
   ls_entity-isadmin = boolc( sy-subrc = 0 ).
 
 *   Manager role: Z_COURSES_MANAGER
-  SELECT SINGLE agr_name FROM agr_users INTO lv_subrc
+  SELECT SINGLE agr_name FROM agr_users INTO lv_agr_name
     WHERE uname = lv_username
       AND agr_name = 'Z_COURSES_MANAGER'
       AND from_dat <= sy-datum
@@ -88,7 +98,7 @@ METHOD usercontext_get_entity.
   ls_entity-ismanager = boolc( sy-subrc = 0 ).
 
 *   User role: Z_COURSES_USER (or default if no specific role)
-  SELECT SINGLE agr_name FROM agr_users INTO lv_subrc
+  SELECT SINGLE agr_name FROM agr_users INTO lv_agr_name
     WHERE uname = lv_username
       AND agr_name = 'Z_COURSES_USER'
       AND from_dat <= sy-datum

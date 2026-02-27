@@ -57,6 +57,9 @@ METHOD trainings_delete_entity.
 *   Note: No COMMIT WORK here - Gateway framework manages the LUW.
   DELETE FROM zcourses WHERE id = lv_id.
 
+* -- HI-2: Cascade delete related assignments ------------------------
+  DELETE FROM zcourse_asgn WHERE training_id = lv_id.
+
   IF sy-subrc <> 0.
     MESSAGE e004(zcourses) WITH 'delete' 'training' INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception

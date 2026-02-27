@@ -104,5 +104,5 @@ view Roles as select from Trainings { key role }
 view Topics as select from Trainings { key topic }
     where topic is not null group by topic;
 
-view Modules as select from Trainings { key sap_module, topic }
-    where sap_module is not null group by sap_module, topic;
+view Modules as select from Trainings { key sap_module }
+    where sap_module is not null group by sap_module;

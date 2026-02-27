@@ -49,7 +49,12 @@ METHOD trainings_get_entityset.
         lv_upd_date    TYPE sydatum,
         lv_skip        TYPE i,
         lv_top         TYPE i,
-        lv_total       TYPE i.
+        lv_total       TYPE i,
+        lv_errmsg      TYPE bapi_msg,
+        lx_root        TYPE REF TO cx_root,
+        lx_busi        TYPE REF TO /iwbep/cx_mgw_busi_exception.
+
+  TRY.
 
 * -- Read filter: Role -----------------------------------------------
   READ TABLE it_filter_select_options
@@ -210,5 +215,16 @@ METHOD trainings_get_entityset.
       DELETE et_entityset FROM ( lv_top + 1 ).
     ENDIF.
   ENDIF.
+
+* -- HI-9: Catch-all exception handler ------------------------------
+  CATCH /iwbep/cx_mgw_busi_exception INTO lx_busi.
+    RAISE EXCEPTION lx_busi.
+  CATCH cx_root INTO lx_root.
+    lv_errmsg = lx_root->get_text( ).
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = lv_errmsg.
+  ENDTRY.
 
 ENDMETHOD.

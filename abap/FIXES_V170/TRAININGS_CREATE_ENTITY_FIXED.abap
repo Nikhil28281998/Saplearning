@@ -10,7 +10,12 @@ METHOD trainings_create_entity.
 * -- Local variables --------------------------------------------------
   DATA: ls_training TYPE zcourses,
         ls_entity   TYPE zcl_zcourses_mpc=>ts_training,
-        lv_guid     TYPE sysuuid_c36.
+        lv_guid     TYPE sysuuid_c36,
+        lv_errmsg   TYPE bapi_msg,
+        lx_root     TYPE REF TO cx_root,
+        lx_busi     TYPE REF TO /iwbep/cx_mgw_busi_exception.
+
+  TRY.
 
 * -- FIX #3: Authorization check (Admin only) ------------------------
   AUTHORITY-CHECK OBJECT 'Z_COURSES'
@@ -32,6 +37,12 @@ METHOD trainings_create_entity.
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
         message = 'Title and URL are required'.
   ENDIF.
+
+* -- HI-14: XSS sanitization on free-text fields --------------------
+  REPLACE ALL OCCURRENCES OF '<' IN ls_entity-title WITH ''.
+  REPLACE ALL OCCURRENCES OF '>' IN ls_entity-title WITH ''.
+  REPLACE ALL OCCURRENCES OF '<' IN ls_entity-description WITH ''.
+  REPLACE ALL OCCURRENCES OF '>' IN ls_entity-description WITH ''.
 
 * -- Generate UUID if caller did not provide one ---------------------
   IF ls_entity-id IS INITIAL.
@@ -69,5 +80,16 @@ METHOD trainings_create_entity.
         textid  = /iwbep/cx_mgw_busi_exception=>business_error
         message = 'Failed to create training - record may already exist'.
   ENDIF.
+
+* -- HI-9: Catch-all exception handler ------------------------------
+  CATCH /iwbep/cx_mgw_busi_exception INTO lx_busi.
+    RAISE EXCEPTION lx_busi.
+  CATCH cx_root INTO lx_root.
+    lv_errmsg = lx_root->get_text( ).
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = lv_errmsg.
+  ENDTRY.
 
 ENDMETHOD.

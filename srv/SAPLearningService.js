@@ -286,14 +286,22 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
       req.data.sap_module = training.sap_module;
       req.data.url = training.url;
 
-      // M-4 FIX: Populate managerSort2 — use ADRP.SORT2 in production,
-      // fallback to assigning user's SORT2 or username in dev.
-      // Manager sees team filtered by managerSort2 = their own username,
-      // so we store who created the assignment for team-context drill-down.
-      if (req.data.assignedBy) {
-        req.data.managerSort2 = req.data.assignedBy;
-      } else {
-        req.data.managerSort2 = userCtx.sapUsername;
+      // M-4 FIX: Populate managerSort2 — look up assignee's manager from Users entity.
+      // If Users entity has sort2 (ADRP.SORT2 = manager's user ID), use that.
+      // Otherwise fall back to the assigner's username.
+      try {
+        const { Users } = this.entities;
+        const assigneeUser = await SELECT.one.from(Users).where({ userId: assigneeId });
+        if (assigneeUser && assigneeUser.sort2) {
+          req.data.managerSort2 = assigneeUser.sort2;
+        } else if (req.data.assignedBy) {
+          req.data.managerSort2 = req.data.assignedBy;
+        } else {
+          req.data.managerSort2 = userCtx.sapUsername;
+        }
+      } catch (_) {
+        // Users entity may not exist — fall back to assignedBy
+        req.data.managerSort2 = req.data.assignedBy || userCtx.sapUsername;
       }
 
       secureLog('info', 'Training assignment created', {
@@ -372,9 +380,20 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
     // AFTER DELETE: Trainings — log after successful delete
     // ============================================================================
 
-    this.after('DELETE', 'Trainings', (_, req) => {
+    this.after('DELETE', 'Trainings', async (_, req) => {
       const userCtx = getUserContext(req);
       const trainingId = req.data.ID || req.params?.[0]?.ID;
+
+      // HI-2 FIX: Cascade delete orphaned assignments
+      if (trainingId) {
+        try {
+          const n = await DELETE.from(TrainingAssignments).where({ trainingId: trainingId });
+          secureLog('info', 'Cascade deleted assignments', { trainingId, rowsDeleted: n });
+        } catch (err) {
+          secureLog('error', 'Cascade delete failed', { trainingId, error: err.message });
+        }
+      }
+
       secureLog('info', 'Training deleted', { trainingId, username: userCtx.username });
     });
 

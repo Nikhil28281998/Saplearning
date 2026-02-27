@@ -12,15 +12,30 @@
 METHOD topicsvh_get_entityset.
 
 * -- Local variables --------------------------------------------------
-  DATA: ls_entity TYPE zcl_zcourses_mpc=>ts_topicsvh,
-        lv_topic  TYPE char100.
+  DATA: ls_entity  TYPE zcl_zcourses_mpc=>ts_topicsvh,
+        lt_topics  TYPE TABLE OF char100,
+        lv_topic   TYPE char100,
+        lv_msg     TYPE bapi_msg.
 
-* -- Select distinct topics from ZCOURSES, skip blanks ----------------
-  SELECT DISTINCT topic FROM zcourses INTO lv_topic
+* -- HI-1: Authorization check (read access) -------------------------
+  AUTHORITY-CHECK OBJECT 'Z_COURSES'
+    ID 'ACTVT' FIELD '03'.
+  IF sy-subrc <> 0.
+    MESSAGE e001(zcourses) WITH 'read' 'topics' INTO lv_msg.
+    RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+      EXPORTING
+        textid  = /iwbep/cx_mgw_busi_exception=>business_error
+        message = lv_msg.
+  ENDIF.
+
+* -- MD-1: Use array SELECT INTO TABLE instead of cursor -------------
+  SELECT DISTINCT topic FROM zcourses INTO TABLE lt_topics
     WHERE topic <> ''.
+
+  LOOP AT lt_topics INTO lv_topic.
     CLEAR ls_entity.
     ls_entity-topic = lv_topic.
     APPEND ls_entity TO et_entityset.
-  ENDSELECT.
+  ENDLOOP.
 
 ENDMETHOD.

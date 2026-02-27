@@ -14,6 +14,16 @@ sap.ui.define([
 
     return Controller.extend("z.sap.courses.controller.TrainingAssignmentsList", {
 
+        /**
+         * Formatter: "Completed: X  |  Remaining: Y"
+         */
+        formatCompletedRemaining: function (sPattern, iCompleted, iTotal) {
+            if (sPattern && typeof iCompleted === "number" && typeof iTotal === "number") {
+                return sPattern.replace("{0}", iCompleted).replace("{1}", (iTotal - iCompleted));
+            }
+            return "";
+        },
+
         onInit: function () {
             // Card/Table view mode toggle model
             var oViewModeModel = new JSONModel({
@@ -62,18 +72,24 @@ sap.ui.define([
             }
 
             // Re-load data when role changes (async fetch may complete after initial load)
+            // MD-13: Debounce to prevent triple-fire
+            this._loadDebounceTimer = null;
+            var fnDebouncedLoad = function () {
+                if (that._loadDebounceTimer) { clearTimeout(that._loadDebounceTimer); }
+                that._loadDebounceTimer = setTimeout(function () {
+                    var oST = that.byId("assignSmartTable");
+                    if (oST) { oST.rebindTable(true); }
+                    that._loadAnalytics();
+                }, 300);
+            };
             this._onRoleChanged = function () {
-                var oST = that.byId("assignSmartTable");
-                if (oST) { oST.rebindTable(true); }
-                that._loadAnalytics();
+                fnDebouncedLoad();
             };
             sap.ui.getCore().getEventBus().subscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
 
             // Re-load data when userId is resolved from backend (async)
             this._onUserIdResolved = function () {
-                var oST = that.byId("assignSmartTable");
-                if (oST) { oST.rebindTable(true); }
-                that._loadAnalytics();
+                fnDebouncedLoad();
             };
             sap.ui.getCore().getEventBus().subscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
 
@@ -152,7 +168,11 @@ sap.ui.define([
                     });
 
                     // Overdue: DueDate < today AND not Completed (strictly past due)
-                    var sToday = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+                    // MD-10 FIX: Use local date for overdue comparison (not UTC)
+                    var dToday = new Date();
+                    var sToday = String(dToday.getFullYear()) +
+                        String(dToday.getMonth() + 1).padStart(2, '0') +
+                        String(dToday.getDate()).padStart(2, '0');
                     var iOverdue = 0;
                     aAll.forEach(function (a) {
                         var sStat2 = a.Status || a.status || "";
@@ -1216,6 +1236,12 @@ sap.ui.define([
             var oAssignment = oContext.getObject();
             if (sRole === "User" && (!sCurrentUserId || oAssignment.UserId !== sCurrentUserId)) {
                 MessageToast.show(i18n.getText("cannotCompleteOthers"));
+                return;
+            }
+
+            // CR-6 FIX: Replicate server-side status guard (since OData V2 doesn't support bound actions)
+            if (oAssignment.Status === "Completed") {
+                MessageToast.show(i18n.getText("alreadyCompleted") || "Assignment is already completed.");
                 return;
             }
 

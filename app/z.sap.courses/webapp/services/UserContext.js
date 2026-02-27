@@ -81,12 +81,15 @@ sap.ui.define([
                         // Log raw response for debugging
                         Log.info("getCurrentRole raw response: " + JSON.stringify(data));
 
-                        // Handle both possible OData V2 Complex Type response formats:
+                        // Handle OData V2 response formats:
                         //   Format A: { d: { getCurrentRole: { Role: "Admin" } } }
                         //   Format B: { d: { Role: "Admin" } }
+                        //   Format C (CAP): { d: { getCurrentRole: "Admin" } } (plain string)
                         var sRole = "User";
                         if (data && data.d) {
-                            if (data.d.getCurrentRole && data.d.getCurrentRole.Role) {
+                            if (typeof data.d.getCurrentRole === 'string') {
+                                sRole = data.d.getCurrentRole;
+                            } else if (data.d.getCurrentRole && data.d.getCurrentRole.Role) {
                                 sRole = data.d.getCurrentRole.Role;
                             } else if (data.d.Role) {
                                 sRole = data.d.Role;

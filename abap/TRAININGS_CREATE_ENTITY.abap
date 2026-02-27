@@ -45,7 +45,7 @@ METHOD trainings_create_entity.
   REPLACE ALL OCCURRENCES OF '>' IN ls_entity-description WITH ''.
 
 * -- Validate URL format: must start with http:// or https:// --------
-  IF ls_entity-url NS 'http://' AND ls_entity-url NS 'https://'.
+  IF ls_entity-url NP 'http://*' AND ls_entity-url NP 'https://*'.
     MESSAGE e008(zcourses) INTO lv_msg.
     RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
       EXPORTING

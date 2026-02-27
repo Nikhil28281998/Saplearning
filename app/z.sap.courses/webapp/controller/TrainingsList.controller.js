@@ -17,6 +17,16 @@ sap.ui.define([
 
     return Controller.extend("z.sap.courses.controller.TrainingsList", {
 
+        /**
+         * Formatter: "Completed: X  |  Remaining: Y"
+         */
+        formatCompletedRemaining: function (sPattern, iCompleted, iTotal) {
+            if (sPattern && typeof iCompleted === "number" && typeof iTotal === "number") {
+                return sPattern.replace("{0}", iCompleted).replace("{1}", (iTotal - iCompleted));
+            }
+            return "";
+        },
+
         onInit: function () {
             this._analyticsService = new AnalyticsService();
 
@@ -65,19 +75,28 @@ sap.ui.define([
             });
             this.getView().setModel(oFilterModel, "filterData");
 
+            // MD-13: Debounce data loads to prevent triple-fire on init + roleChanged + userIdResolved
+            this._loadDataDebounceTimer = null;
+            this._debouncedLoadAllData = function () {
+                if (that._loadDataDebounceTimer) { clearTimeout(that._loadDataDebounceTimer); }
+                that._loadDataDebounceTimer = setTimeout(function () {
+                    that._loadAllData();
+                }, 300);
+            };
+
             this._loadAllData();
 
             // BUG-3 FIX: Re-load analytics when role is fetched to apply correct user filters
             var that = this;
             this._onRoleChanged = function () {
-                that._loadAllData();
+                that._debouncedLoadAllData();
                 that._updateTableSelectionMode();
             };
             sap.ui.getCore().getEventBus().subscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
 
             // Re-load data when userId is resolved from backend (async)
             this._onUserIdResolved = function () {
-                that._loadAllData();
+                that._debouncedLoadAllData();
             };
             sap.ui.getCore().getEventBus().subscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
 
@@ -385,7 +404,8 @@ sap.ui.define([
                             if (sStat === "Completed") { oUserMap[sUser].completed++; }
                         });
 
-                        var sToday = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+                        var dNow = new Date();
+                        var sToday = String(dNow.getFullYear()) + String(dNow.getMonth() + 1).padStart(2, '0') + String(dNow.getDate()).padStart(2, '0');
                         var iOverdue = 0;
                         aAll.forEach(function (a) {
                             var sStat2 = a.Status || a.status || "";
@@ -393,7 +413,7 @@ sap.ui.define([
                             if (sStat2 !== "Completed" && dDue) {
                                 var sDue = "";
                                 if (dDue instanceof Date) {
-                                    sDue = dDue.toISOString().slice(0, 10).replace(/-/g, "");
+                                    sDue = String(dDue.getFullYear()) + String(dDue.getMonth() + 1).padStart(2, '0') + String(dDue.getDate()).padStart(2, '0');
                                 } else if (typeof dDue === "string") {
                                     sDue = dDue.replace(/-/g, "").slice(0, 8);
                                 }
@@ -433,8 +453,9 @@ sap.ui.define([
          * This method is kept as a no-op for backward compatibility in case
          * other code calls it — the model update in _loadTeamAnalytics is sufficient.
          */
-        _buildUserProgressList: function (/* aUsers */) {
-            // No-op: view binding handles rendering via TeamUserRow fragment
+        _buildUserProgressList: function () {
+            // Deprecated: view binding handles rendering via TeamUserRow fragment.
+            // Kept as no-op stub for backward compatibility.
         },
 
         // _loadFilterData removed: consolidated into _loadAllData (audit fix #8)
@@ -472,14 +493,15 @@ sap.ui.define([
             // Filter by status if specified (handle both PascalCase and camelCase)
             var aFiltered = aAll;
             if (sStatusFilter === "Overdue") {
-                var sToday = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+                var dNow2 = new Date();
+                var sToday = String(dNow2.getFullYear()) + String(dNow2.getMonth() + 1).padStart(2, '0') + String(dNow2.getDate()).padStart(2, '0');
                 aFiltered = aAll.filter(function (a) {
                     var sStat = a.Status || a.status || "";
                     var dDue = a.DueDate || a.dueDate;
                     if (sStat === "Completed" || !dDue) { return false; }
                     var sDue = "";
                     if (dDue instanceof Date) {
-                        sDue = dDue.toISOString().slice(0, 10).replace(/-/g, "");
+                        sDue = String(dDue.getFullYear()) + String(dDue.getMonth() + 1).padStart(2, '0') + String(dDue.getDate()).padStart(2, '0');
                     } else if (typeof dDue === "string") {
                         sDue = dDue.replace(/-/g, "").slice(0, 8);
                     }
@@ -1043,6 +1065,10 @@ sap.ui.define([
                 this._formatDateColumns(oTable);
             }
 
+            // MD-12: Only rebind card grid when cards view is active
+            var oViewMode = this.getView().getModel("viewMode");
+            if (oViewMode && !oViewMode.getProperty("/showCards")) { return; }
+
             // Keep card grid in sync with same filters
             this._rebindCardGrid();
         },
@@ -1383,7 +1409,7 @@ sap.ui.define([
                     var oModel = oComponent.getModel();
 
                     var oPayload = {
-                        TrainingId: oTraining.Id,
+                        TrainingId: oTraining.Id || oTraining.ID,
                         Title: oTraining.Title,
                         Role: oTraining.Role || "",
                         Topic: oTraining.Topic || "",
@@ -1648,8 +1674,12 @@ sap.ui.define([
             if (!oCtx) { return; }
             var sUrl = oCtx.getProperty("Url");
             if (sUrl) {
-                sap.m.URLHelper.redirect(sUrl, true);
-            } else {
+                // HI-7: Validate URL protocol before redirect to prevent XSS
+                if (/^https?:\/\//i.test(sUrl)) {
+                    sap.m.URLHelper.redirect(sUrl, true);
+                } else {
+                    MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("invalidUrlProtocol") || "Invalid URL: only HTTP/HTTPS links are allowed.");
+                } else {
                 MessageToast.show("No URL available for this exercise.");
             }
         },

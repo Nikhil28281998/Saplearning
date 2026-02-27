@@ -193,10 +193,13 @@ METHOD /iwbep/if_mgw_appl_srv_runtime~execute_action.
         ENDIF.
       ENDIF.
 
-*     Fallback: if no authorization at all, default to User (view-only)
+*     Fallback: if no authorization at all, reject the request
       IF lv_role_val IS INITIAL.
-        lv_role_val = 'User'.
-        lv_avail    = 'User'.
+        MESSAGE e001(zcourses) WITH 'view' 'role context' INTO lv_msg.
+        RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+          EXPORTING
+            textid  = /iwbep/cx_mgw_busi_exception=>business_error
+            message = 'Not authorized: no PFCG role assigned for Z_COURSES'.
       ENDIF.
 
 *     Return via Complex Type structure (ts_currentrole)
