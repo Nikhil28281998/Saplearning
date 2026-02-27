@@ -413,8 +413,8 @@ sap.ui.define([
             var aUserFilters = [];
             Log.info('[AssignDlg] Role=' + sRole + ', UserId=' + sUserId);
             if (sRole === 'Manager' && sUserId) {
-                aUserFilters.push(new sap.ui.model.Filter("Sort2", sap.ui.model.FilterOperator.EQ, sUserId));
-                Log.info('[AssignDlg] Manager filter: Sort2 EQ ' + sUserId);
+                aUserFilters.push(new sap.ui.model.Filter("sort2", sap.ui.model.FilterOperator.EQ, sUserId));
+                Log.info('[AssignDlg] Manager filter: sort2 EQ ' + sUserId);
             } else if (sRole === 'Manager' && !sUserId) {
                 Log.warning('[AssignDlg] Manager userId not resolved — cannot filter team members');
             }

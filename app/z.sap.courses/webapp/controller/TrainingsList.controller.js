@@ -256,7 +256,35 @@ sap.ui.define([
 
             Log.info("[TeamAnalytics] Loading for role: " + sRole);
 
-            // NEW-8: Call server-side getTeamAnalytics function for aggregated data
+            // Check if getTeamAnalytics FunctionImport exists in $metadata
+            // If not defined in SEGW, skip directly to client-side fallback
+            var bHasFunctionImport = false;
+            try {
+                var oMeta = oModel.getServiceMetadata();
+                if (oMeta && oMeta.dataServices && oMeta.dataServices.schema) {
+                    for (var si = 0; si < oMeta.dataServices.schema.length; si++) {
+                        var aContainers = oMeta.dataServices.schema[si].entityContainer || [];
+                        for (var ci = 0; ci < aContainers.length; ci++) {
+                            var aFuncImports = aContainers[ci].functionImport || [];
+                            for (var fi = 0; fi < aFuncImports.length; fi++) {
+                                if (aFuncImports[fi].name === "getTeamAnalytics") {
+                                    bHasFunctionImport = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (metaErr) {
+                Log.info("[TeamAnalytics] Metadata check failed: " + metaErr.message);
+            }
+
+            if (!bHasFunctionImport) {
+                Log.info("[TeamAnalytics] No getTeamAnalytics FunctionImport in metadata — using client-side fallback");
+                that._loadTeamAnalyticsFallback();
+                return;
+            }
+
+            // Server-side getTeamAnalytics FunctionImport exists — call it
             try {
                 var bWasBatch = oModel.bUseBatch;
                 oModel.setUseBatch(false);
@@ -299,13 +327,11 @@ sap.ui.define([
                         Log.warning("[TeamAnalytics] getTeamAnalytics failed, falling back to client-side: " + (err && err.message || ""));
                         // Fallback: load client-side (backward compat with older ABAP backends)
                         that._loadTeamAnalyticsFallback();
-                        if (oPanel) { oPanel.setBusy(false); }
                     }
                 });
             } catch (ex) {
                 Log.warning("[TeamAnalytics] callFunction threw: " + ex.message + ", using fallback");
                 that._loadTeamAnalyticsFallback();
-                if (oPanel) { oPanel.setBusy(false); }
             }
         },
 
@@ -369,11 +395,22 @@ sap.ui.define([
             var sEntitySet = this.getOwnerComponent().getAssignmentEntitySet();
             var that = this;
 
+            // Manage panel busy state independently for fallback
+            var oPanel = this.byId("teamAnalyticsPanel");
+            if (oPanel) { oPanel.setBusy(true); }
+
+            Log.info("[TeamAnalytics] Fallback: reading " + sEntitySet + " for role=" + sRole);
+
             var aFilters = [];
             if (sRole === "Manager") {
                 var sManagerId = this.getOwnerComponent().getCurrentUserId();
                 if (sManagerId) {
                     aFilters.push(new Filter("ManagerSort2", FilterOperator.EQ, sManagerId));
+                    Log.info("[TeamAnalytics] Fallback filter: ManagerSort2 EQ " + sManagerId);
+                } else {
+                    Log.warning("[TeamAnalytics] Fallback: Manager userId not resolved — cannot filter");
+                    if (oPanel) { oPanel.setBusy(false); }
+                    return;
                 }
             }
 
@@ -445,10 +482,23 @@ sap.ui.define([
                         });
                         oTeamModel.setProperty("/userBreakdown", aUsers);
                         oTeamModel.setProperty("/allAssignments", aAll);
+
+                        Log.info("[TeamAnalytics] Fallback loaded " + aAll.length + " assignments: " +
+                            iAssigned + " assigned, " + iInProgress + " in progress, " +
+                            iCompleted + " completed, " + iOverdue + " overdue");
+                        if (oPanel) { oPanel.setBusy(false); }
                     },
                     error: function (err) {
-                        Log.warning("[TeamAnalytics] Fallback load failed: " + (err && err.message || ""));
+                        var sErrDetail = "";
+                        try {
+                            if (err && err.responseText) {
+                                var parsed = JSON.parse(err.responseText);
+                                sErrDetail = (parsed.error && parsed.error.message && parsed.error.message.value) || "";
+                            }
+                        } catch (_) { /* ignore */ }
+                        Log.warning("[TeamAnalytics] Fallback load failed: " + (err && err.message || "") + " " + sErrDetail);
                         MessageToast.show("Team analytics could not be loaded. Please refresh.");
+                        if (oPanel) { oPanel.setBusy(false); }
                     }
                 });
             };
