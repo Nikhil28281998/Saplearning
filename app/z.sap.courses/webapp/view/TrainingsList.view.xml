@@ -324,14 +324,18 @@
                         growing="true"
                         growingThreshold="30"
                         growingScrollToLoad="true"
-                        noDataText="No learning content found. Adjust your filters.">
+                        noDataText="No learning content found. Adjust your filters."
+                        items="{
+                            path: '/Trainings',
+                            sorter: { path: 'Title', descending: false }
+                        }">
                         <f:customLayout>
                             <f:GridListLayout
                                 defaultSpan="XL4 L4 M6 S12"
                                 gap="0.75rem" />
                         </f:customLayout>
                         <f:items>
-                            <CustomListItem id="cardItem" type="Active" press="onCardPress" class="learningCard">
+                            <CustomListItem type="Active" press="onCardPress" class="learningCard">
                                 <HBox class="learningCardContent">
                                     <VBox class="learningCardIcon" alignItems="Center" justifyContent="Center">
                                         <core:Icon

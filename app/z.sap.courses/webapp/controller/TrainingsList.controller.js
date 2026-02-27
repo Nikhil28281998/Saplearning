@@ -1572,17 +1572,24 @@ sap.ui.define([
                 }
             }
 
-            // Bind/rebind card grid to Trainings entity set
-            var oTemplate = this.byId("cardItem");
-            oCardGrid.bindItems({
-                path: "/Trainings",
-                template: oTemplate ? oTemplate.clone() : oCardGrid.getBindingInfo("items").template,
-                filters: aFilters,
-                sorter: new sap.ui.model.Sorter("Title", false),
-                events: {
-                    dataReceived: this._onCardDataReceived.bind(this)
-                }
-            });
+            // Rebind card grid with current filters
+            var oBinding = oCardGrid.getBinding("items");
+            if (oBinding) {
+                // Apply filters to existing binding
+                oBinding.filter(aFilters);
+                // Update card count after filter
+                oBinding.attachEventOnce("dataReceived", this._onCardDataReceived.bind(this));
+            } else {
+                // Binding not yet ready (initial load) — try again shortly
+                var that = this;
+                setTimeout(function () {
+                    var oB = oCardGrid.getBinding("items");
+                    if (oB) {
+                        oB.filter(aFilters);
+                        oB.attachEventOnce("dataReceived", that._onCardDataReceived.bind(that));
+                    }
+                }, 500);
+            }
 
             Log.info("[CardGrid] Rebound with " + aFilters.length + " filters");
         },
