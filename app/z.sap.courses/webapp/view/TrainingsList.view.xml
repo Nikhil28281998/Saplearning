@@ -6,7 +6,8 @@
     xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
     xmlns:smartTable="sap.ui.comp.smarttable"
     xmlns:filterBar="sap.ui.comp.filterbar"
-    xmlns:f="sap.f">
+    xmlns:f="sap.f"
+    xmlns:cssgrid="sap.ui.layout.cssgrid">
 
     <Page
         id="trainingsListPage"
@@ -330,9 +331,8 @@
                             sorter: { path: 'Title', descending: false }
                         }">
                         <f:customLayout>
-                            <f:GridListLayout
-                                defaultSpan="XL4 L4 M6 S12"
-                                gap="0.75rem" />
+                            <cssgrid:GridBoxLayout
+                                boxMinWidth="18rem" />
                         </f:customLayout>
                         <f:items>
                             <CustomListItem type="Active" press="onCardPress" class="learningCard">
