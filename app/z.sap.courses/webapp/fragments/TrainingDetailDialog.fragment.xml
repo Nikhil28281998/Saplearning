@@ -5,7 +5,8 @@
     <Dialog
         id="trainingDetailDlg"
         title="{i18n>trainingDetails}"
-        contentWidth="520px"
+        contentWidth="28rem"
+        contentHeight="auto"
         draggable="true"
         resizable="true"
         verticalScrolling="true"

@@ -1752,8 +1752,8 @@ html[data-sap-ui-theme*="dark"] .dueDateWarningBar {
 }
 
 .learningCardIcon {
-    min-width: 3.5rem;
-    width: 3.5rem;
+    min-width: 2.25rem;
+    width: 2.25rem;
     padding-top: 0.25rem;
 }
 

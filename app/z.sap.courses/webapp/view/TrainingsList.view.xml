@@ -332,16 +332,17 @@
                         }">
                         <f:customLayout>
                             <cssgrid:GridBoxLayout
-                                boxMinWidth="18rem" />
+                                boxMinWidth="20rem"
+                                boxWidth="24rem" />
                         </f:customLayout>
                         <f:items>
                             <CustomListItem type="Active" press="onCardPress" class="learningCard">
                                 <HBox class="learningCardContent">
                                     <VBox class="learningCardIcon" alignItems="Center" justifyContent="Center">
                                         <core:Icon
-                                            src="{= ${Role} === 'Developer' ? 'sap-icon://source-code' : ${Role} === 'Admin' ? 'sap-icon://settings' : 'sap-icon://course-book' }"
-                                            size="2rem"
-                                            color="{= ${Role} === 'Developer' ? '#0854a0' : ${Role} === 'Admin' ? '#e76500' : '#0854a0' }" />
+                                            src="{= ${SapModule} === 'BTP' ? 'sap-icon://cloud' : ${SapModule} === 'Integration' ? 'sap-icon://connected' : ${SapModule} === 'MM' ? 'sap-icon://shipping-status' : 'sap-icon://capital-projects' }"
+                                            size="1.25rem"
+                                            color="{= ${SapModule} === 'BTP' ? '#0854a0' : ${SapModule} === 'Integration' ? '#1a6b3c' : ${SapModule} === 'MM' ? '#945200' : '#0070f2' }" />
                                     </VBox>
                                     <VBox class="learningCardBody sapUiSmallMarginBegin" width="100%">
                                         <Text text="{Title}" class="learningCardTitle" maxLines="2" />
