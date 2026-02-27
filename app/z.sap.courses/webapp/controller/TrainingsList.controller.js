@@ -1679,7 +1679,8 @@ sap.ui.define([
                     sap.m.URLHelper.redirect(sUrl, true);
                 } else {
                     MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("invalidUrlProtocol") || "Invalid URL: only HTTP/HTTPS links are allowed.");
-                } else {
+                }
+            } else {
                 MessageToast.show("No URL available for this exercise.");
             }
         },
