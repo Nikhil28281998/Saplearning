@@ -194,10 +194,11 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
         else if (a.status === 'In Progress') inProgress++;
         else if (a.status === 'Completed') completed++;
 
-        // Overdue: not completed and dueDate <= today (due today = overdue)
+        // Overdue: not completed and dueDate < today (strictly past due)
         if (a.status !== 'Completed' && a.dueDate) {
           const due = new Date(a.dueDate);
-          if (due <= today) overdue++;
+          due.setHours(0, 0, 0, 0);
+          if (due < today) overdue++;
         }
 
         const uid = a.userId || 'UNKNOWN';

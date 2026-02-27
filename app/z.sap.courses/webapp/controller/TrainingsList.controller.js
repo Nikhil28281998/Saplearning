@@ -1749,6 +1749,120 @@ sap.ui.define([
         onViewAssignments: function () {
             var oRouter = this.getOwnerComponent().getRouter();
             oRouter.navTo("TrainingAssignmentsList");
+        },
+
+        /* ================================================================== */
+        /* TUTORIAL DIALOG                                                     */
+        /* ================================================================== */
+
+        onOpenTutorial: function () {
+            var sRole = this.getOwnerComponent()._role || "User";
+            var oTutorialData = this._getTutorialContent(sRole, "catalog");
+            var oTutorialModel = new JSONModel(oTutorialData);
+
+            var that = this;
+            sap.ui.core.Fragment.load({
+                name: "z.sap.courses.fragments.TutorialDialog",
+                controller: this,
+                id: this.getView().getId() + "--tutorial" + Date.now()
+            }).then(function (oDialog) {
+                that._tutorialDialog = oDialog;
+                oDialog.setModel(oTutorialModel, "tutorialData");
+                oDialog.attachAfterClose(function () {
+                    oDialog.destroy();
+                    that._tutorialDialog = null;
+                });
+                oDialog.open();
+            });
+        },
+
+        onCloseTutorial: function () {
+            if (this._tutorialDialog) {
+                this._tutorialDialog.close();
+            }
+        },
+
+        _getTutorialContent: function (sRole, sPage) {
+            var oContent = {
+                selectedTab: "start",
+                title: "Tutorial – Training Catalog"
+            };
+
+            if (sRole === "Admin") {
+                oContent.gettingStarted =
+                    "<p><strong>As an Admin</strong>, you have full control over the training catalog and assignments.</p>" +
+                    "<ol>" +
+                    "<li><strong>Browse Trainings:</strong> Use the filter bar to search by title, module, role, or topic.</li>" +
+                    "<li><strong>Create Training:</strong> Click the <em>Create</em> button in the table toolbar to add new courses.</li>" +
+                    "<li><strong>Edit / Delete:</strong> Select a training row and use the toolbar actions.</li>" +
+                    "<li><strong>Assign Trainings:</strong> Select one or more trainings and click <em>Assign</em> to assign them to users.</li>" +
+                    "<li><strong>Team Analytics:</strong> Expand the analytics panel to see organization-wide completion metrics.</li>" +
+                    "</ol>";
+                oContent.features =
+                    "<ul>" +
+                    "<li><strong>Card / Table Toggle:</strong> Switch between card grid and table view using the toggle buttons.</li>" +
+                    "<li><strong>Team Analytics Dashboard:</strong> View KPI cards (Total, Assigned, In Progress, Overdue, Completed) and drill down by clicking them.</li>" +
+                    "<li><strong>Charts:</strong> Status distribution, top modules, and user progress charts.</li>" +
+                    "<li><strong>Bulk Operations:</strong> Select multiple trainings for batch assign or delete.</li>" +
+                    "<li><strong>Smart Filters:</strong> Cross-filtering by Role, Topic, and Module with dynamic suggestions.</li>" +
+                    "</ul>";
+                oContent.tips =
+                    "<ul>" +
+                    "<li>Click a KPI card in Team Analytics to drill down into that specific status group.</li>" +
+                    "<li>Use the search bar for quick keyword lookups across training titles.</li>" +
+                    "<li>Export table data to spreadsheet using the export button.</li>" +
+                    "<li>Navigate to <em>My Assignments</em> to track your own learning progress.</li>" +
+                    "</ul>";
+            } else if (sRole === "Manager") {
+                oContent.gettingStarted =
+                    "<p><strong>As a Manager</strong>, you can browse the catalog, assign trainings to your team, and monitor progress.</p>" +
+                    "<ol>" +
+                    "<li><strong>Browse Trainings:</strong> Use the filter bar to find relevant courses by module, role, or topic.</li>" +
+                    "<li><strong>Assign to Team:</strong> Select trainings and click <em>Assign</em> to delegate them to team members.</li>" +
+                    "<li><strong>Team Analytics:</strong> Expand the analytics panel to monitor your team's completion rates.</li>" +
+                    "<li><strong>Drill Down:</strong> Click any KPI card to see individual assignment details.</li>" +
+                    "</ol>";
+                oContent.features =
+                    "<ul>" +
+                    "<li><strong>Team Analytics Dashboard:</strong> 5 KPI cards with completion progress bar and charts.</li>" +
+                    "<li><strong>Card / Table Toggle:</strong> Choose your preferred view for browsing trainings.</li>" +
+                    "<li><strong>Smart Filters:</strong> Filter by Role, Topic, Module with auto-suggestions.</li>" +
+                    "<li><strong>Assignment Management:</strong> Assign and track trainings for your direct reports.</li>" +
+                    "</ul>";
+                oContent.tips =
+                    "<ul>" +
+                    "<li>Keep an eye on the <em>Overdue</em> KPI card — these are tasks past their due date that need attention.</li>" +
+                    "<li>Use the completion progress bar to track overall team performance at a glance.</li>" +
+                    "<li>Click on user rows in the Team Members chart to see per-person details.</li>" +
+                    "<li>Navigate to <em>My Assignments</em> to also manage your own learning tasks.</li>" +
+                    "</ul>";
+            } else {
+                // User role
+                oContent.gettingStarted =
+                    "<p><strong>Welcome!</strong> This is the SAP Training Catalog where you can explore available courses.</p>" +
+                    "<ol>" +
+                    "<li><strong>Browse Trainings:</strong> Use the filter bar to search by title, module, role, or topic.</li>" +
+                    "<li><strong>View Details:</strong> Click on any training card or row to see full details and links.</li>" +
+                    "<li><strong>My Assignments:</strong> Click the <em>My Assignments</em> button (top right) to see your assigned tasks.</li>" +
+                    "<li><strong>Switch Views:</strong> Toggle between card grid and table view using the view buttons.</li>" +
+                    "</ol>";
+                oContent.features =
+                    "<ul>" +
+                    "<li><strong>Card View:</strong> Visual card layout with key training information at a glance.</li>" +
+                    "<li><strong>Table View:</strong> Detailed tabular view with sorting and column personalization.</li>" +
+                    "<li><strong>Smart Filters:</strong> Filter by Role, Topic, and Module to find relevant courses quickly.</li>" +
+                    "<li><strong>Training URLs:</strong> Direct links to SAP Learning Hub resources.</li>" +
+                    "</ul>";
+                oContent.tips =
+                    "<ul>" +
+                    "<li>Use the search bar for quick keyword lookups.</li>" +
+                    "<li>Check <em>My Assignments</em> regularly to stay on top of your learning tasks.</li>" +
+                    "<li>Look for the due date warnings — complete overdue tasks first!</li>" +
+                    "<li>Click training URLs to open SAP Learning Hub content directly.</li>" +
+                    "</ul>";
+            }
+
+            return oContent;
         }
     });
 });

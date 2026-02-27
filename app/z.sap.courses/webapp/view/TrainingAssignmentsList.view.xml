@@ -18,7 +18,20 @@
         enableScrolling="true"
         class="sapUiResponsivePadding--header sapUiResponsivePadding--content assignmentsPage">
 
-        <headerContent />
+        <headerContent>
+            <Button
+                id="navToHomeBtn"
+                text="Training Catalog"
+                icon="sap-icon://home"
+                press="onNavBack"
+                type="Transparent" />
+            <Button
+                id="assignTutorialBtn"
+                icon="sap-icon://sys-help"
+                tooltip="How to use this page"
+                press="onOpenTutorial"
+                type="Transparent" />
+        </headerContent>
 
         <dependents>
             <core:InvisibleText id="assignmentsFilterLabel" text="{i18n>assignmentsFilterLabel}" />
@@ -39,20 +52,6 @@
                       text="{= ${assignAnalytics>/dueSoonCount} === 1 ? '1 assignment is due within 3 days!' : ${assignAnalytics>/dueSoonCount} + ' assignments are due within 3 days!'}"
                       class="sapUiTinyMarginEnd" />
                 <Button id="dueDateWarningBtn" text="{i18n>viewDueSoon}" type="Transparent" press="onFilterDueSoon" />
-            </HBox>
-
-            <!-- ============================================================ -->
-            <!-- U-4: Gamification Achievement Banner                          -->
-            <!-- ============================================================ -->
-            <HBox id="gamificationBanner"
-                  class="gamificationBanner sapUiSmallMarginBottom sapUiSmallMarginBeginEnd"
-                  alignItems="Center"
-                  visible="{= ${assignAnalytics>/badge} !== '' }">
-                <core:Icon id="gamificationIconBadge" src="{assignAnalytics>/badgeIcon}" size="1.5rem" color="#f59e0b" class="gamificationIcon" />
-                <VBox id="gamificationTextBox">
-                    <Text id="gamificationBadgeText" text="{assignAnalytics>/badge}" class="gamificationText" />
-                    <Text id="gamificationSubtext" text="{assignAnalytics>/badgeDescription}" class="gamificationSubtext" />
-                </VBox>
             </HBox>
 
             <!-- ============================================================ -->
@@ -199,7 +198,8 @@
                         noDataText="No assignments found. Adjust your filters."
                         items="{
                             path: '/TrainingAssignments',
-                            sorter: { path: 'DueDate', descending: false }
+                            sorter: { path: 'DueDate', descending: false },
+                            suspended: true
                         }">
                         <f:customLayout>
                             <cssgrid:GridBoxLayout

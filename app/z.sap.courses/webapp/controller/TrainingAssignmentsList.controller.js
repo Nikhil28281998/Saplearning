@@ -185,30 +185,6 @@ sap.ui.define([
                         }
                     });
 
-                    // U-4: Gamification badges based on completion milestones
-                    var sBadge = "", sBadgeIcon = "", sBadgeDesc = "";
-                    if (iCompleted >= 50) {
-                        sBadge = "\uD83C\uDFC6 Learning Legend";
-                        sBadgeIcon = "sap-icon://competitor";
-                        sBadgeDesc = "You've completed 50+ trainings! Legendary achievement!";
-                    } else if (iCompleted >= 25) {
-                        sBadge = "\u2B50 Knowledge Master";
-                        sBadgeIcon = "sap-icon://favorite";
-                        sBadgeDesc = "25+ completed! You're mastering SAP. Keep it up!";
-                    } else if (iCompleted >= 10) {
-                        sBadge = "\uD83D\uDE80 Fast Learner";
-                        sBadgeIcon = "sap-icon://accelerated";
-                        sBadgeDesc = "10+ trainings done! You're on a great trajectory.";
-                    } else if (iCompleted >= 1) {
-                        sBadge = "\uD83D\uDCAA Dedicated Learner";
-                        sBadgeIcon = "sap-icon://education";
-                        sBadgeDesc = "You completed your first training! Great start!";
-                    }
-                    // Streak badge: all non-completed have future due dates (no overdue = on track)
-                    if (iTotal > 0 && iOverdue === 0 && iCompleted >= 1 && !sBadge.includes("Legend")) {
-                        sBadgeDesc += (sBadgeDesc ? " " : "") + "\u2705 On track \u2014 no overdue assignments!";
-                    }
-
                     oAnalyticsModel.setProperty("/assigned", iAssigned);
                     oAnalyticsModel.setProperty("/inProgress", iInProgress);
                     oAnalyticsModel.setProperty("/completed", iCompleted);
@@ -216,9 +192,6 @@ sap.ui.define([
                     oAnalyticsModel.setProperty("/total", iTotal);
                     oAnalyticsModel.setProperty("/completionPercent", iPct);
                     oAnalyticsModel.setProperty("/dueSoonCount", iDueSoon);
-                    oAnalyticsModel.setProperty("/badge", sBadge);
-                    oAnalyticsModel.setProperty("/badgeIcon", sBadgeIcon);
-                    oAnalyticsModel.setProperty("/badgeDescription", sBadgeDesc);
                     if (oPanel) { oPanel.setBusy(false); }
                     that._setMyCardSkeletons(false);
                 },
@@ -582,6 +555,120 @@ sap.ui.define([
         },
 
         /* ================================================================== */
+        /* TUTORIAL DIALOG                                                     */
+        /* ================================================================== */
+
+        onOpenTutorial: function () {
+            var sRole = this.getOwnerComponent()._role || "User";
+            var oTutorialData = this._getTutorialContent(sRole);
+            var oTutorialModel = new JSONModel(oTutorialData);
+
+            var that = this;
+            sap.ui.core.Fragment.load({
+                name: "z.sap.courses.fragments.TutorialDialog",
+                controller: this,
+                id: this.getView().getId() + "--tutorial" + Date.now()
+            }).then(function (oDialog) {
+                that._tutorialDialog = oDialog;
+                oDialog.setModel(oTutorialModel, "tutorialData");
+                oDialog.attachAfterClose(function () {
+                    oDialog.destroy();
+                    that._tutorialDialog = null;
+                });
+                oDialog.open();
+            });
+        },
+
+        onCloseTutorial: function () {
+            if (this._tutorialDialog) {
+                this._tutorialDialog.close();
+            }
+        },
+
+        _getTutorialContent: function (sRole) {
+            var oContent = {
+                selectedTab: "start",
+                title: "Tutorial – My Assignments"
+            };
+
+            if (sRole === "Admin") {
+                oContent.gettingStarted =
+                    "<p><strong>As an Admin</strong>, this page shows your personal training assignments.</p>" +
+                    "<ol>" +
+                    "<li><strong>View Assignments:</strong> See all trainings assigned to you with status and due dates.</li>" +
+                    "<li><strong>Start Training:</strong> Select an assignment and click <em>Start</em> to begin learning.</li>" +
+                    "<li><strong>Mark Completed:</strong> When finished, select and click <em>Mark Completed</em>.</li>" +
+                    "<li><strong>My Progress:</strong> Track your own completion rate in the progress panel above.</li>" +
+                    "<li><strong>Back to Catalog:</strong> Use the back arrow (top left) to return to the Training Catalog.</li>" +
+                    "</ol>";
+                oContent.features =
+                    "<ul>" +
+                    "<li><strong>Progress Dashboard:</strong> 4 KPI cards showing Assigned, In Progress, Overdue, and Completed counts.</li>" +
+                    "<li><strong>Completion Bar:</strong> Visual progress bar showing your overall completion percentage.</li>" +
+                    "<li><strong>Due Date Warnings:</strong> Banner alerts when assignments are due within 3 days.</li>" +
+                    "<li><strong>Card / Table Toggle:</strong> Switch views for your preferred layout.</li>" +
+                    "<li><strong>Status Filter:</strong> Use the filter bar to quickly find assignments by status.</li>" +
+                    "</ul>";
+                oContent.tips =
+                    "<ul>" +
+                    "<li>Click a KPI card to filter the list by that status.</li>" +
+                    "<li>Watch for the <em>Overdue</em> count — prioritize past-due assignments first.</li>" +
+                    "<li>Use card actions (Start / Complete / Details / Open URL) for quick operations.</li>" +
+                    "<li>Return to the catalog to browse and explore more available trainings.</li>" +
+                    "</ul>";
+            } else if (sRole === "Manager") {
+                oContent.gettingStarted =
+                    "<p><strong>As a Manager</strong>, this page tracks your personal learning assignments.</p>" +
+                    "<ol>" +
+                    "<li><strong>View Your Assignments:</strong> All trainings assigned to you appear here.</li>" +
+                    "<li><strong>Start / Complete:</strong> Use the action buttons to update your training status.</li>" +
+                    "<li><strong>Monitor Progress:</strong> Your personal KPIs are shown in the progress panel.</li>" +
+                    "<li><strong>Back to Catalog:</strong> Use the back arrow to return to the catalog and manage team assignments.</li>" +
+                    "</ol>";
+                oContent.features =
+                    "<ul>" +
+                    "<li><strong>Personal Progress:</strong> 4 KPI cards showing your assignment status breakdown.</li>" +
+                    "<li><strong>Due Date Alerts:</strong> Warning banners for assignments due within 3 days.</li>" +
+                    "<li><strong>Quick Actions:</strong> Start training and mark completed directly from cards.</li>" +
+                    "<li><strong>Filter by Status:</strong> Click KPI cards or use the status filter dropdown.</li>" +
+                    "</ul>";
+                oContent.tips =
+                    "<ul>" +
+                    "<li>Stay on track by completing assignments before their due date.</li>" +
+                    "<li>Switch to the catalog page to view your team's analytics and assign new trainings.</li>" +
+                    "<li>Use the <em>Overdue</em> filter to focus on past-due items that need immediate attention.</li>" +
+                    "</ul>";
+            } else {
+                // User role
+                oContent.gettingStarted =
+                    "<p><strong>Welcome!</strong> This page shows all training assignments given to you.</p>" +
+                    "<ol>" +
+                    "<li><strong>View Assignments:</strong> See your pending, in-progress, and completed trainings.</li>" +
+                    "<li><strong>Start Training:</strong> Select an assignment and click <em>Start</em> to begin.</li>" +
+                    "<li><strong>Mark Completed:</strong> After finishing, select and click <em>Mark Completed</em>.</li>" +
+                    "<li><strong>Track Progress:</strong> Check the progress panel for your completion rate.</li>" +
+                    "<li><strong>Back to Catalog:</strong> Click the back arrow (top left) to explore more courses.</li>" +
+                    "</ol>";
+                oContent.features =
+                    "<ul>" +
+                    "<li><strong>Progress Dashboard:</strong> Assigned, In Progress, Overdue, and Completed at a glance.</li>" +
+                    "<li><strong>Due Date Warning:</strong> Alerts appear when assignments are due soon.</li>" +
+                    "<li><strong>Card / Table Views:</strong> Choose your preferred view mode.</li>" +
+                    "<li><strong>Quick Actions:</strong> Start, complete, or view details right from the card buttons.</li>" +
+                    "</ul>";
+                oContent.tips =
+                    "<ul>" +
+                    "<li>Prioritize <em>Overdue</em> assignments — complete them before other tasks.</li>" +
+                    "<li>Click a KPI card to instantly filter the list by that status.</li>" +
+                    "<li>Open training URLs directly to access SAP Learning Hub content.</li>" +
+                    "<li>Check back regularly for newly assigned trainings.</li>" +
+                    "</ul>";
+            }
+
+            return oContent;
+        },
+
+        /* ================================================================== */
         /* CARD/TABLE VIEW TOGGLE                                              */
         /* ================================================================== */
 
@@ -660,6 +747,9 @@ sap.ui.define([
 
             var oBinding = oCardGrid.getBinding("items");
             if (oBinding) {
+                if (oBinding.isSuspended && oBinding.isSuspended()) {
+                    oBinding.resume();
+                }
                 oBinding.filter(aFilters);
                 oBinding.attachEventOnce("dataReceived", this._onAssignCardDataReceived.bind(this));
             } else {
@@ -667,6 +757,9 @@ sap.ui.define([
                 setTimeout(function () {
                     var oB = oCardGrid.getBinding("items");
                     if (oB) {
+                        if (oB.isSuspended && oB.isSuspended()) {
+                            oB.resume();
+                        }
                         oB.filter(aFilters);
                         oB.attachEventOnce("dataReceived", that._onAssignCardDataReceived.bind(that));
                     }
