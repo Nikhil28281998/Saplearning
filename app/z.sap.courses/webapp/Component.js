@@ -22,6 +22,7 @@ sap.ui.define([
 
             // Detect entity set names from OData $metadata (handles SEGW naming variations)
             this._assignmentEntitySet = 'TrainingAssignments'; // default
+            this._userEntitySet = 'UserSet'; // default (SEGW: Entity Type 'User' → Entity Set 'UserSet')
 
             // Create a stable "user" JSONModel once — _applyRoleUI reuses it via setProperty
             this._userModel = new JSONModel({
@@ -141,11 +142,18 @@ sap.ui.define([
                                 aSets[ei].entityType.indexOf('TrainingAssignment') >= 0) {
                                 that._assignmentEntitySet = aSets[ei].name;
                             }
+                            // Detect User entity set (SEGW may name it 'UserSet' or 'Users')
+                            if (aSets[ei].entityType &&
+                                aSets[ei].entityType.indexOf('.User') >= 0 &&
+                                aSets[ei].entityType.indexOf('.UserContext') < 0) {
+                                that._userEntitySet = aSets[ei].name;
+                            }
                         }
                         Log.info('OData entity sets detected: ' + aNames.join(', '));
                     }
                 }
                 Log.info('Assignment entity set resolved to: ' + that._assignmentEntitySet);
+                Log.info('User entity set resolved to: ' + that._userEntitySet);
             } catch (e) {
                 Log.warning('Entity set detection failed: ' + e.message);
             }
@@ -412,8 +420,9 @@ sap.ui.define([
                 aUserFilters.push(new sap.ui.model.Filter("Sort2", sap.ui.model.FilterOperator.EQ, sUserId));
             }
 
+            var sUserEntitySet = that._userEntitySet || 'UserSet';
             var pUsers = new Promise(function (resolve, reject) {
-                oModel.read('/Users', {
+                oModel.read('/' + sUserEntitySet, {
                     filters: aUserFilters,
                     success: function (data) { resolve(data.results || []); },
                     error: reject

@@ -67,6 +67,25 @@
 *----------------------------------------------------------------------*
 
 *----------------------------------------------------------------------*
+* Property 5: Sort2  (Manager's User ID from ADRP.SORT2 / SU01)
+*----------------------------------------------------------------------*
+* Name:              Sort2
+* ABAP Dict Element: AD_SORT2L
+* Is Key:            NO
+* Nullable:          YES
+* Filterable:        YES  (required for $filter=Sort2 eq 'MANAGER_ID')
+* Sortable:          YES
+*
+* OR if using Edm Types:
+* Edm Core Type:     Edm.String
+* Max Length:        20
+*
+* IMPORTANT: The UI sends $filter=Sort2 eq '<manager_userid>' to show
+*   only team members in the Assign Training dialog. If this property
+*   is missing, the OData Gateway will reject the $filter with 400 error.
+*----------------------------------------------------------------------*
+
+*----------------------------------------------------------------------*
 * After creating properties:
 * 1. Save (Ctrl+S)
 * 2. Check Consistency: Project → Check Model Consistency

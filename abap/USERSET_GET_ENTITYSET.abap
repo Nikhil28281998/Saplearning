@@ -174,7 +174,7 @@ METHOD userset_get_entityset.
     ELSE.
       CLEAR ls_entity-email.
     ENDIF.
-    ls_entity-manager   = ls_adrp-sort2.   "ABAP field MANAGER = ADRP.SORT2 (manager's user ID)
+    ls_entity-sort2     = ls_adrp-sort2.   "ADRP.SORT2 (manager's user ID from SU01 Search Term 2)
 
     APPEND ls_entity TO et_entityset.
   ENDLOOP.
