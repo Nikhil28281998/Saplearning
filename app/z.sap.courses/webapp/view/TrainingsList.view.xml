@@ -291,47 +291,6 @@
                     <Toolbar id="cardToolbar" class="sapUiSmallMarginBottom">
                         <Title id="cardCountTitle" text="{= 'Learning Content (' + ${viewMode>/cardCount} + ')' }" level="H5" />
                         <ToolbarSpacer id="cardToolbarSpacer1" />
-                        <Button
-                            id="createTrainingBtnCard"
-                            icon="sap-icon://add"
-                            text="{i18n>createBtn}"
-                            type="Emphasized"
-                            press="onCreateTraining"
-                            visible="{= ${user>/role} === 'Admin' }" />
-                        <Button
-                            id="deleteTrainingBtnCard"
-                            icon="sap-icon://delete"
-                            text="{i18n>deleteBtn}"
-                            type="Reject"
-                            press="onDeleteTraining"
-                            visible="{= ${user>/role} === 'Admin' }" />
-                        <Button
-                            id="editTrainingBtnCard"
-                            icon="sap-icon://edit"
-                            text="{i18n>editBtn}"
-                            type="Default"
-                            press="onEditTraining"
-                            visible="{= ${user>/role} === 'Admin' }" />
-                        <Button
-                            id="detailsButtonCard"
-                            icon="sap-icon://detail-view"
-                            text="{i18n>viewDetails}"
-                            press="onViewDetails" />
-                        <Button
-                            id="assignButtonCard"
-                            icon="sap-icon://person-placeholder"
-                            text="{i18n>assignTraining}"
-                            type="Attention"
-                            press="onAssignTraining"
-                            visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
-                        <Button
-                            id="enrollMeBtnCard"
-                            icon="sap-icon://add-coursebook"
-                            text="{i18n>enrollMe}"
-                            type="Ghost"
-                            press="onEnrollMe"
-                            visible="{= ${user>/role} === 'User' }" />
-                        <ToolbarSpacer id="cardToolbarSpacer2" />
                         <SegmentedButton id="viewModeToggle" selectedKey="{viewMode>/mode}" selectionChange="onViewModeChange">
                             <items>
                                 <SegmentedButtonItem id="viewModeCards" key="cards" icon="sap-icon://grid" tooltip="Card View" />

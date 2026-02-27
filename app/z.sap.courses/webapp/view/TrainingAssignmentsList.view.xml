@@ -177,19 +177,6 @@
                     <Toolbar id="assignCardToolbar" class="sapUiSmallMarginBottom">
                         <Title id="assignCardCountTitle" text="{= 'My Assignments (' + ${assignViewMode>/cardCount} + ')' }" level="H5" />
                         <ToolbarSpacer id="assignCardToolbarSpacer1" />
-                        <Button
-                            id="startTrainingBtnCard"
-                            text="{i18n>startTraining}"
-                            icon="sap-icon://begin"
-                            type="Accept"
-                            press="onStartTrainingCard" />
-                        <Button
-                            id="markCompletedBtnCard"
-                            text="{i18n>markCompleted}"
-                            icon="sap-icon://complete"
-                            type="Emphasized"
-                            press="onMarkCompletedCard" />
-                        <ToolbarSpacer id="assignCardToolbarSpacer2" />
                         <SegmentedButton id="assignViewModeToggle" selectedKey="{assignViewMode>/mode}" selectionChange="onAssignViewModeChange">
                             <items>
                                 <SegmentedButtonItem id="assignViewModeCards" key="cards" icon="sap-icon://grid" tooltip="Card View" />
@@ -251,7 +238,7 @@
                                         </HBox>
                                     </VBox>
                                 </HBox>
-                                <Toolbar id="{= 'assignCardActions_' + ${Title} }" class="learningCardActions">
+                                <Toolbar class="learningCardActions">
                                     <Button icon="sap-icon://begin" tooltip="Start Training" press="onAssignCardStart" type="Accept" />
                                     <Button icon="sap-icon://complete" tooltip="Mark Completed" press="onAssignCardComplete" type="Emphasized" />
                                     <ToolbarSpacer />
