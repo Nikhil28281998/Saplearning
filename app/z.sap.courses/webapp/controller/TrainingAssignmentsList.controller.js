@@ -80,6 +80,31 @@ sap.ui.define([
             return "";
         },
 
+        /**
+         * Card Status Formatters — consistent overdue detection across card & table views.
+         */
+        formatCardStatus: function (sStatus, dDue) {
+            var dNow = new Date(); dNow.setHours(0, 0, 0, 0);
+            var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < dNow;
+            return bOverdue ? sStatus + " (Overdue)" : (sStatus || "");
+        },
+
+        formatCardStatusState: function (sStatus, dDue) {
+            var dNow = new Date(); dNow.setHours(0, 0, 0, 0);
+            var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < dNow;
+            if (bOverdue) { return "Error"; }
+            return sStatus === "Completed" ? "Success" :
+                   sStatus === "In Progress" ? "Information" : "Warning";
+        },
+
+        formatCardStatusIcon: function (sStatus, dDue) {
+            var dNow = new Date(); dNow.setHours(0, 0, 0, 0);
+            var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < dNow;
+            if (bOverdue) { return "sap-icon://alert"; }
+            return sStatus === "Completed" ? "sap-icon://accept" :
+                   sStatus === "In Progress" ? "sap-icon://activity-2" : "sap-icon://pending";
+        },
+
         onInit: function () {
             // Card/Table view mode toggle model
             var oViewModeModel = new JSONModel({
@@ -190,9 +215,9 @@ sap.ui.define([
 
             // FEAT-2: Analytics click-through — click card to filter table
             var aClickCards = [
+                { id: "myTotalBox",       status: "" },
                 { id: "myAssignedBox",    status: "Assigned" },
                 { id: "myInProgressBox",  status: "In Progress" },
-                { id: "myOverdueBox",     status: "Overdue" },
                 { id: "myCompletedBox",   status: "Completed" }
             ];
             aClickCards.forEach(function (card) {
@@ -351,7 +376,7 @@ sap.ui.define([
          * M-6 FIX: Toggle skeleton loading animation on my progress KPI cards.
          */
         _setMyCardSkeletons: function (bShow) {
-            var aCardIds = ["myAssignedBox", "myInProgressBox", "myOverdueBox", "myCompletedBox"];
+            var aCardIds = ["myTotalBox", "myAssignedBox", "myInProgressBox", "myCompletedBox"];
             var that = this;
             aCardIds.forEach(function (id) {
                 var oCard = that.byId(id);
@@ -410,7 +435,9 @@ sap.ui.define([
                 // Url → Link with OData binding (survives context changes)
                 if (iUrlIdx >= 0 && iUrlIdx < aCells.length) {
                     var oUrlCell = aCells[iUrlIdx];
-                    if (oUrlCell.getMetadata().getName() !== "sap.m.Link") {
+                    // Replace if not a Link, or if Link lacks target="_blank"
+                    if (oUrlCell.getMetadata().getName() !== "sap.m.Link" ||
+                        (oUrlCell.getTarget && oUrlCell.getTarget() !== "_blank")) {
                         var oLink = new Link({
                             text: {
                                 path: "Url",
@@ -701,7 +728,7 @@ sap.ui.define([
         _getTutorialContent: function (sRole) {
             var oContent = {
                 selectedTab: "start",
-                title: "Tutorial – My Assignments"
+                title: "SAP Learning Courses – My Assignments Guide"
             };
 
             if (sRole === "Admin") {
@@ -796,6 +823,11 @@ sap.ui.define([
                 oViewMode.setProperty("/showTable", false);
                 oViewMode.setProperty("/mode", "cards");
                 this._rebindAssignCardGrid();
+                // Exit full-screen if SmartTable was in full-screen
+                var oSmartTable = this.byId("assignSmartTable");
+                if (oSmartTable && oSmartTable._oFullScreenUtil) {
+                    try { oSmartTable._oFullScreenUtil.cleanUpFullScreen(); } catch (e) { /* ignore */ }
+                }
             } else {
                 oViewMode.setProperty("/showCards", false);
                 oViewMode.setProperty("/showTable", true);
@@ -1094,7 +1126,7 @@ sap.ui.define([
         onExit: function () {
             sap.ui.getCore().getEventBus().unsubscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
             sap.ui.getCore().getEventBus().unsubscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
-            var aCards = ["myAssignedBox", "myInProgressBox", "myOverdueBox", "myCompletedBox"];
+            var aCards = ["myTotalBox", "myAssignedBox", "myInProgressBox", "myCompletedBox"];
             var that = this;
             aCards.forEach(function (id) {
                 var oCard = that.byId(id);

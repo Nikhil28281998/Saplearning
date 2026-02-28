@@ -133,7 +133,7 @@
                                 <ProgressIndicator
                                     id="teamPendingBar"
                                     percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? (${teamAnalytics>/assigned} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
-                                    displayValue="{teamAnalytics>/assigned}"
+                                    displayValue="{= ${teamAnalytics>/assigned} + ' (' + (${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/assigned} / ${teamAnalytics>/totalAssignments} * 100) : 0) + '%)' }"
                                     state="Warning"
                                     showValue="true"
                                     width="100%"
@@ -145,7 +145,7 @@
                                 <ProgressIndicator
                                     id="teamInProgressBar"
                                     percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? (${teamAnalytics>/inProgress} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
-                                    displayValue="{teamAnalytics>/inProgress}"
+                                    displayValue="{= ${teamAnalytics>/inProgress} + ' (' + (${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/inProgress} / ${teamAnalytics>/totalAssignments} * 100) : 0) + '%)' }"
                                     state="Information"
                                     showValue="true"
                                     width="100%"
@@ -157,7 +157,7 @@
                                 <ProgressIndicator
                                     id="teamOverdueBar"
                                     percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? (${teamAnalytics>/overdue} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
-                                    displayValue="{teamAnalytics>/overdue}"
+                                    displayValue="{= ${teamAnalytics>/overdue} + ' (' + (${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/overdue} / ${teamAnalytics>/totalAssignments} * 100) : 0) + '%)' }"
                                     state="Error"
                                     showValue="true"
                                     width="100%"
@@ -169,7 +169,7 @@
                                 <ProgressIndicator
                                     id="teamCompletedBar"
                                     percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? (${teamAnalytics>/completed} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
-                                    displayValue="{teamAnalytics>/completed}"
+                                    displayValue="{= ${teamAnalytics>/completed} + ' (' + (${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/completed} / ${teamAnalytics>/totalAssignments} * 100) : 0) + '%)' }"
                                     state="Success"
                                     showValue="true"
                                     width="100%"
@@ -177,15 +177,34 @@
                             </HBox>
                         </VBox>
                     </VBox>
-                    <!-- Top Modules Chart -->
+                    <!-- Top Modules by Assignment Completion -->
                     <VBox id="moduleChartBox" class="analyticsCard analyticsCardBlue chartCard">
                         <HBox id="moduleChartHeader" alignItems="Center" class="sapUiTinyMarginBottom">
                             <core:Icon id="moduleChartIcon" src="sap-icon://bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
                             <Text id="moduleChartTitle" text="{i18n>topModules}" class="chartTitle" />
                         </HBox>
-                        <VBox id="moduleChartContainer"
+                        <!-- Assignment-based module completion (from team analytics) -->
+                        <VBox id="moduleAssignChartContainer"
+                              items="{path: 'teamAnalytics>/moduleAssignmentStats'}"
+                              visible="{= !!${teamAnalytics>/moduleAssignmentStats} &amp;&amp; ${teamAnalytics>/moduleAssignmentStats}.length > 0 }">
+                            <items>
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom moduleBarRow">
+                                    <Text text="{teamAnalytics>label}" class="moduleBarLabel sapUiTinyMarginEnd" width="8rem" wrapping="false" />
+                                    <ProgressIndicator
+                                        percentValue="{teamAnalytics>completionPct}"
+                                        displayValue="{teamAnalytics>displayValue}"
+                                        state="{= ${teamAnalytics>completionPct} >= 80 ? 'Success' : ${teamAnalytics>completionPct} >= 50 ? 'Warning' : 'Error' }"
+                                        showValue="true"
+                                        width="100%"
+                                        height="1.75rem"
+                                        class="moduleProgressBar" />
+                                </HBox>
+                            </items>
+                        </VBox>
+                        <!-- Fallback: Training-count based module chart when no assignment data -->
+                        <VBox id="moduleTrainingChartContainer"
                               items="{path: 'analyticsModel>/moduleDistribution'}"
-                              visible="{= ${analyticsModel>/moduleDistribution}.length > 0 }">
+                              visible="{= (!${teamAnalytics>/moduleAssignmentStats} || ${teamAnalytics>/moduleAssignmentStats}.length === 0) &amp;&amp; ${analyticsModel>/moduleDistribution}.length > 0 }">
                             <items>
                                 <HBox alignItems="Center" class="sapUiTinyMarginBottom moduleBarRow">
                                     <Text text="{analyticsModel>label}" class="moduleBarLabel sapUiTinyMarginEnd" width="8rem" wrapping="false" />
@@ -202,7 +221,7 @@
                         </VBox>
                         <Text id="moduleChartNoData"
                               text="{i18n>noModuleData}"
-                              visible="{= !${analyticsModel>/moduleDistribution} || ${analyticsModel>/moduleDistribution}.length === 0 }" />
+                              visible="{= (!${teamAnalytics>/moduleAssignmentStats} || ${teamAnalytics>/moduleAssignmentStats}.length === 0) &amp;&amp; (!${analyticsModel>/moduleDistribution} || ${analyticsModel>/moduleDistribution}.length === 0) }" />
                     </VBox>
                     <!-- User Progress Chart -->
                     <VBox id="teamMembersCard" class="analyticsCard analyticsCardBlue chartCard">

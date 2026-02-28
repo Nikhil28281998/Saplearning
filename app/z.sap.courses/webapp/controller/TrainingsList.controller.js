@@ -499,18 +499,25 @@ sap.ui.define([
                             var sUser = a.UserId || a.userId || "UNKNOWN";
                             var sName = a.UserName || a.userName || sUser;
                             if (!oUserMap[sUser]) {
-                                oUserMap[sUser] = { userId: sUser, userName: sName, total: 0, completed: 0 };
+                                oUserMap[sUser] = { userId: sUser, userName: sName, total: 0, completed: 0, inProgress: 0, overdue: 0 };
                             }
                             oUserMap[sUser].total++;
                             if (sStat === "Completed") { oUserMap[sUser].completed++; }
+                            if (sStat === "In Progress") { oUserMap[sUser].inProgress++; }
                         });
 
                         var dNow = new Date();
                         var sToday = String(dNow.getFullYear()) + String(dNow.getMonth() + 1).padStart(2, '0') + String(dNow.getDate()).padStart(2, '0');
                         var iOverdue = 0;
+                        var oModuleMap = {};  // module-level assignment stats
+
                         aAll.forEach(function (a) {
                             var sStat2 = a.Status || a.status || "";
                             var dDue = a.DueDate || a.dueDate;
+                            var sModule = a.SapModule || a.sapModule || "Other";
+                            var sUser2 = a.UserId || a.userId || "UNKNOWN";
+                            var bOverdueItem = false;
+
                             if (sStat2 !== "Completed" && dDue) {
                                 var sDue = "";
                                 if (dDue instanceof Date) {
@@ -518,8 +525,21 @@ sap.ui.define([
                                 } else if (typeof dDue === "string") {
                                     sDue = dDue.replace(/-/g, "").slice(0, 8);
                                 }
-                                if (sDue && sDue < sToday) { iOverdue++; }
+                                if (sDue && sDue < sToday) {
+                                    iOverdue++;
+                                    bOverdueItem = true;
+                                    if (oUserMap[sUser2]) { oUserMap[sUser2].overdue++; }
+                                }
                             }
+
+                            // Module-level stats
+                            if (!oModuleMap[sModule]) {
+                                oModuleMap[sModule] = { label: sModule, total: 0, completed: 0, inProgress: 0, overdue: 0 };
+                            }
+                            oModuleMap[sModule].total++;
+                            if (sStat2 === "Completed") { oModuleMap[sModule].completed++; }
+                            else if (sStat2 === "In Progress") { oModuleMap[sModule].inProgress++; }
+                            if (bOverdueItem) { oModuleMap[sModule].overdue++; }
                         });
 
                         var iPct = iTotal > 0 ? Math.round((iCompleted / iTotal) * 100) : 0;
@@ -538,6 +558,18 @@ sap.ui.define([
                         });
                         oTeamModel.setProperty("/userBreakdown", aUsers);
                         oTeamModel.setProperty("/allAssignments", aAll);
+
+                        // Build module-level assignment stats (top 5 by total assignments)
+                        var aModules = Object.keys(oModuleMap).map(function (k) { return oModuleMap[k]; });
+                        aModules.sort(function (a, b) { return b.total - a.total; });
+                        var aTopModules = aModules.slice(0, 5);
+                        var iMaxModuleTotal = aTopModules.length > 0 ? aTopModules[0].total : 1;
+                        aTopModules.forEach(function (m) {
+                            m.completionPct = m.total > 0 ? Math.round((m.completed / m.total) * 100) : 0;
+                            m.barPct = iMaxModuleTotal > 0 ? Math.round((m.total / iMaxModuleTotal) * 100) : 0;
+                            m.displayValue = m.completed + "/" + m.total + " (" + m.completionPct + "%)";
+                        });
+                        oTeamModel.setProperty("/moduleAssignmentStats", aTopModules);
 
                         Log.info("[TeamAnalytics] Fallback loaded " + aAll.length + " assignments: " +
                             iAssigned + " assigned, " + iInProgress + " in progress, " +
@@ -659,6 +691,9 @@ sap.ui.define([
             oDrillModel.setSizeLimit(10000);
             this._drillDownModel = oDrillModel;
 
+            // De-assign is only allowed for Team Total ("") and Team Pending ("Assigned")
+            var bAllowDeassign = (!sStatusFilter || sStatusFilter === "Assigned");
+
             var that = this;
             // FIX-1: Use Fragment.load() with unique id each time instead of
             // this.loadFragment() which caches by name and returns destroyed instance
@@ -670,6 +705,18 @@ sap.ui.define([
                 that._teamDrillDownDlg = oDialog;
                 oDialog.setModel(oDrillModel, "drillDown");
                 oDialog.setModel(that.getView().getModel("i18n"), "i18n");
+
+                // Hide de-assign button for In Progress / Overdue / Completed views
+                var aButtons = oDialog.getBeginButton ? [oDialog.getBeginButton()] : [];
+                aButtons.forEach(function (btn) {
+                    if (btn) { btn.setVisible(bAllowDeassign); }
+                });
+                // Also disable multi-select when de-assign not allowed
+                var aContent = oDialog.getContent();
+                if (aContent && aContent[0] && aContent[0].setMode) {
+                    aContent[0].setMode(bAllowDeassign ? "MultiSelect" : "None");
+                }
+
                 oDialog.attachAfterClose(function () {
                     oDialog.destroy();
                     that._teamDrillDownDlg = null;
@@ -706,13 +753,34 @@ sap.ui.define([
             var iCount = aSelectedItems.length;
 
             // Collect assignment data from selected items
+            // BLOCK: Never allow deletion of completed assignments
             var aToDelete = [];
+            var iSkippedCompleted = 0;
             aSelectedItems.forEach(function (oItem) {
                 var oCtx = oItem.getBindingContext("drillDown");
                 if (oCtx) {
-                    aToDelete.push(oCtx.getObject());
+                    var oObj = oCtx.getObject();
+                    var sStat = oObj.Status || oObj.status || "";
+                    if (sStat === "Completed") {
+                        iSkippedCompleted++;
+                    } else {
+                        aToDelete.push(oObj);
+                    }
                 }
             });
+
+            if (aToDelete.length === 0) {
+                if (iSkippedCompleted > 0) {
+                    MessageBox.warning(i18n.getText("cannotDeleteCompleted"));
+                } else {
+                    MessageToast.show(i18n.getText("selectAssignmentFirst"));
+                }
+                return;
+            }
+            if (iSkippedCompleted > 0) {
+                MessageToast.show(iSkippedCompleted + " completed assignment(s) were skipped — completed courses cannot be removed.");
+            }
+            iCount = aToDelete.length;
 
             MessageBox.confirm(i18n.getText("confirmDeassign", [iCount]), {
                 title: i18n.getText("confirmDeassignTitle"),
@@ -878,15 +946,11 @@ sap.ui.define([
                 oTable.setVisibleRowCountMode("Auto");
                 oTable.setMinAutoRowCount(5);
 
-                // Apply link templates + column menus + date formatting once after first data load
-                // Uses a flag to avoid repeated heavy DOM operations (audit fix #13)
-                this._linksApplied = false;
+                // Apply link templates + column menus + date formatting after data load
+                // Re-apply link templates each time so annotation-generated links get target="_blank"
                 oTable.attachRowsUpdated(function () {
                     that._enableColumnMenus(oTable);
-                    if (!that._linksApplied) {
-                        that._applyLinkTemplates(oTable);
-                        that._linksApplied = true;
-                    }
+                    that._applyLinkTemplates(oTable);
                     that._formatDateColumns(oTable);
                 });
 
@@ -1049,9 +1113,10 @@ sap.ui.define([
             var bChanged = false;
 
             aColumns.forEach(function (oCol) {
-                // Skip if column already has a Link template
+                // Skip if column already has a Link template with correct target
                 var oTpl = oCol.getTemplate();
-                if (oTpl && oTpl.getMetadata && oTpl.getMetadata().getName() === "sap.m.Link") {
+                if (oTpl && oTpl.getMetadata && oTpl.getMetadata().getName() === "sap.m.Link"
+                    && oTpl.getTarget && oTpl.getTarget() === "_blank") {
                     return;
                 }
 
@@ -1671,6 +1736,11 @@ sap.ui.define([
                 oViewMode.setProperty("/showTable", false);
                 oViewMode.setProperty("/mode", "cards");
                 this._rebindCardGrid();
+                // Exit full-screen if SmartTable was in full-screen
+                var oSmartTable = this.byId("smartTable");
+                if (oSmartTable && oSmartTable._oFullScreenUtil) {
+                    try { oSmartTable._oFullScreenUtil.cleanUpFullScreen(); } catch (e) { /* ignore */ }
+                }
             } else {
                 oViewMode.setProperty("/showCards", false);
                 oViewMode.setProperty("/showTable", true);
@@ -1932,7 +2002,7 @@ sap.ui.define([
         _getTutorialContent: function (sRole, sPage) {
             var oContent = {
                 selectedTab: "start",
-                title: "Tutorial – Training Catalog"
+                title: "SAP Learning Courses – Training Catalog Guide"
             };
 
             if (sRole === "Admin") {

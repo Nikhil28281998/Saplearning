@@ -53,7 +53,7 @@
         </content>
 
         <endButton>
-            <Button text="{i18n>gotItButton}" type="Emphasized" press="onCloseTutorial" />
+            <Button text="{i18n>closeButton}" icon="sap-icon://decline" type="Emphasized" press="onCloseTutorial" />
         </endButton>
     </Dialog>
 </core:FragmentDefinition>

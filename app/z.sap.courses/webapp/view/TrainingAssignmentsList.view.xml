@@ -58,28 +58,19 @@
                 headerText="{i18n>myProgress}"
                 class="sapUiSmallMarginBottom analyticsPanel">
 
-                <!-- Hero Completion Card -->
-                <VBox id="completionHeroCard" class="completionBarCard sapUiSmallMargin">
-                    <HBox id="completionHeroHeader" alignItems="Center" class="sapUiTinyMarginBottom">
-                        <core:Icon id="completionHeroIcon" src="sap-icon://competitor" size="1.25rem" color="#6c32a9" class="sapUiTinyMarginEnd" />
-                        <Title id="completionHeroTitle" text="{i18n>yourCompletion}" level="H5" />
-                        <Text id="completionHeroPct" text="{= ${assignAnalytics>/completionPercent} + '%' }" class="sapUiSmallMarginBegin completionPctLabel" />
-                    </HBox>
-                    <ProgressIndicator
-                        id="completionHeroBar"
-                        percentValue="{assignAnalytics>/completionPercent}"
-                        displayValue="{= ${assignAnalytics>/completionPercent} + '%' }"
-                        state="{= ${assignAnalytics>/completionPercent} >= 80 ? 'Success' : ${assignAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Information' }"
-                        showValue="true"
-                        height="2.5rem"
-                        class="teamCompletionProgressBar" />
-                    <Text id="completionHeroSubtitle"
-                        text="{parts: ['i18n>completedVsRemaining', 'assignAnalytics>/completed', 'assignAnalytics>/total'], formatter: '.formatCompletedRemaining'}"
-                        class="motivationalText sapUiTinyMarginTop" />
-                </VBox>
-
+                <!-- 4 KPI Cards: Completion% + Assigned + In Progress + Completed -->
                 <VBox id="myProgressHBox" class="sapUiSmallMargin analyticsContainer userAnalyticsContainer">
-                    <VBox id="myAssignedBox" alignItems="Center" class="analyticsCard analyticsCardOrange">
+                    <VBox id="myTotalBox" alignItems="Center" class="analyticsCard analyticsCardPurple" tooltip="{i18n>clickToFilter}">
+                        <core:Icon id="myTotalIcon" src="sap-icon://competitor" size="1.5rem" color="#6c32a9" class="sapUiTinyMarginBottom" />
+                        <ObjectNumber
+                            id="myTotalCount"
+                            number="{= ${assignAnalytics>/completionPercent} + '%' }"
+                            state="{= ${assignAnalytics>/completionPercent} >= 80 ? 'Success' : ${assignAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Information' }"
+                            class="analyticsNumber" />
+                        <Text id="myTotalLabel" text="{i18n>yourCompletion}" class="analyticsLabel" />
+                    </VBox>
+
+                    <VBox id="myAssignedBox" alignItems="Center" class="analyticsCard analyticsCardOrange" tooltip="{i18n>clickToFilter}">
                         <core:Icon id="myAssignedIcon" src="sap-icon://pending" size="1.5rem" color="#e76500" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="myAssignedCount"
@@ -89,7 +80,7 @@
                         <Text id="myAssignedLabel" text="{i18n>toStart}" class="analyticsLabel" />
                     </VBox>
 
-                    <VBox id="myInProgressBox" alignItems="Center" class="analyticsCard analyticsCardBlue">
+                    <VBox id="myInProgressBox" alignItems="Center" class="analyticsCard analyticsCardBlue" tooltip="{i18n>clickToFilter}">
                         <core:Icon id="myInProgressIcon" src="sap-icon://activity-2" size="1.5rem" color="#0854a0" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="myInProgressCount"
@@ -99,17 +90,7 @@
                         <Text id="myInProgressLabel" text="{i18n>inProgress}" class="analyticsLabel" />
                     </VBox>
 
-                    <VBox id="myOverdueBox" alignItems="Center" class="analyticsCard analyticsCardRed">
-                        <core:Icon id="myOverdueIcon" src="sap-icon://alert" size="1.5rem" color="#bb0000" class="sapUiTinyMarginBottom" />
-                        <ObjectNumber
-                            id="myOverdueCount"
-                            number="{assignAnalytics>/overdue}"
-                            state="Error"
-                            class="analyticsNumber" />
-                        <Text id="myOverdueLabel" text="{i18n>overdue}" class="analyticsLabel" />
-                    </VBox>
-
-                    <VBox id="myCompletedBox" alignItems="Center" class="analyticsCard analyticsCardGreen">
+                    <VBox id="myCompletedBox" alignItems="Center" class="analyticsCard analyticsCardGreen" tooltip="{i18n>clickToFilter}">
                         <core:Icon id="myCompletedIcon" src="sap-icon://accept" size="1.5rem" color="#107e3e" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="myCompletedCount"
@@ -210,9 +191,9 @@
                                         </HBox>
                                         <HBox class="learningCardMeta sapUiTinyMarginTop" wrap="Wrap">
                                             <ObjectStatus
-                                                text="{Status}"
-                                                state="{= ${Status} === 'Completed' ? 'Success' : ${Status} === 'In Progress' ? 'Information' : 'Warning' }"
-                                                icon="{= ${Status} === 'Completed' ? 'sap-icon://accept' : ${Status} === 'In Progress' ? 'sap-icon://activity-2' : 'sap-icon://pending' }"
+                                                text="{parts: [{path:'Status'}, {path:'DueDate'}], formatter: '.formatCardStatus'}"
+                                                state="{parts: [{path:'Status'}, {path:'DueDate'}], formatter: '.formatCardStatusState'}"
+                                                icon="{parts: [{path:'Status'}, {path:'DueDate'}], formatter: '.formatCardStatusIcon'}"
                                                 class="sapUiTinyMarginEnd"
                                                 inverted="true" />
                                             <ObjectStatus text="{SapModule}" state="None" icon="sap-icon://tree" inverted="false" />
