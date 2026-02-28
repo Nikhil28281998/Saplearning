@@ -1788,10 +1788,25 @@ html[data-sap-ui-theme*="dark"] .dueDateWarningBar {
 .learningCardActions {
     min-width: 2.5rem;
     gap: 0.25rem;
+    padding-left: 0.5rem;
+    border-left: 1px solid var(--sapBorder, #e0e0e0);
+    margin-left: 0.5rem;
 }
 
 .learningCardActions .sapMBtn {
     min-width: 2rem !important;
+}
+
+/* Assignment card – consistent height & no leftover toolbar borders */
+.assignmentCard .sapMTB,
+.assignmentCard .sapMIBar {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.assignmentCard .learningCardContent {
+    min-height: 140px;
 }
 
 /* GridList container adjustments */

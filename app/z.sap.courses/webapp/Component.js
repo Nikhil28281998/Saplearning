@@ -23,6 +23,7 @@ sap.ui.define([
             // Detect entity set names from OData $metadata (handles SEGW naming variations)
             this._assignmentEntitySet = 'TrainingAssignments'; // default
             this._userEntitySet = 'UserSet'; // default (SEGW: Entity Type 'User' → Entity Set 'UserSet')
+            this._userManagerProperty = null; // auto-detected from $metadata
 
             // Create a stable "user" JSONModel once — _applyRoleUI reuses it via setProperty
             this._userModel = new JSONModel({
@@ -131,6 +132,7 @@ sap.ui.define([
                 var oMeta = oModel.getServiceMetadata();
                 if (!oMeta) { return; }
                 var aSchemas = oMeta.dataServices.schema || [];
+                var sUserEntityTypeName = '';
                 for (var si = 0; si < aSchemas.length; si++) {
                     var aContainers = aSchemas[si].entityContainer || [];
                     for (var ci = 0; ci < aContainers.length; ci++) {
@@ -147,13 +149,52 @@ sap.ui.define([
                                 aSets[ei].entityType.indexOf('.User') >= 0 &&
                                 aSets[ei].entityType.indexOf('.UserContext') < 0) {
                                 that._userEntitySet = aSets[ei].name;
+                                sUserEntityTypeName = aSets[ei].entityType;
                             }
                         }
                         Log.info('OData entity sets detected: ' + aNames.join(', '));
                     }
+
+                    // Detect the manager property name on the User entity type
+                    // SEGW property could be: sort2, Sort2, Manager, ManagerId, MANAGER, etc.
+                    if (sUserEntityTypeName) {
+                        var sShortType = sUserEntityTypeName;
+                        if (sShortType.indexOf('.') >= 0) {
+                            sShortType = sShortType.substring(sShortType.lastIndexOf('.') + 1);
+                        }
+                        var aEntityTypes = aSchemas[si].entityType || [];
+                        for (var ti = 0; ti < aEntityTypes.length; ti++) {
+                            if (aEntityTypes[ti].name === sShortType) {
+                                var aProps = aEntityTypes[ti].property || [];
+                                // Search for known manager property names (case-insensitive match)
+                                var aPossibleNames = ['sort2', 'Sort2', 'SORT2', 'Manager', 'manager', 'MANAGER', 'ManagerId', 'managerId'];
+                                for (var pi = 0; pi < aProps.length; pi++) {
+                                    var sPropName = aProps[pi].name;
+                                    if (aPossibleNames.indexOf(sPropName) >= 0) {
+                                        that._userManagerProperty = sPropName;
+                                        Log.info('User manager property detected from $metadata: ' + sPropName);
+                                        break;
+                                    }
+                                }
+                                // If no exact match found, try case-insensitive search
+                                if (!that._userManagerProperty) {
+                                    for (var pi2 = 0; pi2 < aProps.length; pi2++) {
+                                        var sLower = aProps[pi2].name.toLowerCase();
+                                        if (sLower === 'sort2' || sLower === 'manager' || sLower === 'managerid') {
+                                            that._userManagerProperty = aProps[pi2].name;
+                                            Log.info('User manager property detected (case-insensitive): ' + aProps[pi2].name);
+                                            break;
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
                 }
                 Log.info('Assignment entity set resolved to: ' + that._assignmentEntitySet);
                 Log.info('User entity set resolved to: ' + that._userEntitySet);
+                Log.info('User manager property resolved to: ' + (that._userManagerProperty || '(not found - will show all users)'));
             } catch (e) {
                 Log.warning('Entity set detection failed: ' + e.message);
             }
@@ -413,8 +454,11 @@ sap.ui.define([
             var aUserFilters = [];
             Log.info('[AssignDlg] Role=' + sRole + ', UserId=' + sUserId);
             if (sRole === 'Manager' && sUserId) {
-                aUserFilters.push(new sap.ui.model.Filter("sort2", sap.ui.model.FilterOperator.EQ, sUserId));
-                Log.info('[AssignDlg] Manager filter: sort2 EQ ' + sUserId);
+                // Use dynamically detected property name from $metadata
+                // Falls back to common SEGW property names if not detected
+                var sManagerProp = that._userManagerProperty || 'sort2';
+                aUserFilters.push(new sap.ui.model.Filter(sManagerProp, sap.ui.model.FilterOperator.EQ, sUserId));
+                Log.info('[AssignDlg] Manager filter: ' + sManagerProp + ' EQ ' + sUserId);
             } else if (sRole === 'Manager' && !sUserId) {
                 Log.warning('[AssignDlg] Manager userId not resolved — cannot filter team members');
             }

@@ -332,9 +332,9 @@
                                     <VBox class="learningCardBody" width="100%">
                                         <HBox alignItems="Center" class="learningCardTitleRow">
                                             <core:Icon
-                                                src="{= ${SapModule} === 'BTP' ? 'sap-icon://cloud' : ${SapModule} === 'Integration' ? 'sap-icon://connected' : ${SapModule} === 'MM' ? 'sap-icon://shipping-status' : 'sap-icon://capital-projects' }"
+                                                src="{path: 'SapModule', formatter: '.getModuleIcon'}"
                                                 size="1.25rem"
-                                                color="{= ${SapModule} === 'BTP' ? '#0854a0' : ${SapModule} === 'Integration' ? '#1a6b3c' : ${SapModule} === 'MM' ? '#945200' : '#0070f2' }"
+                                                color="{path: 'SapModule', formatter: '.getModuleIconColor'}"
                                                 class="sapUiTinyMarginEnd" />
                                             <Text text="{Title}" class="learningCardTitle" maxLines="2" />
                                         </HBox>

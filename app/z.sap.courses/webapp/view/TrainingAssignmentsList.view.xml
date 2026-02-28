@@ -197,14 +197,14 @@
                                 boxWidth="24rem" />
                         </f:customLayout>
                         <f:items>
-                            <CustomListItem type="Active" press="onAssignCardPress" class="learningCard">
+                            <CustomListItem type="Active" press="onAssignCardPress" class="learningCard assignmentCard">
                                 <HBox class="learningCardContent">
                                     <VBox class="learningCardBody" width="100%">
                                         <HBox alignItems="Center" class="learningCardTitleRow">
                                             <core:Icon
-                                                src="{= ${Status} === 'Completed' ? 'sap-icon://accept' : ${Status} === 'In Progress' ? 'sap-icon://activity-2' : 'sap-icon://pending' }"
+                                                src="{path: 'SapModule', formatter: '.getModuleIcon'}"
                                                 size="1.25rem"
-                                                color="{= ${Status} === 'Completed' ? '#107e3e' : ${Status} === 'In Progress' ? '#0854a0' : '#e76500' }"
+                                                color="{path: 'SapModule', formatter: '.getModuleIconColor'}"
                                                 class="sapUiTinyMarginEnd" />
                                             <Text text="{Title}" class="learningCardTitle" maxLines="2" />
                                         </HBox>
@@ -227,14 +227,13 @@
                                             <ObjectStatus text="{UserName}" state="None" icon="sap-icon://person-placeholder" inverted="false" />
                                         </HBox>
                                     </VBox>
+                                    <VBox class="learningCardActions" alignItems="Center" justifyContent="Center">
+                                        <Button icon="sap-icon://begin" tooltip="{i18n>startTrainingTooltip}" press="onAssignCardStart" type="Accept" />
+                                        <Button icon="sap-icon://complete" tooltip="{i18n>markCompletedTooltip}" press="onAssignCardComplete" type="Emphasized" />
+                                        <Button icon="sap-icon://inspect" tooltip="{i18n>viewDetailsTooltip}" press="onAssignCardDetail" type="Transparent" />
+                                        <Button icon="sap-icon://action" tooltip="{i18n>openTrainingUrlTooltip}" press="onAssignCardOpenUrl" type="Transparent" />
+                                    </VBox>
                                 </HBox>
-                                <Toolbar class="learningCardActions">
-                                    <Button icon="sap-icon://begin" tooltip="{i18n>startTrainingTooltip}" press="onAssignCardStart" type="Accept" />
-                                    <Button icon="sap-icon://complete" tooltip="{i18n>markCompletedTooltip}" press="onAssignCardComplete" type="Emphasized" />
-                                    <ToolbarSpacer />
-                                    <Button icon="sap-icon://inspect" tooltip="{i18n>viewDetailsTooltip}" press="onAssignCardDetail" type="Transparent" />
-                                    <Button icon="sap-icon://action" tooltip="{i18n>openTrainingUrlTooltip}" press="onAssignCardOpenUrl" type="Transparent" />
-                                </Toolbar>
                             </CustomListItem>
                         </f:items>
                     </f:GridList>
