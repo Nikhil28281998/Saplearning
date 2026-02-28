@@ -105,6 +105,19 @@ sap.ui.define([
                    sStatus === "In Progress" ? "sap-icon://activity-2" : "sap-icon://pending";
         },
 
+        // C3: Priority badge formatters
+        formatPriorityState: function (sPriority) {
+            if (sPriority === "High") return "Error";
+            if (sPriority === "Low") return "Success";
+            return "Warning"; // Medium or default
+        },
+
+        formatPriorityIcon: function (sPriority) {
+            if (sPriority === "High") return "sap-icon://warning";
+            if (sPriority === "Low") return "sap-icon://sys-enter-2";
+            return "sap-icon://hint";
+        },
+
         onInit: function () {
             // Card/Table view mode toggle model
             var oViewModeModel = new JSONModel({
@@ -1463,6 +1476,68 @@ sap.ui.define([
                     });
                 }
             });
+        },
+
+        // ============================================================
+        // C2: Reassign Assignment
+        // ============================================================
+
+        onReassign: function () {
+            var oComponent = this.getOwnerComponent();
+            if (!oComponent || !oComponent.openReassignDialog) return;
+
+            var oTable = this.byId("assignSmartTable");
+            var oInnerTable = oTable ? oTable.getTable() : null;
+            if (!oInnerTable) return;
+
+            var aSelected = oInnerTable.getSelectedItems ? oInnerTable.getSelectedItems() : [];
+            if (aSelected.length === 0) {
+                MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("selectAssignmentFirst"));
+                return;
+            }
+
+            // Single reassign only
+            var oCtx = aSelected[0].getBindingContext();
+            if (!oCtx) return;
+            var oData = oCtx.getObject();
+            if (oData.Status === "Completed") {
+                MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("alreadyCompleted"));
+                return;
+            }
+
+            oComponent.openReassignDialog(
+                oData.ID || oData.Id,
+                oData.UserId || oData.userId,
+                oData.Title || oData.title
+            );
+        },
+
+        // ============================================================
+        // D2: Send Reminder Email
+        // ============================================================
+
+        onSendReminder: function () {
+            var oComponent = this.getOwnerComponent();
+            if (!oComponent || !oComponent.sendReminder) return;
+
+            var oTable = this.byId("assignSmartTable");
+            var oInnerTable = oTable ? oTable.getTable() : null;
+            if (!oInnerTable) return;
+
+            var aSelected = oInnerTable.getSelectedItems ? oInnerTable.getSelectedItems() : [];
+            if (aSelected.length === 0) {
+                MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("selectAssignmentFirst"));
+                return;
+            }
+
+            var oCtx = aSelected[0].getBindingContext();
+            if (!oCtx) return;
+            var oData = oCtx.getObject();
+            oComponent.sendReminder(
+                oData.UserEmail || oData.userEmail || '',
+                oData.UserName || oData.userName || oData.UserId || '',
+                oData.Title || oData.title || ''
+            );
         }
     });
 });

@@ -31,7 +31,7 @@ const LOG = cds.log('sap-learning');
 module.exports = class SAPLearningService extends cds.ApplicationService {
 
   async init() {
-    const { TrainingAssignments, Trainings } = this.entities;
+    const { TrainingAssignments, Trainings, Users } = this.entities;
 
     // ============================================================================
     // AUTHORIZATION HELPER - PFCG Role-Based (SAP Standard)
@@ -197,18 +197,21 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
         else if (a.status === 'Completed') completed++;
 
         // Overdue: not completed and dueDate < today (strictly past due)
+        let isOverdue = false;
         if (a.status !== 'Completed' && a.dueDate) {
           const due = new Date(a.dueDate);
           due.setHours(0, 0, 0, 0);
-          if (due < today) overdue++;
+          if (due < today) { overdue++; isOverdue = true; }
         }
 
         const uid = a.userId || 'UNKNOWN';
         if (!userMap[uid]) {
-          userMap[uid] = { userId: uid, userName: a.userName || uid, total: 0, completed: 0 };
+          userMap[uid] = { userId: uid, userName: a.userName || uid, total: 0, completed: 0, overdue: 0, inProgress: 0 };
         }
         userMap[uid].total++;
         if (a.status === 'Completed') userMap[uid].completed++;
+        if (a.status === 'In Progress') userMap[uid].inProgress++;
+        if (isOverdue) userMap[uid].overdue++;
       }
 
       const totalAssignments = assignments.length;
@@ -255,6 +258,20 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
       const training = await SELECT.one.from(Trainings).where({ ID: trainingId });
       if (!training) return req.reject(400, 'Training not found');
 
+      // B4: Server-side team validation — Manager can only assign to own team members
+      if (userCtx.isManager && !userCtx.isAdmin) {
+        const assigneeUser = await SELECT.one.from(Users).where({ userId: assigneeId });
+        if (!assigneeUser) {
+          return req.reject(400, 'User not found: ' + assigneeId);
+        }
+        if (assigneeUser.sort2 !== userCtx.sapUsername) {
+          secureLog('warn', 'Manager attempted to assign outside team', {
+            manager: userCtx.sapUsername, assignee: assigneeId, assigneeManager: assigneeUser.sort2
+          });
+          return req.reject(403, 'You can only assign trainings to your own team members');
+        }
+      }
+
       // Check for duplicate assignment (prevent multiple active assignments)
       const existing = await SELECT.from(TrainingAssignments)
         .where({
@@ -267,7 +284,8 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
         return req.reject(400, 'User already has an active assignment for this training');
       }
 
-      // Set metadata (status default handled by CDS schema)
+      // E1: Slim payload — client only needs to send trainingId, userId, dueDate, priority, notes
+      // Server denormalizes everything else from training + user master data
       req.data.assignedBy = userCtx.sapUsername;
       req.data.assignedByName = userCtx.username.split('@')[0];
 
@@ -281,6 +299,13 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
         }
       }
 
+      // A6: Smart due date default — 30 days from now if not specified
+      if (!req.data.dueDate) {
+        const defaultDue = new Date();
+        defaultDue.setDate(defaultDue.getDate() + 30);
+        req.data.dueDate = defaultDue.toISOString();
+      }
+
       // Denormalize training fields for performance (search/filter without joins)
       req.data.title = training.title;
       req.data.role = training.role;
@@ -288,22 +313,28 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
       req.data.sap_module = training.sap_module;
       req.data.url = training.url;
 
-      // M-4 FIX: Populate managerSort2 — look up assignee's manager from Users entity.
-      // If Users entity has sort2 (ADRP.SORT2 = manager's user ID), use that.
-      // Otherwise fall back to the assigner's username.
+      // Denormalize user fields from Users entity
       try {
-        const { Users } = this.entities;
         const assigneeUser = await SELECT.one.from(Users).where({ userId: assigneeId });
-        if (assigneeUser && assigneeUser.sort2) {
-          req.data.managerSort2 = assigneeUser.sort2;
-        } else if (req.data.assignedBy) {
-          req.data.managerSort2 = req.data.assignedBy;
+        if (assigneeUser) {
+          req.data.userName = ((assigneeUser.firstName || '') + ' ' + (assigneeUser.lastName || '')).trim() || assigneeId;
+          req.data.userEmail = assigneeUser.email || '';
+          // M-4 FIX: Populate managerSort2 from assignee's user master
+          if (assigneeUser.sort2) {
+            req.data.managerSort2 = assigneeUser.sort2;
+          } else {
+            req.data.managerSort2 = userCtx.sapUsername;
+          }
         } else {
           req.data.managerSort2 = userCtx.sapUsername;
         }
       } catch (_) {
-        // Users entity may not exist — fall back to assignedBy
         req.data.managerSort2 = req.data.assignedBy || userCtx.sapUsername;
+      }
+
+      // Default priority if not provided
+      if (!req.data.priority) {
+        req.data.priority = 'Medium';
       }
 
       secureLog('info', 'Training assignment created', {
@@ -482,6 +513,113 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
       if (req.res) {
         req.res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
       }
+    });
+
+    // ============================================================================
+    // ACTION: Reassign Training Assignment (C2)
+    // ============================================================================
+
+    this.on('reassign', 'TrainingAssignments', async (req) => {
+      const p0 = req.params?.[0];
+      const id = typeof p0 === 'object' ? p0.ID : p0;
+      if (!id) return req.reject(400, 'Missing assignment ID');
+
+      const { newUserId, newUserName, newUserEmail } = req.data || {};
+      if (!newUserId) return req.reject(400, 'New user ID is required');
+
+      const userCtx = getUserContext(req);
+      const assignment = await SELECT.one.from(TrainingAssignments).where({ ID: id });
+      if (!assignment) return req.reject(404, 'Assignment not found');
+
+      if (assignment.status === 'Completed') {
+        return req.reject(400, 'Cannot reassign a completed assignment');
+      }
+
+      // B4: Verify new user is in manager's team
+      if (userCtx.isManager && !userCtx.isAdmin) {
+        const newUser = await SELECT.one.from(Users).where({ userId: newUserId });
+        if (!newUser || newUser.sort2 !== userCtx.sapUsername) {
+          return req.reject(403, 'You can only reassign to your own team members');
+        }
+      }
+
+      // Check for duplicate: new user might already have this training
+      const existing = await SELECT.from(TrainingAssignments)
+        .where({ userId: newUserId, trainingId: assignment.trainingId, status: { '!=': 'Completed' } });
+      if (existing.length > 0) {
+        return req.reject(400, 'Target user already has an active assignment for this training');
+      }
+
+      // Look up new user details
+      let userName = newUserName || newUserId;
+      let userEmail = newUserEmail || '';
+      let managerSort2 = userCtx.sapUsername;
+      try {
+        const newUser = await SELECT.one.from(Users).where({ userId: newUserId });
+        if (newUser) {
+          userName = ((newUser.firstName || '') + ' ' + (newUser.lastName || '')).trim() || newUserId;
+          userEmail = newUser.email || '';
+          managerSort2 = newUser.sort2 || userCtx.sapUsername;
+        }
+      } catch (_) { /* fallback */ }
+
+      await UPDATE(TrainingAssignments)
+        .set({
+          reassignedFrom: assignment.userId,
+          reassignedDate: cds.context.timestamp,
+          userId: newUserId,
+          userName: userName,
+          userEmail: userEmail,
+          managerSort2: managerSort2,
+          status: 'Assigned',
+          completionDate: null
+        })
+        .where({ ID: id });
+
+      const updated = await SELECT.one.from(TrainingAssignments).where({ ID: id });
+      secureLog('info', 'Assignment reassigned', {
+        assignmentId: id, from: assignment.userId, to: newUserId, by: userCtx.username
+      });
+
+      try { req.notify(200, 'Assignment reassigned to ' + newUserId); } catch (_) { /* noop */ }
+      return updated;
+    });
+
+    // ============================================================================
+    // FUNCTION: Check Duplicates (A1 — pre-check before bulk assignment)
+    // ============================================================================
+
+    this.on('checkDuplicates', async (req) => {
+      const { userIds, trainingIds } = req.data || {};
+      if (!userIds || !trainingIds || userIds.length === 0 || trainingIds.length === 0) {
+        return { duplicates: [] };
+      }
+
+      // Find all active assignments that match any (userId, trainingId) combination
+      const activeAssignments = await SELECT.from(TrainingAssignments)
+        .where({ status: { '!=': 'Completed' } });
+
+      const dupeMap = {};
+      for (const a of activeAssignments) {
+        dupeMap[a.userId + '|' + a.trainingId] = a.status;
+      }
+
+      const duplicates = [];
+      for (const uid of userIds) {
+        for (const tid of trainingIds) {
+          const key = uid + '|' + tid;
+          if (dupeMap[key]) {
+            duplicates.push({
+              userId: uid,
+              trainingId: tid,
+              exists: true,
+              status: dupeMap[key]
+            });
+          }
+        }
+      }
+
+      return { duplicates };
     });
 
     await super.init();

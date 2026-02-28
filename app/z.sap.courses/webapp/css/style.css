@@ -1877,3 +1877,61 @@ html[data-sap-ui-theme*="dark"] .learningCardTitle {
 html[data-sap-ui-theme*="dark"] .learningCardDesc {
     color: var(--sapNeutral, #a0aab4) !important;
 }
+
+/* ===================================================================
+   v3.0.0 — Expert Recommendation Styles
+   =================================================================== */
+
+/* A3: Wizard Step Indicator */
+.assignWizardSteps {
+    padding: 0.5rem 1rem;
+    background: var(--sapBackgroundColor, #f7f7f7);
+    border-radius: var(--sapRadiusSm, 8px);
+    border: 1px solid var(--sapBorder, #e0e0e0);
+}
+
+.assignWizardStepItem {
+    font-weight: 600;
+}
+
+.assignWizardArrow {
+    color: var(--sapNeutralColor, #6a6d70);
+    font-size: 0.75rem;
+}
+
+/* B1: User workload progress in assign dialog */
+.assignTrainingDialog .sapMPI {
+    border-radius: 4px;
+}
+
+/* C3: Priority badge color overrides for cards */
+.priorityBadgeHigh .sapMObjStatusText {
+    color: #bb0000 !important;
+    font-weight: 700;
+}
+
+.priorityBadgeMedium .sapMObjStatusText {
+    color: #e76500 !important;
+}
+
+.priorityBadgeLow .sapMObjStatusText {
+    color: #107e3e !important;
+}
+
+/* A5: Result dialog row highlights */
+.assignResultSuccess {
+    border-left: 3px solid #107e3e;
+}
+
+.assignResultFail {
+    border-left: 3px solid #bb0000;
+}
+
+.assignResultSkip {
+    border-left: 3px solid #e76500;
+}
+
+/* D4: Export button styling */
+#exportTeamReportBtn .sapMBtnIcon {
+    color: #107e3e;
+}

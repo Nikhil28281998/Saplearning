@@ -39,17 +39,27 @@
 						"admin@test.com": {
 							"password": "admin",
 							"roles": ["Admin"],
-							"attr": { "sapUsername": "ADMIN001" }
+							"attr": { "sapUsername": "SARMITCHELL" }
 						},
 						"manager@test.com": {
 							"password": "manager",
 							"roles": ["Manager"],
-							"attr": { "sapUsername": "MGR001" }
+							"attr": { "sapUsername": "JAMWILSON" }
+						},
+						"manager2@test.com": {
+							"password": "manager",
+							"roles": ["Manager"],
+							"attr": { "sapUsername": "PRISHARMA" }
+						},
+						"manager3@test.com": {
+							"password": "manager",
+							"roles": ["Manager"],
+							"attr": { "sapUsername": "MARFERNANDE" }
 						},
 						"user@test.com": {
 							"password": "user",
 							"roles": ["User"],
-							"attr": { "sapUsername": "USER001" }
+							"attr": { "sapUsername": "THOWEBER" }
 						}
 					}
 				}

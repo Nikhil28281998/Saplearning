@@ -34,7 +34,16 @@
                         text="{i18n>myAssignments}"
                         icon="sap-icon://task"
                         press="onViewAssignments"
-                        type="Emphasized" />
+                        type="Emphasized">
+                        <!-- C1: Notification badge for pending/overdue assignments -->
+                        <customData>
+                            <BadgeCustomData
+                                id="assignmentBadge"
+                                key="badge"
+                                value="{teamAnalytics>/pendingBadge}"
+                                visible="{= ${teamAnalytics>/pendingBadge} > 0 }" />
+                        </customData>
+                    </Button>
                     <Button
                         id="tutorialBtn"
                         icon="sap-icon://sys-help"
@@ -66,9 +75,18 @@
                 id="teamAnalyticsPanel"
                 expandable="true"
                 expanded="true"
-                headerText="{i18n>teamAnalyticsHeader}"
                 class="sapUiSmallMarginBottom analyticsPanel"
                 visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }">
+
+                <headerToolbar>
+                    <OverflowToolbar id="analyticsHeaderToolbar">
+                        <Title id="analyticsHeaderTitle" text="{i18n>teamAnalyticsHeader}" level="H4" />
+                        <ToolbarSpacer id="analyticsHeaderSpacer" />
+                        <!-- D4: Export team report -->
+                        <Button id="exportTeamReportBtn" text="{i18n>exportReport}" icon="sap-icon://excel-attachment"
+                            type="Ghost" press="onExportTeamReport" tooltip="{i18n>exportReportTooltip}" />
+                    </OverflowToolbar>
+                </headerToolbar>
 
                 <!-- 5 KPI Cards Row -->
                 <VBox id="teamAnalyticsHBox" class="analyticsContainer">

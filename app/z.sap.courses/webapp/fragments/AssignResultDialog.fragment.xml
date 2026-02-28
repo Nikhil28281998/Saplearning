@@ -1,0 +1,47 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <!-- A5: Result dialog — shows green/red per-row results after assignment submission -->
+    <Dialog
+        id="assignResultDialog"
+        title="{i18n>assignResultTitle}"
+        contentWidth="560px"
+        verticalScrolling="true"
+        draggable="true"
+        state="{= ${resultModel>/failCount} > 0 ? 'Warning' : 'Success' }">
+
+        <content>
+            <VBox class="sapUiSmallMargin">
+                <!-- Summary bar -->
+                <MessageStrip
+                    id="resultSummaryStrip"
+                    text="{= ${resultModel>/successCount} + ' succeeded, ' + ${resultModel>/failCount} + ' failed, ' + ${resultModel>/skipCount} + ' skipped (duplicates)'}"
+                    type="{= ${resultModel>/failCount} > 0 ? 'Warning' : 'Success' }"
+                    showIcon="true"
+                    class="sapUiSmallMarginBottom" />
+
+                <List id="resultItemsList" items="{resultModel>/results}" noDataText="No results">
+                    <CustomListItem id="resultListItem" type="Active" highlight="{= ${resultModel>success} ? 'Success' : (${resultModel>skipped} ? 'Warning' : 'Error') }">
+                        <HBox alignItems="Center" class="sapUiTinyMargin" width="100%">
+                            <core:Icon
+                                src="{= ${resultModel>success} ? 'sap-icon://accept' : (${resultModel>skipped} ? 'sap-icon://warning' : 'sap-icon://error') }"
+                                color="{= ${resultModel>success} ? '#2b7c2b' : (${resultModel>skipped} ? '#e78c07' : '#bb0000') }"
+                                class="sapUiSmallMarginEnd" />
+                            <VBox width="100%">
+                                <Text text="{resultModel>userId} — {resultModel>trainingTitle}" wrapping="false" />
+                                <Text text="{resultModel>message}" wrapping="true" class="sapUiTinyMarginTop"
+                                    visible="{= !!${resultModel>message} }" />
+                            </VBox>
+                        </HBox>
+                    </CustomListItem>
+                </List>
+            </VBox>
+        </content>
+
+        <beginButton>
+            <Button id="resultCloseBtn" text="{i18n>closeButton}" type="Emphasized" press=".onAssignResultClose" />
+        </beginButton>
+    </Dialog>
+
+</core:FragmentDefinition>

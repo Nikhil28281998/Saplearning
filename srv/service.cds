@@ -29,6 +29,8 @@ service SAPLearningService {
     entity TrainingAssignments as projection on my.TrainingAssignments actions {
         @restrict: [{ grant: 'WRITE', to: ['Admin','Manager','User'] }]
         action markCompleted();
+        @restrict: [{ grant: 'WRITE', to: ['Admin','Manager'] }]
+        action reassign(newUserId: String(12), newUserName: String(80), newUserEmail: String(241));
     };
 
     // Side effects for UI refresh after markCompleted action
@@ -84,6 +86,8 @@ service SAPLearningService {
         userName  : String(80);
         total     : Integer;
         completed : Integer;
+        overdue   : Integer;
+        inProgress: Integer;
     };
     type TeamAnalyticsResult {
         totalAssignments  : Integer;
@@ -95,4 +99,16 @@ service SAPLearningService {
         userBreakdown     : array of TeamUserBreakdown;
     };
     function getTeamAnalytics() returns TeamAnalyticsResult;
+
+    // A1: Check for existing (duplicate) assignments before bulk create
+    type DuplicateCheck {
+        userId     : String(12);
+        trainingId : UUID;
+        ![exists]  : Boolean;
+        status     : String(20);
+    };
+    type DuplicateCheckResult {
+        duplicates : array of DuplicateCheck;
+    };
+    function checkDuplicates(userIds: array of String, trainingIds: array of String) returns DuplicateCheckResult;
 }

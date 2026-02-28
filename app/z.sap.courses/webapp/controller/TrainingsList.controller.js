@@ -112,8 +112,12 @@ sap.ui.define([
                 assigned: 0,
                 inProgress: 0,
                 completed: 0,
+                overdue: 0,
                 completionPercent: 0,
-                userBreakdown: []
+                userBreakdown: [],
+                pendingBadge: 0,          // C1: notification badge count (assigned + overdue)
+                moduleAssignmentStats: [], // D3: module-level coverage stats
+                allAssignments: []
             });
             this.getView().setModel(oTeamModel, "teamAnalytics");
 
@@ -373,6 +377,10 @@ sap.ui.define([
                         });
                         oTeamModel.setProperty("/userBreakdown", aNormUsers);
 
+                        // C1: Pending badge
+                        oTeamModel.setProperty("/pendingBadge",
+                            _g(oResult, "assigned", "Assigned") + _g(oResult, "overdue", "Overdue"));
+
                         if (oPanel) { oPanel.setBusy(false); }
 
                         // FIX-1: Always load flat assignments for drill-down clicks
@@ -570,6 +578,9 @@ sap.ui.define([
                             m.displayValue = m.completed + "/" + m.total + " (" + m.completionPct + "%)";
                         });
                         oTeamModel.setProperty("/moduleAssignmentStats", aTopModules);
+
+                        // C1: Pending badge = assigned + overdue (not completed items needing attention)
+                        oTeamModel.setProperty("/pendingBadge", iAssigned + iOverdue);
 
                         Log.info("[TeamAnalytics] Fallback loaded " + aAll.length + " assignments: " +
                             iAssigned + " assigned, " + iInProgress + " in progress, " +
@@ -1926,7 +1937,6 @@ sap.ui.define([
         onAssignTraining: function () {
             var oComponent = this.getOwnerComponent();
             if (!oComponent || !oComponent.openAssignDialog) { return; }
-
             // Collect selected trainings from SmartTable OR card grid (multi-select)
             var aSelectedTrainings = [];
             var oViewMode = this.getView().getModel("viewMode");
@@ -1961,6 +1971,47 @@ sap.ui.define([
             }
 
             oComponent.openAssignDialog(aSelectedTrainings);
+        },
+
+        // ============================================================
+        // D4: Export Team Report to CSV
+        // ============================================================
+
+        onExportTeamReport: function () {
+            var oTeamModel = this.getView().getModel("teamAnalytics");
+            if (!oTeamModel) { MessageToast.show("No analytics data"); return; }
+
+            var aAll = oTeamModel.getProperty("/allAssignments") || [];
+            if (aAll.length === 0) { MessageToast.show("No assignment data to export"); return; }
+
+            // Build CSV
+            var aHeaders = ["UserId", "UserName", "Training", "Module", "Status", "Priority", "DueDate", "CompletionDate", "AssignedBy"];
+            var aRows = [aHeaders.join(",")];
+
+            aAll.forEach(function (a) {
+                var row = [
+                    (a.UserId || a.userId || ""),
+                    '"' + (a.UserName || a.userName || "").replace(/"/g, '""') + '"',
+                    '"' + (a.Title || a.title || "").replace(/"/g, '""') + '"',
+                    '"' + (a.SapModule || a.sap_module || "").replace(/"/g, '""') + '"',
+                    (a.Status || a.status || ""),
+                    (a.Priority || a.priority || "Medium"),
+                    (a.DueDate || a.dueDate ? new Date(a.DueDate || a.dueDate).toISOString().split("T")[0] : ""),
+                    (a.CompletionDate || a.completionDate ? new Date(a.CompletionDate || a.completionDate).toISOString().split("T")[0] : ""),
+                    (a.AssignedBy || a.assignedBy || "")
+                ];
+                aRows.push(row.join(","));
+            });
+
+            var sCSV = aRows.join("\n");
+            var blob = new Blob(["\uFEFF" + sCSV], { type: "text/csv;charset=utf-8;" });
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement("a");
+            link.href = url;
+            link.download = "TeamReport_" + new Date().toISOString().split("T")[0] + ".csv";
+            link.click();
+            URL.revokeObjectURL(url);
+            MessageToast.show("Report exported");
         },
 
         onViewAssignments: function () {

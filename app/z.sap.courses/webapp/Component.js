@@ -260,7 +260,7 @@ sap.ui.define([
                     }
                 } catch (_) { /* ignore */ }
                 this._userModel.setProperty("/userId", "DEVUSER");
-                Log.info("User ID defaulted to DEVUSER (dev mode, will be updated from backend)");
+                Log.info("User ID defaulted to DEVUSER (dev mode, will be updated from backend getCurrentUser)");
             }
         },
 
@@ -438,29 +438,21 @@ sap.ui.define([
 
         /**
          * Open the Assign Training dialog. Loads data first, then loads fragment.
+         * Enhanced: A1 duplicate preview, A2 relevance, A3 wizard, A6 smart date,
+         * B1 workload, B2 select all, B3 search
          * @param {Array} [aPreSelectedTrainings] - Trainings pre-selected from SmartTable
          */
         openAssignDialog: function (aPreSelectedTrainings) {
             var that = this;
-            // Destroy previous instance for fresh data
             if (this._assignDlg) { this._assignDlg.destroy(); this._assignDlg = null; }
             var oModel = this.getModel();
 
-            // Read team members from Users entity:
-            //   Manager: filter by Sort2 = own userId (end users have manager's ID in Sort2)
-            //   Admin:   no filter (all users across the org)
             var sUserId = that.getCurrentUserId();
             var sRole = that._role;
             var aUserFilters = [];
-            Log.info('[AssignDlg] Role=' + sRole + ', UserId=' + sUserId);
             if (sRole === 'Manager' && sUserId) {
-                // Use dynamically detected property name from $metadata
-                // Falls back to common SEGW property names if not detected
                 var sManagerProp = that._userManagerProperty || 'sort2';
                 aUserFilters.push(new sap.ui.model.Filter(sManagerProp, sap.ui.model.FilterOperator.EQ, sUserId));
-                Log.info('[AssignDlg] Manager filter: ' + sManagerProp + ' EQ ' + sUserId);
-            } else if (sRole === 'Manager' && !sUserId) {
-                Log.warning('[AssignDlg] Manager userId not resolved — cannot filter team members');
             }
 
             var sUserEntitySet = that._userEntitySet || 'UserSet';
@@ -471,12 +463,29 @@ sap.ui.define([
                     error: reject
                 });
             }).catch(function () {
-                Log.warning('[AssignDlg] Users entity not available – manual entry only');
+                Log.warning('[AssignDlg] Users entity not available');
                 return [];
             });
 
-            pUsers.then(function (users) {
-                that._openAssignFragment(aPreSelectedTrainings || [], users || []);
+            // B1: Load workload data (current assignment counts per user)
+            var sAssignEntitySet = that._assignmentEntitySet || 'TrainingAssignments';
+            var aWorkloadFilters = [];
+            if (sRole === 'Manager' && sUserId) {
+                aWorkloadFilters.push(new sap.ui.model.Filter('managerSort2', sap.ui.model.FilterOperator.EQ, sUserId));
+            }
+            var pWorkload = new Promise(function (resolve, reject) {
+                oModel.read('/' + sAssignEntitySet, {
+                    filters: aWorkloadFilters,
+                    urlParameters: { "$select": "userId,status,dueDate" },
+                    success: function (data) { resolve(data.results || []); },
+                    error: function () { resolve([]); }
+                });
+            });
+
+            Promise.all([pUsers, pWorkload]).then(function (aResults) {
+                var users = aResults[0] || [];
+                var workloadData = aResults[1] || [];
+                that._openAssignFragment(aPreSelectedTrainings || [], users, workloadData);
             }).catch(function () {
                 MessageToast.show('Failed to load data for assignment');
             });
@@ -495,19 +504,74 @@ sap.ui.define([
 
         /**
          * Build the assignModel and load the AssignDialog fragment.
-         * @param {Array} trainings - Pre-selected trainings from SmartTable
-         * @param {Array} users - Team members from Users entity (filtered by Sort2 for Manager)
+         * Enhanced: wizard steps, workload enrichment, duplicate preview, relevance
          */
-        _openAssignFragment: function (trainings, users) {
+        _openAssignFragment: function (trainings, users, workloadData) {
             var that = this;
+
+            // B1: Build workload map per user
+            var mWorkload = {};
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            (workloadData || []).forEach(function (a) {
+                var uid = (a.UserId || a.userId || '').toUpperCase();
+                if (!mWorkload[uid]) { mWorkload[uid] = { total: 0, completed: 0, overdue: 0 }; }
+                mWorkload[uid].total++;
+                var st = a.Status || a.status || '';
+                if (st === 'Completed') { mWorkload[uid].completed++; }
+                if (st !== 'Completed' && a.DueDate) {
+                    var due = new Date(a.DueDate);
+                    if (due < today) { mWorkload[uid].overdue++; }
+                }
+            });
+
+            // A2: Determine training roles for relevance matching
+            var aTrainingRoles = [];
+            trainings.forEach(function (tr) {
+                var r = (tr.Role || '').toLowerCase();
+                if (r) { aTrainingRoles.push(r); }
+            });
+
+            // Enrich user data with workload + relevance
+            users.forEach(function (u) {
+                var uid = (u.UserId || '').toUpperCase();
+                var wl = mWorkload[uid] || { total: 0, completed: 0, overdue: 0 };
+                u.workloadTotal = wl.total;
+                u.workloadCompleted = wl.completed;
+                u.workloadOverdue = wl.overdue;
+                u.duplicateCount = 0; // will be updated after duplicate check
+
+                // A2: Role relevance
+                var userRole = (u.Role || '').toLowerCase();
+                u.roleRelevance = aTrainingRoles.some(function (r) {
+                    return r.indexOf(userRole) >= 0 || userRole.indexOf(r) >= 0;
+                }) ? 'match' : 'none';
+            });
+
+            // Sort: relevant first, then by workload (least loaded first)
+            users.sort(function (a, b) {
+                if (a.roleRelevance === 'match' && b.roleRelevance !== 'match') return -1;
+                if (b.roleRelevance === 'match' && a.roleRelevance !== 'match') return 1;
+                return a.workloadTotal - b.workloadTotal;
+            });
+
+            // Initialize training duplicate counts
+            trainings.forEach(function (tr) { tr.duplicateCount = 0; });
 
             this._assignModel = new JSONModel({
                 trainings: trainings,
-                users: users || [],
+                users: users,
+                filteredUsers: users.slice(), // B3: filtered copy for search
                 selectedUserKeys: [],
+                selectedUsersDetail: [],
                 dueDate: null,
+                priority: 'Medium',
+                notes: '',
                 submitting: false,
-                error: ''
+                error: '',
+                wizardStep: 1,
+                duplicateWarning: '',
+                _workloadData: workloadData || []
             });
             this._assignModel.setSizeLimit(10000);
 
@@ -521,94 +585,278 @@ sap.ui.define([
                 that._assignDlg.setModel(that._userModel, "user");
                 that._assignDlg.addStyleClass("assignTrainingDialog");
                 if (sap.ui.Device.system.phone) { oDialog.setStretch(true); }
-                // MD-11: Destroy dialog on close to prevent memory leaks
                 that._assignDlg.attachAfterClose(function () {
                     that._assignDlg.destroy();
                     that._assignDlg = null;
                 });
                 that._assignDlg.open();
             }).catch(function (err) {
-                Log.error('Failed to load AssignDialog fragment: ' + (err && err.message || err));
+                Log.error('Failed to load AssignDialog: ' + (err && err.message || err));
                 MessageToast.show('Failed to open assignment dialog');
             });
         },
 
-        // --- Fragment event handlers ---
+        // --- Wizard Navigation (A3) ---
 
-        /**
-         * Multi-user selection changed — update selectedUserKeys in model.
-         */
-        onAssignUserSelectionChange: function (oEvent) {
-            var oMCB = oEvent.getSource();
-            var aKeys = oMCB.getSelectedKeys();
+        onAssignNext: function () {
+            var oModel = this._assignModel;
+            if (!oModel) return;
+            var iStep = oModel.getProperty("/wizardStep");
+            var i18n = this.getModel("i18n").getResourceBundle();
+
+            if (iStep === 1) {
+                // Validate step 1
+                var aTrainings = oModel.getProperty("/trainings");
+                if (!aTrainings || aTrainings.length === 0) {
+                    oModel.setProperty("/error", i18n.getText("noTrainingsSelected") || "No trainings selected.");
+                    return;
+                }
+                oModel.setProperty("/error", "");
+                oModel.setProperty("/wizardStep", 2);
+            } else if (iStep === 2) {
+                // Validate step 2
+                var aKeys = oModel.getProperty("/selectedUserKeys") || [];
+                if (aKeys.length === 0) {
+                    oModel.setProperty("/error", i18n.getText("selectTeamMember") || "Select at least one team member");
+                    return;
+                }
+                oModel.setProperty("/error", "");
+
+                // Build selectedUsersDetail for summary step
+                var aUsers = oModel.getProperty("/users") || [];
+                var mUsers = {};
+                aUsers.forEach(function (u) { mUsers[(u.UserId || '').toUpperCase()] = u; });
+                var aDetail = aKeys.map(function (k) { return mUsers[k.toUpperCase()] || { UserId: k }; });
+                oModel.setProperty("/selectedUsersDetail", aDetail);
+
+                // A1: Run duplicate check before showing summary
+                this._checkDuplicatesForSummary();
+
+                oModel.setProperty("/wizardStep", 3);
+            } else if (iStep === 3) {
+                // Submit
+                this.onAssignSubmit();
+            }
+        },
+
+        onAssignBack: function () {
+            var oModel = this._assignModel;
+            if (!oModel) return;
+            var iStep = oModel.getProperty("/wizardStep");
+            if (iStep > 1) {
+                oModel.setProperty("/error", "");
+                oModel.setProperty("/wizardStep", iStep - 1);
+            }
+        },
+
+        // A1: Check duplicates via backend
+        _checkDuplicatesForSummary: function () {
+            var oModel = this._assignModel;
+            var oOData = this.getModel();
+            var aKeys = oModel.getProperty("/selectedUserKeys") || [];
+            var aTrainings = oModel.getProperty("/trainings") || [];
+            var aTrainingIds = aTrainings.map(function (t) { return t.Id || t.ID || ''; });
+
+            // Reset duplicate counts
+            aTrainings.forEach(function (t) { t.duplicateCount = 0; });
+            var aUsers = oModel.getProperty("/users") || [];
+            aUsers.forEach(function (u) { u.duplicateCount = 0; });
+
+            // Build workload-based duplicate map (check from already loaded workload data)
+            var aWorkload = oModel.getProperty("/_workloadData") || [];
+            var mDupes = {};
+            aWorkload.forEach(function (a) {
+                var uid = (a.UserId || a.userId || '').toUpperCase();
+                var tid = a.TrainingId || a.trainingId || '';
+                var st = a.Status || a.status || '';
+                if (st !== 'Completed') {
+                    mDupes[uid + '|' + tid] = true;
+                }
+            });
+
+            var iDupeCount = 0;
+            var mUserDupe = {};
+            var mTrainDupe = {};
+            aKeys.forEach(function (uid) {
+                aTrainingIds.forEach(function (tid) {
+                    if (mDupes[uid.toUpperCase() + '|' + tid]) {
+                        iDupeCount++;
+                        mUserDupe[uid.toUpperCase()] = (mUserDupe[uid.toUpperCase()] || 0) + 1;
+                        mTrainDupe[tid] = (mTrainDupe[tid] || 0) + 1;
+                    }
+                });
+            });
+
+            // Update per-user and per-training duplicate counts
+            aUsers.forEach(function (u) {
+                u.duplicateCount = mUserDupe[(u.UserId || '').toUpperCase()] || 0;
+            });
+            aTrainings.forEach(function (t) {
+                var tid = t.Id || t.ID || '';
+                t.duplicateCount = mTrainDupe[tid] || 0;
+            });
+            oModel.setProperty("/trainings", aTrainings);
+            oModel.setProperty("/users", aUsers);
+
+            if (iDupeCount > 0) {
+                oModel.setProperty("/duplicateWarning",
+                    iDupeCount + " duplicate(s) detected — these will be automatically skipped.");
+            } else {
+                oModel.setProperty("/duplicateWarning", "");
+            }
+
+            // Refresh selectedUsersDetail with updated dupe counts
+            var aDetail = oModel.getProperty("/selectedUsersDetail") || [];
+            aDetail.forEach(function (d) {
+                d.duplicateCount = mUserDupe[(d.UserId || '').toUpperCase()] || 0;
+            });
+            oModel.setProperty("/selectedUsersDetail", aDetail);
+        },
+
+        // B3: Filter users by search term
+        onAssignUserSearch: function (oEvent) {
+            var sQuery = (oEvent.getParameter("newValue") || "").toLowerCase();
+            var aUsers = this._assignModel.getProperty("/users") || [];
+            if (!sQuery) {
+                this._assignModel.setProperty("/filteredUsers", aUsers.slice());
+            } else {
+                this._assignModel.setProperty("/filteredUsers", aUsers.filter(function (u) {
+                    var s = ((u.UserId || '') + ' ' + (u.FirstName || '') + ' ' + (u.LastName || '') + ' ' + (u.Role || '')).toLowerCase();
+                    return s.indexOf(sQuery) >= 0;
+                }));
+            }
+        },
+
+        // B2: Select all visible users
+        onAssignSelectAllUsers: function () {
+            var aFiltered = this._assignModel.getProperty("/filteredUsers") || [];
+            var aKeys = aFiltered.map(function (u) { return u.UserId; });
             this._assignModel.setProperty("/selectedUserKeys", aKeys);
-            Log.info('[AssignDlg] Selected users: ' + aKeys.join(', '));
+            // Update list selection
+            this._syncUserListSelection();
+        },
+
+        // B2: Deselect all
+        onAssignDeselectAllUsers: function () {
+            this._assignModel.setProperty("/selectedUserKeys", []);
+            this._syncUserListSelection();
+        },
+
+        // Sync List multi-select state with model
+        _syncUserListSelection: function () {
+            if (!this._assignDlg) return;
+            var oList = sap.ui.core.Fragment.byId(this._assignDlg.getId(), "assignUserList") ||
+                        this._assignDlg.getContent()[0] && this._findControl(this._assignDlg, "assignUserList");
+            if (!oList) {
+                // Fallback: find by walking dialog content
+                try {
+                    var aContent = this._assignDlg.getContent();
+                    if (aContent && aContent[0]) {
+                        var aItems = aContent[0].getItems ? aContent[0].getItems() : [];
+                        for (var i = 0; i < aItems.length; i++) {
+                            if (aItems[i].getItems) {
+                                var aInner = aItems[i].getItems();
+                                for (var j = 0; j < aInner.length; j++) {
+                                    if (aInner[j].getMetadata && aInner[j].getMetadata().getName() === 'sap.m.List' &&
+                                        aInner[j].getMode && aInner[j].getMode() === 'MultiSelect') {
+                                        oList = aInner[j];
+                                        break;
+                                    }
+                                }
+                            }
+                            if (oList) break;
+                        }
+                    }
+                } catch (_) { /* noop */ }
+            }
+
+            if (oList && oList.getItems) {
+                var aKeys = this._assignModel.getProperty("/selectedUserKeys") || [];
+                var mKeys = {};
+                aKeys.forEach(function (k) { mKeys[k.toUpperCase()] = true; });
+                oList.getItems().forEach(function (oItem) {
+                    var oCtx = oItem.getBindingContext("assignModel");
+                    if (oCtx) {
+                        var uid = (oCtx.getProperty("UserId") || '').toUpperCase();
+                        oItem.setSelected(!!mKeys[uid]);
+                    }
+                });
+            }
+        },
+
+        // List multi-select change handler
+        onAssignUserListSelectionChange: function (oEvent) {
+            var oList = oEvent.getSource();
+            var aSelected = oList.getSelectedItems();
+            var aKeys = aSelected.map(function (oItem) {
+                var oCtx = oItem.getBindingContext("assignModel");
+                return oCtx ? oCtx.getProperty("UserId") : '';
+            }).filter(Boolean);
+            this._assignModel.setProperty("/selectedUserKeys", aKeys);
         },
 
         /**
-         * Submit handler for Assign Training dialog — supports bulk: N trainings x M users.
-         * Creates one assignment per training per user sequentially.
+         * Submit handler — E1 slim payload, A4 batch, A5 result dialog.
+         * Creates assignments sequentially (batch disabled for clear error messages).
+         * Skips duplicates automatically (A1).
          */
         onAssignSubmit: function () {
             var that = this;
             var oAssignModel = this._assignModel;
-            if (!oAssignModel) { return; }
+            if (!oAssignModel) return;
             var data = oAssignModel.getData();
             var aTrainings = data.trainings || [];
+            var aSelectedKeys = data.selectedUserKeys || [];
+            var i18nBundle = this.getModel("i18n").getResourceBundle();
 
             if (aTrainings.length === 0) {
-                oAssignModel.setProperty('/error', this.getModel("i18n").getResourceBundle().getText("noTrainingsSelected") || 'No trainings selected.');
+                oAssignModel.setProperty('/error', i18nBundle.getText("noTrainingsSelected") || 'No trainings selected.');
                 return;
             }
-            var aSelectedKeys = data.selectedUserKeys || [];
             if (aSelectedKeys.length === 0) {
-                oAssignModel.setProperty('/error', this.getModel("i18n").getResourceBundle().getText("selectTeamMember") || 'Please select at least one team member');
+                oAssignModel.setProperty('/error', i18nBundle.getText("selectTeamMember") || 'Please select at least one team member');
                 return;
             }
             oAssignModel.setProperty('/error', '');
 
-            // Build due date as UTC Date object
+            // Build due date as UTC
             var dueDateValue = null;
             try {
                 if (data.dueDate) {
                     var year, month, day;
                     if (data.dueDate instanceof Date) {
-                        year = data.dueDate.getFullYear();
-                        month = data.dueDate.getMonth();
-                        day = data.dueDate.getDate();
+                        year = data.dueDate.getFullYear(); month = data.dueDate.getMonth(); day = data.dueDate.getDate();
                     } else if (typeof data.dueDate === 'string' && data.dueDate.length >= 10) {
                         var dateParts = data.dueDate.substring(0, 10).split('-');
                         if (dateParts.length === 3) {
-                            year = parseInt(dateParts[0], 10);
-                            month = parseInt(dateParts[1], 10) - 1;
-                            day = parseInt(dateParts[2], 10);
+                            year = parseInt(dateParts[0], 10); month = parseInt(dateParts[1], 10) - 1; day = parseInt(dateParts[2], 10);
                         }
                     }
                     if (year && !isNaN(year)) {
                         dueDateValue = new Date(Date.UTC(year, month, day, 0, 0, 0));
-                        if (isNaN(dueDateValue.getTime())) { dueDateValue = null; }
+                        if (isNaN(dueDateValue.getTime())) dueDateValue = null;
                     }
                 }
-            } catch (dateErr) {
-                Log.warning('[AssignDlg] Date parse error: ' + dateErr.message);
-                dueDateValue = null;
-            }
+            } catch (_) { dueDateValue = null; }
 
-            // Look up user details from loaded list
-            var aUsers = data.users || [];
-            var mUserMap = {};
-            aUsers.forEach(function (u) { mUserMap[(u.UserId || '').toUpperCase()] = u; });
+            // Build duplicate map for skipping
+            var aWorkload = data._workloadData || [];
+            var mDupes = {};
+            aWorkload.forEach(function (a) {
+                var uid = (a.UserId || a.userId || '').toUpperCase();
+                var tid = a.TrainingId || a.trainingId || '';
+                var st = a.Status || a.status || '';
+                if (st !== 'Completed') { mDupes[uid + '|' + tid] = true; }
+            });
 
             oAssignModel.setProperty('/submitting', true);
 
             var sEntitySet = this._assignmentEntitySet || 'TrainingAssignments';
             var oModel = this.getModel();
-
-            // Bypass $batch for clearer error messages
             var bWasBatch = oModel.bUseBatch;
             oModel.setUseBatch(false);
 
-            // Build flat list of all training x user combinations
+            // Build flat list of all combinations
             var aCombinations = [];
             aTrainings.forEach(function (tr) {
                 aSelectedKeys.forEach(function (sKey) {
@@ -616,55 +864,76 @@ sap.ui.define([
                 });
             });
 
-            var iSuccess = 0, iFailCount = 0, aErrors = [];
-            var i18nBundle = this.getModel("i18n").getResourceBundle();
+            var aResults = [];
+            var iSuccess = 0, iFail = 0, iSkip = 0;
+
             var fnCreateNext = function (idx) {
                 if (idx >= aCombinations.length) {
-                    // All done
                     oModel.setUseBatch(bWasBatch);
                     oAssignModel.setProperty('/submitting', false);
-                    if (iSuccess > 0) {
-                        if (that._assignDlg) { that._assignDlg.close(); }
-                        oModel.refresh(true);
-                        // Stay on current page (TrainingsList) — do NOT navigate away
-                        MessageToast.show(i18nBundle.getText("assignSuccess") || (iSuccess + ' assignment(s) created'));
-                    } else {
-                        oAssignModel.setProperty('/error', (i18nBundle.getText("assignFailed") || 'All assignments failed') + ': ' + aErrors.join('; '));
-                    }
+                    // Close assign dialog
+                    if (that._assignDlg) { that._assignDlg.close(); }
+                    oModel.refresh(true);
+                    // A5: Show result dialog
+                    that._showAssignResult(aResults, iSuccess, iFail, iSkip);
                     return;
                 }
 
                 var combo = aCombinations[idx];
                 var tr = combo.training;
                 var sKey = combo.userKey;
-                var oUser = mUserMap[sKey] || {};
+                var tid = tr.Id || tr.ID || '';
+
+                // A1: Skip known duplicates
+                if (mDupes[sKey + '|' + tid]) {
+                    iSkip++;
+                    aResults.push({
+                        userId: sKey,
+                        trainingTitle: tr.Title || '?',
+                        success: false,
+                        skipped: true,
+                        message: 'Skipped — already assigned'
+                    });
+                    fnCreateNext(idx + 1);
+                    return;
+                }
+
+                // E1: Slim payload — server will denormalize training+user fields
                 var payload = {
-                    TrainingId: tr.Id || tr.ID || '',
-                    Title: tr.Title || '',
-                    Role: tr.Role || '',
-                    Topic: tr.Topic || '',
-                    SapModule: tr.SapModule || '',
-                    Url: tr.Url || '',
-                    Status: 'Assigned',
+                    TrainingId: tid,
                     UserId: sKey,
-                    UserName: ((oUser.FirstName || '') + ' ' + (oUser.LastName || '')).trim() || sKey,
-                    UserEmail: oUser.Email || ''
+                    Status: 'Assigned',
+                    Priority: data.priority || 'Medium',
+                    Notes: data.notes || ''
                 };
                 if (dueDateValue !== null) { payload.DueDate = dueDateValue; }
 
                 oModel.create('/' + sEntitySet, payload, {
                     success: function () {
                         iSuccess++;
+                        aResults.push({
+                            userId: sKey,
+                            trainingTitle: tr.Title || '?',
+                            success: true,
+                            skipped: false,
+                            message: ''
+                        });
                         fnCreateNext(idx + 1);
                     },
                     error: function (err) {
-                        iFailCount++;
-                        var msg = sKey + '/' + (tr.Title || tr.Id) + ': create failed';
+                        iFail++;
+                        var msg = 'Create failed';
                         try {
                             var parsed = JSON.parse(err.responseText);
-                            msg = sKey + ': ' + ((parsed.error && parsed.error.message && parsed.error.message.value) || 'failed');
-                        } catch (e) { /* ignore */ }
-                        aErrors.push(msg);
+                            msg = (parsed.error && parsed.error.message && parsed.error.message.value) || 'failed';
+                        } catch (_) { /* ignore */ }
+                        aResults.push({
+                            userId: sKey,
+                            trainingTitle: tr.Title || '?',
+                            success: false,
+                            skipped: false,
+                            message: msg
+                        });
                         fnCreateNext(idx + 1);
                     }
                 });
@@ -680,12 +949,160 @@ sap.ui.define([
         },
 
         /**
+         * A5: Show assignment result dialog with per-row success/fail/skip status
+         */
+        _showAssignResult: function (aResults, iSuccess, iFail, iSkip) {
+            var that = this;
+            var oResultModel = new JSONModel({
+                results: aResults,
+                successCount: iSuccess,
+                failCount: iFail,
+                skipCount: iSkip
+            });
+
+            Fragment.load({
+                name: "z.sap.courses.fragments.AssignResultDialog",
+                controller: this
+            }).then(function (oDialog) {
+                that._resultDlg = oDialog;
+                oDialog.setModel(oResultModel, "resultModel");
+                oDialog.setModel(that.getModel("i18n"), "i18n");
+                oDialog.attachAfterClose(function () { oDialog.destroy(); that._resultDlg = null; });
+                oDialog.open();
+            });
+        },
+
+        onAssignResultClose: function () {
+            if (this._resultDlg) { this._resultDlg.close(); }
+        },
+
+        /**
          * Cancel handler for Assign Training dialog.
          */
         onAssignCancel: function () {
             if (this._assignDlg) {
                 this._assignDlg.close();
             }
+        },
+
+        // ====================================================================
+        // C2: Reassign Dialog
+        // ====================================================================
+
+        /**
+         * Open reassign dialog for a specific assignment.
+         * @param {string} sAssignmentId - Assignment UUID
+         * @param {string} sCurrentUserId - Current assignee ID
+         * @param {string} sTrainingTitle - Training title for display
+         */
+        openReassignDialog: function (sAssignmentId, sCurrentUserId, sTrainingTitle) {
+            var that = this;
+            if (this._reassignDlg) { this._reassignDlg.destroy(); this._reassignDlg = null; }
+
+            var oModel = this.getModel();
+            var sUserId = this.getCurrentUserId();
+            var sRole = this._role;
+            var aFilters = [];
+            if (sRole === 'Manager' && sUserId) {
+                var sProp = this._userManagerProperty || 'sort2';
+                aFilters.push(new sap.ui.model.Filter(sProp, sap.ui.model.FilterOperator.EQ, sUserId));
+            }
+
+            var sUserEntitySet = this._userEntitySet || 'UserSet';
+            oModel.read('/' + sUserEntitySet, {
+                filters: aFilters,
+                success: function (data) {
+                    var aUsers = (data.results || []).filter(function (u) {
+                        return (u.UserId || '').toUpperCase() !== sCurrentUserId.toUpperCase();
+                    });
+
+                    that._reassignModel = new JSONModel({
+                        assignmentId: sAssignmentId,
+                        currentUserId: sCurrentUserId,
+                        trainingTitle: sTrainingTitle,
+                        users: aUsers,
+                        newUserId: aUsers.length > 0 ? aUsers[0].UserId : '',
+                        error: '',
+                        submitting: false
+                    });
+
+                    Fragment.load({
+                        name: "z.sap.courses.fragments.ReassignDialog",
+                        controller: that
+                    }).then(function (oDialog) {
+                        that._reassignDlg = oDialog;
+                        oDialog.setModel(that._reassignModel, "reassignModel");
+                        oDialog.setModel(that.getModel("i18n"), "i18n");
+                        oDialog.attachAfterClose(function () { oDialog.destroy(); that._reassignDlg = null; });
+                        oDialog.open();
+                    });
+                },
+                error: function () {
+                    MessageToast.show('Failed to load team members');
+                }
+            });
+        },
+
+        onReassignSubmit: function () {
+            var that = this;
+            var oRM = this._reassignModel;
+            if (!oRM) return;
+            var sNewUserId = oRM.getProperty("/newUserId");
+            if (!sNewUserId) {
+                oRM.setProperty("/error", "Select a team member");
+                return;
+            }
+            oRM.setProperty("/submitting", true);
+            oRM.setProperty("/error", "");
+
+            var sId = oRM.getProperty("/assignmentId");
+            var oModel = this.getModel();
+            var sEntitySet = this._assignmentEntitySet || 'TrainingAssignments';
+            var bWasBatch = oModel.bUseBatch;
+            oModel.setUseBatch(false);
+
+            oModel.callFunction("/" + sEntitySet + "('" + sId + "')/SAPLearningService.reassign", {
+                method: "POST",
+                urlParameters: { newUserId: sNewUserId },
+                success: function () {
+                    oModel.setUseBatch(bWasBatch);
+                    oRM.setProperty("/submitting", false);
+                    if (that._reassignDlg) { that._reassignDlg.close(); }
+                    oModel.refresh(true);
+                    MessageToast.show('Assignment reassigned to ' + sNewUserId);
+                },
+                error: function (err) {
+                    oModel.setUseBatch(bWasBatch);
+                    oRM.setProperty("/submitting", false);
+                    var msg = 'Reassign failed';
+                    try {
+                        var p = JSON.parse(err.responseText);
+                        msg = (p.error && p.error.message && p.error.message.value) || msg;
+                    } catch (_) {}
+                    oRM.setProperty("/error", msg);
+                }
+            });
+        },
+
+        onReassignCancel: function () {
+            if (this._reassignDlg) { this._reassignDlg.close(); }
+        },
+
+        // D2: Send reminder (pre-filled mailto)
+        sendReminder: function (sUserEmail, sUserName, sTrainingTitle) {
+            if (!sUserEmail) {
+                MessageToast.show('No email address available');
+                return;
+            }
+            var subject = encodeURIComponent('Reminder: Training Assignment — ' + sTrainingTitle);
+            var body = encodeURIComponent(
+                'Hi ' + (sUserName || '') + ',\n\n' +
+                'This is a friendly reminder about your pending training assignment:\n\n' +
+                'Training: ' + sTrainingTitle + '\n\n' +
+                'Please complete it at your earliest convenience.\n\n' +
+                'Best regards'
+            );
+            window.open('mailto:' + sUserEmail + '?subject=' + subject + '&body=' + body, '_self');
         },
 
         destroy: function () {
@@ -718,6 +1135,14 @@ sap.ui.define([
             if (this._assignDlg) {
                 this._assignDlg.destroy();
                 this._assignDlg = null;
+            }
+            if (this._reassignDlg) {
+                this._reassignDlg.destroy();
+                this._reassignDlg = null;
+            }
+            if (this._resultDlg) {
+                this._resultDlg.destroy();
+                this._resultDlg = null;
             }
 
             UIComponent.prototype.destroy.apply(this, arguments);

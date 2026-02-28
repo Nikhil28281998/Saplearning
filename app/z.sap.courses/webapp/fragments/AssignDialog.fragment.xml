@@ -1,12 +1,14 @@
 <core:FragmentDefinition
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
-    xmlns:form="sap.ui.layout.form">
+    xmlns:form="sap.ui.layout.form"
+    xmlns:l="sap.ui.layout">
 
     <Dialog
         id="assignTrainingDialog"
         title="{i18n>assignDialogTitle}"
-        contentWidth="620px"
+        contentWidth="720px"
+        contentHeight="560px"
         verticalScrolling="true"
         draggable="true"
         resizable="true">
@@ -14,59 +16,212 @@
         <content>
             <VBox id="assignDialogVBox" class="sapUiSmallMargin">
 
-                <!-- Section 1: Selected Trainings (read-only summary) -->
-                <Panel id="assignTrainingsPanel" headerText="{parts: ['i18n>selectedTrainingsCount', 'assignModel>/trainings'], formatter: '.formatSelectedTrainingsHeader'}">
-                    <List id="assignTrainingsList" items="{assignModel>/trainings}" noDataText="{i18n>noTrainingsSelectedText}">
-                        <StandardListItem
-                            id="assignTrainingListItem"
-                            title="{assignModel>Title}"
-                            description="{assignModel>Role} | {assignModel>Topic} | {assignModel>SapModule}"
-                            icon="sap-icon://course-book"
-                            type="Inactive" />
+                <!-- ============ STEP INDICATOR (A3 Wizard) ============ -->
+                <HBox id="wizardStepBar" class="sapUiSmallMarginBottom assignWizardSteps" justifyContent="Center" alignItems="Center">
+                    <ObjectStatus id="wizStep1"
+                        text="1. Trainings"
+                        state="{= ${assignModel>/wizardStep} === 1 ? 'Information' : (${assignModel>/wizardStep} > 1 ? 'Success' : 'None') }"
+                        icon="{= ${assignModel>/wizardStep} > 1 ? 'sap-icon://accept' : 'sap-icon://education' }"
+                        class="assignWizardStepItem" />
+                    <core:Icon src="sap-icon://slim-arrow-right" class="sapUiTinyMarginBeginEnd assignWizardArrow" />
+                    <ObjectStatus id="wizStep2"
+                        text="2. Team"
+                        state="{= ${assignModel>/wizardStep} === 2 ? 'Information' : (${assignModel>/wizardStep} > 2 ? 'Success' : 'None') }"
+                        icon="{= ${assignModel>/wizardStep} > 2 ? 'sap-icon://accept' : 'sap-icon://group' }"
+                        class="assignWizardStepItem" />
+                    <core:Icon src="sap-icon://slim-arrow-right" class="sapUiTinyMarginBeginEnd assignWizardArrow" />
+                    <ObjectStatus id="wizStep3"
+                        text="3. Review"
+                        state="{= ${assignModel>/wizardStep} === 3 ? 'Information' : 'None' }"
+                        icon="sap-icon://inspect"
+                        class="assignWizardStepItem" />
+                </HBox>
+
+                <!-- ============ STEP 1: Selected Trainings ============ -->
+                <VBox id="assignStep1" visible="{= ${assignModel>/wizardStep} === 1 }">
+                    <Panel id="assignTrainingsPanel" headerText="{parts: ['i18n>selectedTrainingsCount', 'assignModel>/trainings'], formatter: '.formatSelectedTrainingsHeader'}">
+                        <List id="assignTrainingsList" items="{assignModel>/trainings}" noDataText="{i18n>noTrainingsSelectedText}">
+                            <CustomListItem id="assignTrainingListItem" type="Inactive">
+                                <HBox alignItems="Center" class="sapUiTinyMargin">
+                                    <core:Icon src="sap-icon://course-book" class="sapUiSmallMarginEnd" />
+                                    <VBox class="sapUiSmallMarginEnd" width="100%">
+                                        <Text text="{assignModel>Title}" wrapping="false" class="sapMText sapUiTinyMarginBottom" />
+                                        <HBox>
+                                            <ObjectStatus text="{assignModel>Role}" state="Information" class="sapUiTinyMarginEnd" />
+                                            <ObjectStatus text="{assignModel>Topic}" state="None" class="sapUiTinyMarginEnd" />
+                                            <ObjectStatus text="{assignModel>SapModule}" state="None" />
+                                        </HBox>
+                                    </VBox>
+                                    <!-- A1: Duplicate indicator badge (populated after users selected) -->
+                                    <ObjectStatus
+                                        text="{assignModel>duplicateCount}"
+                                        state="Warning"
+                                        icon="sap-icon://duplicate"
+                                        visible="{= ${assignModel>duplicateCount} > 0 }"
+                                        tooltip="Already assigned to some selected users" />
+                                </HBox>
+                            </CustomListItem>
+                        </List>
+                    </Panel>
+
+                    <!-- Priority + Due Date (moved to step 1 for early context) -->
+                    <form:SimpleForm
+                        id="assignScheduleForm"
+                        editable="true"
+                        layout="ResponsiveGridLayout"
+                        labelSpanXL="3" labelSpanL="3" labelSpanM="4" labelSpanS="12"
+                        columnsXL="1" columnsL="1" columnsM="1">
+                        <form:content>
+                            <core:Title id="assignTitleScheduleStep1" text="{i18n>schedule}" />
+                            <Label id="assignLabelPriority" text="{i18n>priorityLabel}" />
+                            <Select id="assignPrioritySelect" selectedKey="{assignModel>/priority}" width="100%">
+                                <core:Item id="prioHigh" key="High" text="{i18n>priorityHigh}" />
+                                <core:Item id="prioMedium" key="Medium" text="{i18n>priorityMedium}" />
+                                <core:Item id="prioLow" key="Low" text="{i18n>priorityLow}" />
+                            </Select>
+                            <Label id="assignLabelDueDate" text="{i18n>dueDateLabel}" />
+                            <DatePicker
+                                id="assignDueDate"
+                                width="100%"
+                                valueFormat="yyyy-MM-dd"
+                                displayFormat="long"
+                                value="{assignModel>/dueDate}"
+                                placeholder="{i18n>selectDueDatePlaceholder}" />
+                            <Label id="assignLabelDueDateHint" text="" />
+                            <MessageStrip
+                                id="dueDateWarningStrip"
+                                text="{i18n>dueDateDefaultHint}"
+                                visible="{= !${assignModel>/dueDate} }"
+                                type="Information"
+                                showIcon="true" />
+                            <Label id="assignLabelNotes" text="{i18n>notesLabel}" />
+                            <TextArea
+                                id="assignNotesInput"
+                                value="{assignModel>/notes}"
+                                placeholder="{i18n>notesPlaceholder}"
+                                rows="2"
+                                width="100%"
+                                maxLength="500" />
+                        </form:content>
+                    </form:SimpleForm>
+                </VBox>
+
+                <!-- ============ STEP 2: Select Team Members ============ -->
+                <VBox id="assignStep2" visible="{= ${assignModel>/wizardStep} === 2 }">
+                    <Toolbar id="teamSelectToolbar" class="sapUiTinyMarginBottom">
+                        <!-- B3: Search field for users -->
+                        <SearchField id="assignUserSearch" width="14rem"
+                            placeholder="{i18n>searchUsers}"
+                            liveChange=".onAssignUserSearch" />
+                        <ToolbarSpacer />
+                        <!-- B2: Select All / Deselect All -->
+                        <Button id="selectAllUsersBtn" text="{i18n>selectAll}" type="Ghost"
+                            icon="sap-icon://multiselect-all" press=".onAssignSelectAllUsers" />
+                        <Button id="deselectAllUsersBtn" text="{i18n>deselectAll}" type="Ghost"
+                            icon="sap-icon://multiselect-none" press=".onAssignDeselectAllUsers" />
+                    </Toolbar>
+
+                    <!-- B1: User list with workload display -->
+                    <List id="assignUserList" mode="MultiSelect" includeItemInSelection="true"
+                          selectionChange=".onAssignUserListSelectionChange"
+                          noDataText="{i18n>noTeamMembers}"
+                          items="{path: 'assignModel>/filteredUsers'}">
+                        <CustomListItem id="assignUserListItem" type="Active">
+                            <HBox alignItems="Center" class="sapUiTinyMargin" width="100%">
+                                <VBox width="45%">
+                                    <Text text="{assignModel>UserId} - {assignModel>FirstName} {assignModel>LastName}" wrapping="false" />
+                                    <!-- A2: Role relevance indicator -->
+                                    <HBox>
+                                        <ObjectStatus
+                                            text="{assignModel>Role}"
+                                            state="{= ${assignModel>roleRelevance} === 'match' ? 'Success' : 'None' }"
+                                            icon="{= ${assignModel>roleRelevance} === 'match' ? 'sap-icon://accept' : '' }"
+                                            class="sapUiTinyMarginEnd" />
+                                        <!-- A1: per-user duplicate badge -->
+                                        <ObjectStatus
+                                            text="{= ${assignModel>duplicateCount} > 0 ? ${assignModel>duplicateCount} + ' existing' : '' }"
+                                            state="Warning"
+                                            icon="{= ${assignModel>duplicateCount} > 0 ? 'sap-icon://duplicate' : '' }"
+                                            visible="{= ${assignModel>duplicateCount} > 0 }" />
+                                    </HBox>
+                                </VBox>
+                                <!-- B1: Mini workload bar -->
+                                <ProgressIndicator
+                                    percentValue="{= ${assignModel>workloadTotal} > 0 ? Math.round(${assignModel>workloadCompleted} / ${assignModel>workloadTotal} * 100) : 0 }"
+                                    displayValue="{= ${assignModel>workloadCompleted} + '/' + ${assignModel>workloadTotal} }"
+                                    state="{= (${assignModel>workloadTotal} > 0 ? Math.round(${assignModel>workloadCompleted} / ${assignModel>workloadTotal} * 100) : 0) >= 80 ? 'Success' : (${assignModel>workloadTotal} > 0 ? Math.round(${assignModel>workloadCompleted} / ${assignModel>workloadTotal} * 100) : 0) >= 40 ? 'Warning' : 'Error' }"
+                                    width="35%"
+                                    height="1.5rem" />
+                                <ObjectStatus
+                                    text="{= ${assignModel>workloadOverdue} > 0 ? ${assignModel>workloadOverdue} + ' overdue' : '' }"
+                                    state="Error"
+                                    icon="{= ${assignModel>workloadOverdue} > 0 ? 'sap-icon://alert' : '' }"
+                                    visible="{= ${assignModel>workloadOverdue} > 0 }"
+                                    class="sapUiSmallMarginBegin" />
+                            </HBox>
+                        </CustomListItem>
                     </List>
-                </Panel>
 
-                <form:SimpleForm
-                    id="assignForm"
-                    editable="true"
-                    layout="ResponsiveGridLayout"
-                    labelSpanXL="4" labelSpanL="4" labelSpanM="4" labelSpanS="12"
-                    emptySpanXL="0" emptySpanL="0" emptySpanM="0"
-                    columnsXL="1" columnsL="1" columnsM="1"
-                    adjustLabelSpan="false">
-                    <form:content>
-                        <!-- Section 2: Assign To -->
-                        <core:Title id="assignTitleAssignTo" text="{i18n>assignToTitle}" />
-                        <Label id="assignLabelUserId" text="{i18n>teamMembersLabel}" required="true" />
-                        <MultiComboBox
-                            id="assignUserIdInput"
-                            width="100%"
-                            placeholder="{i18n>teamMembersPlaceholder}"
-                            selectedKeys="{assignModel>/selectedUserKeys}"
-                            selectionChange=".onAssignUserSelectionChange"
-                            items="{assignModel>/users}">
-                            <core:Item
-                                id="assignUserItem"
-                                key="{assignModel>UserId}"
-                                text="{assignModel>UserId} - {assignModel>FirstName} {assignModel>LastName}" />
-                        </MultiComboBox>
+                    <HBox class="sapUiSmallMarginTop" justifyContent="End">
+                        <Text id="assignUserSelectedCount" class="sapUiTinyMarginEnd"
+                            text="{= ${assignModel>/selectedUserKeys}.length + ' selected'}" />
+                    </HBox>
+                </VBox>
 
-                        <Label id="assignLabelSelectedCount" text="{i18n>selectedCountLabel}" />
-                        <Text id="assignSelectedCount" text="{= ${assignModel>/selectedUserKeys}.length + ' team member(s) x ' + ${assignModel>/trainings}.length + ' training(s) = ' + (${assignModel>/selectedUserKeys}.length * ${assignModel>/trainings}.length) + ' assignment(s)'}" />
+                <!-- ============ STEP 3: Review & Confirm (A3) ============ -->
+                <VBox id="assignStep3" visible="{= ${assignModel>/wizardStep} === 3 }">
+                    <MessageStrip id="summaryStrip" type="Information" showIcon="true"
+                        text="{= ${assignModel>/selectedUserKeys}.length + ' team member(s) × ' + ${assignModel>/trainings}.length + ' training(s) = ' + (${assignModel>/selectedUserKeys}.length * ${assignModel>/trainings}.length) + ' assignment(s)'}"
+                        class="sapUiSmallMarginBottom" />
 
-                        <!-- Section 3: Schedule -->
-                        <core:Title id="assignTitleSchedule" text="{i18n>schedule}" />
-                        <Label id="assignLabelDueDate" text="{i18n>dueDateLabel}" />
-                        <DatePicker
-                            id="assignDueDate"
-                            width="100%"
-                            valueFormat="yyyy-MM-dd"
-                            displayFormat="long"
-                            value="{assignModel>/dueDate}"
-                            placeholder="{i18n>selectDueDatePlaceholder}" />
-                    </form:content>
-                </form:SimpleForm>
+                    <Panel id="summaryTrainingsPanel" headerText="{i18n>selectedTrainings}" expandable="true" expanded="false">
+                        <List id="summaryTrainingsList" items="{assignModel>/trainings}" noDataText="{i18n>noTrainingsSelectedText}">
+                            <StandardListItem id="summaryTrainingItem"
+                                title="{assignModel>Title}"
+                                description="{assignModel>SapModule}"
+                                icon="sap-icon://course-book" type="Inactive" />
+                        </List>
+                    </Panel>
 
+                    <Panel id="summaryUsersPanel" headerText="{i18n>teamMembersLabel}" expandable="true" expanded="false">
+                        <List id="summaryUsersList" items="{assignModel>/selectedUsersDetail}" noDataText="{i18n>noTeamMembers}">
+                            <StandardListItem id="summaryUserItem"
+                                title="{assignModel>UserId} - {assignModel>FirstName} {assignModel>LastName}"
+                                description="{= ${assignModel>duplicateCount} > 0 ? ${assignModel>duplicateCount} + ' duplicate(s) will be skipped' : '' }"
+                                icon="sap-icon://employee"
+                                type="Inactive"
+                                highlight="{= ${assignModel>duplicateCount} > 0 ? 'Warning' : 'None' }" />
+                        </List>
+                    </Panel>
+
+                    <form:SimpleForm id="summaryDetailsForm" editable="false"
+                        layout="ResponsiveGridLayout"
+                        labelSpanXL="4" labelSpanL="4" labelSpanM="4" labelSpanS="12"
+                        columnsXL="1" columnsL="1" columnsM="1">
+                        <form:content>
+                            <core:Title id="summaryDetailsTitle" text="{i18n>assignmentDetails}" />
+                            <Label id="summaryPriorityLabel" text="{i18n>priorityLabel}" />
+                            <ObjectStatus id="summaryPriority"
+                                text="{assignModel>/priority}"
+                                state="{= ${assignModel>/priority} === 'High' ? 'Error' : (${assignModel>/priority} === 'Medium' ? 'Warning' : 'Success') }"
+                                icon="{= ${assignModel>/priority} === 'High' ? 'sap-icon://warning' : (${assignModel>/priority} === 'Medium' ? 'sap-icon://hint' : 'sap-icon://sys-enter-2') }" />
+                            <Label id="summaryDueDateLabel" text="{i18n>dueDateLabel}" />
+                            <Text id="summaryDueDate" text="{= ${assignModel>/dueDate} || 'Default: 30 days from now' }" />
+                            <Label id="summaryNotesLabel" text="{i18n>notesLabel}" />
+                            <Text id="summaryNotes" text="{= ${assignModel>/notes} || '(none)' }" />
+                        </form:content>
+                    </form:SimpleForm>
+
+                    <!-- A1: Duplicate warning -->
+                    <MessageStrip id="duplicateWarningStrip"
+                        text="{assignModel>/duplicateWarning}"
+                        visible="{= !!${assignModel>/duplicateWarning} }"
+                        type="Warning"
+                        showIcon="true"
+                        class="sapUiSmallMarginTop" />
+                </VBox>
+
+                <!-- Error strip (all steps) -->
                 <MessageStrip
                     id="assignErrorStrip"
                     text="{assignModel>/error}"
@@ -78,14 +233,22 @@
         </content>
 
         <beginButton>
+            <!-- Step 1/2: "Next" — Step 3: "Assign" -->
             <Button
-                id="assignSubmitBtn"
-                text="{i18n>assignButton}"
+                id="assignNextBtn"
+                text="{= ${assignModel>/wizardStep} === 3 ? ${i18n>assignButton} : ${i18n>nextStep} }"
                 type="Emphasized"
-                icon="sap-icon://accept"
+                icon="{= ${assignModel>/wizardStep} === 3 ? 'sap-icon://accept' : 'sap-icon://navigation-right-arrow' }"
                 enabled="{= !${assignModel>/submitting} }"
-                press=".onAssignSubmit" />
+                press=".onAssignNext" />
         </beginButton>
+        <buttons>
+            <Button id="assignBackBtn"
+                text="{i18n>previousStep}"
+                icon="sap-icon://navigation-left-arrow"
+                visible="{= ${assignModel>/wizardStep} > 1 }"
+                press=".onAssignBack" />
+        </buttons>
         <endButton>
             <Button id="assignCancelBtn" text="{i18n>cancelButton}" press=".onAssignCancel" />
         </endButton>

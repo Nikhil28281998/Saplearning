@@ -11,6 +11,12 @@ type Status : String(20) enum {
     Completed  = 'Completed';
 };
 
+type Priority : String(10) enum {
+    High   = 'High';
+    Medium = 'Medium';
+    Low    = 'Low';
+};
+
 // ============================================================================
 // USERS - SAP user master data (mirrors USR21/ADRP in production)
 // In production S/4HANA: replaced by direct ABAP reads from USR21/ADRP/ADR6
@@ -67,6 +73,9 @@ entity TrainingAssignments : managed {
         dueDate        : DateTime;
         @mandatory status : Status default 'Assigned';
         completionDate : DateTime;
+        priority       : Priority default 'Medium';   // C3: Assignment priority
+        sequence       : Integer default 0;            // C4: Learning path order
+        notes          : String(500);                  // Manager notes / instructions
 
         // Assignment creator (manager who assigned this training)
         assignedBy     : String(12);
@@ -74,6 +83,10 @@ entity TrainingAssignments : managed {
 
         // Manager identifier from ADRP.SORT2 (User Maintenance search term 2)
         managerSort2   : String(20);
+
+        // C2: Reassignment tracking
+        reassignedFrom : String(12);                   // Previous assignee userId
+        reassignedDate : DateTime;
 }
 
 // ============================================================================
