@@ -5,6 +5,8 @@
 	"repository": "https://github.com/Nikhil28281998/Saplearning",
 	"license": "UNLICENSED",
 	"dependencies": {
+		"@cap-js-community/odata-v2-adapter": "^1.15.9",
+		"@playwright/test": "^1.58.2",
 		"@sap/cds": "^8",
 		"express": "^4",
 		"express-rate-limit": "^7.5.1",
@@ -14,6 +16,7 @@
 	},
 	"devDependencies": {
 		"@sap/cds-dk": "^8",
+		"playwright": "^1.58.2",
 		"sqlite3": "^5.1.7"
 	},
 	"scripts": {
@@ -38,28 +41,48 @@
 					"users": {
 						"admin@test.com": {
 							"password": "admin",
-							"roles": ["Admin"],
-							"attr": { "sapUsername": "SARMITCHELL" }
+							"roles": [
+								"Admin"
+							],
+							"attr": {
+								"sapUsername": "SARMITCHELL"
+							}
 						},
 						"manager@test.com": {
 							"password": "manager",
-							"roles": ["Manager"],
-							"attr": { "sapUsername": "JAMWILSON" }
+							"roles": [
+								"Manager"
+							],
+							"attr": {
+								"sapUsername": "JAMWILSON"
+							}
 						},
 						"manager2@test.com": {
 							"password": "manager",
-							"roles": ["Manager"],
-							"attr": { "sapUsername": "PRISHARMA" }
+							"roles": [
+								"Manager"
+							],
+							"attr": {
+								"sapUsername": "PRISHARMA"
+							}
 						},
 						"manager3@test.com": {
 							"password": "manager",
-							"roles": ["Manager"],
-							"attr": { "sapUsername": "MARFERNANDE" }
+							"roles": [
+								"Manager"
+							],
+							"attr": {
+								"sapUsername": "MARFERNANDE"
+							}
 						},
 						"user@test.com": {
 							"password": "user",
-							"roles": ["User"],
-							"attr": { "sapUsername": "THOWEBER" }
+							"roles": [
+								"User"
+							],
+							"attr": {
+								"sapUsername": "THOWEBER"
+							}
 						}
 					}
 				}

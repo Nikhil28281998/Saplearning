@@ -48,10 +48,16 @@ html, body, html.sap-desktop, .sapUiBody {
     width: 100% !important;
 }
 
-.sapUiView {
+/* Ensure views fill their container, but DO NOT override display on hidden nav items.
+   .sapMNavItemHidden { display: none } is the framework rule for hiding inactive pages
+   in sap.m.App – a blanket 'display: block !important' breaks page transitions. */
+.sapUiView:not(.sapMNavItemHidden) {
     display: block !important;
     height: 100% !important;
     width: 100% !important;
+}
+.sapUiView.sapMNavItemHidden {
+    display: none !important;
 }
 
 .sapMApp, .sapMNavContainer, .sapMNavContent {
@@ -486,14 +492,8 @@ html, body, html.sap-desktop, .sapUiBody {
     background: linear-gradient(90deg, #6c32a9, #ba68c8) !important;
 }
 
-/* ===== User Analytics Container (My Assignments) – 4 cards fill full width ===== */
-.userAnalyticsContainer {
-    display: grid !important;
-    grid-template-columns: repeat(4, 1fr) !important;
-    gap: 0.75rem;
-    width: 100%;
-}
-
+/* ===== User Analytics Container (My Assignments) – inherits same auto-fill grid
+   as the home page analyticsContainer so cards scale identically ===== */
 .userAnalyticsContainer .analyticsCard {
     width: 100%;
     max-width: none;
@@ -1083,14 +1083,6 @@ html, body, html.sap-desktop, .sapUiBody {
         min-height: 120px;
     }
 
-    .userAnalyticsContainer {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-
-    .userAnalyticsContainer .analyticsCard {
-        min-height: 100px;
-    }
-
     .chartsRow {
         grid-template-columns: 1fr !important;
     }
@@ -1122,10 +1114,6 @@ html, body, html.sap-desktop, .sapUiBody {
 @media (min-width: 601px) and (max-width: 1024px) {
     .analyticsContainer {
         grid-template-columns: repeat(3, 1fr) !important;
-    }
-
-    .userAnalyticsContainer {
-        grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .analyticsCard {
