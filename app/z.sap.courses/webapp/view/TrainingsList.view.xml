@@ -131,26 +131,11 @@
                             icon="{= ${teamAnalytics>/completionTrend} === 'up' ? 'sap-icon://trend-up' : (${teamAnalytics>/completionTrend} === 'down' ? 'sap-icon://trend-down' : 'sap-icon://less') }"
                             visible="{= !!${teamAnalytics>/completionTrend} }" />
                     </VBox>
-                </VBox>
-
-                <!-- Full-Width Completion Progress Bar -->
-                <VBox id="teamCompletionBarCard" class="completionBarCard sapUiSmallMargin">
-                    <HBox id="teamCompletionBarHeader" alignItems="Center" class="sapUiTinyMarginBottom">
-                        <core:Icon id="teamCompletionBarIcon" src="sap-icon://performance" size="1.25rem" color="#6c32a9" class="sapUiTinyMarginEnd" />
-                        <Title id="teamCompletionBarTitle" text="{i18n>teamCompletionRate}" level="H5" />
-                        <Text id="teamCompletionPct" text="{= ${teamAnalytics>/completionPercent} + '%' }" class="sapUiSmallMarginBegin completionPctLabel" />
-                    </HBox>
-                    <ProgressIndicator
-                        id="teamCompletionBar"
-                        percentValue="{teamAnalytics>/completionPercent}"
-                        displayValue="{= ${teamAnalytics>/completionPercent} + '%' }"
-                        state="{= ${teamAnalytics>/completionPercent} >= 80 ? 'Success' : ${teamAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Information' }"
-                        showValue="true"
-                        height="2.5rem"
-                        class="teamCompletionProgressBar" />
-                    <Text id="teamCompletionSubtitle"
-                        text="{parts: ['i18n>completedVsRemaining', 'teamAnalytics>/completed', 'teamAnalytics>/totalAssignments'], formatter: '.formatCompletedRemaining'}"
-                        class="motivationalText sapUiTinyMarginTop" />
+                    <VBox id="teamCompletionPctBox" alignItems="Center" class="analyticsCard teamKpiCard analyticsCardPurple" tooltip="{i18n>teamCompletionRate}">
+                        <core:Icon id="teamCompletionPctIcon" src="sap-icon://performance" size="2rem" color="#6c32a9" class="sapUiTinyMarginBottom" />
+                        <ObjectNumber id="teamCompletionPctCount" number="{= ${teamAnalytics>/completionPercent} + '%' }" state="{= ${teamAnalytics>/completionPercent} >= 80 ? 'Success' : ${teamAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Information' }" class="analyticsNumber" />
+                        <Text id="teamCompletionPctLabel" text="{i18n>teamCompletionRate}" class="analyticsLabel" />
+                    </VBox>
                 </VBox>
 
                 <!-- Charts 3-Column Grid: Status Distribution + Top Modules + User Progress -->

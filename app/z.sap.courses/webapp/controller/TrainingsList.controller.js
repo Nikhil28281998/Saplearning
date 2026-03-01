@@ -113,7 +113,7 @@ sap.ui.define([
             oComponent.getEventBus().subscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
 
             // F2: Wire Team Analytics card click handlers for drill-down
-            this._aTeamCardIds = ["teamTotalBox", "teamAssignedBox", "teamInProgressBox", "teamOverdueBox", "teamCompletedBox"];
+            this._aTeamCardIds = ["teamTotalBox", "teamAssignedBox", "teamInProgressBox", "teamOverdueBox", "teamCompletedBox", "teamCompletionPctBox"];
             var aTeamCards = [
                 { id: "teamTotalBox",       filter: "" },
                 { id: "teamAssignedBox",    filter: "Assigned" },
@@ -213,7 +213,7 @@ sap.ui.define([
          * M-6 FIX: Toggle skeleton loading animation on team KPI cards.
          */
         _setTeamCardSkeletons: function (bShow) {
-            var aCardIds = ["teamTotalBox", "teamAssignedBox", "teamInProgressBox", "teamOverdueBox", "teamCompletedBox"];
+            var aCardIds = ["teamTotalBox", "teamAssignedBox", "teamInProgressBox", "teamOverdueBox", "teamCompletedBox", "teamCompletionPctBox"];
             var that = this;
             aCardIds.forEach(function (id) {
                 var oCard = that.byId(id);
