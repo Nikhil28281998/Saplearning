@@ -31,12 +31,13 @@ sap.ui.define([
             ]
         },
 
-        constructor: function () {
+        constructor: function (oOptions) {
             BaseObject.call(this);
             this._userInfo = null;
             this._roleCache = null;
             this._cacheExpiry = null;
-            this._cacheTTL = 5 * 60 * 1000; // 5 minutes cache
+            this._cacheTTL = (oOptions && oOptions.cacheTTL) || 5 * 60 * 1000; // FIX 4.4: Configurable TTL
+            this._oDataModel = (oOptions && oOptions.model) || null; // FIX 7.3: Accept OData model reference
         },
 
         /**
@@ -56,13 +57,55 @@ sap.ui.define([
                 return Promise.resolve(this._userInfo);
             }
 
-            // Check if running in S/4HANA environment (production)
-            var isS4Hana = window.location.hostname !== 'localhost' && 
-                          window.location.hostname !== '127.0.0.1';
+            // FIX 7.2: Use FLP API detection instead of hostname check.
+            // sap.ushell.Container exists in Fiori Launchpad (S/4HANA production).
+            // This correctly handles Docker, BTP, named hosts, etc.
+            var isS4Hana = !!(window.sap && window.sap.ushell && window.sap.ushell.Container);
 
             if (isS4Hana) {
+                // FIX 7.3: Use OData model callFunction instead of raw fetch()
+                // This leverages the OData model's CSRF token pool and error handling.
+                var oModel = this._oDataModel;
+                if (oModel && oModel.callFunction) {
+                    return new Promise(function (resolve, reject) {
+                        oModel.callFunction("/getCurrentRole", {
+                            method: "GET",
+                            success: function (oData) {
+                                Log.info("getCurrentRole raw response (via OData model): " + JSON.stringify(oData));
+                                var sRole = "User";
+                                if (typeof oData === 'string') {
+                                    sRole = oData;
+                                } else if (oData && oData.getCurrentRole) {
+                                    sRole = typeof oData.getCurrentRole === 'string' ? oData.getCurrentRole : (oData.getCurrentRole.Role || sRole);
+                                } else if (oData && oData.Role) {
+                                    sRole = oData.Role;
+                                }
+                                Log.info("UserContext resolved role (via OData model): " + sRole);
+                                var userInfo = {
+                                    UserId: "S4USER",
+                                    FullName: "",
+                                    Email: "",
+                                    IsAdmin: sRole === "Admin",
+                                    IsManager: sRole === "Manager" || sRole === "Admin",
+                                    IsEndUser: true,
+                                    Authorizations: []
+                                };
+                                that._userInfo = userInfo;
+                                that._cacheExpiry = Date.now() + that._cacheTTL;
+                                resolve(userInfo);
+                            },
+                            error: function (oError) {
+                                Log.error("getCurrentRole via OData model FAILED: " + (oError.message || JSON.stringify(oError)));
+                                resolve({
+                                    UserId: "ANONYMOUS", FullName: "End User", Email: "",
+                                    IsAdmin: false, IsManager: false, IsEndUser: true, Authorizations: []
+                                });
+                            }
+                        });
+                    });
+                }
+                // Fallback to fetch if OData model not available
                 // Production S/4HANA: Call ZCOURSES_SRV getCurrentRole Function Import
-                // This uses PFCG authority checks (Z_COURSES auth object) to determine role
                 return fetch("/sap/opu/odata/sap/ZCOURSES_SRV/getCurrentRole", {
                     method: "GET",
                     headers: {
@@ -208,12 +251,15 @@ sap.ui.define([
         /**
          * Check if user has specific authorization
          * 
-         * Calls backend to verify user has specific authorization object
-         * (e.g., ZSLC_EDIT_COURSE, ZSLC_DELETE_USER)
-         * 
+         * FIX 5.3: This method is currently non-functional because getUserInfo()
+         * always returns Authorizations: []. Kept as placeholder for future
+         * integration with actual backend authorization data.
+         * TODO: Implement actual authorization fetching from backend
+         * (e.g., a /getAuthorizations function import)
+         *
          * @param {string} authObject - Authorization object to check
-         * @param {Object} [fields] - Optional fields to check (e.g., {ACTIVITY: "02"})
-         * @returns {Promise<boolean>} True if user is authorized
+         * @param {Object} [fields] - Optional fields to check
+         * @returns {Promise<boolean>} Always returns false until backend integration
          */
         hasAuthorization: function (authObject, fields) {
             return this.getUserInfo().then(function (userInfo) {

@@ -6,7 +6,7 @@
       "source": "^/sap/opu/odata/(.*)$",
       "target": "/sap/opu/odata/$1",
       "destination": "S4_ABAP_DEV",
-      "authenticationType": "none",
+      "authenticationType": "xsuaa",
       "csrfProtection": true
     },
     {
@@ -24,7 +24,7 @@
     {
       "source": "^(.*)$",
       "target": "$1",
-      "authenticationType": "none"
+      "authenticationType": "xsuaa"
     }
   ]
 }

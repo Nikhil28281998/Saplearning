@@ -9,9 +9,8 @@ sap.ui.define([
     "sap/m/Link",
     "sap/m/Text",
     "sap/m/ObjectStatus",
-    "sap/ui/core/routing/History",
     "z/sap/courses/utils/formatter"
-], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Log, Link, Text, ObjectStatus, History, SharedFormatter) {
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Log, Link, Text, ObjectStatus, SharedFormatter) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingAssignmentsList", {
@@ -30,28 +29,18 @@ sap.ui.define([
         },
 
         /**
-         * Card Status Formatters — consistent overdue detection across card & table views.
+         * Card Status Formatters — FIX 5.2: Delegate to shared formatter.
          */
         formatCardStatus: function (sStatus, dDue) {
-            var dNow = new Date(); dNow.setHours(0, 0, 0, 0);
-            var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < dNow;
-            return bOverdue ? sStatus + " (Overdue)" : (sStatus || "");
+            return SharedFormatter.formatStatusText.call(SharedFormatter, sStatus, dDue);
         },
 
         formatCardStatusState: function (sStatus, dDue) {
-            var dNow = new Date(); dNow.setHours(0, 0, 0, 0);
-            var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < dNow;
-            if (bOverdue) { return "Error"; }
-            return sStatus === "Completed" ? "Success" :
-                   sStatus === "In Progress" ? "Information" : "Warning";
+            return SharedFormatter.formatStatusState(sStatus, dDue);
         },
 
         formatCardStatusIcon: function (sStatus, dDue) {
-            var dNow = new Date(); dNow.setHours(0, 0, 0, 0);
-            var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < dNow;
-            if (bOverdue) { return "sap-icon://alert"; }
-            return sStatus === "Completed" ? "sap-icon://accept" :
-                   sStatus === "In Progress" ? "sap-icon://activity-2" : "sap-icon://pending";
+            return SharedFormatter.formatStatusIcon(sStatus, dDue);
         },
 
         // 3-1 FIX: Delegate to shared formatter
@@ -136,13 +125,14 @@ sap.ui.define([
             this._onRoleChanged = function () {
                 fnDebouncedLoad();
             };
-            sap.ui.getCore().getEventBus().subscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
+            // FIX 7.4: Use component EventBus instead of deprecated sap.ui.getCore().getEventBus()
+            oComponent.getEventBus().subscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
 
             // Re-load data when userId is resolved from backend (async)
             this._onUserIdResolved = function () {
                 fnDebouncedLoad();
             };
-            sap.ui.getCore().getEventBus().subscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
+            oComponent.getEventBus().subscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
 
             // Reload data every time user navigates to this page
             this._bIsActive = false;
@@ -400,7 +390,7 @@ sap.ui.define([
                             text: {
                                 path: "Url",
                                 formatter: function (sUrl) {
-                                    return (sUrl && /^https?:\/\//i.test(sUrl)) ? "Open Training" : (sUrl || "");
+                                    return (sUrl && /^https?:\/\//i.test(sUrl)) ? i18n.getText("openTraining") : (sUrl || "");
                                 }
                             },
                             href: "{Url}",
@@ -419,7 +409,7 @@ sap.ui.define([
                     }
                 }
 
-                // ADD-1: Status → ObjectStatus with overdue indicator
+                // ADD-1: Status → ObjectStatus with overdue indicator — FIX 5.2: Use shared formatter
                 if (iStatusIdx >= 0 && iStatusIdx < aCells.length) {
                     var oStatusCell = aCells[iStatusIdx];
                     if (oStatusCell.getMetadata().getName() !== "sap.m.ObjectStatus") {
@@ -427,30 +417,19 @@ sap.ui.define([
                             text: {
                                 parts: [{ path: "Status" }, { path: "DueDate" }],
                                 formatter: function (sStatus, dDue) {
-                                    // Overdue = due date strictly before today, and not Completed
-                                    var dNow = new Date(); dNow.setHours(0, 0, 0, 0);
-                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < dNow;
-                                    return bOverdue ? sStatus + " (Overdue)" : sStatus;
+                                    return SharedFormatter.formatStatusText.call(SharedFormatter, sStatus, dDue);
                                 }
                             },
                             state: {
                                 parts: [{ path: "Status" }, { path: "DueDate" }],
                                 formatter: function (sStatus, dDue) {
-                                    var dNow = new Date(); dNow.setHours(0, 0, 0, 0);
-                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < dNow;
-                                    if (bOverdue) { return "Error"; }
-                                    return sStatus === "Completed" ? "Success" :
-                                           sStatus === "In Progress" ? "Information" : "Warning";
+                                    return SharedFormatter.formatStatusState(sStatus, dDue);
                                 }
                             },
                             icon: {
                                 parts: [{ path: "Status" }, { path: "DueDate" }],
                                 formatter: function (sStatus, dDue) {
-                                    var dNow = new Date(); dNow.setHours(0, 0, 0, 0);
-                                    var bOverdue = sStatus !== "Completed" && dDue && new Date(dDue) < dNow;
-                                    if (bOverdue) { return "sap-icon://alert"; }
-                                    return sStatus === "Completed" ? "sap-icon://accept" :
-                                           sStatus === "In Progress" ? "sap-icon://activity-2" : "sap-icon://pending";
+                                    return SharedFormatter.formatStatusIcon(sStatus, dDue);
                                 }
                             }
                         }).addStyleClass("assignmentStatusBadge");
@@ -460,7 +439,7 @@ sap.ui.define([
                     }
                 }
 
-                // ADD-4: DueDate → ObjectStatus with color-coded warnings
+                // ADD-4: DueDate → ObjectStatus with color-coded warnings — FIX 5.2: Use shared formatter
                 if (iDueDateIdx >= 0 && iDueDateIdx < aCells.length) {
                     var oDueDateCell = aCells[iDueDateIdx];
                     if (oDueDateCell.getMetadata().getName() !== "sap.m.ObjectStatus") {
@@ -468,17 +447,13 @@ sap.ui.define([
                             text: {
                                 path: "DueDate",
                                 formatter: function (dDate) {
-                                    return dDate ? new Date(dDate).toLocaleDateString() : "Not set";
+                                    return SharedFormatter.formatDate(dDate) || i18n.getText("notSet");
                                 }
                             },
                             state: {
                                 parts: [{ path: "DueDate" }, { path: "Status" }],
                                 formatter: function (dDate, sStatus) {
-                                    if (sStatus === "Completed" || !dDate) { return "None"; }
-                                    var diff = Math.ceil((new Date(dDate) - new Date()) / 86400000);
-                                    if (diff < 0) { return "Error"; }
-                                    if (diff <= 7) { return "Warning"; }
-                                    return "Success";
+                                    return SharedFormatter.formatDueDateState(dDate, sStatus);
                                 }
                             },
                             icon: {
@@ -641,15 +616,12 @@ sap.ui.define([
             }
         },
 
-        /* ===== Nav Back – use browser history for reliable back navigation ===== */
+        /* ===== Nav Back – always navigate to home (TrainingsList) ===== */
         onNavBack: function () {
-            var oHistory = History.getInstance();
-            var sPreviousHash = oHistory.getPreviousHash();
-            if (sPreviousHash !== undefined) {
-                window.history.go(-1);
-            } else {
-                this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true);
-            }
+            // FIX 2.1: Always use router.navTo instead of window.history.go(-1).
+            // window.history.go(-1) can navigate outside the app entirely in FLP,
+            // leaving users stranded on the Fiori Launchpad home page.
+            this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true /* no history */);
         },
 
         /* ================================================================== */
@@ -1082,8 +1054,12 @@ sap.ui.define([
          * D-1: Cleanup EventBus subscriptions and browser events on view destroy.
          */
         onExit: function () {
-            sap.ui.getCore().getEventBus().unsubscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
-            sap.ui.getCore().getEventBus().unsubscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
+            // FIX 7.4: Use component EventBus instead of deprecated sap.ui.getCore()
+            var oComponent = this.getOwnerComponent();
+            if (oComponent) {
+                oComponent.getEventBus().unsubscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
+                oComponent.getEventBus().unsubscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
+            }
             var aCards = ["myTotalBox", "myAssignedBox", "myInProgressBox", "myCompletedBox"];
             var that = this;
             aCards.forEach(function (id) {
@@ -1229,13 +1205,11 @@ sap.ui.define([
             // Destroy previous dialog
             if (this._detailDlg) { this._detailDlg.destroy(); this._detailDlg = null; }
 
-            // Compute display values for detail model
-            var sStatusState = oAssignment.Status === "Completed" ? "Success" :
-                               oAssignment.Status === "In Progress" ? "Information" : "Warning";
-            var sStatusIcon = oAssignment.Status === "Completed" ? "sap-icon://accept" :
-                              oAssignment.Status === "In Progress" ? "sap-icon://activity-2" : "sap-icon://pending";
-            var sDueDate = oAssignment.DueDate ? new Date(oAssignment.DueDate).toLocaleDateString() : "Not set";
-            var sCompDate = oAssignment.CompletionDate ? new Date(oAssignment.CompletionDate).toLocaleDateString() : "\u2014";
+            // Compute display values for detail model — FIX 5.1/4.1: Use shared formatter + i18n
+            var sStatusState = SharedFormatter.formatStatusState(oAssignment.Status, oAssignment.DueDate);
+            var sStatusIcon = SharedFormatter.formatStatusIcon(oAssignment.Status, oAssignment.DueDate);
+            var sDueDate = SharedFormatter.formatDate(oAssignment.DueDate) || i18n.getText("notSet");
+            var sCompDate = oAssignment.CompletionDate ? SharedFormatter.formatDate(oAssignment.CompletionDate) : "\u2014";
 
             var oDetailModel = new JSONModel({
                 Title: oAssignment.Title || "Untitled",
@@ -1305,7 +1279,9 @@ sap.ui.define([
         },
 
         /* ================================================================== */
-        /* MARK COMPLETED – Core logic with confirmation + OData update        */
+        /* MARK COMPLETED – Core logic with confirmation + bound action     */
+        /* FIX 1.1: Use server-side markCompleted bound action instead of   */
+        /* oModel.update() to ensure recurring logic, auth checks, etc.     */
         /* ================================================================== */
 
         _markCompleted: function (oContext) {
@@ -1322,7 +1298,7 @@ sap.ui.define([
                 return;
             }
 
-            // CR-6 FIX: Replicate server-side status guard (since OData V2 doesn't support bound actions)
+            // CR-6 FIX: Replicate server-side status guard
             if (oAssignment.Status === "Completed") {
                 MessageToast.show(i18n.getText("alreadyCompleted") || "Assignment is already completed.");
                 return;
@@ -1335,29 +1311,36 @@ sap.ui.define([
                     if (sAction !== MessageBox.Action.OK) { return; }
 
                     var oModel = that.getView().getModel();
-                    var sPath = oContext.getPath();
                     var oSmartTable = that.byId("assignSmartTable");
                     if (oSmartTable) { oSmartTable.setBusy(true); }
 
-                    oModel.update(sPath, {
-                        Status: "Completed",
-                        CompletionDate: new Date()
-                    }, {
+                    // FIX 1.1: Call markCompleted bound action via POST
+                    var sEntitySet = oComponent.getAssignmentEntitySet ? oComponent.getAssignmentEntitySet() : 'TrainingAssignments';
+                    var sId = oAssignment.ID || oAssignment.Id;
+                    var sServiceUrl = oModel.sServiceUrl || '';
+                    var sActionUrl = sServiceUrl + '/' + sEntitySet + "('" + sId + "')/SAPLearningService.markCompleted";
+
+                    jQuery.ajax({
+                        url: sActionUrl,
+                        method: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify({}),
+                        headers: oModel.getHeaders(),
                         success: function () {
                             if (oSmartTable) { oSmartTable.setBusy(false); }
                             MessageToast.show(i18n.getText("markedCompleted"));
-                            // FEAT-3: Show completed assignments after marking
+                            oModel.refresh(true);
                             that._filterByStatus("Completed");
                             that._loadAnalytics();
                         },
-                        error: function (err) {
+                        error: function (xhr) {
                             if (oSmartTable) { oSmartTable.setBusy(false); }
                             var msg = i18n.getText("updateFailed");
                             try {
-                                var parsed = JSON.parse(err.responseText);
-                                msg = (parsed.error && parsed.error.message && parsed.error.message.value) || msg;
+                                var parsed = JSON.parse(xhr.responseText);
+                                msg = (parsed.error && parsed.error.message && (parsed.error.message.value || parsed.error.message)) || msg;
                             } catch (e) {
-                                msg = (err && err.message) || msg;
+                                msg = (xhr && xhr.statusText) || msg;
                             }
                             MessageBox.error(msg);
                         }
@@ -1367,7 +1350,8 @@ sap.ui.define([
         },
 
         /**
-         * ADD-3: Bulk mark completed — update multiple assignments in batch.
+         * ADD-3: Bulk mark completed — FIX 1.1: Call bound action for each assignment
+         * Uses sequential AJAX calls to server-side markCompleted action.
          */
         _markCompletedBulk: function (aContexts) {
             var that = this;
@@ -1381,44 +1365,48 @@ sap.ui.define([
                     if (sAction !== MessageBox.Action.OK) { return; }
 
                     var oModel = that.getView().getModel();
+                    var oComponent = that.getOwnerComponent();
+                    var sEntitySet = oComponent.getAssignmentEntitySet ? oComponent.getAssignmentEntitySet() : 'TrainingAssignments';
+                    var sServiceUrl = oModel.sServiceUrl || '';
                     var oSmartTable = that.byId("assignSmartTable");
                     if (oSmartTable) { oSmartTable.setBusy(true); }
 
-                    // M-2 FIX: Save original deferred groups and restore after completion
-                    var aOriginalDeferred = oModel.getDeferredGroups() || [];
-                    var aNewDeferred = aOriginalDeferred.indexOf("bulkComplete") >= 0
-                        ? aOriginalDeferred
-                        : aOriginalDeferred.concat(["bulkComplete"]);
-                    oModel.setDeferredGroups(aNewDeferred);
-
-                    var dNow = new Date();
-                    aContexts.forEach(function (oCtx) {
-                        oModel.update(oCtx.getPath(), {
-                            Status: "Completed",
-                            CompletionDate: dNow
-                        }, { groupId: "bulkComplete" });
+                    // Build array of action call promises
+                    var aPromises = aContexts.map(function (oCtx) {
+                        var oData = oCtx.getObject();
+                        var sId = oData.ID || oData.Id;
+                        var sActionUrl = sServiceUrl + '/' + sEntitySet + "('" + sId + "')/SAPLearningService.markCompleted";
+                        return new Promise(function (resolve, reject) {
+                            jQuery.ajax({
+                                url: sActionUrl,
+                                method: "POST",
+                                contentType: "application/json",
+                                data: JSON.stringify({}),
+                                headers: oModel.getHeaders(),
+                                success: function () { resolve(); },
+                                error: function (xhr) { reject(xhr); }
+                            });
+                        });
                     });
 
-                    oModel.submitChanges({
-                        groupId: "bulkComplete",
-                        success: function () {
-                            oModel.setDeferredGroups(aOriginalDeferred);
+                    Promise.all(aPromises)
+                        .then(function () {
                             if (oSmartTable) { oSmartTable.setBusy(false); }
+                            oModel.refresh(true);
                             MessageToast.show(i18n.getText("bulkCompleteSuccess", [iCount]));
                             that._filterByStatus("Completed");
                             that._loadAnalytics();
-                        },
-                        error: function (err) {
-                            oModel.setDeferredGroups(aOriginalDeferred);
+                        })
+                        .catch(function (xhr) {
                             if (oSmartTable) { oSmartTable.setBusy(false); }
+                            oModel.refresh(true);
                             var msg = i18n.getText("updateFailed");
                             try {
-                                var parsed = JSON.parse(err.responseText);
-                                msg = (parsed.error && parsed.error.message && parsed.error.message.value) || msg;
-                            } catch (e) { msg = (err && err.message) || msg; }
+                                var parsed = JSON.parse(xhr.responseText);
+                                msg = (parsed.error && parsed.error.message && (parsed.error.message.value || parsed.error.message)) || msg;
+                            } catch (e) { msg = (xhr && xhr.statusText) || msg; }
                             MessageBox.error(msg);
-                        }
-                    });
+                        });
                 }
             });
         },

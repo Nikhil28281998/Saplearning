@@ -15,9 +15,6 @@ sap.ui.define([
      */
     return BaseObject.extend("z.sap.courses.services.AnalyticsService", {
 
-        // PG-5: getAssignmentStats removed — was dead code (no controller called it).
-        // Assignment counts are now computed inline in each controller's _loadAnalytics.
-
         /**
          * Get training catalog stats: total count + module distribution for chart.
          * M-3 FIX: Uses $select to minimize payload and paged reads for large catalogs.

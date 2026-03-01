@@ -409,11 +409,9 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
         }
       }
 
-      // A6: Smart due date default — configurable days from now if not specified
+      // FIX 3.1: Due date is mandatory — reject if not provided
       if (!req.data.dueDate) {
-        const defaultDue = new Date();
-        defaultDue.setDate(defaultDue.getDate() + DEFAULT_DUE_DAYS);
-        req.data.dueDate = defaultDue.toISOString();
+        return req.reject(400, 'Due date is required. No assignment can be created without a due date.');
       }
 
       // Denormalize training fields for performance (search/filter without joins)

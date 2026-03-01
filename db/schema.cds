@@ -70,7 +70,7 @@ entity TrainingAssignments : managed {
         @readonly url        : String(2048);
 
         // Assignment tracking
-        dueDate        : DateTime;
+        @mandatory dueDate : DateTime;
         @mandatory status : Status default 'Assigned';
         completionDate : DateTime;
         priority       : Priority default 'Medium';   // C3: Assignment priority

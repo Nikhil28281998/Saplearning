@@ -86,8 +86,8 @@
                                     tooltip="{i18n>helpPriorityTooltip}" class="sapUiTinyMarginBegin" />
                             </HBox>
 
-                            <!-- A4: Due Date with help tooltip -->
-                            <Label id="assignLabelDueDate" text="{i18n>dueDateLabel}" />
+                            <!-- A4: Due Date with help tooltip — FIX 3.1: Due date is mandatory -->
+                            <Label id="assignLabelDueDate" text="{i18n>dueDateLabel}" required="true" />
                             <HBox id="dueDateHelpBox" alignItems="Center">
                                 <DatePicker
                                     id="assignDueDate"
@@ -95,6 +95,7 @@
                                     valueFormat="yyyy-MM-dd"
                                     displayFormat="long"
                                     value="{assignModel>/dueDate}"
+                                    required="true"
                                     placeholder="{i18n>selectDueDatePlaceholder}" />
                                 <Button id="helpDueDateBtn" icon="sap-icon://sys-help" type="Transparent"
                                     tooltip="{i18n>helpDueDateTooltip}" class="sapUiTinyMarginBegin" />
@@ -102,9 +103,9 @@
                             <Label id="assignLabelDueDateHint" text="" />
                             <MessageStrip
                                 id="dueDateWarningStrip"
-                                text="{i18n>dueDateDefaultHint}"
+                                text="{i18n>dueDateRequiredHint}"
                                 visible="{= !${assignModel>/dueDate} }"
-                                type="Information"
+                                type="Error"
                                 showIcon="true" />
 
                             <!-- A4: Notes with help tooltip -->

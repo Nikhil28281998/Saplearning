@@ -2,11 +2,86 @@
  * Shared formatters for SAP Learning Courses application.
  * D-2 FIX: Extracted from TrainingsList.controller.js and TrainingAssignmentsList.controller.js
  * to eliminate code duplication.
+ * FIX 5.1: Merged DateHelper.js methods into this shared formatter.
  */
 sap.ui.define([], function () {
     "use strict";
 
     return {
+        /**
+         * D-9/5.1: Check if an assignment is overdue (DueDate < today AND not Completed).
+         * Replaces inline copies across controllers.
+         * @param {Date|string} dDueDate - The due date
+         * @param {string} sStatus - The assignment status
+         * @returns {boolean} true if overdue
+         */
+        isOverdue: function (dDueDate, sStatus) {
+            if (sStatus === "Completed") { return false; }
+            if (!dDueDate) { return false; }
+            var d = (dDueDate instanceof Date) ? dDueDate : new Date(dDueDate);
+            if (isNaN(d.getTime())) { return false; }
+            var dNow = new Date();
+            dNow.setHours(0, 0, 0, 0);
+            d.setHours(0, 0, 0, 0);
+            return d < dNow;
+        },
+
+        /**
+         * D-9/5.1: Format a date for display.
+         * @param {Date|string} dDate - The date to format
+         * @returns {string} Formatted date string or i18n "Not set"
+         */
+        formatDate: function (dDate) {
+            if (!dDate) { return ""; }
+            var d = (dDate instanceof Date) ? dDate : new Date(dDate);
+            if (isNaN(d.getTime())) { return ""; }
+            return d.toLocaleDateString();
+        },
+
+        /**
+         * FIX 5.2: Centralized status text formatter (replaces 3+ inline copies)
+         */
+        formatStatusText: function (sStatus, dDue) {
+            if (this.isOverdue(dDue, sStatus)) {
+                return sStatus + " (Overdue)";
+            }
+            return sStatus || "";
+        },
+
+        /**
+         * FIX 5.2: Centralized status state formatter
+         */
+        formatStatusState: function (sStatus, dDue) {
+            if (this.isOverdue(dDue, sStatus)) { return "Error"; }
+            return sStatus === "Completed" ? "Success" :
+                   sStatus === "In Progress" ? "Information" : "Warning";
+        },
+
+        /**
+         * FIX 5.2: Centralized status icon formatter
+         */
+        formatStatusIcon: function (sStatus, dDue) {
+            if (this.isOverdue(dDue, sStatus)) { return "sap-icon://alert"; }
+            return sStatus === "Completed" ? "sap-icon://accept" :
+                   sStatus === "In Progress" ? "sap-icon://activity-2" : "sap-icon://pending";
+        },
+
+        /**
+         * FIX 5.2: Centralized due date state formatter
+         */
+        formatDueDateState: function (dDue, sStatus) {
+            if (!dDue) { return "None"; }
+            if (sStatus === "Completed") { return "Success"; }
+            var d = (dDue instanceof Date) ? dDue : new Date(dDue);
+            if (isNaN(d.getTime())) { return "None"; }
+            var dNow = new Date();
+            dNow.setHours(0, 0, 0, 0);
+            d.setHours(0, 0, 0, 0);
+            var diffDays = Math.ceil((d - dNow) / (1000 * 60 * 60 * 24));
+            if (diffDays < 0) { return "Error"; }
+            if (diffDays <= 7) { return "Warning"; }
+            return "Success";
+        },
         /**
          * Return SAP icon based on the SAP module of the course.
          * Maps 23 real module values from the training catalog.

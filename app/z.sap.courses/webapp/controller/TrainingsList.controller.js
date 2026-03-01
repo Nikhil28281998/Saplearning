@@ -102,13 +102,14 @@ sap.ui.define([
                 that._debouncedLoadAllData();
                 that._updateTableSelectionMode();
             };
-            sap.ui.getCore().getEventBus().subscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
+            // FIX 7.4: Use component EventBus instead of deprecated sap.ui.getCore().getEventBus()
+            oComponent.getEventBus().subscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
 
             // Re-load data when userId is resolved from backend (async)
             this._onUserIdResolved = function () {
                 that._debouncedLoadAllData();
             };
-            sap.ui.getCore().getEventBus().subscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
+            oComponent.getEventBus().subscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
 
             // F2: Wire Team Analytics card click handlers for drill-down
             this._aTeamCardIds = ["teamTotalBox", "teamAssignedBox", "teamInProgressBox", "teamOverdueBox", "teamCompletedBox"];
@@ -135,8 +136,12 @@ sap.ui.define([
          * D-1: Cleanup EventBus subscriptions and browser events on view destroy.
          */
         onExit: function () {
-            sap.ui.getCore().getEventBus().unsubscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
-            sap.ui.getCore().getEventBus().unsubscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
+            // FIX 7.4: Use component EventBus instead of deprecated sap.ui.getCore()
+            var oComponent = this.getOwnerComponent();
+            if (oComponent) {
+                oComponent.getEventBus().unsubscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
+                oComponent.getEventBus().unsubscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
+            }
             var that = this;
             if (this._aTeamCardIds) {
                 this._aTeamCardIds.forEach(function (id) {
@@ -546,7 +551,8 @@ sap.ui.define([
                             }
                         } catch (_) { /* ignore */ }
                         Log.warning("[TeamAnalytics] Fallback load failed: " + (err && err.message || "") + " " + sErrDetail);
-                        MessageToast.show("Team analytics could not be loaded. Please refresh.");
+                        var i18nFb = that.getView().getModel("i18n") && that.getView().getModel("i18n").getResourceBundle();
+                        MessageToast.show(i18nFb ? i18nFb.getText("teamAnalyticsLoadFailed") : "Team analytics could not be loaded. Please refresh.");
                         if (oPanel) { oPanel.setBusy(false); }
                     }
                 });
@@ -784,12 +790,8 @@ sap.ui.define([
                         });
                     };
 
-                    oModel.refreshSecurityToken(function () {
-                        fnDeleteNext(0);
-                    }, function () {
-                        oModel.setUseBatch(bWasBatch);
-                        MessageBox.error(i18n.getText("securityTokenFailed"));
-                    });
+                    // FIX 8.2: Removed redundant refreshSecurityToken — OData V2 model handles CSRF tokens automatically
+                    fnDeleteNext(0);
                 }
             });
         },
@@ -919,7 +921,8 @@ sap.ui.define([
                                 sap.m.URLHelper.redirect(sUrl, true);
                             } else if (sUrl) {
                                 Log.warning("[Security] Blocked non-HTTP URL: " + sUrl);
-                                MessageToast.show("Invalid URL protocol — only HTTP/HTTPS links are allowed");
+                                var i18nST = that.getView().getModel("i18n") && that.getView().getModel("i18n").getResourceBundle();
+                                MessageToast.show(i18nST ? i18nST.getText("invalidUrlProtocol") : "Invalid URL protocol — only HTTP/HTTPS links are allowed");
                             }
                         }
                     }
@@ -1282,7 +1285,7 @@ sap.ui.define([
                         return;
                     }
                     // No duplicate — proceed to create
-                    oModel.refreshSecurityToken(function () {
+                    // FIX 8.2: Removed redundant refreshSecurityToken
                         oModel.create("/Trainings", payload, {
                             success: function () {
                                 that._createDlg.close();
@@ -1303,10 +1306,6 @@ sap.ui.define([
                                 oDlgModel.setProperty("/error", msg);
                             }
                         });
-                    }, function () {
-                        oDlgModel.setProperty("/submitting", false);
-                        oDlgModel.setProperty("/error", i18n.getText("securityTokenFailed"));
-                    });
                 },
                 error: function () {
                     oDlgModel.setProperty("/submitting", false);
@@ -1395,7 +1394,7 @@ sap.ui.define([
                 SapHelpLink: (data.sapHelpLink || "").trim()
             };
 
-            oModel.refreshSecurityToken(function () {
+            // FIX 8.2: Removed redundant refreshSecurityToken
                 oModel.update(that._editTrainingPath, payload, {
                     success: function () {
                         that._editDlg.close();
@@ -1416,10 +1415,6 @@ sap.ui.define([
                         oDlgModel.setProperty("/error", msg);
                     }
                 });
-            }, function () {
-                oDlgModel.setProperty("/submitting", false);
-                oDlgModel.setProperty("/error", i18n.getText("securityTokenFailed"));
-            });
         },
 
         onEditTrainingCancel: function () {
@@ -1464,7 +1459,7 @@ sap.ui.define([
                 onClose: function (sAction) {
                     if (sAction === MessageBox.Action.OK) {
                         var oModel = that.getOwnerComponent().getModel();
-                        oModel.refreshSecurityToken(function () {
+                        // FIX 8.2: Removed redundant refreshSecurityToken
                             var iDone = 0, iFail = 0, iTotal = aContexts.length;
                             aContexts.forEach(function (oCtx) {
                                 oModel.remove(oCtx.getPath(), {
@@ -1495,9 +1490,6 @@ sap.ui.define([
                                     }
                                 });
                             });
-                        }, function () {
-                            MessageBox.error(i18n.getText("securityTokenFailed"));
-                        });
                     }
                 }
             });
@@ -1540,22 +1532,18 @@ sap.ui.define([
                     var sEntitySet = oComponent.getAssignmentEntitySet();
                     var oModel = oComponent.getModel();
 
+                    // FIX 6.1: Slim payload — server denormalizes Title, Role, Topic, etc.
+                    // FIX 3.1: Self-enrollment uses default due date (30 days from now)
+                    var dDefaultDue = new Date();
+                    dDefaultDue.setDate(dDefaultDue.getDate() + 30);
                     var oPayload = {
                         TrainingId: oTraining.Id || oTraining.ID,
-                        Title: oTraining.Title,
-                        Role: oTraining.Role || "",
-                        Topic: oTraining.Topic || "",
-                        SapModule: oTraining.SapModule || "",
-                        Url: oTraining.Url || "",
                         Status: "Assigned",
                         UserId: sUserId,
-                        UserName: sUserId,
-                        DueDate: null,
-                        AssignedBy: sUserId,
-                        AssignedByName: sUserId
+                        DueDate: dDefaultDue.toISOString()
                     };
 
-                    oModel.refreshSecurityToken(function () {
+                    // FIX 8.2: Removed redundant refreshSecurityToken
                         oModel.create("/" + sEntitySet, oPayload, {
                             success: function () {
                                 MessageToast.show(i18n.getText("enrollSuccess"));
@@ -1573,9 +1561,6 @@ sap.ui.define([
                                 }
                             }
                         });
-                    }, function () {
-                        MessageBox.error(i18n.getText("securityTokenFailed"));
-                    });
                 }
             });
         },

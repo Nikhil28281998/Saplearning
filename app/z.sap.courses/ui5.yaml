@@ -14,8 +14,9 @@ server:
           - path: /service
             url: http://localhost:4004
             destination: null
-          - path: /sap/opu/odata/sap
-            url: http://localhost:8080
+          - path: /sap/opu/odata/sap/ZCOURSES_SRV
+            url: http://localhost:4004
+            pathPrefix: /service/SAPLearningService
             destination: null
         ui5:
           path:

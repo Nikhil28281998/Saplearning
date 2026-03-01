@@ -3,7 +3,9 @@ using { Learning_Data as my } from '../db/schema.cds';
 @path : '/service/SAPLearningService'
 @impl: 'srv/SAPLearningService.js'
 @requires: ['Admin','Manager','User']
-// @protocol: 'odata-v2'  -- temporarily disabled for local CAP testing (V2 adapter not installed)
+// FIX 1.2: Enable OData V2 protocol for SAPUI5 V2 model compatibility
+// Install @sap/cds-odata-v2-adapter-proxy for local development V2 support
+@protocol: [{ kind: 'odata', path: '/service/SAPLearningService' }]
 @Capabilities.BatchSupported: true
 @Capabilities.KeyAsSegmentSupported: true
 service SAPLearningService {

@@ -37,7 +37,7 @@ sap.ui.define([
 
             // Initialize UserContext service (S/4 authorization adapter) - non-blocking
             try {
-                this._userContext = new UserContext();
+                this._userContext = new UserContext({ model: this.getModel() });
                 this._diagnosticsInit();
 
                 // Wait for OData metadata, then detect entity sets, fetch role + userId
@@ -71,7 +71,9 @@ sap.ui.define([
          * automatically captured and available for MessagePopover consumption.
          */
         _initMessageHandling: function () {
-            var oMessageManager = sap.ui.getCore().getMessageManager();
+            // FIX 7.4: Use sap.ui.require for MessageManager (forward-compatible with UI5 2.x)
+            var Messaging = sap.ui.require("sap/ui/core/Messaging");
+            var oMessageManager = Messaging || sap.ui.getCore().getMessageManager();
             var oModel = this.getModel();
             if (oModel) {
                 oMessageManager.registerMessageProcessor(oModel);
@@ -297,7 +299,7 @@ sap.ui.define([
                         that._userModel.setProperty("/userId", sUserId);
                         Log.info("User ID from backend getCurrentUser: " + sUserId);
                         // Refresh any data that was loaded with the old userId
-                        sap.ui.getCore().getEventBus().publish("sapCourses", "userIdResolved", { userId: sUserId });
+                        that.getEventBus().publish("sapCourses", "userIdResolved", { userId: sUserId });
                     }
                 },
                 error: function (err) {
@@ -417,7 +419,7 @@ sap.ui.define([
             // Only publish roleChanged if the role actually changed — prevents
             // redundant refreshes that cause navigation flicker/redirect loops
             if (sRole !== sPrevRole) {
-                sap.ui.getCore().getEventBus().publish("sapCourses", "roleChanged", { role: sRole });
+                this.getEventBus().publish("sapCourses", "roleChanged", { role: sRole });
             }
 
             // All roles land on TrainingsList (default route) — no redirect needed.
@@ -615,6 +617,12 @@ sap.ui.define([
                 var aTrainings = oModel.getProperty("/trainings");
                 if (!aTrainings || aTrainings.length === 0) {
                     oModel.setProperty("/error", i18n.getText("noTrainingsSelected") || "No trainings selected.");
+                    return;
+                }
+                // FIX 3.1: Due date is mandatory — no assignment without due date
+                var sDueDate = oModel.getProperty("/dueDate");
+                if (!sDueDate) {
+                    oModel.setProperty("/error", i18n.getText("dueDateRequired") || "Due date is required. No assignment can be created without a due date.");
                     return;
                 }
                 oModel.setProperty("/error", "");
