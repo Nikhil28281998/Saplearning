@@ -103,8 +103,7 @@
         "sap.ui.core": {},
         "sap.ui.comp": {},
         "sap.ui.layout": {},
-        "sap.ui.table": {},
-        "sap.suite.ui.microchart": {}
+        "sap.ui.table": {}
       }
     },
 

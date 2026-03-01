@@ -38,8 +38,8 @@ cds.on('bootstrap', (app) => {
 
       // Read-heavy limit (GET/HEAD/OPTIONS)
       const readLimiter = rateLimit({
-        windowMs: 15 * 60 * 1000,
-        max: 200,
+        windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
+        max: parseInt(process.env.RATE_LIMIT_READ_MAX || '200', 10),
         standardHeaders: true,
         legacyHeaders: false,
         message: 'Too many requests, please try again later.',
@@ -48,8 +48,8 @@ cds.on('bootstrap', (app) => {
 
       // Write limit (POST/PUT/PATCH/DELETE)
       const writeLimiter = rateLimit({
-        windowMs: 15 * 60 * 1000,
-        max: 50,
+        windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
+        max: parseInt(process.env.RATE_LIMIT_WRITE_MAX || '50', 10),
         standardHeaders: true,
         legacyHeaders: false,
         message: 'Too many write requests, please try again later.',
@@ -76,7 +76,7 @@ cds.on('bootstrap', (app) => {
     };
     if (isDev) {
       body.service = 'SAP Learning Courses';
-      body.version = '2.0.0-clean-core';
+      try { body.version = require('../package.json').version; } catch(_) { body.version = 'unknown'; }
       body.environment = 'development';
     }
     res.status(200).json(body);

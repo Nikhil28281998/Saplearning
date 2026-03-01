@@ -111,4 +111,17 @@ service SAPLearningService {
         duplicates : array of DuplicateCheck;
     };
     function checkDuplicates(userIds: array of String, trainingIds: array of String) returns DuplicateCheckResult;
+
+    // ========================================================================
+    // C6: MANAGER DELEGATIONS
+    // ========================================================================
+    @restrict: [
+        { grant: '*', to: 'Admin' },
+        { grant: ['READ', 'CREATE', 'DELETE'], to: 'Manager' }
+    ]
+    entity ManagerDelegations as projection on my.ManagerDelegations;
+
+    function getActiveDelegation() returns String;
+    action delegateAuthority(delegateUserId: String(12)) returns ManagerDelegations;
+    action revokeDelegation(delegationId: UUID);
 }

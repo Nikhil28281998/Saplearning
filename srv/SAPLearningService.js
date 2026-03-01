@@ -28,10 +28,14 @@ try {
 }
 const LOG = cds.log('sap-learning');
 
+// H-4: Configurable default due date days (avoid magic number)
+const DEFAULT_DUE_DAYS = parseInt(process.env.DEFAULT_DUE_DAYS, 10) || 30;
+const DELEGATION_EXPIRY_DAYS = parseInt(process.env.DELEGATION_EXPIRY_DAYS, 10) || 30;
+
 module.exports = class SAPLearningService extends cds.ApplicationService {
 
   async init() {
-    const { TrainingAssignments, Trainings, Users } = this.entities;
+    const { TrainingAssignments, Trainings, Users, ManagerDelegations } = this.entities;
 
     // ============================================================================
     // AUTHORIZATION HELPER - PFCG Role-Based (SAP Standard)
@@ -136,6 +140,58 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
 
       const updated = await SELECT.one.from(TrainingAssignments).where({ ID: id });
 
+      // C5: Auto-recreate if this is a recurring assignment
+      // 4-5 FIX: Respect maxRecurrences limit (0 = unlimited)
+      if (assignment.recurring && assignment.recurringInterval) {
+        const currentCount = (assignment.recurrenceCount || 0) + 1;
+        const maxAllowed = assignment.maxRecurrences || 0;
+        if (maxAllowed > 0 && currentCount >= maxAllowed) {
+          secureLog('info', 'Recurring assignment reached max recurrences', {
+            trainingId: assignment.trainingId, userId: assignment.userId,
+            count: currentCount, max: maxAllowed
+          });
+        } else {
+          const intervalDays = {
+            'daily': 1, 'weekly': 7, 'monthly': 30, 'quarterly': 90, 'yearly': 365
+          };
+          const days = intervalDays[assignment.recurringInterval.toLowerCase()] || 30;
+          const nextDue = new Date();
+          nextDue.setDate(nextDue.getDate() + days);
+
+          try {
+            await INSERT.into(TrainingAssignments).entries({
+              trainingId:        assignment.trainingId,
+              userId:            assignment.userId,
+              userName:          assignment.userName,
+              userEmail:         assignment.userEmail,
+              title:             assignment.title,
+              role:              assignment.role,
+              topic:             assignment.topic,
+              sap_module:        assignment.sap_module,
+              url:               assignment.url,
+              managerSort2:      assignment.managerSort2,
+              assignedBy:        assignment.assignedBy,
+              assignedByName:    assignment.assignedByName,
+              status:            'Assigned',
+              priority:          assignment.priority,
+              notes:             assignment.notes,
+              dueDate:           nextDue.toISOString(),
+              recurring:         true,
+              recurringInterval: assignment.recurringInterval,
+              maxRecurrences:    maxAllowed,
+              recurrenceCount:   currentCount,
+              sequence:          assignment.sequence
+            });
+            secureLog('info', 'Recurring assignment auto-created', {
+              trainingId: assignment.trainingId, userId: assignment.userId,
+              interval: assignment.recurringInterval, count: currentCount
+            });
+          } catch (err) {
+            secureLog('error', 'Failed to auto-create recurring assignment', { error: err.message });
+          }
+        }
+      }
+
       secureLog('info', 'Assignment completed', {
         assignmentId: id, username: userCtx.username
       });
@@ -226,6 +282,36 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
         return pctB - pctA;
       });
 
+      // D1: Compute trend indicators (compare last 30 days vs previous 30 days)
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now);
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const sixtyDaysAgo = new Date(now);
+      sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+      let currentPeriodCompleted = 0, previousPeriodCompleted = 0;
+      let currentPeriodCreated = 0, previousPeriodCreated = 0;
+
+      for (const a of assignments) {
+        const completionDate = a.completionDate ? new Date(a.completionDate) : null;
+        const createdAt = a.createdAt ? new Date(a.createdAt) : null;
+
+        if (completionDate) {
+          if (completionDate >= thirtyDaysAgo) currentPeriodCompleted++;
+          else if (completionDate >= sixtyDaysAgo) previousPeriodCompleted++;
+        }
+        if (createdAt) {
+          if (createdAt >= thirtyDaysAgo) currentPeriodCreated++;
+          else if (createdAt >= sixtyDaysAgo) previousPeriodCreated++;
+        }
+      }
+
+      // Trend: 'up' = improved, 'down' = declined, 'flat' = same
+      const completionTrend = currentPeriodCompleted > previousPeriodCompleted ? 'up'
+        : currentPeriodCompleted < previousPeriodCompleted ? 'down' : 'flat';
+      const activityTrend = currentPeriodCreated > previousPeriodCreated ? 'up'
+        : currentPeriodCreated < previousPeriodCreated ? 'down' : 'flat';
+
       return {
         totalAssignments,
         assigned,
@@ -233,7 +319,14 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
         completed,
         overdue,
         completionPercent,
-        userBreakdown
+        userBreakdown,
+        // D1: Trend data
+        completionTrend,
+        activityTrend,
+        currentPeriodCompleted,
+        previousPeriodCompleted,
+        currentPeriodCreated,
+        previousPeriodCreated
       };
     });
 
@@ -259,16 +352,33 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
       if (!training) return req.reject(400, 'Training not found');
 
       // B4: Server-side team validation — Manager can only assign to own team members
+      // 1-6 FIX: Also supports delegated authority from another manager
       if (userCtx.isManager && !userCtx.isAdmin) {
         const assigneeUser = await SELECT.one.from(Users).where({ userId: assigneeId });
         if (!assigneeUser) {
           return req.reject(400, 'User not found: ' + assigneeId);
         }
         if (assigneeUser.sort2 !== userCtx.sapUsername) {
-          secureLog('warn', 'Manager attempted to assign outside team', {
-            manager: userCtx.sapUsername, assignee: assigneeId, assigneeManager: assigneeUser.sort2
+          // Check if current user has an active delegation from the assignee's actual manager
+          const delegation = await SELECT.one.from(ManagerDelegations).where({
+            managerUserId: assigneeUser.sort2,
+            delegateUserId: userCtx.sapUsername,
+            active: true
           });
-          return req.reject(403, 'You can only assign trainings to your own team members');
+          if (!delegation || (delegation.expiresAt && new Date(delegation.expiresAt) < new Date())) {
+            secureLog('warn', 'Manager attempted to assign outside team', {
+              manager: userCtx.sapUsername, assignee: assigneeId, assigneeManager: assigneeUser.sort2
+            });
+            return req.reject(403, 'You can only assign trainings to your own team members');
+          }
+          // Delegation valid — auto-expire if checked just in time
+          if (delegation.expiresAt && new Date(delegation.expiresAt) < new Date()) {
+            await UPDATE(ManagerDelegations).set({ active: false }).where({ ID: delegation.ID });
+            return req.reject(403, 'Delegation has expired');
+          }
+          secureLog('info', 'Delegated assignment', {
+            delegate: userCtx.sapUsername, delegatingManager: assigneeUser.sort2, assignee: assigneeId
+          });
         }
       }
 
@@ -299,10 +409,10 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
         }
       }
 
-      // A6: Smart due date default — 30 days from now if not specified
+      // A6: Smart due date default — configurable days from now if not specified
       if (!req.data.dueDate) {
         const defaultDue = new Date();
-        defaultDue.setDate(defaultDue.getDate() + 30);
+        defaultDue.setDate(defaultDue.getDate() + DEFAULT_DUE_DAYS);
         req.data.dueDate = defaultDue.toISOString();
       }
 
@@ -595,31 +705,107 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
         return { duplicates: [] };
       }
 
-      // Find all active assignments that match any (userId, trainingId) combination
-      const activeAssignments = await SELECT.from(TrainingAssignments)
-        .where({ status: { '!=': 'Completed' } });
+      // 1-5 FIX: Single bulk query using IN clauses instead of N+1 loop
+      const existing = await SELECT.from(TrainingAssignments)
+        .columns('userId', 'trainingId', 'status')
+        .where({
+          userId: { in: userIds },
+          trainingId: { in: trainingIds },
+          status: { '!=': 'Completed' }
+        });
 
-      const dupeMap = {};
-      for (const a of activeAssignments) {
-        dupeMap[a.userId + '|' + a.trainingId] = a.status;
-      }
-
-      const duplicates = [];
-      for (const uid of userIds) {
-        for (const tid of trainingIds) {
-          const key = uid + '|' + tid;
-          if (dupeMap[key]) {
-            duplicates.push({
-              userId: uid,
-              trainingId: tid,
-              exists: true,
-              status: dupeMap[key]
-            });
-          }
-        }
-      }
+      const duplicates = existing.map(e => ({
+        userId: e.userId,
+        trainingId: e.trainingId,
+        exists: true,
+        status: e.status
+      }));
 
       return { duplicates };
+    });
+
+    // ============================================================================
+    // C6: DELEGATION — Manager delegates authority to another user
+    // ============================================================================
+
+    this.on('delegateAuthority', async (req) => {
+      const userCtx = getUserContext(req);
+      if (!userCtx.isManager && !userCtx.isAdmin) {
+        return req.reject(403, 'Only Managers can delegate authority');
+      }
+
+      const { delegateUserId } = req.data || {};
+      if (!delegateUserId) return req.reject(400, 'Delegate user ID is required');
+
+      if (delegateUserId === userCtx.sapUsername) {
+        return req.reject(400, 'Cannot delegate to yourself');
+      }
+
+      // Verify delegate exists
+      const delegateUser = await SELECT.one.from(Users).where({ userId: delegateUserId });
+      if (!delegateUser) return req.reject(404, 'Delegate user not found');
+
+      // Revoke any existing active delegation from this manager
+      await UPDATE(ManagerDelegations)
+        .set({ active: false })
+        .where({ managerUserId: userCtx.sapUsername, active: true });
+
+      // Create new delegation (expires in 30 days by default)
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + DELEGATION_EXPIRY_DAYS);
+
+      const delegation = {
+        managerUserId: userCtx.sapUsername,
+        delegateUserId: delegateUserId,
+        delegateName: ((delegateUser.firstName || '') + ' ' + (delegateUser.lastName || '')).trim() || delegateUserId,
+        active: true,
+        expiresAt: expiresAt.toISOString()
+      };
+
+      await INSERT.into(ManagerDelegations).entries(delegation);
+
+      secureLog('info', 'Authority delegated', {
+        manager: userCtx.sapUsername, delegate: delegateUserId
+      });
+
+      return delegation;
+    });
+
+    this.on('revokeDelegation', async (req) => {
+      const userCtx = getUserContext(req);
+      const { delegationId } = req.data || {};
+
+      if (delegationId) {
+        const delegation = await SELECT.one.from(ManagerDelegations).where({ ID: delegationId });
+        if (!delegation) return req.reject(404, 'Delegation not found');
+        if (delegation.managerUserId !== userCtx.sapUsername && !userCtx.isAdmin) {
+          return req.reject(403, 'Can only revoke your own delegations');
+        }
+        await UPDATE(ManagerDelegations).set({ active: false }).where({ ID: delegationId });
+      } else {
+        // Revoke all active delegations for this manager
+        await UPDATE(ManagerDelegations)
+          .set({ active: false })
+          .where({ managerUserId: userCtx.sapUsername, active: true });
+      }
+
+      secureLog('info', 'Delegation revoked', { manager: userCtx.sapUsername });
+    });
+
+    this.on('getActiveDelegation', async (req) => {
+      const userCtx = getUserContext(req);
+      const delegation = await SELECT.one.from(ManagerDelegations)
+        .where({ managerUserId: userCtx.sapUsername, active: true });
+
+      if (delegation) {
+        // Check if expired
+        if (delegation.expiresAt && new Date(delegation.expiresAt) < new Date()) {
+          await UPDATE(ManagerDelegations).set({ active: false }).where({ ID: delegation.ID });
+          return '';
+        }
+        return delegation.delegateUserId + '|' + delegation.delegateName;
+      }
+      return '';
     });
 
     await super.init();

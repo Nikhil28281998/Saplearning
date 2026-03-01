@@ -11,76 +11,24 @@ sap.ui.define([
     "sap/m/library",
     "sap/m/MessagePopover",
     "sap/m/MessageItem",
-    "z/sap/courses/services/AnalyticsService"
-], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, mLibrary, MessagePopover, MessageItem, AnalyticsService) {
+    "z/sap/courses/services/AnalyticsService",
+    "z/sap/courses/utils/formatter"
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, mLibrary, MessagePopover, MessageItem, AnalyticsService, SharedFormatter) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingsList", {
 
         /**
-         * Formatter: Return SAP icon based on the SAP module of the course.
-         * Maps 23 real module values from the 838-course training catalog.
+         * D-2 FIX: Delegate to shared formatter (z/sap/courses/utils/formatter.js)
          */
-        getModuleIcon: function (sSapModule) {
-            if (!sSapModule) { return "sap-icon://course-book"; }
-            var s = sSapModule.toLowerCase();
-            if (s.indexOf("fi-gl") >= 0 || s.indexOf("general ledger") >= 0) { return "sap-icon://waiver"; }
-            if (s.indexOf("fi-ap") >= 0 || s.indexOf("accounts payable") >= 0) { return "sap-icon://money-bills"; }
-            if (s.indexOf("fi-ar") >= 0 || s.indexOf("accounts receivable") >= 0) { return "sap-icon://wallet"; }
-            if (s.indexOf("fi-aa") >= 0 || s.indexOf("asset accounting") >= 0) { return "sap-icon://building"; }
-            if (s.indexOf("fi-lc") >= 0 || s.indexOf("consolidation") >= 0) { return "sap-icon://combine"; }
-            if (s.indexOf("mm-pur") >= 0 || s.indexOf("procurement") >= 0) { return "sap-icon://cart"; }
-            if (s.indexOf("mm-im") >= 0 || s.indexOf("inventory management") >= 0) { return "sap-icon://inventory"; }
-            if (s.indexOf("sd-bil") >= 0 || (s.indexOf("billing") >= 0 && s.indexOf("sd") >= 0)) { return "sap-icon://sales-document"; }
-            if (s.indexOf("sd-ret") >= 0 || (s.indexOf("returns") >= 0 && s.indexOf("sd") >= 0)) { return "sap-icon://undo"; }
-            if (s.indexOf("sd") >= 0 || s.indexOf("sales") >= 0) { return "sap-icon://sales-order"; }
-            if (s.indexOf("pp") >= 0 || s.indexOf("production") >= 0) { return "sap-icon://factory"; }
-            if (s.indexOf("wm") >= 0 || s.indexOf("warehouse") >= 0) { return "sap-icon://inventory"; }
-            if (s.indexOf("le-shp") >= 0 || s.indexOf("shipping") >= 0 || s.indexOf("logistics") >= 0) { return "sap-icon://shipping-status"; }
-            if (s.indexOf("tr") >= 0 || s.indexOf("treasury") >= 0) { return "sap-icon://loan"; }
-            if (s.indexOf("co-pa") >= 0 || s.indexOf("profitability") >= 0) { return "sap-icon://bar-chart"; }
-            if (s.indexOf("co") >= 0 || s.indexOf("controlling") >= 0) { return "sap-icon://monitor-payments"; }
-            if (s.indexOf("hcm") >= 0 || s.indexOf("human capital") >= 0) { return "sap-icon://group"; }
-            if (s.indexOf("qm") >= 0 || s.indexOf("quality") >= 0) { return "sap-icon://quality-issue"; }
-            if (s.indexOf("basis") >= 0 || s.indexOf("configuration") >= 0) { return "sap-icon://settings"; }
-            if (s.indexOf("mdg") >= 0 || s.indexOf("master data") >= 0) { return "sap-icon://database"; }
-            if (s.indexOf("pm") >= 0 || s.indexOf("plant maintenance") >= 0 || s.indexOf("maintenance") >= 0) { return "sap-icon://wrench"; }
-            if (s.indexOf("cross") >= 0) { return "sap-icon://connected"; }
-            if (s.indexOf("general") >= 0) { return "sap-icon://world"; }
-            return "sap-icon://course-book";
-        },
+        getModuleIcon: function (sSapModule) { return SharedFormatter.getModuleIcon(sSapModule); },
+        getModuleIconColor: function (sSapModule) { return SharedFormatter.getModuleIconColor(sSapModule); },
 
         /**
-         * Formatter: Return icon color based on SAP module category.
-         */
-        getModuleIconColor: function (sSapModule) {
-            if (!sSapModule) { return "#0854a0"; }
-            var s = sSapModule.toLowerCase();
-            if (s.indexOf("fi") >= 0 || s.indexOf("finance") >= 0) { return "#0854a0"; }
-            if (s.indexOf("sd") >= 0 || s.indexOf("sales") >= 0 || s.indexOf("billing") >= 0) { return "#e76500"; }
-            if (s.indexOf("mm") >= 0 || s.indexOf("procurement") >= 0 || s.indexOf("inventory") >= 0) { return "#945200"; }
-            if (s.indexOf("pp") >= 0 || s.indexOf("production") >= 0) { return "#1a6b3c"; }
-            if (s.indexOf("wm") >= 0 || s.indexOf("warehouse") >= 0 || s.indexOf("le") >= 0 || s.indexOf("shipping") >= 0 || s.indexOf("logistics") >= 0) { return "#354a5f"; }
-            if (s.indexOf("tr") >= 0 || s.indexOf("treasury") >= 0) { return "#6c32a9"; }
-            if (s.indexOf("co") >= 0 || s.indexOf("controlling") >= 0) { return "#d32a2a"; }
-            if (s.indexOf("hcm") >= 0 || s.indexOf("human") >= 0) { return "#107e3e"; }
-            if (s.indexOf("qm") >= 0 || s.indexOf("quality") >= 0) { return "#0a6ed1"; }
-            if (s.indexOf("basis") >= 0 || s.indexOf("config") >= 0) { return "#556b82"; }
-            if (s.indexOf("mdg") >= 0 || s.indexOf("master data") >= 0) { return "#0070f2"; }
-            if (s.indexOf("pm") >= 0 || s.indexOf("maintenance") >= 0) { return "#945200"; }
-            if (s.indexOf("cross") >= 0) { return "#354a5f"; }
-            if (s.indexOf("general") >= 0) { return "#556b82"; }
-            return "#0854a0";
-        },
-
-        /**
-         * Formatter: "Completed: X  |  Remaining: Y"
+         * 3-2 FIX: Delegate to shared formatter
          */
         formatCompletedRemaining: function (sPattern, iCompleted, iTotal) {
-            if (sPattern && typeof iCompleted === "number" && typeof iTotal === "number") {
-                return sPattern.replace("{0}", iCompleted).replace("{1}", (iTotal - iCompleted));
-            }
-            return "";
+            return SharedFormatter.formatCompletedRemaining(sPattern, iCompleted, iTotal);
         },
 
         onInit: function () {
@@ -135,6 +83,9 @@ sap.ui.define([
             });
             this.getView().setModel(oFilterModel, "filterData");
 
+            // BUG-3 FIX: declare 'that' before any closure that references it
+            var that = this;
+
             // MD-13: Debounce data loads to prevent triple-fire on init + roleChanged + userIdResolved
             this._loadDataDebounceTimer = null;
             this._debouncedLoadAllData = function () {
@@ -146,8 +97,7 @@ sap.ui.define([
 
             this._loadAllData();
 
-            // BUG-3 FIX: Re-load analytics when role is fetched to apply correct user filters
-            var that = this;
+            // Re-load analytics when role is fetched to apply correct user filters
             this._onRoleChanged = function () {
                 that._debouncedLoadAllData();
                 that._updateTableSelectionMode();
@@ -605,18 +555,8 @@ sap.ui.define([
             fnLoadFallbackPage(0);
         },
 
-        /**
-         * UI-1: User progress list is now declarative (TeamUserRow.fragment.xml).
-         * The List in the view binds to teamAnalytics>/userBreakdown with length:10.
-         * This method is kept as a no-op for backward compatibility in case
-         * other code calls it — the model update in _loadTeamAnalytics is sufficient.
-         */
-        _buildUserProgressList: function () {
-            // Deprecated: view binding handles rendering via TeamUserRow fragment.
-            // Kept as no-op stub for backward compatibility.
-        },
-
         // _loadFilterData removed: consolidated into _loadAllData (audit fix #8)
+        // D-1: _buildUserProgressList removed — view binding via TeamUserRow.fragment.xml
 
         /**
          * F1-FIX: Update SmartTable selection mode after async role change.
@@ -2012,6 +1952,15 @@ sap.ui.define([
             link.click();
             URL.revokeObjectURL(url);
             MessageToast.show("Report exported");
+        },
+
+        // ============================================================
+        // C6: Delegate Authority
+        // ============================================================
+
+        onDelegateAuthority: function () {
+            var oComponent = this.getOwnerComponent();
+            oComponent.openDelegateDialog();
         },
 
         onViewAssignments: function () {

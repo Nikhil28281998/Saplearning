@@ -487,7 +487,8 @@ sap.ui.define([
                 var workloadData = aResults[1] || [];
                 that._openAssignFragment(aPreSelectedTrainings || [], users, workloadData);
             }).catch(function () {
-                MessageToast.show('Failed to load data for assignment');
+                var i18n = that.getModel("i18n").getResourceBundle();
+                MessageToast.show(i18n.getText("failedLoadAssignment"));
             });
         },
 
@@ -567,6 +568,10 @@ sap.ui.define([
                 dueDate: null,
                 priority: 'Medium',
                 notes: '',
+                sequence: '',
+                recurring: false,
+                recurringInterval: 'monthly',
+                maxRecurrences: 0,
                 submitting: false,
                 error: '',
                 wizardStep: 1,
@@ -592,7 +597,8 @@ sap.ui.define([
                 that._assignDlg.open();
             }).catch(function (err) {
                 Log.error('Failed to load AssignDialog: ' + (err && err.message || err));
-                MessageToast.show('Failed to open assignment dialog');
+                var i18nFallback = that.getModel("i18n") && that.getModel("i18n").getResourceBundle();
+                MessageToast.show(i18nFallback ? i18nFallback.getText("failedOpenAssignDialog") : 'Failed to open assignment dialog');
             });
         },
 
@@ -745,8 +751,7 @@ sap.ui.define([
         // Sync List multi-select state with model
         _syncUserListSelection: function () {
             if (!this._assignDlg) return;
-            var oList = sap.ui.core.Fragment.byId(this._assignDlg.getId(), "assignUserList") ||
-                        this._assignDlg.getContent()[0] && this._findControl(this._assignDlg, "assignUserList");
+            var oList = sap.ui.core.Fragment.byId(this._assignDlg.getId(), "assignUserList");
             if (!oList) {
                 // Fallback: find by walking dialog content
                 try {
@@ -907,6 +912,16 @@ sap.ui.define([
                     Notes: data.notes || ''
                 };
                 if (dueDateValue !== null) { payload.DueDate = dueDateValue; }
+                // C4: Learning path sequence
+                if (data.sequence) { payload.Sequence = parseInt(data.sequence, 10) || 0; }
+                // C5: Recurring assignment
+                if (data.recurring) {
+                    payload.Recurring = true;
+                    payload.RecurringInterval = data.recurringInterval || 'monthly';
+                    // 4-5 FIX: Include max recurrences limit
+                    var iMax = parseInt(data.maxRecurrences, 10) || 0;
+                    if (iMax > 0) { payload.MaxRecurrences = iMax; }
+                }
 
                 oModel.create('/' + sEntitySet, payload, {
                     success: function () {
@@ -990,6 +1005,15 @@ sap.ui.define([
         // ====================================================================
 
         /**
+         * FIX 1-1: Formatter for ReassignDialog info strip.
+         * Pattern: "Reassigning: {0} (currently: {1})"
+         */
+        formatReassignInfo: function (sPattern, sTitle, sUserId) {
+            if (!sPattern) { return ""; }
+            return sPattern.replace("{0}", sTitle || "").replace("{1}", sUserId || "");
+        },
+
+        /**
          * Open reassign dialog for a specific assignment.
          * @param {string} sAssignmentId - Assignment UUID
          * @param {string} sCurrentUserId - Current assignee ID
@@ -1038,7 +1062,8 @@ sap.ui.define([
                     });
                 },
                 error: function () {
-                    MessageToast.show('Failed to load team members');
+                    var i18n = that.getModel("i18n") && that.getModel("i18n").getResourceBundle();
+                    MessageToast.show(i18n ? i18n.getText("failedLoadTeamMembers") : 'Failed to load team members');
                 }
             });
         },
@@ -1049,7 +1074,8 @@ sap.ui.define([
             if (!oRM) return;
             var sNewUserId = oRM.getProperty("/newUserId");
             if (!sNewUserId) {
-                oRM.setProperty("/error", "Select a team member");
+                var i18nErr = this.getModel("i18n") && this.getModel("i18n").getResourceBundle();
+                oRM.setProperty("/error", i18nErr ? i18nErr.getText("selectTeamMember") : "Select a team member");
                 return;
             }
             oRM.setProperty("/submitting", true);
@@ -1061,23 +1087,32 @@ sap.ui.define([
             var bWasBatch = oModel.bUseBatch;
             oModel.setUseBatch(false);
 
-            oModel.callFunction("/" + sEntitySet + "('" + sId + "')/SAPLearningService.reassign", {
+            // 1-3 FIX: Use direct POST for bound action — works in both V2 (Gateway) and V4 (CAP)
+            // V2 callFunction does not support V4-style Entity(key)/Namespace.action syntax
+            var sServiceUrl = oModel.sServiceUrl || '';
+            var sActionUrl = sServiceUrl + '/' + sEntitySet + "('" + sId + "')/SAPLearningService.reassign";
+
+            jQuery.ajax({
+                url: sActionUrl,
                 method: "POST",
-                urlParameters: { newUserId: sNewUserId },
+                contentType: "application/json",
+                data: JSON.stringify({ newUserId: sNewUserId }),
+                headers: oModel.getHeaders(),
                 success: function () {
                     oModel.setUseBatch(bWasBatch);
                     oRM.setProperty("/submitting", false);
                     if (that._reassignDlg) { that._reassignDlg.close(); }
                     oModel.refresh(true);
-                    MessageToast.show('Assignment reassigned to ' + sNewUserId);
+                    var i18n = that.getModel("i18n") && that.getModel("i18n").getResourceBundle();
+                    MessageToast.show(i18n ? i18n.getText("reassignedTo", [sNewUserId]) : 'Assignment reassigned to ' + sNewUserId);
                 },
-                error: function (err) {
+                error: function (xhr) {
                     oModel.setUseBatch(bWasBatch);
                     oRM.setProperty("/submitting", false);
                     var msg = 'Reassign failed';
                     try {
-                        var p = JSON.parse(err.responseText);
-                        msg = (p.error && p.error.message && p.error.message.value) || msg;
+                        var p = JSON.parse(xhr.responseText);
+                        msg = (p.error && p.error.message && (p.error.message.value || p.error.message)) || msg;
                     } catch (_) {}
                     oRM.setProperty("/error", msg);
                 }
@@ -1091,7 +1126,8 @@ sap.ui.define([
         // D2: Send reminder (pre-filled mailto)
         sendReminder: function (sUserEmail, sUserName, sTrainingTitle) {
             if (!sUserEmail) {
-                MessageToast.show('No email address available');
+                var i18nEmail = this.getModel("i18n") && this.getModel("i18n").getResourceBundle();
+                MessageToast.show(i18nEmail ? i18nEmail.getText("noEmailAvailable") : 'No email address available');
                 return;
             }
             var subject = encodeURIComponent('Reminder: Training Assignment — ' + sTrainingTitle);
@@ -1103,6 +1139,127 @@ sap.ui.define([
                 'Best regards'
             );
             window.open('mailto:' + sUserEmail + '?subject=' + subject + '&body=' + body, '_self');
+        },
+
+        // ====================================================================
+        // C6: Delegation Dialog
+        // ====================================================================
+
+        openDelegateDialog: function () {
+            var that = this;
+            if (this._delegateDlg) { this._delegateDlg.destroy(); this._delegateDlg = null; }
+
+            var oModel = this.getModel();
+            var sUserId = this.getCurrentUserId();
+            var aFilters = [];
+            if (sUserId) {
+                var sProp = this._userManagerProperty || 'sort2';
+                aFilters.push(new sap.ui.model.Filter(sProp, sap.ui.model.FilterOperator.EQ, sUserId));
+            }
+
+            var sUserEntitySet = this._userEntitySet || 'UserSet';
+            oModel.read('/' + sUserEntitySet, {
+                filters: aFilters,
+                success: function (data) {
+                    var aUsers = data.results || [];
+
+                    that._delegateModel = new JSONModel({
+                        users: aUsers,
+                        selectedUserId: aUsers.length > 0 ? aUsers[0].UserId : '',
+                        activeDelegateName: '',
+                        error: '',
+                        submitting: false
+                    });
+
+                    // Check active delegation
+                    oModel.callFunction('/getActiveDelegation', {
+                        method: 'GET',
+                        success: function (result) {
+                            var val = typeof result === 'string' ? result : (result && result.getActiveDelegation || result.value || '');
+                            if (val) {
+                                var parts = val.split('|');
+                                that._delegateModel.setProperty('/activeDelegateName', parts[1] || parts[0]);
+                            }
+                        },
+                        error: function () { /* ignore */ }
+                    });
+
+                    Fragment.load({
+                        name: "z.sap.courses.fragments.DelegateDialog",
+                        controller: that
+                    }).then(function (oDialog) {
+                        that._delegateDlg = oDialog;
+                        oDialog.setModel(that._delegateModel, "delegateModel");
+                        oDialog.setModel(that.getModel("i18n"), "i18n");
+                        oDialog.attachAfterClose(function () { oDialog.destroy(); that._delegateDlg = null; });
+                        oDialog.open();
+                    });
+                },
+                error: function () {
+                    var i18n = that.getModel("i18n") && that.getModel("i18n").getResourceBundle();
+                    MessageToast.show(i18n ? i18n.getText("failedLoadTeamMembers") : 'Failed to load team members');
+                }
+            });
+        },
+
+        onDelegateSubmit: function () {
+            var that = this;
+            var oRM = this._delegateModel;
+            if (!oRM) return;
+            var sDelegate = oRM.getProperty("/selectedUserId");
+            if (!sDelegate) {
+                oRM.setProperty("/error", "Select a team member");
+                return;
+            }
+            oRM.setProperty("/submitting", true);
+            oRM.setProperty("/error", "");
+
+            var oModel = this.getModel();
+            oModel.callFunction("/delegateAuthority", {
+                method: "POST",
+                urlParameters: { delegateUserId: sDelegate },
+                success: function () {
+                    oRM.setProperty("/submitting", false);
+                    if (that._delegateDlg) { that._delegateDlg.close(); }
+                    var i18n = that.getModel("i18n").getResourceBundle();
+                    MessageToast.show(i18n.getText("delegateSuccess") || "Authority delegated successfully");
+                },
+                error: function (err) {
+                    oRM.setProperty("/submitting", false);
+                    var msg = 'Delegation failed';
+                    try {
+                        var p = JSON.parse(err.responseText);
+                        msg = (p.error && p.error.message && p.error.message.value) || msg;
+                    } catch (_) {}
+                    oRM.setProperty("/error", msg);
+                }
+            });
+        },
+
+        onDelegateRevoke: function () {
+            var that = this;
+            var oRM = this._delegateModel;
+            if (!oRM) return;
+            oRM.setProperty("/submitting", true);
+
+            var oModel = this.getModel();
+            oModel.callFunction("/revokeDelegation", {
+                method: "POST",
+                success: function () {
+                    oRM.setProperty("/submitting", false);
+                    oRM.setProperty("/activeDelegateName", "");
+                    var i18n = that.getModel("i18n").getResourceBundle();
+                    MessageToast.show(i18n.getText("delegateRevokeSuccess") || "Delegation revoked");
+                },
+                error: function () {
+                    oRM.setProperty("/submitting", false);
+                    oRM.setProperty("/error", "Failed to revoke delegation");
+                }
+            });
+        },
+
+        onDelegateCancel: function () {
+            if (this._delegateDlg) { this._delegateDlg.close(); }
         },
 
         destroy: function () {
@@ -1143,6 +1300,10 @@ sap.ui.define([
             if (this._resultDlg) {
                 this._resultDlg.destroy();
                 this._resultDlg = null;
+            }
+            if (this._delegateDlg) {
+                this._delegateDlg.destroy();
+                this._delegateDlg = null;
             }
 
             UIComponent.prototype.destroy.apply(this, arguments);

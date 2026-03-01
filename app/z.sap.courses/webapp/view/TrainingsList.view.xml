@@ -85,6 +85,10 @@
                         <!-- D4: Export team report -->
                         <Button id="exportTeamReportBtn" text="{i18n>exportReport}" icon="sap-icon://excel-attachment"
                             type="Ghost" press="onExportTeamReport" tooltip="{i18n>exportReportTooltip}" />
+                        <!-- C6: Delegate authority -->
+                        <Button id="delegateAuthorityBtn" text="{i18n>delegateTitle}" icon="sap-icon://role"
+                            type="Ghost" press="onDelegateAuthority"
+                            visible="{= ${user>/role} === 'Manager' }" />
                     </OverflowToolbar>
                 </headerToolbar>
 
@@ -94,6 +98,12 @@
                         <core:Icon id="teamTotalIcon" src="sap-icon://group" size="2rem" color="#0854a0" class="sapUiTinyMarginBottom" />
                         <ObjectNumber id="teamTotalCount" number="{teamAnalytics>/totalAssignments}" state="Information" class="analyticsNumber" />
                         <Text id="teamTotalLabel" text="{i18n>teamTotalAssignments}" class="analyticsLabel" />
+                        <!-- D1: Activity trend indicator -->
+                        <ObjectStatus id="activityTrendStatus"
+                            text="{= ${teamAnalytics>/activityTrend} === 'up' ? ${i18n>trendUp} : (${teamAnalytics>/activityTrend} === 'down' ? ${i18n>trendDown} : ${i18n>trendFlat}) }"
+                            state="{= ${teamAnalytics>/activityTrend} === 'up' ? 'Information' : (${teamAnalytics>/activityTrend} === 'down' ? 'Warning' : 'None') }"
+                            icon="{= ${teamAnalytics>/activityTrend} === 'up' ? 'sap-icon://trend-up' : (${teamAnalytics>/activityTrend} === 'down' ? 'sap-icon://trend-down' : 'sap-icon://less') }"
+                            visible="{= !!${teamAnalytics>/activityTrend} }" />
                     </VBox>
                     <VBox id="teamAssignedBox" alignItems="Center" class="analyticsCard teamKpiCard analyticsCardOrange" tooltip="{i18n>clickToFilter}">
                         <core:Icon id="teamAssignedIcon" src="sap-icon://pending" size="2rem" color="#e76500" class="sapUiTinyMarginBottom" />
@@ -114,6 +124,12 @@
                         <core:Icon id="teamCompletedIcon" src="sap-icon://accept" size="2rem" color="#107e3e" class="sapUiTinyMarginBottom" />
                         <ObjectNumber id="teamCompletedCount" number="{teamAnalytics>/completed}" state="Success" class="analyticsNumber" />
                         <Text id="teamCompletedLabel" text="{i18n>teamCompleted}" class="analyticsLabel" />
+                        <!-- D1: Completion trend indicator -->
+                        <ObjectStatus id="completionTrendStatus"
+                            text="{= ${teamAnalytics>/completionTrend} === 'up' ? ${i18n>trendUp} : (${teamAnalytics>/completionTrend} === 'down' ? ${i18n>trendDown} : ${i18n>trendFlat}) }"
+                            state="{= ${teamAnalytics>/completionTrend} === 'up' ? 'Success' : (${teamAnalytics>/completionTrend} === 'down' ? 'Error' : 'None') }"
+                            icon="{= ${teamAnalytics>/completionTrend} === 'up' ? 'sap-icon://trend-up' : (${teamAnalytics>/completionTrend} === 'down' ? 'sap-icon://trend-down' : 'sap-icon://less') }"
+                            visible="{= !!${teamAnalytics>/completionTrend} }" />
                     </VBox>
                 </VBox>
 

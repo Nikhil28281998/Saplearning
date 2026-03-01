@@ -87,6 +87,24 @@ entity TrainingAssignments : managed {
         // C2: Reassignment tracking
         reassignedFrom : String(12);                   // Previous assignee userId
         reassignedDate : DateTime;
+
+        // C5: Recurring assignment scheduling
+        recurring        : Boolean default false;       // Is this a recurring assignment?
+        recurringInterval: String(20);                  // daily, weekly, monthly, quarterly, yearly
+        maxRecurrences   : Integer default 0;           // 4-5 FIX: Max recurrences (0 = unlimited)
+        recurrenceCount  : Integer default 0;           // Current recurrence count
+}
+
+// ============================================================================
+// C6: MANAGER DELEGATION - Temporary authority transfer
+// ============================================================================
+entity ManagerDelegations : managed {
+    key ID           : UUID;
+        managerUserId  : String(12);                     // The delegating manager
+        delegateUserId : String(12);                     // User receiving delegation
+        delegateName   : String(80);
+        active         : Boolean default true;
+        expiresAt      : DateTime;                       // Optional expiry
 }
 
 // ============================================================================

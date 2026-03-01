@@ -13,7 +13,7 @@
             <VBox class="sapUiSmallMargin">
                 <MessageStrip
                     id="reassignInfoStrip"
-                    text="{= 'Reassigning: ' + ${reassignModel>/trainingTitle} + ' (currently: ' + ${reassignModel>/currentUserId} + ')'}"
+                    text="{parts: ['i18n>reassignInfoText', 'reassignModel>/trainingTitle', 'reassignModel>/currentUserId'], formatter: '.formatReassignInfo'}"
                     type="Information"
                     showIcon="true"
                     class="sapUiSmallMarginBottom" />
