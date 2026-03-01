@@ -11,7 +11,7 @@
 
     <Page
         id="assignmentsListPage"
-        title="{i18n>myAssignments}"
+        title=""
         showNavButton="false"
         enableScrolling="true"
         class="assignmentsPage">
@@ -122,7 +122,8 @@
                 showGoOnFB="true"
                 filterBarExpanded="true"
                 showFilterConfiguration="true"
-                useDateRangeType="true">
+                useDateRangeType="true"
+                search="onFilterBarSearch">
                 <smartFilterBar:controlConfiguration>
                     <smartFilterBar:ControlConfiguration id="ccAssignModule" key="SapModule" filterType="single" />
                 </smartFilterBar:controlConfiguration>
@@ -253,19 +254,13 @@
                 demandPopin="true"
                 enableAutoColumnWidth="true"
                 initialise="onSmartTableInit"
-                initiallyVisibleFields="Title,Url,SapModule,UserId,UserName,Status,Priority,DueDate,CompletionDate"
+                initiallyVisibleFields="Title,Url,SapModule,UserId,UserName,Status,DueDate,CompletionDate"
                 beforeRebindTable="onBeforeRebindTable"
                 requestAtLeastFields="Url,Status,Priority,DueDate,Notes"
+                ignoredFields="Priority"
                 visible="{assignViewMode>/showTable}">
 
-                <smartTable:noData>
-                    <IllustratedMessage
-                        id="assignmentsEmptyState"
-                        illustrationType="sapIllus-NoTasks"
-                        title="{i18n>noAssignmentsFoundTitle}"
-                        description="{i18n>noAssignmentsFoundDesc}"
-                        illustrationSize="Spot" />
-                </smartTable:noData>
+
 
                 <smartTable:customToolbar>
                     <OverflowToolbar id="assignTableToolbar">
@@ -282,22 +277,7 @@
                             type="Emphasized"
                             press="onMarkCompletedBtn"
                             class="markCompletedToolbarBtn" />
-                        <!-- C2: Reassign button (Manager/Admin only) -->
-                        <Button
-                            id="reassignBtn"
-                            text="{i18n>reassignButton}"
-                            icon="sap-icon://forward"
-                            type="Ghost"
-                            press="onReassign"
-                            visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
-                        <!-- D2: Send Reminder button (Manager/Admin only) -->
-                        <Button
-                            id="sendReminderBtn"
-                            text="{i18n>sendReminder}"
-                            icon="sap-icon://email"
-                            type="Ghost"
-                            press="onSendReminder"
-                            visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
+
                         <ToolbarSpacer id="assignToolbarSpacer" />
                         <SegmentedButton id="assignViewModeToggle2" selectedKey="{assignViewMode>/mode}" selectionChange="onAssignViewModeChange">
                             <items>

@@ -838,77 +838,101 @@ sap.ui.define([
         },
 
         /**
-         * Cross-filtering: when Role changes, filter Module dropdown.
+         * H9/H32 FIX: Cross-filtering helper — filters dropdown options based on
+         * ALL active filter values (Role, Topic, Module) simultaneously.
          */
-        onRoleFilterChange: function (oEvent) {
-            var oItem = oEvent.getParameter("selectedItem");
-            var sRole = oItem ? oItem.getKey() : "";
+        _updateCrossFilters: function (sChangedFilter) {
             var oFilterModel = this.getView().getModel("filterData");
-            var roleModuleMap = oFilterModel.getProperty("/roleModuleMap") || {};
-            var allModules = oFilterModel.getProperty("/allModules") || [];
-
-            if (!sRole) {
-                oFilterModel.setProperty("/modules", allModules.slice(0));
-            } else {
-                var modulesForRole = roleModuleMap[sRole] || {};
-                var filtered = [{ key: "", text: "All" }];
-                Object.keys(modulesForRole).sort().forEach(function (m) {
-                    filtered.push({ key: m, text: m });
-                });
-                oFilterModel.setProperty("/modules", filtered);
-            }
-            var oModuleSelect = this.byId("filterModule");
-            if (oModuleSelect) { oModuleSelect.setSelectedKey(""); }
-        },
-
-        /**
-         * Cross-filtering: when Topic changes, filter Module dropdown
-         * to only show modules available for the selected topic.
-         */
-        onTopicFilterChange: function (oEvent) {
-            var oItem = oEvent.getParameter("selectedItem");
-            var sTopic = oItem ? oItem.getKey() : "";
-            var oFilterModel = this.getView().getModel("filterData");
-            var topicModuleMap = oFilterModel.getProperty("/topicModuleMap") || {};
-            var allModules = oFilterModel.getProperty("/allModules") || [];
-
-            if (!sTopic) {
-                oFilterModel.setProperty("/modules", allModules.slice(0));
-            } else {
-                var modulesForTopic = topicModuleMap[sTopic] || {};
-                var filtered = [{ key: "", text: "All" }];
-                Object.keys(modulesForTopic).sort().forEach(function (m) {
-                    filtered.push({ key: m, text: m });
-                });
-                oFilterModel.setProperty("/modules", filtered);
-            }
-            var oModuleSelect = this.byId("filterModule");
-            if (oModuleSelect) { oModuleSelect.setSelectedKey(""); }
-        },
-
-        /**
-         * Cross-filtering: when Module changes, filter Topic dropdown
-         * to only show topics available for the selected module.
-         */
-        onModuleFilterChange: function (oEvent) {
-            var oItem = oEvent.getParameter("selectedItem");
-            var sModule = oItem ? oItem.getKey() : "";
-            var oFilterModel = this.getView().getModel("filterData");
-            var moduleTopicMap = oFilterModel.getProperty("/moduleTopicMap") || {};
-            var allTopics = oFilterModel.getProperty("/allTopics") || [];
-
-            if (!sModule) {
-                oFilterModel.setProperty("/topics", allTopics.slice(0));
-            } else {
-                var topicsForModule = moduleTopicMap[sModule] || {};
-                var filtered = [{ key: "", text: "All" }];
-                Object.keys(topicsForModule).sort().forEach(function (r) {
-                    filtered.push({ key: r, text: r });
-                });
-                oFilterModel.setProperty("/topics", filtered);
-            }
+            var oRoleSelect = this.byId("filterRole");
             var oTopicSelect = this.byId("filterTopic");
-            if (oTopicSelect) { oTopicSelect.setSelectedKey(""); }
+            var oModuleSelect = this.byId("filterModule");
+
+            var sRole = oRoleSelect ? oRoleSelect.getSelectedKey() : "";
+            var sTopic = oTopicSelect ? oTopicSelect.getSelectedKey() : "";
+            var sModule = oModuleSelect ? oModuleSelect.getSelectedKey() : "";
+
+            var roleModuleMap = oFilterModel.getProperty("/roleModuleMap") || {};
+            var topicModuleMap = oFilterModel.getProperty("/topicModuleMap") || {};
+            var moduleTopicMap = oFilterModel.getProperty("/moduleTopicMap") || {};
+            var allRoles = oFilterModel.getProperty("/allRoles") || [];
+            var allTopics = oFilterModel.getProperty("/allTopics") || [];
+            var allModules = oFilterModel.getProperty("/allModules") || [];
+
+            // Build sets of valid modules from role and topic
+            var validModulesFromRole = sRole ? (roleModuleMap[sRole] || {}) : null;
+            var validModulesFromTopic = sTopic ? (topicModuleMap[sTopic] || {}) : null;
+
+            // Intersect module sets
+            var filteredModules;
+            if (validModulesFromRole && validModulesFromTopic) {
+                filteredModules = [{ key: "", text: "All" }];
+                Object.keys(validModulesFromRole).sort().forEach(function (m) {
+                    if (validModulesFromTopic[m]) {
+                        filteredModules.push({ key: m, text: m });
+                    }
+                });
+            } else if (validModulesFromRole) {
+                filteredModules = [{ key: "", text: "All" }];
+                Object.keys(validModulesFromRole).sort().forEach(function (m) {
+                    filteredModules.push({ key: m, text: m });
+                });
+            } else if (validModulesFromTopic) {
+                filteredModules = [{ key: "", text: "All" }];
+                Object.keys(validModulesFromTopic).sort().forEach(function (m) {
+                    filteredModules.push({ key: m, text: m });
+                });
+            } else {
+                filteredModules = allModules.slice(0);
+            }
+
+            // Filter topics based on selected module (and role if applicable)
+            var filteredTopics;
+            if (sModule) {
+                var topicsForModule = moduleTopicMap[sModule] || {};
+                filteredTopics = [{ key: "", text: "All" }];
+                Object.keys(topicsForModule).sort().forEach(function (t) {
+                    filteredTopics.push({ key: t, text: t });
+                });
+            } else {
+                filteredTopics = allTopics.slice(0);
+            }
+
+            // Update model — but don't reset the filter that was just changed
+            if (sChangedFilter !== "module") {
+                oFilterModel.setProperty("/modules", filteredModules);
+                // Reset module if current value is not in filtered list
+                if (sModule && !filteredModules.some(function (m) { return m.key === sModule; })) {
+                    if (oModuleSelect) { oModuleSelect.setSelectedKey(""); }
+                }
+            }
+            if (sChangedFilter !== "topic") {
+                oFilterModel.setProperty("/topics", filteredTopics);
+                // Reset topic if current value is not in filtered list
+                if (sTopic && !filteredTopics.some(function (t) { return t.key === sTopic; })) {
+                    if (oTopicSelect) { oTopicSelect.setSelectedKey(""); }
+                }
+            }
+        },
+
+        /**
+         * Cross-filtering: when Role changes, update Module and Topic dropdowns.
+         */
+        onRoleFilterChange: function () {
+            this._updateCrossFilters("role");
+        },
+
+        /**
+         * Cross-filtering: when Topic changes, update Module dropdown.
+         */
+        onTopicFilterChange: function () {
+            this._updateCrossFilters("topic");
+        },
+
+        /**
+         * Cross-filtering: when Module changes, update Topic dropdown.
+         */
+        onModuleFilterChange: function () {
+            this._updateCrossFilters("module");
         },
 
         /* ===== SmartTable initialise: configure GridTable + clickable links ===== */
@@ -1132,6 +1156,18 @@ sap.ui.define([
             // Force re-render with new templates
             if (bChanged) {
                 oTable.invalidate();
+            }
+        },
+
+        /**
+         * H31 FIX: SmartFilterBar search event handler.
+         * When in card view, the SmartTable may be invisible so beforeRebindTable
+         * won't fire. This ensures the card grid always gets refreshed on search/Go.
+         */
+        onFilterBarSearch: function () {
+            var oViewMode = this.getView().getModel("viewMode");
+            if (oViewMode && oViewMode.getProperty("/showCards")) {
+                this._rebindCardGrid();
             }
         },
 
@@ -1704,10 +1740,15 @@ sap.ui.define([
                 oViewMode.setProperty("/showTable", false);
                 oViewMode.setProperty("/mode", "cards");
                 this._rebindCardGrid();
-                // Exit full-screen if SmartTable was in full-screen
+                // H33 FIX: Exit full-screen if SmartTable was in full-screen
                 var oSmartTable = this.byId("smartTable");
-                if (oSmartTable && oSmartTable._oFullScreenUtil) {
-                    try { oSmartTable._oFullScreenUtil.cleanUpFullScreen(); } catch (e) { /* ignore */ }
+                if (oSmartTable) {
+                    // Use public API if available, fallback to internal
+                    if (typeof oSmartTable.setFullScreen === "function") {
+                        try { oSmartTable.setFullScreen(false); } catch (_e) { /* ignore */ }
+                    } else if (oSmartTable._oFullScreenUtil) {
+                        try { oSmartTable._oFullScreenUtil.cleanUpFullScreen(); } catch (_e) { /* ignore */ }
+                    }
                 }
             } else {
                 oViewMode.setProperty("/showCards", false);
@@ -2010,7 +2051,7 @@ sap.ui.define([
         _getTutorialContent: function (sRole, sPage) {
             var oContent = {
                 selectedTab: "start",
-                title: "SAP Learning Courses – Training Catalog Guide"
+                title: "Training Catalog Guide"
             };
 
             if (sRole === "Admin") {

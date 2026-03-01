@@ -475,9 +475,9 @@ html, body, html.sap-desktop, .sapUiBody {
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--sapText);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    min-width: 12rem;
+    max-width: 12rem;
+    line-height: 1.3;
 }
 
 .moduleProgressBar {
@@ -538,6 +538,10 @@ html, body, html.sap-desktop, .sapUiBody {
 
 /* ===== User Analytics Container (My Assignments) – inherits same auto-fill grid
    as the home page analyticsContainer so cards scale identically ===== */
+.userAnalyticsContainer {
+    overflow-x: hidden !important; /* A7 FIX: prevent horizontal scrollbar under KPI cards */
+}
+
 .userAnalyticsContainer .analyticsCard {
     width: 100%;
     max-width: none;
@@ -1090,6 +1094,14 @@ html, body, html.sap-desktop, .sapUiBody {
     font-weight: 600;
 }
 
+/* H28 FIX: Emphasized (Mark Completed) button needs white text on blue background */
+.detailLinkBtn.sapMBtnEmphasized .sapMBtnInner,
+.detailLinkBtn .sapMBtnEmphasized .sapMBtnInner {
+    background: #0070f2 !important;
+    color: #fff !important;
+    border-color: #0070f2 !important;
+}
+
 .detailLinkBtn:hover .sapMBtnInner {
     background: #ebf5ff !important;
 }
@@ -1160,6 +1172,11 @@ html, body, html.sap-desktop, .sapUiBody {
 
     .heroCard .sapMObjectNumber {
         font-size: 2.5rem !important;
+    }
+
+    /* H10 FIX: Card grid single column on phone */
+    .cardGridWrapper .sapFGridList .sapFGridListUl {
+        grid-template-columns: 1fr !important;
     }
 }
 
@@ -1834,12 +1851,14 @@ html[data-sap-ui-theme*="dark"] .dueDateWarningBar {
     margin-bottom: 0.25rem;
 }
 
+/* H11 FIX: Consistent card layout — all cards equal height with bottom-aligned meta */
 .learningCardBody {
     flex: 1;
     min-width: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
 }
 
 .learningCardTitle {

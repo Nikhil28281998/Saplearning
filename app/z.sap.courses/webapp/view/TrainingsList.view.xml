@@ -11,7 +11,7 @@
 
     <Page
         id="trainingsListPage"
-        title="{i18n>appTitle}"
+        title=""
         showNavButton="false"
         enableScrolling="false"
         class="trainingsPage">
@@ -29,15 +29,7 @@
                 text="{i18n>myAssignments}"
                 icon="sap-icon://task"
                 press="onViewAssignments"
-                type="Emphasized">
-                <customData>
-                    <BadgeCustomData
-                        id="assignmentBadge"
-                        key="badge"
-                        value="{teamAnalytics>/pendingBadge}"
-                        visible="{= ${teamAnalytics>/pendingBadge} > 0 }" />
-                </customData>
-            </Button>
+                type="Emphasized" />
             <Button
                 id="tutorialBtn"
                 icon="sap-icon://sys-help"
@@ -135,31 +127,13 @@
                             <core:Icon id="moduleChartIcon" src="sap-icon://bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
                             <Text id="moduleChartTitle" text="{i18n>topModules}" class="chartTitle" />
                         </HBox>
-                        <!-- Assignment-based module completion (from team analytics) -->
-                        <VBox id="moduleAssignChartContainer"
-                              items="{path: 'teamAnalytics>/moduleAssignmentStats'}"
-                              visible="{= !!${teamAnalytics>/moduleAssignmentStats} &amp;&amp; ${teamAnalytics>/moduleAssignmentStats}.length > 0 }">
-                            <items>
-                                <HBox alignItems="Center" class="sapUiTinyMarginBottom moduleBarRow">
-                                    <Text text="{teamAnalytics>label}" class="moduleBarLabel sapUiTinyMarginEnd" width="8rem" wrapping="false" />
-                                    <ProgressIndicator
-                                        percentValue="{teamAnalytics>completionPct}"
-                                        displayValue="{teamAnalytics>displayValue}"
-                                        state="{= ${teamAnalytics>completionPct} >= 80 ? 'Success' : ${teamAnalytics>completionPct} >= 50 ? 'Warning' : 'Error' }"
-                                        showValue="true"
-                                        width="100%"
-                                        height="1.75rem"
-                                        class="moduleProgressBar" />
-                                </HBox>
-                            </items>
-                        </VBox>
-                        <!-- Fallback: Training-count based module chart when no assignment data -->
+                        <!-- H7 FIX: Show system-wide training module distribution (primary) -->
                         <VBox id="moduleTrainingChartContainer"
                               items="{path: 'analyticsModel>/moduleDistribution'}"
-                              visible="{= (!${teamAnalytics>/moduleAssignmentStats} || ${teamAnalytics>/moduleAssignmentStats}.length === 0) &amp;&amp; ${analyticsModel>/moduleDistribution}.length > 0 }">
+                              visible="{= !!${analyticsModel>/moduleDistribution} &amp;&amp; ${analyticsModel>/moduleDistribution}.length > 0 }">
                             <items>
                                 <HBox alignItems="Center" class="sapUiTinyMarginBottom moduleBarRow">
-                                    <Text text="{analyticsModel>label}" class="moduleBarLabel sapUiTinyMarginEnd" width="8rem" wrapping="false" />
+                                    <Text text="{analyticsModel>label}" class="moduleBarLabel sapUiTinyMarginEnd" width="12rem" wrapping="true" maxLines="2" />
                                     <ProgressIndicator
                                         percentValue="{analyticsModel>percentOfMax}"
                                         displayValue="{analyticsModel>displayValue}"
@@ -171,9 +145,27 @@
                                 </HBox>
                             </items>
                         </VBox>
+                        <!-- Fallback: Team assignment module completion when no training data -->
+                        <VBox id="moduleAssignChartContainer"
+                              items="{path: 'teamAnalytics>/moduleAssignmentStats'}"
+                              visible="{= (!${analyticsModel>/moduleDistribution} || ${analyticsModel>/moduleDistribution}.length === 0) &amp;&amp; !!${teamAnalytics>/moduleAssignmentStats} &amp;&amp; ${teamAnalytics>/moduleAssignmentStats}.length > 0 }">
+                            <items>
+                                <HBox alignItems="Center" class="sapUiTinyMarginBottom moduleBarRow">
+                                    <Text text="{teamAnalytics>label}" class="moduleBarLabel sapUiTinyMarginEnd" width="12rem" wrapping="true" maxLines="2" />
+                                    <ProgressIndicator
+                                        percentValue="{teamAnalytics>completionPct}"
+                                        displayValue="{teamAnalytics>displayValue}"
+                                        state="{= ${teamAnalytics>completionPct} >= 80 ? 'Success' : ${teamAnalytics>completionPct} >= 50 ? 'Warning' : 'Error' }"
+                                        showValue="true"
+                                        width="100%"
+                                        height="1.75rem"
+                                        class="moduleProgressBar" />
+                                </HBox>
+                            </items>
+                        </VBox>
                         <Text id="moduleChartNoData"
                               text="{i18n>noModuleData}"
-                              visible="{= (!${teamAnalytics>/moduleAssignmentStats} || ${teamAnalytics>/moduleAssignmentStats}.length === 0) &amp;&amp; (!${analyticsModel>/moduleDistribution} || ${analyticsModel>/moduleDistribution}.length === 0) }" />
+                              visible="{= (!${analyticsModel>/moduleDistribution} || ${analyticsModel>/moduleDistribution}.length === 0) &amp;&amp; (!${teamAnalytics>/moduleAssignmentStats} || ${teamAnalytics>/moduleAssignmentStats}.length === 0) }" />
                     </VBox>
                     <!-- User Progress Chart -->
                     <VBox id="teamMembersCard" class="analyticsCard analyticsCardBlue chartCard">
@@ -206,7 +198,8 @@
                 showGoOnFB="true"
                 filterBarExpanded="true"
                 showFilterConfiguration="true"
-                useDateRangeType="true">
+                useDateRangeType="true"
+                search="onFilterBarSearch">
                 <smartFilterBar:controlConfiguration>
                     <smartFilterBar:ControlConfiguration id="ccRole" key="Role" filterType="single" />
                     <smartFilterBar:ControlConfiguration id="ccTopic" key="Topic" filterType="single" />

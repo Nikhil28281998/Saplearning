@@ -54,10 +54,11 @@ sap.ui.define([
 
         onInit: function () {
             // Card/Table view mode toggle model
+            // A3 FIX: Default to table view
             var oViewModeModel = new JSONModel({
-                showCards: true,
-                showTable: false,
-                mode: "cards",
+                showCards: false,
+                showTable: true,
+                mode: "table",
                 cardCount: 0
             });
             this.getView().setModel(oViewModeModel, "assignViewMode");
@@ -546,6 +547,17 @@ sap.ui.define([
         },
 
         /**
+         * H31 FIX: SmartFilterBar search event handler.
+         * When in card view, SmartTable is invisible so beforeRebindTable won't fire.
+         */
+        onFilterBarSearch: function () {
+            var oViewMode = this.getView().getModel("assignViewMode");
+            if (oViewMode && oViewMode.getProperty("/showCards")) {
+                this._rebindAssignCardGrid();
+            }
+        },
+
+        /**
          * beforeRebindTable – handle SmartFilterBar filters for Assignments.
          */
         onBeforeRebindTable: function (oEvent) {
@@ -679,7 +691,7 @@ sap.ui.define([
         _getTutorialContent: function (sRole) {
             var oContent = {
                 selectedTab: "start",
-                title: "SAP Learning Courses – My Assignments Guide"
+                title: "My Assignments Guide"
             };
 
             if (sRole === "Admin") {
@@ -774,10 +786,14 @@ sap.ui.define([
                 oViewMode.setProperty("/showTable", false);
                 oViewMode.setProperty("/mode", "cards");
                 this._rebindAssignCardGrid();
-                // Exit full-screen if SmartTable was in full-screen
+                // H33 FIX: Exit full-screen if SmartTable was in full-screen
                 var oSmartTable = this.byId("assignSmartTable");
-                if (oSmartTable && oSmartTable._oFullScreenUtil) {
-                    try { oSmartTable._oFullScreenUtil.cleanUpFullScreen(); } catch (e) { /* ignore */ }
+                if (oSmartTable) {
+                    if (typeof oSmartTable.setFullScreen === "function") {
+                        try { oSmartTable.setFullScreen(false); } catch (_e) { /* ignore */ }
+                    } else if (oSmartTable._oFullScreenUtil) {
+                        try { oSmartTable._oFullScreenUtil.cleanUpFullScreen(); } catch (_e) { /* ignore */ }
+                    }
                 }
             } else {
                 oViewMode.setProperty("/showCards", false);
@@ -1135,6 +1151,7 @@ sap.ui.define([
                         aValidContexts.forEach(function (oCtx) {
                             var sPath = oCtx.getPath();
                             oModel.update(sPath, { Status: "In Progress" }, {
+                                merge: true,
                                 success: function () {
                                     iDone++;
                                     if (iDone + iFail === iTotal) {
@@ -1143,13 +1160,19 @@ sap.ui.define([
                                         that._loadAnalytics();
                                     }
                                 },
-                                error: function () {
+                                error: function (oError) {
                                     iFail++;
                                     if (iDone + iFail === iTotal) {
                                         if (iDone > 0) {
                                             MessageToast.show(i18n.getText("startTrainingSuccess", [iDone]));
                                         } else {
-                                            MessageBox.error(i18n.getText("updateFailed"));
+                                            // H26 FIX: Show actual server error message
+                                            var sMsg = i18n.getText("updateFailed");
+                                            try {
+                                                var parsed = JSON.parse(oError.responseText);
+                                                sMsg = (parsed.error && parsed.error.message && (parsed.error.message.value || parsed.error.message)) || sMsg;
+                                            } catch (_e) { /* ignore */ }
+                                            MessageBox.error(sMsg);
                                         }
                                         oSmartTable.rebindTable(true);
                                         that._loadAnalytics();
@@ -1339,7 +1362,9 @@ sap.ui.define([
                     var sEntitySet = oComponent.getAssignmentEntitySet ? oComponent.getAssignmentEntitySet() : 'TrainingAssignments';
                     var sId = oAssignment.ID || oAssignment.Id;
                     var sServiceUrl = oModel.sServiceUrl || '';
-                    var sActionUrl = sServiceUrl + '/' + sEntitySet + "('" + sId + "')/SAPLearningService.markCompleted";
+                    // H27 FIX: Use guid prefix for OData V2 UUID keys
+                    var sKeyPredicate = "(guid'" + sId + "')";
+                    var sActionUrl = sServiceUrl + '/' + sEntitySet + sKeyPredicate + "/SAPLearningService.markCompleted";
 
                     jQuery.ajax({
                         url: sActionUrl,
@@ -1396,7 +1421,8 @@ sap.ui.define([
                     var aPromises = aContexts.map(function (oCtx) {
                         var oData = oCtx.getObject();
                         var sId = oData.ID || oData.Id;
-                        var sActionUrl = sServiceUrl + '/' + sEntitySet + "('" + sId + "')/SAPLearningService.markCompleted";
+                        // H27 FIX: Use guid prefix for OData V2 UUID keys
+                        var sActionUrl = sServiceUrl + '/' + sEntitySet + "(guid'" + sId + "')/SAPLearningService.markCompleted";
                         return new Promise(function (resolve, reject) {
                             jQuery.ajax({
                                 url: sActionUrl,

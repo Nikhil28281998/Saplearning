@@ -446,8 +446,10 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
       if (!validateInput(req.data, req)) return;
 
       // PG-2: Validate DueDate is not in the past (on update too)
-      if (req.data.dueDate) {
-        const due = new Date(req.data.dueDate);
+      // H26 FIX: Check both camelCase and PascalCase property names
+      const dueDate = req.data.dueDate || req.data.DueDate;
+      if (dueDate) {
+        const due = new Date(dueDate);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         if (due < today) {
@@ -455,7 +457,9 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
         }
       }
 
-      const assignmentId = req.data.ID || req.params?.[0]?.ID;
+      // H26 FIX: More robust ID extraction — handle both CDS (camelCase) and OData (PascalCase)
+      const assignmentId = req.data.ID || req.data.Id || req.params?.[0]?.ID || req.params?.[0]?.Id ||
+        (typeof req.params?.[0] === 'string' ? req.params[0] : null);
       if (!assignmentId) return req.reject(400, 'Assignment ID is required');
 
       const assignment = await SELECT.one.from(TrainingAssignments).where({ ID: assignmentId });
@@ -463,16 +467,18 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
 
       // Regular users can only update their own assignments and only specific fields
       if (userCtx.isUser && !userCtx.isManager && !userCtx.isAdmin) {
-        if (assignment.userId !== userCtx.sapUsername) {
+        // H26 FIX: Case-insensitive userId comparison
+        if ((assignment.userId || '').toUpperCase() !== (userCtx.sapUsername || '').toUpperCase()) {
           secureLog('warn', 'Unauthorized UPDATE attempt', {
             username: userCtx.username, assignmentId
           });
           return req.reject(403, 'Cannot update other users\' assignments');
         }
 
-        const allowedFields = ['status', 'completionDate', 'ID'];
+        // H26 FIX: Case-insensitive field name check (CDS uses camelCase, OData may use PascalCase)
+        const allowedFields = ['status', 'completiondate', 'id'];
         const attemptedFields = Object.keys(req.data);
-        const disallowedFields = attemptedFields.filter(f => !allowedFields.includes(f));
+        const disallowedFields = attemptedFields.filter(f => !allowedFields.includes(f.toLowerCase()));
 
         if (disallowedFields.length > 0) {
           return req.reject(403, 'Users can only update: status, completionDate');

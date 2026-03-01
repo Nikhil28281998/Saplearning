@@ -561,13 +561,20 @@ sap.ui.define([
             // Initialize training duplicate counts
             trainings.forEach(function (tr) { tr.duplicateCount = 0; });
 
+            // H16 FIX: Default due date to 2 weeks from today
+            var oDefaultDue = new Date();
+            oDefaultDue.setDate(oDefaultDue.getDate() + 14);
+            var sDefaultDue = oDefaultDue.getFullYear() + '-' +
+                String(oDefaultDue.getMonth() + 1).padStart(2, '0') + '-' +
+                String(oDefaultDue.getDate()).padStart(2, '0');
+
             this._assignModel = new JSONModel({
                 trainings: trainings,
                 users: users,
                 filteredUsers: users.slice(), // B3: filtered copy for search
                 selectedUserKeys: [],
                 selectedUsersDetail: [],
-                dueDate: null,
+                dueDate: sDefaultDue,
                 priority: 'Medium',
                 notes: '',
                 sequence: '',
@@ -1098,7 +1105,8 @@ sap.ui.define([
             // 1-3 FIX: Use direct POST for bound action — works in both V2 (Gateway) and V4 (CAP)
             // V2 callFunction does not support V4-style Entity(key)/Namespace.action syntax
             var sServiceUrl = oModel.sServiceUrl || '';
-            var sActionUrl = sServiceUrl + '/' + sEntitySet + "('" + sId + "')/SAPLearningService.reassign";
+            // H27 FIX: Use guid prefix for OData V2 UUID keys
+            var sActionUrl = sServiceUrl + '/' + sEntitySet + "(guid'" + sId + "')/SAPLearningService.reassign";
 
             jQuery.ajax({
                 url: sActionUrl,
