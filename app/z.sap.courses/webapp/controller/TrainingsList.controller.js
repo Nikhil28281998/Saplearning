@@ -103,6 +103,7 @@ sap.ui.define([
                 that._updateTableSelectionMode();
             };
             // FIX 7.4: Use component EventBus instead of deprecated sap.ui.getCore().getEventBus()
+            var oComponent = this.getOwnerComponent();
             oComponent.getEventBus().subscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
 
             // Re-load data when userId is resolved from backend (async)
