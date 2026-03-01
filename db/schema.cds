@@ -95,17 +95,7 @@ entity TrainingAssignments : managed {
         recurrenceCount  : Integer default 0;           // Current recurrence count
 }
 
-// ============================================================================
-// C6: MANAGER DELEGATION - Temporary authority transfer
-// ============================================================================
-entity ManagerDelegations : managed {
-    key ID           : UUID;
-        managerUserId  : String(12);                     // The delegating manager
-        delegateUserId : String(12);                     // User receiving delegation
-        delegateName   : String(80);
-        active         : Boolean default true;
-        expiresAt      : DateTime;                       // Optional expiry
-}
+
 
 // ============================================================================
 // DATABASE INDEXES - Performance Optimization

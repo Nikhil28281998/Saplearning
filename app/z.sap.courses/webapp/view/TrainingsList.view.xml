@@ -85,10 +85,7 @@
                         <!-- D4: Export team report -->
                         <Button id="exportTeamReportBtn" text="{i18n>exportReport}" icon="sap-icon://excel-attachment"
                             type="Ghost" press="onExportTeamReport" tooltip="{i18n>exportReportTooltip}" />
-                        <!-- C6: Delegate authority -->
-                        <Button id="delegateAuthorityBtn" text="{i18n>delegateTitle}" icon="sap-icon://role"
-                            type="Ghost" press="onDelegateAuthority"
-                            visible="{= ${user>/role} === 'Manager' }" />
+
                     </OverflowToolbar>
                 </headerToolbar>
 

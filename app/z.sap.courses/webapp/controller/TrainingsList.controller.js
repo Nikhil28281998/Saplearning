@@ -1940,15 +1940,6 @@ sap.ui.define([
             MessageToast.show("Report exported");
         },
 
-        // ============================================================
-        // C6: Delegate Authority
-        // ============================================================
-
-        onDelegateAuthority: function () {
-            var oComponent = this.getOwnerComponent();
-            oComponent.openDelegateDialog();
-        },
-
         onViewAssignments: function () {
             var oRouter = this.getOwnerComponent().getRouter();
             oRouter.navTo("TrainingAssignmentsList");

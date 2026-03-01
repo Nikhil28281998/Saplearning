@@ -1149,126 +1149,7 @@ sap.ui.define([
             window.open('mailto:' + sUserEmail + '?subject=' + subject + '&body=' + body, '_self');
         },
 
-        // ====================================================================
-        // C6: Delegation Dialog
-        // ====================================================================
 
-        openDelegateDialog: function () {
-            var that = this;
-            if (this._delegateDlg) { this._delegateDlg.destroy(); this._delegateDlg = null; }
-
-            var oModel = this.getModel();
-            var sUserId = this.getCurrentUserId();
-            var aFilters = [];
-            if (sUserId) {
-                var sProp = this._userManagerProperty || 'sort2';
-                aFilters.push(new sap.ui.model.Filter(sProp, sap.ui.model.FilterOperator.EQ, sUserId));
-            }
-
-            var sUserEntitySet = this._userEntitySet || 'UserSet';
-            oModel.read('/' + sUserEntitySet, {
-                filters: aFilters,
-                success: function (data) {
-                    var aUsers = data.results || [];
-
-                    that._delegateModel = new JSONModel({
-                        users: aUsers,
-                        selectedUserId: aUsers.length > 0 ? aUsers[0].UserId : '',
-                        activeDelegateName: '',
-                        error: '',
-                        submitting: false
-                    });
-
-                    // Check active delegation
-                    oModel.callFunction('/getActiveDelegation', {
-                        method: 'GET',
-                        success: function (result) {
-                            var val = typeof result === 'string' ? result : (result && result.getActiveDelegation || result.value || '');
-                            if (val) {
-                                var parts = val.split('|');
-                                that._delegateModel.setProperty('/activeDelegateName', parts[1] || parts[0]);
-                            }
-                        },
-                        error: function () { /* ignore */ }
-                    });
-
-                    Fragment.load({
-                        name: "z.sap.courses.fragments.DelegateDialog",
-                        controller: that
-                    }).then(function (oDialog) {
-                        that._delegateDlg = oDialog;
-                        oDialog.setModel(that._delegateModel, "delegateModel");
-                        oDialog.setModel(that.getModel("i18n"), "i18n");
-                        oDialog.attachAfterClose(function () { oDialog.destroy(); that._delegateDlg = null; });
-                        oDialog.open();
-                    });
-                },
-                error: function () {
-                    var i18n = that.getModel("i18n") && that.getModel("i18n").getResourceBundle();
-                    MessageToast.show(i18n ? i18n.getText("failedLoadTeamMembers") : 'Failed to load team members');
-                }
-            });
-        },
-
-        onDelegateSubmit: function () {
-            var that = this;
-            var oRM = this._delegateModel;
-            if (!oRM) return;
-            var sDelegate = oRM.getProperty("/selectedUserId");
-            if (!sDelegate) {
-                oRM.setProperty("/error", "Select a team member");
-                return;
-            }
-            oRM.setProperty("/submitting", true);
-            oRM.setProperty("/error", "");
-
-            var oModel = this.getModel();
-            oModel.callFunction("/delegateAuthority", {
-                method: "POST",
-                urlParameters: { delegateUserId: sDelegate },
-                success: function () {
-                    oRM.setProperty("/submitting", false);
-                    if (that._delegateDlg) { that._delegateDlg.close(); }
-                    var i18n = that.getModel("i18n").getResourceBundle();
-                    MessageToast.show(i18n.getText("delegateSuccess") || "Authority delegated successfully");
-                },
-                error: function (err) {
-                    oRM.setProperty("/submitting", false);
-                    var msg = 'Delegation failed';
-                    try {
-                        var p = JSON.parse(err.responseText);
-                        msg = (p.error && p.error.message && p.error.message.value) || msg;
-                    } catch (_) {}
-                    oRM.setProperty("/error", msg);
-                }
-            });
-        },
-
-        onDelegateRevoke: function () {
-            var that = this;
-            var oRM = this._delegateModel;
-            if (!oRM) return;
-            oRM.setProperty("/submitting", true);
-
-            var oModel = this.getModel();
-            oModel.callFunction("/revokeDelegation", {
-                method: "POST",
-                success: function () {
-                    oRM.setProperty("/submitting", false);
-                    oRM.setProperty("/activeDelegateName", "");
-                    var i18n = that.getModel("i18n").getResourceBundle();
-                    MessageToast.show(i18n.getText("delegateRevokeSuccess") || "Delegation revoked");
-                },
-                error: function () {
-                    oRM.setProperty("/submitting", false);
-                    oRM.setProperty("/error", "Failed to revoke delegation");
-                }
-            });
-        },
-
-        onDelegateCancel: function () {
-            if (this._delegateDlg) { this._delegateDlg.close(); }
-        },
 
         destroy: function () {
             // Remove window event listeners (fix memory leaks)
@@ -1309,11 +1190,6 @@ sap.ui.define([
                 this._resultDlg.destroy();
                 this._resultDlg = null;
             }
-            if (this._delegateDlg) {
-                this._delegateDlg.destroy();
-                this._delegateDlg = null;
-            }
-
             UIComponent.prototype.destroy.apply(this, arguments);
         }
     });
