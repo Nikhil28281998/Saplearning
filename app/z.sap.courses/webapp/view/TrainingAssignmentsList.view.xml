@@ -12,11 +12,9 @@
     <Page
         id="assignmentsListPage"
         title="{i18n>myAssignments}"
-        showNavButton="true"
-        navButtonPress="onNavBack"
-        navButtonTooltip="{i18n>backToCourses}"
+        showNavButton="false"
         enableScrolling="true"
-        class="sapUiResponsivePadding--header sapUiResponsivePadding--content assignmentsPage">
+        class="assignmentsPage">
 
         <headerContent>
             <Button

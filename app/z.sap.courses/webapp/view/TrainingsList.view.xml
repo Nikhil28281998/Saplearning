@@ -11,55 +11,47 @@
 
     <Page
         id="trainingsListPage"
+        title="{i18n>appTitle}"
         showNavButton="false"
         enableScrolling="false"
-        class="trainingsPage sapUiResponsivePadding--header sapUiResponsivePadding--content">
+        class="trainingsPage">
 
-        <!-- Page Header: Title + Role badge + My Assignments -->
-        <customHeader>
-            <Bar id="headerBar">
-                <contentLeft>
-                    <Title id="headerTitle" text="{i18n>appTitle}" level="H3" />
-                </contentLeft>
-                <contentRight>
-                    <!-- Role badge: shows the PFCG-detected role (read-only) -->
-                    <ObjectStatus
-                        id="roleBadge"
-                        text="{user>/role}"
-                        icon="sap-icon://role"
-                        state="{= ${user>/role} === 'Admin' ? 'Success' : ${user>/role} === 'Manager' ? 'Warning' : 'Information' }"
-                        class="sapUiSmallMarginEnd" />
-                    <Button
-                        id="myAssignmentsBtn"
-                        text="{i18n>myAssignments}"
-                        icon="sap-icon://task"
-                        press="onViewAssignments"
-                        type="Emphasized">
-                        <!-- C1: Notification badge for pending/overdue assignments -->
-                        <customData>
-                            <BadgeCustomData
-                                id="assignmentBadge"
-                                key="badge"
-                                value="{teamAnalytics>/pendingBadge}"
-                                visible="{= ${teamAnalytics>/pendingBadge} > 0 }" />
-                        </customData>
-                    </Button>
-                    <Button
-                        id="tutorialBtn"
-                        icon="sap-icon://sys-help"
-                        tooltip="{i18n>howToUseApp}"
-                        press="onOpenTutorial"
-                        type="Transparent" />
-                    <Button
-                        id="messagePopoverBtn"
-                        icon="sap-icon://message-popup"
-                        text="{= ${message>/}.length > 0 ? ${message>/}.length : '' }"
-                        type="{= ${message>/}.length > 0 ? 'Negative' : 'Default' }"
-                        press="onMessagePopoverPress"
-                        visible="{= ${message>/}.length > 0 }" />
-                </contentRight>
-            </Bar>
-        </customHeader>
+        <!-- Page Header Content: Role badge + My Assignments + Help + Messages -->
+        <headerContent>
+            <ObjectStatus
+                id="roleBadge"
+                text="{user>/role}"
+                icon="sap-icon://role"
+                state="{= ${user>/role} === 'Admin' ? 'Success' : ${user>/role} === 'Manager' ? 'Warning' : 'Information' }"
+                class="sapUiSmallMarginEnd" />
+            <Button
+                id="myAssignmentsBtn"
+                text="{i18n>myAssignments}"
+                icon="sap-icon://task"
+                press="onViewAssignments"
+                type="Emphasized">
+                <customData>
+                    <BadgeCustomData
+                        id="assignmentBadge"
+                        key="badge"
+                        value="{teamAnalytics>/pendingBadge}"
+                        visible="{= ${teamAnalytics>/pendingBadge} > 0 }" />
+                </customData>
+            </Button>
+            <Button
+                id="tutorialBtn"
+                icon="sap-icon://sys-help"
+                tooltip="{i18n>howToUseApp}"
+                press="onOpenTutorial"
+                type="Transparent" />
+            <Button
+                id="messagePopoverBtn"
+                icon="sap-icon://message-popup"
+                text="{= ${message>/}.length > 0 ? ${message>/}.length : '' }"
+                type="{= ${message>/}.length > 0 ? 'Negative' : 'Default' }"
+                press="onMessagePopoverPress"
+                visible="{= ${message>/}.length > 0 }" />
+        </headerContent>
 
         <dependents>
             <core:InvisibleText id="trainingsFilterLabel" text="{i18n>trainingsFilterLabel}" />

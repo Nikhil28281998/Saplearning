@@ -645,14 +645,6 @@ sap.ui.define([
             }
         },
 
-        /* ===== Nav Back – always navigate to home (TrainingsList) ===== */
-        onNavBack: function () {
-            // FIX 2.1: Always use router.navTo instead of window.history.go(-1).
-            // window.history.go(-1) can navigate outside the app entirely in FLP,
-            // leaving users stranded on the Fiori Launchpad home page.
-            this.getOwnerComponent().getRouter().navTo("TrainingsList", {}, true /* no history */);
-        },
-
         /* ================================================================== */
         /* TUTORIAL DIALOG                                                     */
         /* ================================================================== */

@@ -122,71 +122,36 @@ html, body, html.sap-desktop, .sapUiBody {
     min-height: 400px !important;
 }
 
-/* ===== Modern Header Bar ===== */
+/* ===== FLP-Native Page Header – clean, thin, integrates with FLP Shell ===== */
 .sapMPage > .sapMPageHeader .sapMBar,
 .sapMPage > header .sapMBar {
-    background: linear-gradient(135deg, #1a2c42 0%, #0854a0 60%, #0a6ed1 100%) !important;
-    border-bottom: none !important;
-    box-shadow: 0 2px 12px rgba(8,84,160,0.18);
-    min-height: 3rem;
+    background: var(--sapSurface, #ffffff) !important;
+    border-bottom: 1px solid var(--sapBorder, #e0e0e0) !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    min-height: 2.75rem;
 }
 
 .sapMPage > .sapMPageHeader .sapMBar .sapMTitle,
 .sapMPage > header .sapMBar .sapMTitle {
-    color: #fff !important;
+    color: var(--sapText, #1d2d3e) !important;
     font-weight: 700;
-    font-size: 1.125rem;
+    font-size: 1.0625rem;
     letter-spacing: -0.01em;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
 }
 
-.sapMPage > .sapMPageHeader .sapMBar .sapMBtn,
-.sapMPage > header .sapMBar .sapMBtn {
-    color: #fff !important;
-}
-
-.sapMPage > .sapMPageHeader .sapMBar .sapUiIcon,
-.sapMPage > header .sapMBar .sapUiIcon {
-    color: rgba(255,255,255,0.85) !important;
-}
-
-/* Role badge in header – pill style */
+/* Role badge in header – pill style (light bg) */
 .sapMPage > .sapMPageHeader .sapMBar .sapMObjStatus,
 .sapMPage > header .sapMBar .sapMObjStatus {
-    background: rgba(255,255,255,0.18) !important;
+    background: var(--sapNeutralLight, #f0f2f5) !important;
     border-radius: 20px;
     padding: 0.15rem 0.75rem !important;
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255,255,255,0.25);
+    border: 1px solid var(--sapBorder, #e0e0e0);
 }
 
 .sapMPage > .sapMPageHeader .sapMBar .sapMObjStatusText,
 .sapMPage > header .sapMBar .sapMObjStatusText {
-    color: #fff !important;
     font-weight: 600;
     font-size: 0.8125rem;
-}
-
-/* My Assignments button in header */
-.sapMPage > .sapMPageHeader .sapMBar .sapMBtnEmphasized,
-.sapMPage > header .sapMBar .sapMBtnEmphasized {
-    background: rgba(255,255,255,0.2) !important;
-    border: 1px solid rgba(255,255,255,0.35) !important;
-    border-radius: 8px !important;
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
-    transition: var(--sapTransition);
-}
-
-.sapMPage > .sapMPageHeader .sapMBar .sapMBtnEmphasized:hover {
-    background: rgba(255,255,255,0.3) !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.sapMPage > .sapMPageHeader .sapMBar .sapMBtnEmphasized .sapMBtnContent,
-.sapMPage > header .sapMBar .sapMBtnEmphasized .sapMBtnContent {
-    color: #fff !important;
 }
 
 /* ===== Analytics Panel – Glassmorphism Dashboard ===== */
