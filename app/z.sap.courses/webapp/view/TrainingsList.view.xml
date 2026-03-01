@@ -128,71 +128,15 @@
                             icon="{= ${teamAnalytics>/completionTrend} === 'up' ? 'sap-icon://trend-up' : (${teamAnalytics>/completionTrend} === 'down' ? 'sap-icon://trend-down' : 'sap-icon://less') }"
                             visible="{= !!${teamAnalytics>/completionTrend} }" />
                     </VBox>
-                    <VBox id="teamCompletionPctBox" alignItems="Center" class="analyticsCard teamKpiCard analyticsCardPurple" tooltip="{i18n>teamCompletionRate}">
+                    <VBox id="teamCompletionPctBox" alignItems="Center" class="analyticsCard teamKpiCard analyticsCardPurple heroCard" tooltip="{i18n>teamCompletionRate}">
                         <core:Icon id="teamCompletionPctIcon" src="sap-icon://performance" size="2rem" color="#6c32a9" class="sapUiTinyMarginBottom" />
                         <ObjectNumber id="teamCompletionPctCount" number="{= ${teamAnalytics>/completionPercent} + '%' }" state="{= ${teamAnalytics>/completionPercent} >= 80 ? 'Success' : ${teamAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Information' }" class="analyticsNumber" />
                         <Text id="teamCompletionPctLabel" text="{i18n>teamCompletionRate}" class="analyticsLabel" />
                     </VBox>
                 </VBox>
 
-                <!-- Charts 3-Column Grid: Status Distribution + Top Modules + User Progress -->
+                <!-- Charts 2-Column Grid: Top Modules + User Progress -->
                 <VBox id="teamChartsHBox" class="sapUiSmallMargin chartsRow">
-                    <VBox id="teamStatusChartBox" class="analyticsCard analyticsCardBlue chartCard">
-                        <HBox id="teamStatusHeader" alignItems="Center" class="sapUiTinyMarginBottom">
-                            <core:Icon id="teamStatusIcon" src="sap-icon://horizontal-bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
-                            <Text id="teamStatusTitle" text="{i18n>teamStatusDistribution}" class="chartTitle" />
-                        </HBox>
-                        <VBox id="teamStatusChartContent" class="sapUiTinyMarginTop">
-                            <HBox id="teamPendingRow" alignItems="Center" class="sapUiTinyMarginBottom">
-                                <core:Icon id="teamPendingDot" src="sap-icon://pending" size="1rem" color="#e76500" class="sapUiTinyMarginEnd" />
-                                <Text id="teamPendingLbl" text="{i18n>pending}" class="sapUiTinyMarginEnd chartLegendText" width="5rem" />
-                                <ProgressIndicator
-                                    id="teamPendingBar"
-                                    percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? (${teamAnalytics>/assigned} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
-                                    displayValue="{= ${teamAnalytics>/assigned} + ' (' + (${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/assigned} / ${teamAnalytics>/totalAssignments} * 100) : 0) + '%)' }"
-                                    state="Warning"
-                                    showValue="true"
-                                    width="100%"
-                                    height="1.75rem" />
-                            </HBox>
-                            <HBox id="teamInProgressRow" alignItems="Center" class="sapUiTinyMarginBottom">
-                                <core:Icon id="teamInProgressDot" src="sap-icon://activity-2" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
-                                <Text id="teamInProgressLbl" text="{i18n>inProgress}" class="sapUiTinyMarginEnd chartLegendText" width="5rem" />
-                                <ProgressIndicator
-                                    id="teamInProgressBar"
-                                    percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? (${teamAnalytics>/inProgress} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
-                                    displayValue="{= ${teamAnalytics>/inProgress} + ' (' + (${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/inProgress} / ${teamAnalytics>/totalAssignments} * 100) : 0) + '%)' }"
-                                    state="Information"
-                                    showValue="true"
-                                    width="100%"
-                                    height="1.75rem" />
-                            </HBox>
-                            <HBox id="teamOverdueRow" alignItems="Center" class="sapUiTinyMarginBottom">
-                                <core:Icon id="teamOverdueDot" src="sap-icon://alert" size="1rem" color="#bb0000" class="sapUiTinyMarginEnd" />
-                                <Text id="teamOverdueLbl" text="{i18n>overdue}" class="sapUiTinyMarginEnd chartLegendText" width="5rem" />
-                                <ProgressIndicator
-                                    id="teamOverdueBar"
-                                    percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? (${teamAnalytics>/overdue} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
-                                    displayValue="{= ${teamAnalytics>/overdue} + ' (' + (${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/overdue} / ${teamAnalytics>/totalAssignments} * 100) : 0) + '%)' }"
-                                    state="Error"
-                                    showValue="true"
-                                    width="100%"
-                                    height="1.75rem" />
-                            </HBox>
-                            <HBox id="teamCompletedRow" alignItems="Center">
-                                <core:Icon id="teamCompletedDot" src="sap-icon://accept" size="1rem" color="#107e3e" class="sapUiTinyMarginEnd" />
-                                <Text id="teamCompletedLbl" text="{i18n>done}" class="sapUiTinyMarginEnd chartLegendText" width="5rem" />
-                                <ProgressIndicator
-                                    id="teamCompletedBar"
-                                    percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? (${teamAnalytics>/completed} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
-                                    displayValue="{= ${teamAnalytics>/completed} + ' (' + (${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/completed} / ${teamAnalytics>/totalAssignments} * 100) : 0) + '%)' }"
-                                    state="Success"
-                                    showValue="true"
-                                    width="100%"
-                                    height="1.75rem" />
-                            </HBox>
-                        </VBox>
-                    </VBox>
                     <!-- Top Modules by Assignment Completion -->
                     <VBox id="moduleChartBox" class="analyticsCard analyticsCardBlue chartCard">
                         <HBox id="moduleChartHeader" alignItems="Center" class="sapUiTinyMarginBottom">

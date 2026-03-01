@@ -225,6 +225,31 @@ sap.ui.define([
         },
 
         /**
+         * Animated count-up for KPI numbers. Smoothly increments from 0 to target.
+         */
+        _animateNumbers: function (oModel, aPaths, iDuration) {
+            iDuration = iDuration || 600;
+            var aTargets = aPaths.map(function (sPath) {
+                return { path: sPath, target: oModel.getProperty(sPath) || 0 };
+            });
+            // Set all to 0
+            aTargets.forEach(function (t) { oModel.setProperty(t.path, 0); });
+            var iStart = performance.now();
+            var fnStep = function (ts) {
+                var fProgress = Math.min((ts - iStart) / iDuration, 1);
+                // Ease-out cubic
+                var fEase = 1 - Math.pow(1 - fProgress, 3);
+                aTargets.forEach(function (t) {
+                    oModel.setProperty(t.path, Math.round(t.target * fEase));
+                });
+                if (fProgress < 1) {
+                    requestAnimationFrame(fnStep);
+                }
+            };
+            requestAnimationFrame(fnStep);
+        },
+
+        /**
          * AN-2: Populate module distribution data for ProgressIndicator bars.
          * The view binds to analyticsModel>/moduleDistribution — declarative.
          */
@@ -338,6 +363,9 @@ sap.ui.define([
                             _g(oResult, "assigned", "Assigned") + _g(oResult, "overdue", "Overdue"));
 
                         if (oPanel) { oPanel.setBusy(false); }
+
+                        // Animate KPI numbers from 0 to target
+                        that._animateNumbers(oTeamModel, ["/totalAssignments", "/assigned", "/inProgress", "/completed", "/overdue", "/completionPercent"]);
 
                         // FIX-1: Always load flat assignments for drill-down clicks
                         that._loadTeamAssignmentsForDrillDown();
@@ -542,6 +570,9 @@ sap.ui.define([
                             iAssigned + " assigned, " + iInProgress + " in progress, " +
                             iCompleted + " completed, " + iOverdue + " overdue");
                         if (oPanel) { oPanel.setBusy(false); }
+
+                        // Animate KPI numbers from 0 to target
+                        that._animateNumbers(oTeamModel, ["/totalAssignments", "/assigned", "/inProgress", "/completed", "/overdue", "/completionPercent"]);
                     },
                     error: function (err) {
                         var sErrDetail = "";

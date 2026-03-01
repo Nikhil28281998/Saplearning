@@ -267,6 +267,9 @@ sap.ui.define([
                     oAnalyticsModel.setProperty("/dueSoonCount", iDueSoon);
                     if (oPanel) { oPanel.setBusy(false); }
                     that._setMyCardSkeletons(false);
+
+                    // Animate KPI numbers from 0 to target
+                    that._animateNumbers(oAnalyticsModel, ["/assigned", "/inProgress", "/completed", "/overdue", "/completionPercent"]);
                 },
                 error: function (err) {
                     Log.warning("[AssignAnalytics] Failed to load: " + (err && err.message || ""));
@@ -334,6 +337,31 @@ sap.ui.define([
                     else { oCard.removeStyleClass("analyticsCardSkeleton"); }
                 }
             });
+        },
+
+        /**
+         * Animated count-up for KPI numbers. Smoothly increments from 0 to target.
+         */
+        _animateNumbers: function (oModel, aPaths, iDuration) {
+            iDuration = iDuration || 600;
+            var aTargets = aPaths.map(function (sPath) {
+                return { path: sPath, target: oModel.getProperty(sPath) || 0 };
+            });
+            // Set all to 0
+            aTargets.forEach(function (t) { oModel.setProperty(t.path, 0); });
+            var iStart = performance.now();
+            var fnStep = function (ts) {
+                var fProgress = Math.min((ts - iStart) / iDuration, 1);
+                // Ease-out cubic
+                var fEase = 1 - Math.pow(1 - fProgress, 3);
+                aTargets.forEach(function (t) {
+                    oModel.setProperty(t.path, Math.round(t.target * fEase));
+                });
+                if (fProgress < 1) {
+                    requestAnimationFrame(fnStep);
+                }
+            };
+            requestAnimationFrame(fnStep);
         },
 
         /**

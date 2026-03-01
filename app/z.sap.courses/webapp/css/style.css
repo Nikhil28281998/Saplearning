@@ -283,12 +283,87 @@ html, body, html.sap-desktop, .sapUiBody {
 .analyticsCardPurple { border-top: 3px solid var(--sapAccent5); }
 .analyticsCardRed   { border-top: 3px solid var(--sapNegativeColor, #bb0000); }
 
+/* Subtle gradient tint backgrounds for each card color */
+.analyticsCardBlue:not(.heroCard)  { background: linear-gradient(180deg, rgba(8,84,160,0.07) 0%, transparent 60%), var(--sapGlass) !important; }
+.analyticsCardOrange:not(.heroCard) { background: linear-gradient(180deg, rgba(231,101,0,0.07) 0%, transparent 60%), var(--sapGlass) !important; }
+.analyticsCardGreen:not(.heroCard) { background: linear-gradient(180deg, rgba(16,126,62,0.07) 0%, transparent 60%), var(--sapGlass) !important; }
+.analyticsCardPurple:not(.heroCard) { background: linear-gradient(180deg, rgba(108,50,169,0.07) 0%, transparent 60%), var(--sapGlass) !important; }
+.analyticsCardRed:not(.heroCard)   { background: linear-gradient(180deg, rgba(187,0,0,0.07) 0%, transparent 60%), var(--sapGlass) !important; }
+
+/* ===== Hero Completion Card — prominent gradient background ===== */
+.heroCard {
+    background: linear-gradient(135deg, #6c32a9 0%, #9c27b0 50%, #ba68c8 100%) !important;
+    border-top: none !important;
+    border-color: rgba(108,50,169,0.3) !important;
+    box-shadow: 0 4px 20px rgba(108,50,169,0.25) !important;
+}
+
+.heroCard .sapMObjectNumber,
+.heroCard .sapMObjectNumber .sapMObjectNumberText {
+    color: #ffffff !important;
+}
+
+.heroCard .sapUiIcon {
+    color: rgba(255,255,255,0.9) !important;
+}
+
+.heroCard .analyticsLabel,
+.heroCard .sapMText {
+    color: rgba(255,255,255,0.85) !important;
+}
+
+.heroCard .sapMObjectStatus .sapMObjStatusText,
+.heroCard .sapMObjectStatus .sapMObjStatusIcon {
+    color: rgba(255,255,255,0.8) !important;
+}
+
+.heroCard::before {
+    background: rgba(255,255,255,0.15) !important;
+    opacity: 0.3 !important;
+    width: 100px !important;
+    height: 100px !important;
+}
+
+.heroCard:hover {
+    box-shadow: 0 8px 28px rgba(108,50,169,0.35) !important;
+    transform: translateY(-5px);
+}
+
 .analyticsCardBlue::before  { background: var(--sapAccent1); }
 .analyticsCardOrange::before { background: var(--sapAccent2); }
 .analyticsCardTeal::before  { background: var(--sapAccent3); }
 .analyticsCardGreen::before { background: var(--sapAccent4); }
 .analyticsCardPurple::before { background: var(--sapAccent5); }
 .analyticsCardRed::before   { background: var(--sapNegativeColor, #bb0000); }
+
+/* ===== Animated Number Reveal ===== */
+@keyframes numberReveal {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.analyticsCard .sapMObjectNumber {
+    animation: numberReveal 0.5s ease-out;
+}
+
+/* ===== User Avatar Initials Circle ===== */
+.userAvatar.sapMText {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0854a0, #0a6ed1);
+    color: #fff !important;
+    font-size: 0.8125rem !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    line-height: 2rem !important;
+    text-align: center;
+}
 
 /* Analytics number – tabular figures, NO overflow clipping */
 .analyticsCard .sapMObjectNumber {
@@ -332,10 +407,10 @@ html, body, html.sap-desktop, .sapUiBody {
     transform: scale(1.15);
 }
 
-/* ===== Charts Row – CSS Grid 3-column layout ===== */
+/* ===== Charts Row – CSS Grid 2-column layout ===== */
 .chartsRow {
     display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 0.75rem !important;
     padding: 0.5rem 0.75rem !important;
     width: 100% !important;
@@ -451,22 +526,18 @@ html, body, html.sap-desktop, .sapUiBody {
 }
 
 /* Status chart bars — gradient fills for visual richness */
-#teamPendingBar .sapMPIBar.sapMPIBarRemaining + .sapMPIBar,
 .chartCard .sapMPI[class*="Warning"] .sapMPIBar:not(.sapMPIBarRemaining) {
     background: linear-gradient(90deg, #e76500, #f59e0b) !important;
 }
 
-#teamInProgressBar .sapMPIBar.sapMPIBarRemaining + .sapMPIBar,
 .chartCard .sapMPI[class*="Information"] .sapMPIBar:not(.sapMPIBarRemaining) {
     background: linear-gradient(90deg, #0854a0, #2196f3) !important;
 }
 
-#teamOverdueBar .sapMPIBar.sapMPIBarRemaining + .sapMPIBar,
 .chartCard .sapMPI[class*="Error"] .sapMPIBar:not(.sapMPIBarRemaining) {
     background: linear-gradient(90deg, #bb0000, #ef5350) !important;
 }
 
-#teamCompletedBar .sapMPIBar.sapMPIBarRemaining + .sapMPIBar,
 .chartCard .sapMPI[class*="Success"] .sapMPIBar:not(.sapMPIBarRemaining) {
     background: linear-gradient(90deg, #107e3e, #4caf50) !important;
 }
@@ -1116,6 +1187,15 @@ html, body, html.sap-desktop, .sapUiBody {
         width: 95vw !important;
         max-width: 95vw !important;
     }
+
+    /* Hero card full-width on phone */
+    .heroCard {
+        grid-column: 1 / -1;
+    }
+
+    .heroCard .sapMObjectNumber {
+        font-size: 2.5rem !important;
+    }
 }
 
 /* Tablet (601-1024px): ~10"-13" screens */
@@ -1137,7 +1217,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 0.75rem !important;
     }
 
@@ -1150,7 +1230,7 @@ html, body, html.sap-desktop, .sapUiBody {
 /* Small desktop (1025-1440px): ~13"-15" screens */
 @media (min-width: 1025px) and (max-width: 1440px) {
     .analyticsContainer {
-        grid-template-columns: repeat(5, 1fr) !important;
+        grid-template-columns: repeat(6, 1fr) !important;
     }
 
     .analyticsCard .sapMObjectNumber {
@@ -1162,7 +1242,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: repeat(3, 1fr) !important;
+        grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .chartCard {
@@ -1173,11 +1253,19 @@ html, body, html.sap-desktop, .sapUiBody {
 /* Medium desktop (1441-1920px): ~16"-24" screens */
 @media (min-width: 1441px) and (max-width: 1920px) {
     .analyticsContainer {
-        grid-template-columns: repeat(5, 1fr) !important;
+        grid-template-columns: repeat(6, 1fr) !important;
+    }
+
+    .analyticsCard .sapMObjectNumber {
+        font-size: 3.25rem !important;
+    }
+
+    .analyticsCard:not(.chartCard) .sapUiIcon {
+        font-size: 3.25rem !important;
     }
 
     .chartsRow {
-        grid-template-columns: repeat(3, 1fr) !important;
+        grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .chartCard {
@@ -1192,7 +1280,7 @@ html, body, html.sap-desktop, .sapUiBody {
 /* Large desktop (1921-2560px): ~27"-34" ultrawide screens */
 @media (min-width: 1921px) and (max-width: 2560px) {
     .analyticsContainer {
-        grid-template-columns: repeat(5, 1fr) !important;
+        grid-template-columns: repeat(6, 1fr) !important;
     }
 
     .analyticsCard .sapMObjectNumber {
@@ -1212,7 +1300,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: repeat(3, 1fr) !important;
+        grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .chartCard {
@@ -1232,7 +1320,7 @@ html, body, html.sap-desktop, .sapUiBody {
 /* Ultra-wide / 4K (2561-3840px): ~34"-50" screens */
 @media (min-width: 2561px) {
     .analyticsContainer {
-        grid-template-columns: repeat(5, 1fr) !important;
+        grid-template-columns: repeat(6, 1fr) !important;
     }
 
     .analyticsCard .sapMObjectNumber {
@@ -1256,7 +1344,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .chartsRow {
-        grid-template-columns: repeat(3, 1fr) !important;
+        grid-template-columns: repeat(2, 1fr) !important;
     }
 
     .chartCard {
@@ -1625,6 +1713,19 @@ html[data-sap-ui-theme="sap_horizon_dark"] .teamUserProgressItem,
 html[data-sap-ui-theme="sap_fiori_3_dark"] .teamUserProgressItem {
     background: var(--sapList_Background);
     border-color: var(--sapList_BorderColor);
+}
+
+/* Dark theme: hero card keeps gradient, non-hero cards use dark bg */
+html[data-sap-ui-theme*="dark"] .analyticsCard:not(.heroCard),
+html[data-sap-ui-theme="sap_horizon_dark"] .analyticsCard:not(.heroCard),
+html[data-sap-ui-theme="sap_fiori_3_dark"] .analyticsCard:not(.heroCard) {
+    background: var(--sapBackgroundColor) !important;
+}
+
+html[data-sap-ui-theme*="dark"] .userAvatar,
+html[data-sap-ui-theme="sap_horizon_dark"] .userAvatar,
+html[data-sap-ui-theme="sap_fiori_3_dark"] .userAvatar {
+    background: linear-gradient(135deg, #1a73e8, #4fc3f7);
 }
 
 /* ===== M-6 FIX: Loading Skeleton Animation ===== */

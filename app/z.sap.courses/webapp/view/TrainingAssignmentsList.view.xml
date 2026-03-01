@@ -60,7 +60,7 @@
 
                 <!-- 5 KPI Cards: Completion% + Assigned + In Progress + Overdue + Completed -->
                 <VBox id="myProgressHBox" class="sapUiSmallMargin analyticsContainer userAnalyticsContainer">
-                    <VBox id="myTotalBox" alignItems="Center" class="analyticsCard analyticsCardPurple analyticsCardClickable" tooltip="{i18n>clickToFilter}">
+                    <VBox id="myTotalBox" alignItems="Center" class="analyticsCard analyticsCardPurple analyticsCardClickable heroCard" tooltip="{i18n>clickToFilter}">
                         <core:Icon id="myTotalIcon" src="sap-icon://competitor" size="1.5rem" color="#6c32a9" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
                             id="myTotalCount"
