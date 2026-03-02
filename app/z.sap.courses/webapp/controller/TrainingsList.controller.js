@@ -1161,13 +1161,17 @@ sap.ui.define([
 
         /**
          * H31 FIX: SmartFilterBar search event handler.
-         * When in card view, the SmartTable may be invisible so beforeRebindTable
-         * won't fire. This ensures the card grid always gets refreshed on search/Go.
+         * Ensures both card grid and SmartTable get refreshed on search/Go.
          */
         onFilterBarSearch: function () {
             var oViewMode = this.getView().getModel("viewMode");
             if (oViewMode && oViewMode.getProperty("/showCards")) {
                 this._rebindCardGrid();
+            }
+            // Also trigger SmartTable rebind (it may be invisible but needs updated filters)
+            var oSmartTable = this.byId("smartTable");
+            if (oSmartTable && oSmartTable.rebindTable) {
+                oSmartTable.rebindTable(true);
             }
         },
 
@@ -1735,27 +1739,33 @@ sap.ui.define([
         onViewModeChange: function (oEvent) {
             var sKey = oEvent.getParameter("key") || oEvent.getSource().getSelectedKey();
             var oViewMode = this.getView().getModel("viewMode");
+            var oSmartTable = this.byId("smartTable");
+
+            // H33 FIX: Always exit full-screen before switching views
+            if (oSmartTable) {
+                try {
+                    if (typeof oSmartTable.setFullScreen === "function") {
+                        oSmartTable.setFullScreen(false);
+                    }
+                } catch (_e) { /* ignore */ }
+                // Force-click the fullscreen exit button if it exists
+                try {
+                    var oFullScreenBtn = oSmartTable._oFullScreenButton || oSmartTable.byId("btnFullScreen");
+                    if (oFullScreenBtn && oSmartTable._bFullScreen) {
+                        oFullScreenBtn.firePress();
+                    }
+                } catch (_e) { /* ignore */ }
+            }
+
             if (sKey === "cards") {
                 oViewMode.setProperty("/showCards", true);
                 oViewMode.setProperty("/showTable", false);
                 oViewMode.setProperty("/mode", "cards");
                 this._rebindCardGrid();
-                // H33 FIX: Exit full-screen if SmartTable was in full-screen
-                var oSmartTable = this.byId("smartTable");
-                if (oSmartTable) {
-                    // Use public API if available, fallback to internal
-                    if (typeof oSmartTable.setFullScreen === "function") {
-                        try { oSmartTable.setFullScreen(false); } catch (_e) { /* ignore */ }
-                    } else if (oSmartTable._oFullScreenUtil) {
-                        try { oSmartTable._oFullScreenUtil.cleanUpFullScreen(); } catch (_e) { /* ignore */ }
-                    }
-                }
             } else {
                 oViewMode.setProperty("/showCards", false);
                 oViewMode.setProperty("/showTable", true);
                 oViewMode.setProperty("/mode", "table");
-                // SmartTable will auto-rebind when made visible
-                var oSmartTable = this.byId("smartTable");
                 if (oSmartTable) { oSmartTable.rebindTable(); }
             }
         },

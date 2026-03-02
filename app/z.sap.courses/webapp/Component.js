@@ -1102,17 +1102,15 @@ sap.ui.define([
             var bWasBatch = oModel.bUseBatch;
             oModel.setUseBatch(false);
 
-            // 1-3 FIX: Use direct POST for bound action — works in both V2 (Gateway) and V4 (CAP)
-            // V2 callFunction does not support V4-style Entity(key)/Namespace.action syntax
+            // Use function import URL for OData V2 ABAP Gateway
             var sServiceUrl = oModel.sServiceUrl || '';
-            // H27 FIX: Use guid prefix for OData V2 UUID keys
-            var sActionUrl = sServiceUrl + '/' + sEntitySet + "(guid'" + sId + "')/SAPLearningService.reassign";
+            var sActionUrl = sServiceUrl + "/reassign?Id='" + sId + "'&newUserId='" + sNewUserId + "'";
 
             jQuery.ajax({
                 url: sActionUrl,
                 method: "POST",
                 contentType: "application/json",
-                data: JSON.stringify({ newUserId: sNewUserId }),
+                data: JSON.stringify({}),
                 headers: oModel.getHeaders(),
                 success: function () {
                     oModel.setUseBatch(bWasBatch);

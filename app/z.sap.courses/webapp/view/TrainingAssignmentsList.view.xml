@@ -274,7 +274,7 @@
                             id="markCompletedBtn"
                             text="{i18n>markCompleted}"
                             icon="sap-icon://complete"
-                            type="Emphasized"
+                            type="Ghost"
                             press="onMarkCompletedBtn"
                             class="markCompletedToolbarBtn" />
 

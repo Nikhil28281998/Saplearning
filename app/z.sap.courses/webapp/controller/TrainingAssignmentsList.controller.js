@@ -548,12 +548,16 @@ sap.ui.define([
 
         /**
          * H31 FIX: SmartFilterBar search event handler.
-         * When in card view, SmartTable is invisible so beforeRebindTable won't fire.
+         * Ensures both card grid and SmartTable refresh on search/Go.
          */
         onFilterBarSearch: function () {
             var oViewMode = this.getView().getModel("assignViewMode");
             if (oViewMode && oViewMode.getProperty("/showCards")) {
                 this._rebindAssignCardGrid();
+            }
+            var oSmartTable = this.byId("assignSmartTable");
+            if (oSmartTable && oSmartTable.rebindTable) {
+                oSmartTable.rebindTable(true);
             }
         },
 
@@ -596,12 +600,15 @@ sap.ui.define([
             };
             mBindingParams.filters = fnStripStatus(mBindingParams.filters);
 
-            // My Assignments: always filter by current user's UserId (all roles)
+            // My Assignments: filter by current user's UserId when available
             var oComponent = this.getOwnerComponent();
             var sCurrentUserId = oComponent.getCurrentUserId();
-            var sFilterId = sCurrentUserId || "__NOUSER__";
-            mBindingParams.filters.push(new Filter("UserId", FilterOperator.EQ, sFilterId));
-            Log.info("[AssignFilter] UserId filter: " + sFilterId);
+            if (sCurrentUserId) {
+                mBindingParams.filters.push(new Filter("UserId", FilterOperator.EQ, sCurrentUserId));
+                Log.info("[AssignFilter] UserId filter: " + sCurrentUserId);
+            } else {
+                Log.warning("[AssignFilter] UserId not yet resolved — showing all assignments");
+            }
 
             // Read Status filter from the custom FilterGroupItem Select
             var oStatusSelect = this.byId("filterAssignStatus");
@@ -781,25 +788,32 @@ sap.ui.define([
         onAssignViewModeChange: function (oEvent) {
             var sKey = oEvent.getParameter("key") || oEvent.getSource().getSelectedKey();
             var oViewMode = this.getView().getModel("assignViewMode");
+            var oSmartTable = this.byId("assignSmartTable");
+
+            // H33 FIX: Always exit full-screen before switching views
+            if (oSmartTable) {
+                try {
+                    if (typeof oSmartTable.setFullScreen === "function") {
+                        oSmartTable.setFullScreen(false);
+                    }
+                } catch (_e) { /* ignore */ }
+                try {
+                    var oFullScreenBtn = oSmartTable._oFullScreenButton || oSmartTable.byId("btnFullScreen");
+                    if (oFullScreenBtn && oSmartTable._bFullScreen) {
+                        oFullScreenBtn.firePress();
+                    }
+                } catch (_e) { /* ignore */ }
+            }
+
             if (sKey === "cards") {
                 oViewMode.setProperty("/showCards", true);
                 oViewMode.setProperty("/showTable", false);
                 oViewMode.setProperty("/mode", "cards");
                 this._rebindAssignCardGrid();
-                // H33 FIX: Exit full-screen if SmartTable was in full-screen
-                var oSmartTable = this.byId("assignSmartTable");
-                if (oSmartTable) {
-                    if (typeof oSmartTable.setFullScreen === "function") {
-                        try { oSmartTable.setFullScreen(false); } catch (_e) { /* ignore */ }
-                    } else if (oSmartTable._oFullScreenUtil) {
-                        try { oSmartTable._oFullScreenUtil.cleanUpFullScreen(); } catch (_e) { /* ignore */ }
-                    }
-                }
             } else {
                 oViewMode.setProperty("/showCards", false);
                 oViewMode.setProperty("/showTable", true);
                 oViewMode.setProperty("/mode", "table");
-                var oSmartTable = this.byId("assignSmartTable");
                 if (oSmartTable) { oSmartTable.rebindTable(); }
             }
         },
@@ -816,8 +830,10 @@ sap.ui.define([
             var sCurrentUserId = oComponent.getCurrentUserId();
             var aFilters = [];
 
-            // Always filter by current user
-            aFilters.push(new Filter("UserId", FilterOperator.EQ, sCurrentUserId || "__NOUSER__"));
+            // Filter by current user when userId is available
+            if (sCurrentUserId) {
+                aFilters.push(new Filter("UserId", FilterOperator.EQ, sCurrentUserId));
+            }
 
             // Read filter values from FilterGroupItems
             if (oSmartFilterBar && oSmartFilterBar.getFilterGroupItems) {
@@ -1146,6 +1162,9 @@ sap.ui.define([
                 onClose: function (sAction) {
                     if (sAction !== MessageBox.Action.OK) { return; }
                     var oModel = oComponent.getModel();
+                    // Temporarily disable batch to send individual MERGE requests
+                    var bOldBatch = oModel.bUseBatch;
+                    oModel.setUseBatch(false);
                     oModel.refreshSecurityToken(function () {
                         var iDone = 0, iFail = 0, iTotal = aValidContexts.length;
                         aValidContexts.forEach(function (oCtx) {
@@ -1155,6 +1174,7 @@ sap.ui.define([
                                 success: function () {
                                     iDone++;
                                     if (iDone + iFail === iTotal) {
+                                        oModel.setUseBatch(bOldBatch);
                                         MessageToast.show(i18n.getText("startTrainingSuccess", [iDone]));
                                         oSmartTable.rebindTable(true);
                                         that._loadAnalytics();
@@ -1163,6 +1183,7 @@ sap.ui.define([
                                 error: function (oError) {
                                     iFail++;
                                     if (iDone + iFail === iTotal) {
+                                        oModel.setUseBatch(bOldBatch);
                                         if (iDone > 0) {
                                             MessageToast.show(i18n.getText("startTrainingSuccess", [iDone]));
                                         } else {
@@ -1181,6 +1202,7 @@ sap.ui.define([
                             });
                         });
                     }, function () {
+                        oModel.setUseBatch(bOldBatch);
                         MessageBox.error(i18n.getText("securityTokenFailed"));
                     });
                 }
@@ -1358,13 +1380,12 @@ sap.ui.define([
                     var oSmartTable = that.byId("assignSmartTable");
                     if (oSmartTable) { oSmartTable.setBusy(true); }
 
-                    // FIX 1.1: Call markCompleted bound action via POST
+                    // FIX 1.1: Call markCompleted as OData V2 Function Import (POST)
+                    // ABAP SEGW defines markCompleted as a function import with parameter Id
                     var sEntitySet = oComponent.getAssignmentEntitySet ? oComponent.getAssignmentEntitySet() : 'TrainingAssignments';
                     var sId = oAssignment.ID || oAssignment.Id;
                     var sServiceUrl = oModel.sServiceUrl || '';
-                    // H27 FIX: Use guid prefix for OData V2 UUID keys
-                    var sKeyPredicate = "(guid'" + sId + "')";
-                    var sActionUrl = sServiceUrl + '/' + sEntitySet + sKeyPredicate + "/SAPLearningService.markCompleted";
+                    var sActionUrl = sServiceUrl + "/markCompleted?Id='" + sId + "'";
 
                     jQuery.ajax({
                         url: sActionUrl,
@@ -1417,12 +1438,12 @@ sap.ui.define([
                     var oSmartTable = that.byId("assignSmartTable");
                     if (oSmartTable) { oSmartTable.setBusy(true); }
 
-                    // Build array of action call promises
+                    // Build array of function import call promises
                     var aPromises = aContexts.map(function (oCtx) {
                         var oData = oCtx.getObject();
                         var sId = oData.ID || oData.Id;
-                        // H27 FIX: Use guid prefix for OData V2 UUID keys
-                        var sActionUrl = sServiceUrl + '/' + sEntitySet + "(guid'" + sId + "')/SAPLearningService.markCompleted";
+                        // Use function import URL: markCompleted?Id='uuid'
+                        var sActionUrl = sServiceUrl + "/markCompleted?Id='" + sId + "'";
                         return new Promise(function (resolve, reject) {
                             jQuery.ajax({
                                 url: sActionUrl,

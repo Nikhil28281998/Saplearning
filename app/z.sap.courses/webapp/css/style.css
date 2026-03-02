@@ -199,8 +199,8 @@ html, body, html.sap-desktop, .sapUiBody {
 .analyticsCard {
     min-width: 0;
     max-width: none;
-    min-height: 120px;
-    padding: 0.75rem 0.625rem;
+    min-height: 90px;
+    padding: 0.625rem 0.5rem;
     border-radius: var(--sapRadius);
     background: var(--sapGlass);
     -webkit-backdrop-filter: blur(12px);
@@ -332,7 +332,7 @@ html, body, html.sap-desktop, .sapUiBody {
 
 /* Analytics number – tabular figures, NO overflow clipping */
 .analyticsCard .sapMObjectNumber {
-    font-size: 2.25rem !important;
+    font-size: 1.75rem !important;
     font-weight: 800 !important;
     font-feature-settings: "tnum";
     letter-spacing: -0.02em;
@@ -357,7 +357,7 @@ html, body, html.sap-desktop, .sapUiBody {
 /* Analytics icon — only KPI cards, not chart cards or nested list icons */
 .analyticsCard:not(.chartCard) .sapUiIcon {
     transition: transform var(--sapTransition);
-    font-size: 2rem !important;
+    font-size: 1.5rem !important;
 }
 
 /* Ensure team user overdue badge icon stays small */
@@ -388,9 +388,9 @@ html, body, html.sap-desktop, .sapUiBody {
     min-width: 0;
     max-width: 100%;
     flex: none;
-    min-height: 120px;
-    max-height: 280px;
-    overflow-y: auto;
+    min-height: 80px;
+    max-height: none;
+    overflow-y: visible;
     box-sizing: border-box;
     padding: 0.5rem 0.75rem !important;
     margin: 0 !important;
@@ -545,7 +545,7 @@ html, body, html.sap-desktop, .sapUiBody {
 .userAnalyticsContainer .analyticsCard {
     width: 100%;
     max-width: none;
-    min-height: 150px;
+    min-height: 90px;
 }
 
 .sapSuiteRMC {
@@ -1136,7 +1136,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .analyticsCard {
-        min-height: 120px;
+        min-height: 80px;
     }
 
     .chartsRow {
@@ -1149,11 +1149,11 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .analyticsCard .sapMObjectNumber {
-        font-size: 2.25rem !important;
+        font-size: 1.5rem !important;
     }
 
     .analyticsCard:not(.chartCard) .sapUiIcon {
-        font-size: 2.5rem !important;
+        font-size: 1.25rem !important;
     }
 
     .sapMPage > .sapMPageHeader .sapMBar .sapMTitle {
@@ -1171,7 +1171,7 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .heroCard .sapMObjectNumber {
-        font-size: 2.5rem !important;
+        font-size: 1.75rem !important;
     }
 
     /* H10 FIX: Card grid single column on phone */
@@ -1187,15 +1187,15 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .analyticsCard {
-        min-height: 110px;
+        min-height: 85px;
     }
 
     .analyticsCard .sapMObjectNumber {
-        font-size: 2.5rem !important;
+        font-size: 1.625rem !important;
     }
 
     .analyticsCard:not(.chartCard) .sapUiIcon {
-        font-size: 2.75rem !important;
+        font-size: 1.375rem !important;
     }
 
     .chartsRow {
@@ -1216,11 +1216,11 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .analyticsCard .sapMObjectNumber {
-        font-size: 2.75rem !important;
+        font-size: 1.75rem !important;
     }
 
     .analyticsCard:not(.chartCard) .sapUiIcon {
-        font-size: 3rem !important;
+        font-size: 1.5rem !important;
     }
 
     .chartsRow {
@@ -1239,11 +1239,11 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .analyticsCard .sapMObjectNumber {
-        font-size: 3.25rem !important;
+        font-size: 2rem !important;
     }
 
     .analyticsCard:not(.chartCard) .sapUiIcon {
-        font-size: 3.25rem !important;
+        font-size: 1.75rem !important;
     }
 
     .chartsRow {
@@ -1266,11 +1266,11 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .analyticsCard .sapMObjectNumber {
-        font-size: 3.75rem !important;
+        font-size: 2.25rem !important;
     }
 
     .analyticsCard:not(.chartCard) .sapUiIcon {
-        font-size: 4rem !important;
+        font-size: 2rem !important;
     }
 
     .analyticsCard .sapSuiteRMC,
@@ -1306,11 +1306,11 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .analyticsCard .sapMObjectNumber {
-        font-size: 4rem !important;
+        font-size: 2.5rem !important;
     }
 
     .analyticsCard:not(.chartCard) .sapUiIcon {
-        font-size: 4.5rem !important;
+        font-size: 2.25rem !important;
     }
 
     .analyticsLabel {
@@ -1605,11 +1605,19 @@ html, body, html.sap-desktop, .sapUiBody {
     font-size: 0.75rem !important;
 }
 
-/* ===== Mark Completed Toolbar Button ===== */
+/* ===== Mark Completed Toolbar Button (Ghost type — outlined with accent) ===== */
 .markCompletedToolbarBtn.sapMBtn .sapMBtnInner {
     border-radius: var(--sapRadiusSm);
     font-weight: 600;
     letter-spacing: 0.02em;
+    border: 1.5px solid var(--sapAccent4, #107e3e) !important;
+    color: var(--sapAccent4, #107e3e) !important;
+}
+.markCompletedToolbarBtn.sapMBtn .sapMBtnIcon {
+    color: var(--sapAccent4, #107e3e) !important;
+}
+.markCompletedToolbarBtn.sapMBtn:hover .sapMBtnInner {
+    background: rgba(16, 126, 62, 0.08) !important;
 }
 
 /* ===== Assignment Link in ResponsiveTable ===== */

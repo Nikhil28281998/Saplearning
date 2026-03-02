@@ -8,10 +8,11 @@
         id="assignTrainingDialog"
         title="{i18n>assignDialogTitle}"
         contentWidth="720px"
-        contentHeight="560px"
+        contentHeight="auto"
         verticalScrolling="true"
         draggable="true"
-        resizable="true">
+        resizable="true"
+>
 
         <content>
             <VBox id="assignDialogVBox" class="sapUiSmallMargin">
@@ -76,30 +77,22 @@
 
                             <!-- A4: Priority with help tooltip -->
                             <Label id="assignLabelPriority" text="{i18n>priorityLabel}" />
-                            <HBox id="priorityHelpBox" alignItems="Center">
-                                <Select id="assignPrioritySelect" selectedKey="{assignModel>/priority}" width="90%">
-                                    <core:Item id="prioHigh" key="High" text="{i18n>priorityHigh}" />
-                                    <core:Item id="prioMedium" key="Medium" text="{i18n>priorityMedium}" />
-                                    <core:Item id="prioLow" key="Low" text="{i18n>priorityLow}" />
-                                </Select>
-                                <Button id="helpPriorityBtn" icon="sap-icon://sys-help" type="Transparent"
-                                    tooltip="{i18n>helpPriorityTooltip}" class="sapUiTinyMarginBegin" />
-                            </HBox>
+                            <Select id="assignPrioritySelect" selectedKey="{assignModel>/priority}" width="100%">
+                                <core:Item id="prioHigh" key="High" text="{i18n>priorityHigh}" />
+                                <core:Item id="prioMedium" key="Medium" text="{i18n>priorityMedium}" />
+                                <core:Item id="prioLow" key="Low" text="{i18n>priorityLow}" />
+                            </Select>
 
                             <!-- A4: Due Date with help tooltip — FIX 3.1: Due date is mandatory -->
                             <Label id="assignLabelDueDate" text="{i18n>dueDateLabel}" required="true" />
-                            <HBox id="dueDateHelpBox" alignItems="Center">
-                                <DatePicker
-                                    id="assignDueDate"
-                                    width="90%"
-                                    valueFormat="yyyy-MM-dd"
-                                    displayFormat="long"
-                                    value="{assignModel>/dueDate}"
-                                    required="true"
-                                    placeholder="{i18n>selectDueDatePlaceholder}" />
-                                <Button id="helpDueDateBtn" icon="sap-icon://sys-help" type="Transparent"
-                                    tooltip="{i18n>helpDueDateTooltip}" class="sapUiTinyMarginBegin" />
-                            </HBox>
+                            <DatePicker
+                                id="assignDueDate"
+                                width="100%"
+                                valueFormat="yyyy-MM-dd"
+                                displayFormat="long"
+                                value="{assignModel>/dueDate}"
+                                required="true"
+                                placeholder="{i18n>selectDueDatePlaceholder}" />
                             <Label id="assignLabelDueDateHint" text="" />
                             <MessageStrip
                                 id="dueDateWarningStrip"
@@ -110,39 +103,27 @@
 
                             <!-- A4: Notes with help tooltip -->
                             <Label id="assignLabelNotes" text="{i18n>notesLabel}" />
-                            <HBox id="notesHelpBox" alignItems="Center">
-                                <TextArea
-                                    id="assignNotesInput"
-                                    value="{assignModel>/notes}"
-                                    placeholder="{i18n>notesPlaceholder}"
-                                    rows="2"
-                                    width="90%"
-                                    maxLength="500" />
-                                <Button id="helpNotesBtn" icon="sap-icon://sys-help" type="Transparent"
-                                    tooltip="{i18n>helpNotesTooltip}" class="sapUiTinyMarginBegin" />
-                            </HBox>
+                            <TextArea
+                                id="assignNotesInput"
+                                value="{assignModel>/notes}"
+                                placeholder="{i18n>notesPlaceholder}"
+                                rows="2"
+                                width="100%"
+                                maxLength="500" />
 
                             <!-- C4: Learning path sequence -->
                             <Label id="assignLabelSequence" text="{i18n>sequenceLabel}" />
-                            <HBox id="sequenceHelpBox" alignItems="Center">
-                                <Input id="assignSequenceInput"
-                                    value="{assignModel>/sequence}"
-                                    type="Number"
-                                    placeholder="1"
-                                    width="90%" />
-                                <Button id="helpSequenceBtn" icon="sap-icon://sys-help" type="Transparent"
-                                    tooltip="{i18n>helpSequenceTooltip}" class="sapUiTinyMarginBegin" />
-                            </HBox>
+                            <Input id="assignSequenceInput"
+                                value="{assignModel>/sequence}"
+                                type="Number"
+                                placeholder="1"
+                                width="100%" />
 
                             <!-- C5: Recurring assignment toggle -->
                             <Label id="assignLabelRecurring" text="{i18n>recurringLabel}" />
-                            <HBox id="recurringHelpBox" alignItems="Center">
-                                <Switch id="assignRecurringSwitch"
-                                    state="{assignModel>/recurring}"
-                                    customTextOn="ON" customTextOff="OFF" />
-                                <Button id="helpRecurringBtn" icon="sap-icon://sys-help" type="Transparent"
-                                    tooltip="{i18n>recurringTooltip}" class="sapUiTinyMarginBegin" />
-                            </HBox>
+                            <Switch id="assignRecurringSwitch"
+                                state="{assignModel>/recurring}"
+                                customTextOn="ON" customTextOff="OFF" />
                             <Label id="assignLabelRecurringInterval" text="{i18n>recurringIntervalLabel}"
                                 visible="{assignModel>/recurring}" />
                             <Select id="assignRecurringInterval"
@@ -175,9 +156,6 @@
                         <SearchField id="assignUserSearch" width="14rem"
                             placeholder="{i18n>searchUsers}"
                             liveChange=".onAssignUserSearch" />
-                        <!-- A4: Help tooltip for user selection -->
-                        <Button id="helpUserSelectBtn" icon="sap-icon://sys-help" type="Transparent"
-                            tooltip="{i18n>helpUserSelectTooltip}" />
                         <ToolbarSpacer />
                         <!-- B2: Select All / Deselect All -->
                         <Button id="selectAllUsersBtn" text="{i18n>selectAll}" type="Ghost"
