@@ -167,6 +167,7 @@ html, body, html.sap-desktop, .sapUiBody {
     border: 1px solid var(--sapBorder);
     overflow: visible;
     background: var(--sapSurface) !important;
+    margin-top: 0.5rem !important; /* FIX: prevent page header from overlapping panel toolbar / Export button */
 }
 
 .analyticsPanel.sapMPanel > .sapMPanelHdr {
@@ -500,6 +501,18 @@ html, body, html.sap-desktop, .sapUiBody {
 
 .moduleProgressBar {
     border-radius: 6px;
+    flex: 1 1 0 !important; /* FIX: allow bar to shrink so displayValue text fits beside it */
+    min-width: 0 !important;
+}
+
+/* FIX: Module chart displayValue text shown beside the bar (always visible) */
+.moduleBarValue {
+    flex: 0 0 auto !important;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--sapText);
+    white-space: nowrap;
+    min-width: fit-content;
 }
 
 /* U-2: Enhanced Chart Visuals — themed gradient progress bars */

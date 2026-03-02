@@ -119,7 +119,8 @@ sap.ui.define([
                 { id: "teamAssignedBox",    filter: "Assigned" },
                 { id: "teamInProgressBox",  filter: "In Progress" },
                 { id: "teamOverdueBox",     filter: "Overdue" },
-                { id: "teamCompletedBox",   filter: "Completed" }
+                { id: "teamCompletedBox",   filter: "Completed" },
+                { id: "teamCompletionPctBox", filter: "" }  // FIX: Completion Rate card was missing click handler
             ];
             aTeamCards.forEach(function (card) {
                 var oCard = that.byId(card.id);

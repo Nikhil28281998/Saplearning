@@ -6,7 +6,6 @@
 	"license": "UNLICENSED",
 	"dependencies": {
 		"@cap-js-community/odata-v2-adapter": "^1.15.9",
-		"@playwright/test": "^1.58.2",
 		"@sap/cds": "^8",
 		"express": "^4",
 		"express-rate-limit": "^7.5.1",
@@ -15,6 +14,7 @@
 		"xss": "^1.0"
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.58.2",
 		"@sap/cds-dk": "^8",
 		"playwright": "^1.58.2",
 		"sqlite3": "^5.1.7"
@@ -24,7 +24,14 @@
 		"watch": "cds watch",
 		"build": "cds build --production",
 		"test": "cd app/z.sap.courses && ui5 serve --open test/unit/unitTests.qunit.html",
-		"test:integration": "cd app/z.sap.courses && ui5 serve --open test/integration/opaTests.qunit.html"
+		"test:integration": "cd app/z.sap.courses && ui5 serve --open test/integration/opaTests.qunit.html",
+		"test:e2e": "npx playwright test",
+		"test:e2e:home": "npx playwright test tests/01-home-page.spec.js",
+		"test:e2e:assign": "npx playwright test tests/02-assignments-page.spec.js",
+		"test:e2e:dialogs": "npx playwright test tests/03-dialogs.spec.js",
+		"test:e2e:cross": "npx playwright test tests/04-cross-cutting.spec.js",
+		"test:e2e:report": "npx playwright show-report",
+		"chrome:debug": "powershell -File scripts/launch-chrome-debug.ps1"
 	},
 	"cds": {
 		"requires": {

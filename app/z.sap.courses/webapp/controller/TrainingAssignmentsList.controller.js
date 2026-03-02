@@ -789,22 +789,50 @@ sap.ui.define([
             var sKey = oEvent.getParameter("key") || oEvent.getSource().getSelectedKey();
             var oViewMode = this.getView().getModel("assignViewMode");
             var oSmartTable = this.byId("assignSmartTable");
+            var that = this;
 
-            // H33 FIX: Always exit full-screen before switching views
+            // FIX: Detect if SmartTable is in fullscreen mode
+            var bIsFullScreen = false;
             if (oSmartTable) {
+                bIsFullScreen = oSmartTable._bFullScreen || oSmartTable.bFullScreen || false;
+                // Also check if the fullscreen overlay container exists
+                if (!bIsFullScreen) {
+                    try {
+                        var oDomRef = oSmartTable.getDomRef();
+                        if (oDomRef) {
+                            bIsFullScreen = oDomRef.closest(".sapUiCompSmartTableFullScreen") !== null ||
+                                           oDomRef.classList.contains("sapUiCompSmartTableFullScreen");
+                        }
+                    } catch (_e) { /* ignore */ }
+                }
+            }
+
+            // FIX: If in fullscreen, exit first and then switch view after DOM settles
+            if (bIsFullScreen && oSmartTable) {
                 try {
-                    if (typeof oSmartTable.setFullScreen === "function") {
+                    // Use the SmartTable's own toggle method or button
+                    var oFullScreenBtn = oSmartTable._oFullScreenButton ||
+                        sap.ui.getCore().byId(oSmartTable.getId() + "-btnFullScreen");
+                    if (oFullScreenBtn) {
+                        oFullScreenBtn.firePress();
+                    } else if (typeof oSmartTable.setFullScreen === "function") {
                         oSmartTable.setFullScreen(false);
                     }
                 } catch (_e) { /* ignore */ }
-                try {
-                    var oFullScreenBtn = oSmartTable._oFullScreenButton || oSmartTable.byId("btnFullScreen");
-                    if (oFullScreenBtn && oSmartTable._bFullScreen) {
-                        oFullScreenBtn.firePress();
-                    }
-                } catch (_e) { /* ignore */ }
-            }
 
+                // Wait for fullscreen exit to complete before switching view
+                setTimeout(function () {
+                    that._applyViewModeSwitch(sKey, oViewMode, oSmartTable);
+                }, 300);
+            } else {
+                this._applyViewModeSwitch(sKey, oViewMode, oSmartTable);
+            }
+        },
+
+        /**
+         * Internal: Apply the actual view mode switch (cards/table).
+         */
+        _applyViewModeSwitch: function (sKey, oViewMode, oSmartTable) {
             if (sKey === "cards") {
                 oViewMode.setProperty("/showCards", true);
                 oViewMode.setProperty("/showTable", false);
@@ -1047,30 +1075,26 @@ sap.ui.define([
                 onClose: function (sAction) {
                     if (sAction !== MessageBox.Action.OK) { return; }
                     var oModel = that.getOwnerComponent().getModel();
-                    var sServiceUrl = oModel.sServiceUrl || '';
-                    var sUrl = sServiceUrl + oCtx.getPath();
-                    var oHeaders = oModel.getHeaders();
-
-                    jQuery.ajax({
-                        url: sUrl,
-                        method: "POST",
-                        headers: jQuery.extend({}, oHeaders, { "X-HTTP-Method": "MERGE" }),
-                        contentType: "application/json",
-                        data: JSON.stringify({ Status: "In Progress" }),
-                        success: function () {
-                            MessageToast.show(i18n.getText("startTrainingSuccess", [1]));
-                            oModel.refresh(true);
-                            that._rebindAssignCardGrid();
-                            that._loadAnalytics();
-                        },
-                        error: function (xhr) {
-                            var sErrMsg = i18n.getText("updateFailed");
-                            try {
-                                var parsed = JSON.parse(xhr.responseText);
-                                sErrMsg = (parsed.error && parsed.error.message && (parsed.error.message.value || parsed.error.message)) || sErrMsg;
-                            } catch (_e) { /* ignore */ }
-                            MessageBox.error(sErrMsg);
-                        }
+                    // FIX: Refresh CSRF token before update to prevent stale-token failures
+                    oModel.refreshSecurityToken(function () {
+                        oModel.update(oCtx.getPath(), { Status: "In Progress" }, {
+                            success: function () {
+                                MessageToast.show(i18n.getText("startTrainingSuccess", [1]));
+                                oModel.refresh(true);
+                                that._rebindAssignCardGrid();
+                                that._loadAnalytics();
+                            },
+                            error: function (oError) {
+                                var sErrMsg = i18n.getText("updateFailed");
+                                try {
+                                    var parsed = JSON.parse(oError.responseText);
+                                    sErrMsg = (parsed.error && parsed.error.message && (parsed.error.message.value || parsed.error.message)) || sErrMsg;
+                                } catch (_e) { /* ignore */ }
+                                MessageBox.error(sErrMsg);
+                            }
+                        });
+                    }, function () {
+                        MessageBox.error(i18n.getText("securityTokenFailed") || "Security token refresh failed. Please reload the page.");
                     });
                 }
             });
@@ -1180,50 +1204,46 @@ sap.ui.define([
                     var oSmartTable = that.byId("assignSmartTable");
                     if (oSmartTable) { oSmartTable.setBusy(true); }
 
-                    var sServiceUrl = oModel.sServiceUrl || '';
-                    var oHeaders = oModel.getHeaders();
-                    var iDone = 0, iFail = 0, iTotal = aValidContexts.length;
+                    // FIX: Refresh CSRF token before update to prevent stale-token failures
+                    oModel.refreshSecurityToken(function () {
+                        var iDone = 0, iFail = 0, iTotal = aValidContexts.length;
 
-                    aValidContexts.forEach(function (oCtx) {
-                        var sPath = oCtx.getPath(); // e.g. /TrainingAssignments('guid')
-                        var sUrl = sServiceUrl + sPath;
-
-                        jQuery.ajax({
-                            url: sUrl,
-                            method: "POST",
-                            headers: jQuery.extend({}, oHeaders, { "X-HTTP-Method": "MERGE" }),
-                            contentType: "application/json",
-                            data: JSON.stringify({ Status: "In Progress" }),
-                            success: function () {
-                                iDone++;
-                                if (iDone + iFail === iTotal) {
-                                    if (oSmartTable) { oSmartTable.setBusy(false); }
-                                    MessageToast.show(i18n.getText("startTrainingSuccess", [iDone]));
-                                    oModel.refresh(true);
-                                    that._loadAnalytics();
-                                    that._rebindAssignCardGrid();
-                                }
-                            },
-                            error: function (xhr) {
-                                iFail++;
-                                if (iDone + iFail === iTotal) {
-                                    if (oSmartTable) { oSmartTable.setBusy(false); }
-                                    if (iDone > 0) {
+                        aValidContexts.forEach(function (oCtx) {
+                            oModel.update(oCtx.getPath(), { Status: "In Progress" }, {
+                                success: function () {
+                                    iDone++;
+                                    if (iDone + iFail === iTotal) {
+                                        if (oSmartTable) { oSmartTable.setBusy(false); }
                                         MessageToast.show(i18n.getText("startTrainingSuccess", [iDone]));
-                                    } else {
-                                        var sErrMsg = i18n.getText("updateFailed");
-                                        try {
-                                            var parsed = JSON.parse(xhr.responseText);
-                                            sErrMsg = (parsed.error && parsed.error.message && (parsed.error.message.value || parsed.error.message)) || sErrMsg;
-                                        } catch (_e) { /* ignore */ }
-                                        MessageBox.error(sErrMsg);
+                                        oModel.refresh(true);
+                                        that._loadAnalytics();
+                                        that._rebindAssignCardGrid();
                                     }
-                                    oModel.refresh(true);
-                                    that._loadAnalytics();
-                                    that._rebindAssignCardGrid();
+                                },
+                                error: function (oError) {
+                                    iFail++;
+                                    if (iDone + iFail === iTotal) {
+                                        if (oSmartTable) { oSmartTable.setBusy(false); }
+                                        if (iDone > 0) {
+                                            MessageToast.show(i18n.getText("startTrainingSuccess", [iDone]));
+                                        } else {
+                                            var sErrMsg = i18n.getText("updateFailed");
+                                            try {
+                                                var parsed = JSON.parse(oError.responseText);
+                                                sErrMsg = (parsed.error && parsed.error.message && (parsed.error.message.value || parsed.error.message)) || sErrMsg;
+                                            } catch (_e) { /* ignore */ }
+                                            MessageBox.error(sErrMsg);
+                                        }
+                                        oModel.refresh(true);
+                                        that._loadAnalytics();
+                                        that._rebindAssignCardGrid();
+                                    }
                                 }
-                            }
+                            });
                         });
+                    }, function () {
+                        if (oSmartTable) { oSmartTable.setBusy(false); }
+                        MessageBox.error(i18n.getText("securityTokenFailed") || "Security token refresh failed. Please reload the page.");
                     });
                 }
             });
