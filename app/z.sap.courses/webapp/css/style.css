@@ -112,6 +112,12 @@ html, body, html.sap-desktop, .sapUiBody {
     overflow: visible !important;
 }
 
+/* ScrollContainers in card views – flex properly within page section */
+.sapMScrollCont {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+}
+
 /* Trainings page – section scrollable so Team Analytics panel + table are accessible on all screens */
 .trainingsPage.sapMPage > section {
     overflow-y: auto !important;
@@ -119,7 +125,7 @@ html, body, html.sap-desktop, .sapUiBody {
 
 .trainingsPage .sapUiCompSmartTable {
     flex: 1 1 auto !important;
-    min-height: 400px !important;
+    min-height: 300px !important;
 }
 
 /* ===== FLP-Native Page Header – clean, thin, integrates with FLP Shell ===== */
@@ -994,6 +1000,7 @@ html, body, html.sap-desktop, .sapUiBody {
 /* Dialog responsive – scale with screen */
 .sapMDialog {
     max-width: 90vw !important;
+    max-height: 90vh !important;
 }
 
 /* GridTable auto-resize */
@@ -1179,8 +1186,50 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     /* H10 FIX: Card grid single column on phone */
-    .cardGridWrapper .sapFGridList .sapFGridListUl {
+    .cardGridWrapper .sapFGridList .sapFGridListUl,
+    .sapFGridList .sapUiLayoutCSSGridBoxLayoutPolyfill,
+    .sapFGridList ul[class*="sapUiLayoutCSSGrid"] {
         grid-template-columns: 1fr !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Prevent card grid overflow on narrow screens */
+    .sapFGridList .sapFGridListUl {
+        overflow-x: hidden !important;
+        max-width: 100% !important;
+    }
+
+    /* ScrollContainer overflow containment */
+    .sapMScrollCont,
+    .sapMScrollContScroll {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+
+    .cardGridWrapper {
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+
+    .learningCard {
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Reduce SmartTable minHeight on phone */
+    .trainingsPage .sapUiCompSmartTable {
+        min-height: 200px !important;
+    }
+
+    .learningCardMeta .sapMObjStatus {
+        max-width: 100% !important;
+    }
+
+    .learningCardMeta .sapMObjStatusText {
+        max-width: 100% !important;
     }
 }
 
@@ -1214,6 +1263,27 @@ html, body, html.sap-desktop, .sapUiBody {
     .chartCard {
         min-width: 0;
         max-width: 100%;
+    }
+
+    /* Card grid: 2 columns on tablet */
+    .cardGridWrapper .sapFGridList .sapFGridListUl,
+    .sapFGridList .sapUiLayoutCSSGridBoxLayoutPolyfill {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .learningCard {
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .learningCardMeta .sapMObjStatusText {
+        max-width: 100% !important;
+    }
+
+    /* Dialog: cap to viewport */
+    .sapMDialog {
+        max-width: 90vw !important;
+        max-height: 85vh !important;
     }
 }
 
@@ -1885,6 +1955,7 @@ html[data-sap-ui-theme*="dark"] .dueDateWarningBar {
     height: 100%;
     width: 100%;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 .learningCardTitleRow {
@@ -1931,17 +2002,20 @@ html[data-sap-ui-theme*="dark"] .dueDateWarningBar {
 
 .learningCardMeta {
     margin-top: auto !important; /* push meta to bottom of card */
+    overflow: hidden !important;
+    max-width: 100% !important;
 }
 
 .learningCardMeta .sapMObjStatus {
     font-size: 0.75rem !important;
-    max-width: 12rem;
+    max-width: 100% !important;
+    overflow: hidden !important;
 }
 
 /* Truncate long Topic/Module text inside ObjStatus on cards */
 .learningCardMeta .sapMObjStatusText {
-    max-width: 10rem;
-    overflow: hidden;
+    max-width: 100% !important;
+    overflow: hidden !important;
     text-overflow: ellipsis;
     white-space: nowrap;
 }

@@ -6,7 +6,7 @@
         id="teamDrillDownDialog"
         title="{drillDown>/dialogTitle}"
         contentWidth="90%"
-        contentHeight="520px"
+        contentHeight="70vh"
         verticalScrolling="true"
         draggable="true"
         resizable="true"

@@ -183,7 +183,7 @@
                         items="{ path: '/TrainingAssignments', sorter: { path: 'DueDate', descending: false } }">
                         <f:customLayout>
                             <cssgrid:GridBoxLayout
-                                boxMinWidth="20rem"
+                                boxMinWidth="16rem"
                                 boxWidth="24rem" />
                         </f:customLayout>
                         <f:items>
