@@ -188,7 +188,8 @@ html, body, html.sap-desktop, .sapUiBody {
 .analyticsPanel.sapMPanel .sapMPanelContent {
     transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 1rem 1.25rem !important;
-    overflow: auto !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
 }
 
 /* Analytics Container – CSS Grid for responsive auto-wrapping */
