@@ -250,14 +250,13 @@
                 enableExport="true"
                 useVariantManagement="false"
                 useTablePersonalisation="true"
-                persistencyKey="AssignmentsSmartTableV3"
+                persistencyKey="AssignmentsSmartTableV5"
                 demandPopin="true"
                 enableAutoColumnWidth="true"
                 initialise="onSmartTableInit"
                 initiallyVisibleFields="Title,Url,SapModule,UserId,UserName,Status,DueDate,CompletionDate"
                 beforeRebindTable="onBeforeRebindTable"
-                requestAtLeastFields="Url,Status,Priority,DueDate,Notes"
-                ignoredFields="Priority"
+                requestAtLeastFields="Url,Status,DueDate"
                 visible="{assignViewMode>/showTable}">
 
 

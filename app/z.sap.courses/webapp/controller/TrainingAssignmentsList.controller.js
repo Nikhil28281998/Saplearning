@@ -814,7 +814,7 @@ sap.ui.define([
                 oViewMode.setProperty("/showCards", false);
                 oViewMode.setProperty("/showTable", true);
                 oViewMode.setProperty("/mode", "table");
-                if (oSmartTable) { oSmartTable.rebindTable(); }
+                if (oSmartTable) { oSmartTable.rebindTable(true); }
             }
         },
 

@@ -1831,7 +1831,7 @@ html[data-sap-ui-theme*="dark"] .dueDateWarningBar {
     transition: box-shadow 0.2s ease, border-color 0.2s ease;
     overflow: hidden;
     height: 100%;
-    min-height: 10rem;
+    min-height: 8rem;
 }
 
 .learningCard:hover {
@@ -1846,8 +1846,8 @@ html[data-sap-ui-theme*="dark"] .dueDateWarningBar {
 }
 
 .learningCardContent {
-    padding: 1rem;
-    min-height: 10rem;
+    padding: 0.75rem;
+    min-height: 8rem;
     height: 100%;
     width: 100%;
     box-sizing: border-box;
@@ -1933,7 +1933,7 @@ html[data-sap-ui-theme*="dark"] .dueDateWarningBar {
 }
 
 .assignmentCard .learningCardContent {
-    min-height: 12rem;
+    min-height: 9rem;
 }
 
 /* GridList container adjustments — stretch items for equal row height */

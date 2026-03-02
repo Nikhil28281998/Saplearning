@@ -453,7 +453,7 @@ sap.ui.define([
             var sRole = that._role;
             var aUserFilters = [];
             if (sRole === 'Manager' && sUserId) {
-                var sManagerProp = that._userManagerProperty || 'sort2';
+                var sManagerProp = that._userManagerProperty || 'Sort2';
                 aUserFilters.push(new sap.ui.model.Filter(sManagerProp, sap.ui.model.FilterOperator.EQ, sUserId));
             }
 
@@ -462,7 +462,10 @@ sap.ui.define([
                 oModel.read('/' + sUserEntitySet, {
                     filters: aUserFilters,
                     success: function (data) { resolve(data.results || []); },
-                    error: reject
+                    error: function (err) {
+                        Log.warning('[AssignDlg] Failed to read UserSet: ' + (err && err.message || ''));
+                        reject(err);
+                    }
                 });
             }).catch(function () {
                 Log.warning('[AssignDlg] Users entity not available');
@@ -473,12 +476,12 @@ sap.ui.define([
             var sAssignEntitySet = that._assignmentEntitySet || 'TrainingAssignments';
             var aWorkloadFilters = [];
             if (sRole === 'Manager' && sUserId) {
-                aWorkloadFilters.push(new sap.ui.model.Filter('managerSort2', sap.ui.model.FilterOperator.EQ, sUserId));
+                aWorkloadFilters.push(new sap.ui.model.Filter('ManagerSort2', sap.ui.model.FilterOperator.EQ, sUserId));
             }
             var pWorkload = new Promise(function (resolve, reject) {
                 oModel.read('/' + sAssignEntitySet, {
                     filters: aWorkloadFilters,
-                    urlParameters: { "$select": "userId,status,dueDate" },
+                    urlParameters: { "$select": "UserId,Status,DueDate" },
                     success: function (data) { resolve(data.results || []); },
                     error: function () { resolve([]); }
                 });
