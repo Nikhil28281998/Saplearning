@@ -1047,16 +1047,31 @@ sap.ui.define([
                 onClose: function (sAction) {
                     if (sAction !== MessageBox.Action.OK) { return; }
                     var oModel = that.getOwnerComponent().getModel();
-                    oModel.refreshSecurityToken(function () {
-                        oModel.update(oCtx.getPath(), { Status: "In Progress" }, {
-                            success: function () {
-                                MessageToast.show(i18n.getText("startTrainingSuccess", [1]));
-                                that._rebindAssignCardGrid();
-                                that._loadAnalytics();
-                            },
-                            error: function () { MessageBox.error(i18n.getText("updateFailed")); }
-                        });
-                    }, function () { MessageBox.error(i18n.getText("securityTokenFailed")); });
+                    var sServiceUrl = oModel.sServiceUrl || '';
+                    var sUrl = sServiceUrl + oCtx.getPath();
+                    var oHeaders = oModel.getHeaders();
+
+                    jQuery.ajax({
+                        url: sUrl,
+                        method: "POST",
+                        headers: jQuery.extend({}, oHeaders, { "X-HTTP-Method": "MERGE" }),
+                        contentType: "application/json",
+                        data: JSON.stringify({ Status: "In Progress" }),
+                        success: function () {
+                            MessageToast.show(i18n.getText("startTrainingSuccess", [1]));
+                            oModel.refresh(true);
+                            that._rebindAssignCardGrid();
+                            that._loadAnalytics();
+                        },
+                        error: function (xhr) {
+                            var sErrMsg = i18n.getText("updateFailed");
+                            try {
+                                var parsed = JSON.parse(xhr.responseText);
+                                sErrMsg = (parsed.error && parsed.error.message && (parsed.error.message.value || parsed.error.message)) || sErrMsg;
+                            } catch (_e) { /* ignore */ }
+                            MessageBox.error(sErrMsg);
+                        }
+                    });
                 }
             });
         },
@@ -1162,48 +1177,53 @@ sap.ui.define([
                 onClose: function (sAction) {
                     if (sAction !== MessageBox.Action.OK) { return; }
                     var oModel = oComponent.getModel();
-                    // Temporarily disable batch to send individual MERGE requests
-                    var bOldBatch = oModel.bUseBatch;
-                    oModel.setUseBatch(false);
-                    oModel.refreshSecurityToken(function () {
-                        var iDone = 0, iFail = 0, iTotal = aValidContexts.length;
-                        aValidContexts.forEach(function (oCtx) {
-                            var sPath = oCtx.getPath();
-                            oModel.update(sPath, { Status: "In Progress" }, {
-                                merge: true,
-                                success: function () {
-                                    iDone++;
-                                    if (iDone + iFail === iTotal) {
-                                        oModel.setUseBatch(bOldBatch);
-                                        MessageToast.show(i18n.getText("startTrainingSuccess", [iDone]));
-                                        oSmartTable.rebindTable(true);
-                                        that._loadAnalytics();
-                                    }
-                                },
-                                error: function (oError) {
-                                    iFail++;
-                                    if (iDone + iFail === iTotal) {
-                                        oModel.setUseBatch(bOldBatch);
-                                        if (iDone > 0) {
-                                            MessageToast.show(i18n.getText("startTrainingSuccess", [iDone]));
-                                        } else {
-                                            // H26 FIX: Show actual server error message
-                                            var sMsg = i18n.getText("updateFailed");
-                                            try {
-                                                var parsed = JSON.parse(oError.responseText);
-                                                sMsg = (parsed.error && parsed.error.message && (parsed.error.message.value || parsed.error.message)) || sMsg;
-                                            } catch (_e) { /* ignore */ }
-                                            MessageBox.error(sMsg);
-                                        }
-                                        oSmartTable.rebindTable(true);
-                                        that._loadAnalytics();
-                                    }
+                    var oSmartTable = that.byId("assignSmartTable");
+                    if (oSmartTable) { oSmartTable.setBusy(true); }
+
+                    var sServiceUrl = oModel.sServiceUrl || '';
+                    var oHeaders = oModel.getHeaders();
+                    var iDone = 0, iFail = 0, iTotal = aValidContexts.length;
+
+                    aValidContexts.forEach(function (oCtx) {
+                        var sPath = oCtx.getPath(); // e.g. /TrainingAssignments('guid')
+                        var sUrl = sServiceUrl + sPath;
+
+                        jQuery.ajax({
+                            url: sUrl,
+                            method: "POST",
+                            headers: jQuery.extend({}, oHeaders, { "X-HTTP-Method": "MERGE" }),
+                            contentType: "application/json",
+                            data: JSON.stringify({ Status: "In Progress" }),
+                            success: function () {
+                                iDone++;
+                                if (iDone + iFail === iTotal) {
+                                    if (oSmartTable) { oSmartTable.setBusy(false); }
+                                    MessageToast.show(i18n.getText("startTrainingSuccess", [iDone]));
+                                    oModel.refresh(true);
+                                    that._loadAnalytics();
+                                    that._rebindAssignCardGrid();
                                 }
-                            });
+                            },
+                            error: function (xhr) {
+                                iFail++;
+                                if (iDone + iFail === iTotal) {
+                                    if (oSmartTable) { oSmartTable.setBusy(false); }
+                                    if (iDone > 0) {
+                                        MessageToast.show(i18n.getText("startTrainingSuccess", [iDone]));
+                                    } else {
+                                        var sErrMsg = i18n.getText("updateFailed");
+                                        try {
+                                            var parsed = JSON.parse(xhr.responseText);
+                                            sErrMsg = (parsed.error && parsed.error.message && (parsed.error.message.value || parsed.error.message)) || sErrMsg;
+                                        } catch (_e) { /* ignore */ }
+                                        MessageBox.error(sErrMsg);
+                                    }
+                                    oModel.refresh(true);
+                                    that._loadAnalytics();
+                                    that._rebindAssignCardGrid();
+                                }
+                            }
                         });
-                    }, function () {
-                        oModel.setUseBatch(bOldBatch);
-                        MessageBox.error(i18n.getText("securityTokenFailed"));
                     });
                 }
             });

@@ -316,17 +316,17 @@ html, body, html.sap-desktop, .sapUiBody {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    min-width: 2rem;
+    width: 1.625rem;
+    height: 1.625rem;
+    min-width: 1.625rem;
     border-radius: 50%;
     background: linear-gradient(135deg, #0854a0, #0a6ed1);
     color: #fff !important;
-    font-size: 0.8125rem !important;
+    font-size: 0.6875rem !important;
     font-weight: 700;
     text-transform: uppercase;
     flex-shrink: 0;
-    line-height: 2rem !important;
+    line-height: 1.625rem !important;
     text-align: center;
 }
 
@@ -577,18 +577,18 @@ html, body, html.sap-desktop, .sapUiBody {
     justify-content: center;
 }
 
-/* Progress bars in team breakdown – taller and more prominent */
+/* Progress bars in team breakdown – compact */
 .teamUserRow .sapMPI {
-    border-radius: 6px;
-    min-height: 2rem !important;
-    height: 2rem !important;
+    border-radius: 4px;
+    min-height: 1.25rem !important;
+    height: 1.25rem !important;
 }
 
 .teamUserRow .sapMPI .sapMPITextRight,
 .teamUserRow .sapMPI .sapMPIText {
-    font-size: 0.875rem !important;
+    font-size: 0.6875rem !important;
     font-weight: 600 !important;
-    line-height: 2rem !important;
+    line-height: 1.25rem !important;
 }
 
 .sapSuiteCpMC {
@@ -1223,6 +1223,10 @@ html, body, html.sap-desktop, .sapUiBody {
         grid-template-columns: repeat(6, 1fr) !important;
     }
 
+    .userAnalyticsContainer {
+        grid-template-columns: repeat(5, 1fr) !important;
+    }
+
     .analyticsCard .sapMObjectNumber {
         font-size: 1.75rem !important;
     }
@@ -1244,6 +1248,10 @@ html, body, html.sap-desktop, .sapUiBody {
 @media (min-width: 1441px) and (max-width: 1920px) {
     .analyticsContainer {
         grid-template-columns: repeat(6, 1fr) !important;
+    }
+
+    .userAnalyticsContainer {
+        grid-template-columns: repeat(5, 1fr) !important;
     }
 
     .analyticsCard .sapMObjectNumber {
@@ -1271,6 +1279,10 @@ html, body, html.sap-desktop, .sapUiBody {
 @media (min-width: 1921px) and (max-width: 2560px) {
     .analyticsContainer {
         grid-template-columns: repeat(6, 1fr) !important;
+    }
+
+    .userAnalyticsContainer {
+        grid-template-columns: repeat(5, 1fr) !important;
     }
 
     .analyticsCard .sapMObjectNumber {
@@ -1311,6 +1323,10 @@ html, body, html.sap-desktop, .sapUiBody {
 @media (min-width: 2561px) {
     .analyticsContainer {
         grid-template-columns: repeat(6, 1fr) !important;
+    }
+
+    .userAnalyticsContainer {
+        grid-template-columns: repeat(5, 1fr) !important;
     }
 
     .analyticsCard .sapMObjectNumber {
@@ -1580,7 +1596,7 @@ html, body, html.sap-desktop, .sapUiBody {
 
 /* ===== Team User Progress Breakdown (Manager/Admin) ===== */
 .teamUserRow {
-    padding: 0.375rem 0.5rem;
+    padding: 0.25rem 0.375rem;
     border-radius: var(--sapRadiusSm);
     transition: background var(--sapTransition);
 }
@@ -1591,18 +1607,28 @@ html, body, html.sap-desktop, .sapUiBody {
 
 .teamUserName {
     font-weight: 600;
-    font-size: 1.125rem;
+    font-size: 0.875rem;
     color: var(--sapText);
+    line-height: 1.2;
 }
 
 .teamUserId {
-    font-size: 0.875rem;
+    font-size: 0.6875rem;
     color: var(--sapTextLight);
+    line-height: 1.2;
 }
 
 .teamUserStatus {
-    min-width: 3rem;
+    min-width: 2.5rem;
     text-align: right;
+}
+
+.teamUserStatus .sapMObjStatusText {
+    font-size: 0.75rem !important;
+}
+
+.teamUserOverdueBadge {
+    font-size: 0.6875rem;
 }
 
 /* Small overdue badge next to userId */
