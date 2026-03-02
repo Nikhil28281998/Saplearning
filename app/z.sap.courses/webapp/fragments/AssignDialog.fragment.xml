@@ -282,7 +282,12 @@
             </VBox>
         </content>
 
-        <beginButton>
+        <buttons>
+            <Button id="assignBackBtn"
+                text="{i18n>previousStep}"
+                icon="sap-icon://navigation-left-arrow"
+                visible="{= ${assignModel>/wizardStep} > 1 }"
+                press=".onAssignBack" />
             <!-- Step 1/2: "Next" — Step 3: "Assign" -->
             <Button
                 id="assignNextBtn"
@@ -291,17 +296,8 @@
                 icon="{= ${assignModel>/wizardStep} === 3 ? 'sap-icon://accept' : 'sap-icon://navigation-right-arrow' }"
                 enabled="{= !${assignModel>/submitting} }"
                 press=".onAssignNext" />
-        </beginButton>
-        <buttons>
-            <Button id="assignBackBtn"
-                text="{i18n>previousStep}"
-                icon="sap-icon://navigation-left-arrow"
-                visible="{= ${assignModel>/wizardStep} > 1 }"
-                press=".onAssignBack" />
-        </buttons>
-        <endButton>
             <Button id="assignCancelBtn" text="{i18n>cancelButton}" press=".onAssignCancel" />
-        </endButton>
+        </buttons>
     </Dialog>
 
 </core:FragmentDefinition>

@@ -490,6 +490,27 @@ sap.ui.define([
             Promise.all([pUsers, pWorkload]).then(function (aResults) {
                 var users = aResults[0] || [];
                 var workloadData = aResults[1] || [];
+
+                // Client-side filter fallback: if backend didn't filter by manager,
+                // apply the filter locally using the manager property
+                if (sRole === 'Manager' && sUserId && aUserFilters.length > 0) {
+                    var sManagerProp = that._userManagerProperty || 'Sort2';
+                    var sUpper = sUserId.toUpperCase();
+                    var filtered = users.filter(function (u) {
+                        var val = (u[sManagerProp] || '').toUpperCase();
+                        return val === sUpper;
+                    });
+                    // Only apply client filter if it actually reduces the list
+                    // (means backend ignored the filter)
+                    if (filtered.length > 0 && filtered.length < users.length) {
+                        Log.info('[AssignDlg] Client-side filter applied: ' + users.length + ' → ' + filtered.length + ' users (by ' + sManagerProp + '=' + sUserId + ')');
+                        users = filtered;
+                    } else if (filtered.length === 0 && users.length > 20) {
+                        // Sort2 is empty for all users — backend data issue
+                        Log.warning('[AssignDlg] Manager filter field "' + sManagerProp + '" is empty for all users. Backend UserSet needs ' + sManagerProp + ' populated with manager IDs. Showing all ' + users.length + ' users as fallback.');
+                    }
+                }
+
                 that._openAssignFragment(aPreSelectedTrainings || [], users, workloadData);
             }).catch(function () {
                 var i18n = that.getModel("i18n").getResourceBundle();
@@ -921,25 +942,17 @@ sap.ui.define([
                     return;
                 }
 
-                // E1: Slim payload — server will denormalize training+user fields
+                // E1: Slim payload — only send properties that exist in the backend entity
+                // TrainingAssignment entity has: TrainingId, UserId, Status, DueDate, Id
+                // Properties like Priority, Notes, Sequence, Recurring are UI-only (not in SEGW model)
                 var payload = {
                     TrainingId: tid,
                     UserId: sKey,
-                    Status: 'Assigned',
-                    Priority: data.priority || 'Medium',
-                    Notes: data.notes || ''
+                    Status: 'Assigned'
                 };
                 if (dueDateValue !== null) { payload.DueDate = dueDateValue; }
-                // C4: Learning path sequence
-                if (data.sequence) { payload.Sequence = parseInt(data.sequence, 10) || 0; }
-                // C5: Recurring assignment
-                if (data.recurring) {
-                    payload.Recurring = true;
-                    payload.RecurringInterval = data.recurringInterval || 'monthly';
-                    // 4-5 FIX: Include max recurrences limit
-                    var iMax = parseInt(data.maxRecurrences, 10) || 0;
-                    if (iMax > 0) { payload.MaxRecurrences = iMax; }
-                }
+                // Note: Priority, Notes, Sequence, Recurring fields are stored in UI only
+                // The backend TrainingAssignment entity does not have these properties
 
                 oModel.create('/' + sEntitySet, payload, {
                     success: function () {
