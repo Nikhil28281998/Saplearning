@@ -1031,128 +1031,6 @@ sap.ui.define([
             }
         },
 
-        // ====================================================================
-        // C2: Reassign Dialog
-        // ====================================================================
-
-        /**
-         * FIX 1-1: Formatter for ReassignDialog info strip.
-         * Pattern: "Reassigning: {0} (currently: {1})"
-         */
-        formatReassignInfo: function (sPattern, sTitle, sUserId) {
-            if (!sPattern) { return ""; }
-            return sPattern.replace("{0}", sTitle || "").replace("{1}", sUserId || "");
-        },
-
-        /**
-         * Open reassign dialog for a specific assignment.
-         * @param {string} sAssignmentId - Assignment UUID
-         * @param {string} sCurrentUserId - Current assignee ID
-         * @param {string} sTrainingTitle - Training title for display
-         */
-        openReassignDialog: function (sAssignmentId, sCurrentUserId, sTrainingTitle) {
-            var that = this;
-            if (this._reassignDlg) { this._reassignDlg.destroy(); this._reassignDlg = null; }
-
-            var oModel = this.getModel();
-            var sUserId = this.getCurrentUserId();
-            var sRole = this._role;
-            var aFilters = [];
-            if (sRole === 'Manager' && sUserId) {
-                var sProp = this._userManagerProperty || 'sort2';
-                aFilters.push(new sap.ui.model.Filter(sProp, sap.ui.model.FilterOperator.EQ, sUserId));
-            }
-
-            var sUserEntitySet = this._userEntitySet || 'UserSet';
-            oModel.read('/' + sUserEntitySet, {
-                filters: aFilters,
-                success: function (data) {
-                    var aUsers = (data.results || []).filter(function (u) {
-                        return (u.UserId || '').toUpperCase() !== sCurrentUserId.toUpperCase();
-                    });
-
-                    that._reassignModel = new JSONModel({
-                        assignmentId: sAssignmentId,
-                        currentUserId: sCurrentUserId,
-                        trainingTitle: sTrainingTitle,
-                        users: aUsers,
-                        newUserId: aUsers.length > 0 ? aUsers[0].UserId : '',
-                        error: '',
-                        submitting: false
-                    });
-
-                    Fragment.load({
-                        name: "z.sap.courses.fragments.ReassignDialog",
-                        controller: that
-                    }).then(function (oDialog) {
-                        that._reassignDlg = oDialog;
-                        oDialog.setModel(that._reassignModel, "reassignModel");
-                        oDialog.setModel(that.getModel("i18n"), "i18n");
-                        oDialog.attachAfterClose(function () { oDialog.destroy(); that._reassignDlg = null; });
-                        oDialog.open();
-                    });
-                },
-                error: function () {
-                    var i18n = that.getModel("i18n") && that.getModel("i18n").getResourceBundle();
-                    MessageToast.show(i18n ? i18n.getText("failedLoadTeamMembers") : 'Failed to load team members');
-                }
-            });
-        },
-
-        onReassignSubmit: function () {
-            var that = this;
-            var oRM = this._reassignModel;
-            if (!oRM) return;
-            var sNewUserId = oRM.getProperty("/newUserId");
-            if (!sNewUserId) {
-                var i18nErr = this.getModel("i18n") && this.getModel("i18n").getResourceBundle();
-                oRM.setProperty("/error", i18nErr ? i18nErr.getText("selectTeamMember") : "Select a team member");
-                return;
-            }
-            oRM.setProperty("/submitting", true);
-            oRM.setProperty("/error", "");
-
-            var sId = oRM.getProperty("/assignmentId");
-            var oModel = this.getModel();
-            var sEntitySet = this._assignmentEntitySet || 'TrainingAssignments';
-            var bWasBatch = oModel.bUseBatch;
-            oModel.setUseBatch(false);
-
-            // Use function import URL for OData V2 ABAP Gateway
-            var sServiceUrl = oModel.sServiceUrl || '';
-            var sActionUrl = sServiceUrl + "/reassign?Id='" + sId + "'&newUserId='" + sNewUserId + "'";
-
-            jQuery.ajax({
-                url: sActionUrl,
-                method: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({}),
-                headers: oModel.getHeaders(),
-                success: function () {
-                    oModel.setUseBatch(bWasBatch);
-                    oRM.setProperty("/submitting", false);
-                    if (that._reassignDlg) { that._reassignDlg.close(); }
-                    oModel.refresh(true);
-                    var i18n = that.getModel("i18n") && that.getModel("i18n").getResourceBundle();
-                    MessageToast.show(i18n ? i18n.getText("reassignedTo", [sNewUserId]) : 'Assignment reassigned to ' + sNewUserId);
-                },
-                error: function (xhr) {
-                    oModel.setUseBatch(bWasBatch);
-                    oRM.setProperty("/submitting", false);
-                    var msg = 'Reassign failed';
-                    try {
-                        var p = JSON.parse(xhr.responseText);
-                        msg = (p.error && p.error.message && (p.error.message.value || p.error.message)) || msg;
-                    } catch (_) {}
-                    oRM.setProperty("/error", msg);
-                }
-            });
-        },
-
-        onReassignCancel: function () {
-            if (this._reassignDlg) { this._reassignDlg.close(); }
-        },
-
         // D2: Send reminder (pre-filled mailto)
         sendReminder: function (sUserEmail, sUserName, sTrainingTitle) {
             if (!sUserEmail) {
@@ -1203,10 +1081,6 @@ sap.ui.define([
             if (this._assignDlg) {
                 this._assignDlg.destroy();
                 this._assignDlg = null;
-            }
-            if (this._reassignDlg) {
-                this._reassignDlg.destroy();
-                this._reassignDlg = null;
             }
             if (this._resultDlg) {
                 this._resultDlg.destroy();

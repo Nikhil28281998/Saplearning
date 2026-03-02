@@ -119,71 +119,82 @@
                     </VBox>
                 </VBox>
 
-                <!-- Charts 2-Column Grid: Top Modules + User Progress -->
-                <VBox id="teamChartsHBox" class="sapUiSmallMargin chartsRow">
-                    <!-- Top Modules by Assignment Completion -->
-                    <VBox id="moduleChartBox" class="analyticsCard analyticsCardBlue chartCard">
+                <!-- Compact Charts Row: Top Modules + User Progress (space-efficient) -->
+                <HBox id="teamChartsHBox" class="sapUiSmallMargin compactChartsRow" wrap="Wrap">
+                    <!-- Top Modules — compact inline bars (top 3) -->
+                    <VBox id="moduleChartBox" class="compactChartCard" width="50%">
                         <HBox id="moduleChartHeader" alignItems="Center" class="sapUiTinyMarginBottom">
-                            <core:Icon id="moduleChartIcon" src="sap-icon://bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
-                            <Text id="moduleChartTitle" text="{i18n>topModules}" class="chartTitle" />
+                            <core:Icon id="moduleChartIcon" src="sap-icon://bar-chart" size="0.875rem" color="#0854a0" class="sapUiTinyMarginEnd" />
+                            <Text id="moduleChartTitle" text="{i18n>topModules}" class="compactChartTitle" />
                         </HBox>
-                        <!-- H7 FIX: Show system-wide training module distribution (primary) -->
                         <VBox id="moduleTrainingChartContainer"
-                              items="{path: 'analyticsModel>/moduleDistribution'}"
+                              items="{path: 'analyticsModel>/moduleDistribution', length: 3}"
                               visible="{= !!${analyticsModel>/moduleDistribution} &amp;&amp; ${analyticsModel>/moduleDistribution}.length > 0 }">
                             <items>
-                                <HBox alignItems="Center" class="sapUiTinyMarginBottom moduleBarRow">
-                                    <Text text="{analyticsModel>label}" class="moduleBarLabel sapUiTinyMarginEnd" width="12rem" wrapping="true" maxLines="2" />
+                                <HBox alignItems="Center" class="compactModuleRow">
+                                    <Text text="{analyticsModel>label}" class="compactModuleLabel sapUiTinyMarginEnd" wrapping="false" />
                                     <ProgressIndicator
                                         percentValue="{analyticsModel>percentOfMax}"
                                         state="Information"
                                         showValue="false"
                                         width="100%"
-                                        height="1.75rem"
-                                        class="moduleProgressBar" />
-                                    <Text text="{analyticsModel>displayValue}" class="moduleBarValue sapUiTinyMarginBegin" wrapping="false" />
+                                        height="1.125rem"
+                                        class="compactModuleBar" />
+                                    <Text text="{analyticsModel>displayValue}" class="compactModuleValue sapUiTinyMarginBegin" wrapping="false" />
                                 </HBox>
                             </items>
                         </VBox>
-                        <!-- Fallback: Team assignment module completion when no training data -->
                         <VBox id="moduleAssignChartContainer"
-                              items="{path: 'teamAnalytics>/moduleAssignmentStats'}"
+                              items="{path: 'teamAnalytics>/moduleAssignmentStats', length: 3}"
                               visible="{= (!${analyticsModel>/moduleDistribution} || ${analyticsModel>/moduleDistribution}.length === 0) &amp;&amp; !!${teamAnalytics>/moduleAssignmentStats} &amp;&amp; ${teamAnalytics>/moduleAssignmentStats}.length > 0 }">
                             <items>
-                                <HBox alignItems="Center" class="sapUiTinyMarginBottom moduleBarRow">
-                                    <Text text="{teamAnalytics>label}" class="moduleBarLabel sapUiTinyMarginEnd" width="12rem" wrapping="true" maxLines="2" />
+                                <HBox alignItems="Center" class="compactModuleRow">
+                                    <Text text="{teamAnalytics>label}" class="compactModuleLabel sapUiTinyMarginEnd" wrapping="false" />
                                     <ProgressIndicator
                                         percentValue="{teamAnalytics>completionPct}"
                                         state="{= ${teamAnalytics>completionPct} >= 80 ? 'Success' : ${teamAnalytics>completionPct} >= 50 ? 'Warning' : 'Error' }"
                                         showValue="false"
                                         width="100%"
-                                        height="1.75rem"
-                                        class="moduleProgressBar" />
-                                    <Text text="{teamAnalytics>displayValue}" class="moduleBarValue sapUiTinyMarginBegin" wrapping="false" />
+                                        height="1.125rem"
+                                        class="compactModuleBar" />
+                                    <Text text="{teamAnalytics>displayValue}" class="compactModuleValue sapUiTinyMarginBegin" wrapping="false" />
                                 </HBox>
                             </items>
                         </VBox>
                         <Text id="moduleChartNoData"
                               text="{i18n>noModuleData}"
+                              class="compactNoData"
                               visible="{= (!${analyticsModel>/moduleDistribution} || ${analyticsModel>/moduleDistribution}.length === 0) &amp;&amp; (!${teamAnalytics>/moduleAssignmentStats} || ${teamAnalytics>/moduleAssignmentStats}.length === 0) }" />
                     </VBox>
-                    <!-- User Progress Chart -->
-                    <VBox id="teamMembersCard" class="analyticsCard analyticsCardBlue chartCard">
+                    <!-- User Progress — compact inline rows (top 3) -->
+                    <VBox id="teamMembersCard" class="compactChartCard" width="50%">
                         <HBox id="teamMembersHeader" alignItems="Center" class="sapUiTinyMarginBottom">
-                            <core:Icon id="teamMembersIcon" src="sap-icon://customer" size="1rem" color="#0a6ed1" class="sapUiTinyMarginEnd" />
-                            <Text id="teamMembersTitle" text="{i18n>teamUserProgress}" class="chartTitle" />
+                            <core:Icon id="teamMembersIcon" src="sap-icon://customer" size="0.875rem" color="#0a6ed1" class="sapUiTinyMarginEnd" />
+                            <Text id="teamMembersTitle" text="{i18n>teamUserProgress}" class="compactChartTitle" />
                         </HBox>
-                        <List id="teamUserList"
-                              items="{path: 'teamAnalytics>/userBreakdown', length: 5}"
-                              showNoData="true"
-                              noDataText="{i18n>noTeamMembers}"
-                              showSeparators="None">
+                        <VBox id="teamUserCompactList"
+                              items="{path: 'teamAnalytics>/userBreakdown', length: 3}">
                             <items>
-                                <core:Fragment fragmentName="z.sap.courses.fragments.TeamUserRow" type="XML" />
+                                <HBox alignItems="Center" class="compactUserRow">
+                                    <Text text="{teamAnalytics>userName}" class="compactUserName sapUiTinyMarginEnd" wrapping="false" />
+                                    <ProgressIndicator
+                                        percentValue="{= ${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0 }"
+                                        displayValue="{= ${teamAnalytics>completed} + '/' + ${teamAnalytics>total} }"
+                                        state="{= (${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0) >= 100 ? 'Success' : (${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0) >= 50 ? 'Warning' : 'Error' }"
+                                        showValue="true"
+                                        width="100%"
+                                        height="1.125rem"
+                                        class="compactUserBar" />
+                                    <ObjectStatus
+                                        text="{= ${teamAnalytics>overdue} > 0 ? ${teamAnalytics>overdue} + ' !' : '' }"
+                                        state="Error"
+                                        visible="{= ${teamAnalytics>overdue} > 0 }"
+                                        class="sapUiTinyMarginBegin compactOverdueBadge" />
+                                </HBox>
                             </items>
-                        </List>
+                        </VBox>
                     </VBox>
-                </VBox>
+                </HBox>
             </Panel>
 
             <!-- SmartFilterBar: Go + Adapt Filters with explicit Role/Module dropdown filters -->

@@ -1520,40 +1520,6 @@ sap.ui.define([
         },
 
         // ============================================================
-        // C2: Reassign Assignment
-        // ============================================================
-
-        onReassign: function () {
-            var oComponent = this.getOwnerComponent();
-            if (!oComponent || !oComponent.openReassignDialog) return;
-
-            var oTable = this.byId("assignSmartTable");
-            var oInnerTable = oTable ? oTable.getTable() : null;
-            if (!oInnerTable) return;
-
-            var aSelected = oInnerTable.getSelectedItems ? oInnerTable.getSelectedItems() : [];
-            if (aSelected.length === 0) {
-                MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("selectAssignmentFirst"));
-                return;
-            }
-
-            // Single reassign only
-            var oCtx = aSelected[0].getBindingContext();
-            if (!oCtx) return;
-            var oData = oCtx.getObject();
-            if (oData.Status === "Completed") {
-                MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("alreadyCompleted"));
-                return;
-            }
-
-            oComponent.openReassignDialog(
-                oData.ID || oData.Id,
-                oData.UserId || oData.userId,
-                oData.Title || oData.title
-            );
-        },
-
-        // ============================================================
         // D2: Send Reminder Email
         // ============================================================
 

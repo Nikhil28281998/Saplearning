@@ -276,6 +276,13 @@
                             type="Ghost"
                             press="onMarkCompletedBtn"
                             class="markCompletedToolbarBtn" />
+                        <Button
+                            id="sendReminderBtn"
+                            text="{i18n>sendReminder}"
+                            icon="sap-icon://email"
+                            type="Transparent"
+                            press="onSendReminder"
+                            visible="{= ${user>/role} === 'Manager' || ${user>/role} === 'Admin' }" />
 
                         <ToolbarSpacer id="assignToolbarSpacer" />
                         <SegmentedButton id="assignViewModeToggle2" selectedKey="{assignViewMode>/mode}" selectionChange="onAssignViewModeChange">
