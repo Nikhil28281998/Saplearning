@@ -174,7 +174,7 @@
                             <Text id="teamMembersTitle" text="{i18n>teamUserProgress}" class="chartTitle" />
                         </HBox>
                         <List id="teamUserList"
-                              items="{path: 'teamAnalytics>/userBreakdown', length: 10}"
+                              items="{path: 'teamAnalytics>/userBreakdown', length: 5}"
                               showNoData="true"
                               noDataText="{i18n>noTeamMembers}"
                               showSeparators="None">

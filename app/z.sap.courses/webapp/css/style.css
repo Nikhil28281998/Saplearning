@@ -389,8 +389,8 @@ html, body, html.sap-desktop, .sapUiBody {
     max-width: 100%;
     flex: none;
     min-height: 80px;
-    max-height: none;
-    overflow-y: visible;
+    max-height: 320px;
+    overflow-y: auto;
     box-sizing: border-box;
     padding: 0.5rem 0.75rem !important;
     margin: 0 !important;
@@ -536,9 +536,9 @@ html, body, html.sap-desktop, .sapUiBody {
     background: linear-gradient(90deg, #6c32a9, #ba68c8) !important;
 }
 
-/* ===== User Analytics Container (My Assignments) – inherits same auto-fill grid
-   as the home page analyticsContainer so cards scale identically ===== */
+/* ===== User Analytics Container (My Assignments) – exactly 5 columns for 5 KPIs ===== */
 .userAnalyticsContainer {
+    grid-template-columns: repeat(5, 1fr) !important;
     overflow-x: hidden !important; /* A7 FIX: prevent horizontal scrollbar under KPI cards */
 }
 
@@ -1135,6 +1135,10 @@ html, body, html.sap-desktop, .sapUiBody {
         grid-template-columns: repeat(2, 1fr) !important;
     }
 
+    .userAnalyticsContainer {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
     .analyticsCard {
         min-height: 80px;
     }
@@ -1183,6 +1187,10 @@ html, body, html.sap-desktop, .sapUiBody {
 /* Tablet (601-1024px): ~10"-13" screens */
 @media (min-width: 601px) and (max-width: 1024px) {
     .analyticsContainer {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    .userAnalyticsContainer {
         grid-template-columns: repeat(3, 1fr) !important;
     }
 
