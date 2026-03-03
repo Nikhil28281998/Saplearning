@@ -13,7 +13,7 @@
         id="assignmentsListPage"
         title=""
         showNavButton="false"
-        enableScrolling="true"
+        enableScrolling="false"
         class="assignmentsPage">
 
         <headerContent>
@@ -250,6 +250,7 @@
                 persistencyKey="AssignmentsSmartTableV5"
                 demandPopin="true"
                 enableAutoColumnWidth="true"
+                fitContainer="true"
                 initialise="onSmartTableInit"
                 initiallyVisibleFields="Title,Url,SapModule,UserId,UserName,Status,DueDate,CompletionDate"
                 beforeRebindTable="onBeforeRebindTable"

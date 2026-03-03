@@ -83,7 +83,7 @@
                                 <core:Item id="prioLow" key="Low" text="{i18n>priorityLow}" />
                             </Select>
 
-                            <!-- A4: Due Date with help tooltip — FIX 3.1: Due date is mandatory -->
+                            <!-- A4: Due Date with help tooltip — FIX 3.1: Due date is mandatory, no past dates -->
                             <Label id="assignLabelDueDate" text="{i18n>dueDateLabel}" required="true" />
                             <DatePicker
                                 id="assignDueDate"
@@ -91,6 +91,7 @@
                                 valueFormat="yyyy-MM-dd"
                                 displayFormat="long"
                                 value="{assignModel>/dueDate}"
+                                minDate="{assignModel>/minDueDate}"
                                 required="true"
                                 placeholder="{i18n>selectDueDatePlaceholder}" />
                             <Label id="assignLabelDueDateHint" text="" />

@@ -102,14 +102,32 @@ html, body, html.sap-desktop, .sapUiBody {
     min-height: 200px !important;
 }
 
-/* BUG-6 FIX: Assignments page uses ResponsiveTable – needs page-level scroll */
-.assignmentsPage.sapMPage > section.sapMPageEnableScrolling,
+/* Assignments page – flex layout so SmartTable fills remaining space with internal scroll */
 .assignmentsPage.sapMPage > section {
-    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    height: 100% !important;
 }
+
+/* SmartTable fills remaining height and scrolls internally (fitContainer=true) */
 .assignmentsPage .sapUiCompSmartTable {
+    flex: 1 1 0 !important;
+    overflow: hidden !important;
+    min-height: 200px !important;
+}
+
+/* Card ScrollContainer also fills remaining space when card view is active */
+.assignmentsPage .sapMScrollCont {
+    flex: 1 1 0 !important;
+    min-height: 200px !important;
+}
+
+/* Analytics + filter bar stay at natural size */
+.assignmentsPage .analyticsPanel,
+.assignmentsPage .sapUiCompSmartFilterBar,
+.assignmentsPage .dueDateWarningBar {
     flex: 0 0 auto !important;
-    overflow: visible !important;
 }
 
 /* ScrollContainers in card views – flex properly within page section */

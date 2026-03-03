@@ -592,6 +592,10 @@ sap.ui.define([
                 String(oDefaultDue.getMonth() + 1).padStart(2, '0') + '-' +
                 String(oDefaultDue.getDate()).padStart(2, '0');
 
+            // Past date prevention: minDueDate = today (no past dates for anyone)
+            var oMinDueDate = new Date();
+            oMinDueDate.setHours(0, 0, 0, 0);
+
             this._assignModel = new JSONModel({
                 trainings: trainings,
                 users: users,
@@ -599,6 +603,7 @@ sap.ui.define([
                 selectedUserKeys: [],
                 selectedUsersDetail: [],
                 dueDate: sDefaultDue,
+                minDueDate: oMinDueDate,
                 priority: 'Medium',
                 notes: '',
                 sequence: '',
@@ -655,6 +660,23 @@ sap.ui.define([
                 if (!sDueDate) {
                     oModel.setProperty("/error", i18n.getText("dueDateRequired") || "Due date is required. No assignment can be created without a due date.");
                     return;
+                }
+                // Past date validation — no user (Admin/Manager) can assign with a past date
+                var oToday = new Date();
+                oToday.setHours(0, 0, 0, 0);
+                var oDueDate;
+                if (typeof sDueDate === 'string' && sDueDate.length >= 10) {
+                    var parts = sDueDate.substring(0, 10).split('-');
+                    oDueDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                } else if (sDueDate instanceof Date) {
+                    oDueDate = new Date(sDueDate.getTime());
+                }
+                if (oDueDate) {
+                    oDueDate.setHours(0, 0, 0, 0);
+                    if (oDueDate < oToday) {
+                        oModel.setProperty("/error", i18n.getText("pastDateNotAllowed") || "Due date cannot be in the past. Please select today or a future date.");
+                        return;
+                    }
                 }
                 oModel.setProperty("/error", "");
                 oModel.setProperty("/wizardStep", 2);
@@ -862,6 +884,27 @@ sap.ui.define([
                 return;
             }
             oAssignModel.setProperty('/error', '');
+
+            // Safety-net: Block past dates at submit time (for all roles)
+            if (data.dueDate) {
+                var oCheckToday = new Date();
+                oCheckToday.setHours(0, 0, 0, 0);
+                var oCheckDue;
+                if (typeof data.dueDate === 'string' && data.dueDate.length >= 10) {
+                    var chkParts = data.dueDate.substring(0, 10).split('-');
+                    oCheckDue = new Date(parseInt(chkParts[0], 10), parseInt(chkParts[1], 10) - 1, parseInt(chkParts[2], 10));
+                } else if (data.dueDate instanceof Date) {
+                    oCheckDue = new Date(data.dueDate.getTime());
+                }
+                if (oCheckDue) {
+                    oCheckDue.setHours(0, 0, 0, 0);
+                    if (oCheckDue < oCheckToday) {
+                        oAssignModel.setProperty('/submitting', false);
+                        oAssignModel.setProperty('/error', i18nBundle.getText("pastDateNotAllowed") || 'Due date cannot be in the past. Please select today or a future date.');
+                        return;
+                    }
+                }
+            }
 
             // Build due date as UTC
             var dueDateValue = null;
