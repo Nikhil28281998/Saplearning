@@ -1,0 +1,51 @@
+Subject: Introducing the SAP Courses App — Centralized Training Management on SAP Fiori
+
+Dear Leadership Team,
+
+I am pleased to present the SAP Courses application — a purpose-built training management solution developed on our SAP S/4HANA platform and deployed through SAP Fiori. This application streamlines how BridgeBio tracks, assigns, and monitors SAP learning across the organization.
+
+THE CHALLENGE
+As our SAP footprint grows, ensuring that every team member completes the right training at the right time has become increasingly complex. Spreadsheet-based tracking, manual follow-ups, and limited visibility into completion status create bottlenecks for both managers and end users.
+
+THE SOLUTION
+The SAP Courses App provides a single, integrated platform accessible directly from the SAP Fiori Launchpad — a standard Fiori tile, no separate login or external tools required.
+
+FOR MANAGERS & ADMINISTRATORS
+  • Team Analytics Dashboard — Real-time KPIs: Total, Pending, In Progress, Overdue, and Completed assignments across the team
+  • Training Assignment — Assign courses to specific team members with due dates and progress tracking
+  • Smart Filtering — Dependent dropdown filters (Role → Topic → Module) that dynamically narrow options
+  • De-assignment & Reassignment — Flexible management as roles evolve
+  • Export Reports — One-click Excel download of training data for leadership reporting
+  • Email Notifications — Send assignment and reminder notifications directly from the app
+
+FOR END USERS
+  • My Assignments — Personalized view of all assigned courses with status tracking
+  • Start Training — One-click launch; status automatically updates to "In Progress"
+  • Mark Completed — Self-service completion with automatic timestamp and audit trail
+  • Card & Table Views — Toggle between a visual card layout and a detailed data table with built-in scrollbar
+
+END-TO-END WORKFLOW DEMONSTRATED
+The attached video walkthrough covers the complete lifecycle:
+  1. Launch the app from the SAP Fiori Launchpad tile
+  2. Review Team Analytics KPIs and open the Analytics Dashboard
+  3. Use Smart Filters to narrow courses by Role, Topic, and Module
+  4. Toggle between Card View and Table View
+  5. Navigate to My Assignments and assign a training to a team member
+  6. Start Training (Assigned → In Progress) and Mark Completed (In Progress → Completed)
+  7. Verify completion status end-to-end using the status filter
+
+TECHNICAL HIGHLIGHTS
+  • Built on SAPUI5 / SAP Fiori with OData V2 services via SAP Gateway
+  • Role-based access control (Admin / Manager / End User)
+  • Responsive design — optimized for desktops, laptops, and tablets
+  • Deployed on SAP Fiori Launchpad as a standard Fiori tile
+
+ATTACHMENTS
+  1. Video walkthrough (3–4 min) demonstrating the full Manager and End User experience
+  2. PDF reference document with annotated screenshots covering both workflows step by step
+
+I welcome the opportunity to schedule a live demonstration at your convenience. Please feel free to reach out with any questions or feedback.
+
+Best regards,
+Nikhil Kumar
+SAP Development Team | BridgeBio
