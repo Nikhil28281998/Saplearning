@@ -31,12 +31,6 @@
                 press="onViewAssignments"
                 type="Emphasized" />
             <Button
-                id="tutorialBtn"
-                icon="sap-icon://sys-help"
-                tooltip="{i18n>howToUseApp}"
-                press="onOpenTutorial"
-                type="Transparent" />
-            <Button
                 id="messagePopoverBtn"
                 icon="sap-icon://message-popup"
                 text="{= ${message>/}.length > 0 ? ${message>/}.length : '' }"

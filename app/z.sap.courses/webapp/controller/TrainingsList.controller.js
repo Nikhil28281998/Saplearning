@@ -80,7 +80,9 @@ sap.ui.define([
                 roleModuleMap: {},
                 roleTopicMap: {},
                 topicModuleMap: {},
-                moduleTopicMap: {}
+                moduleTopicMap: {},
+                topicRoleMap: {},
+                moduleRoleMap: {}
             });
             this.getView().setModel(oFilterModel, "filterData");
 
@@ -194,6 +196,8 @@ sap.ui.define([
                 oFilterModel.setProperty("/roleTopicMap", oStats.roleTopicMap || {});
                 oFilterModel.setProperty("/topicModuleMap", oStats.topicModuleMap);
                 oFilterModel.setProperty("/moduleTopicMap", oStats.moduleTopicMap || {});
+                oFilterModel.setProperty("/topicRoleMap", oStats.topicRoleMap || {});
+                oFilterModel.setProperty("/moduleRoleMap", oStats.moduleRoleMap || {});
             }).catch(function () {
                 oAnalyticsModel.setProperty("/totalTrainings", 0);
                 MessageToast.show(that.getView().getModel("i18n").getResourceBundle().getText("loadFailed"));
@@ -1099,15 +1103,40 @@ sap.ui.define([
             var roleTopicMap = oFilterModel.getProperty("/roleTopicMap") || {};
             var topicModuleMap = oFilterModel.getProperty("/topicModuleMap") || {};
             var moduleTopicMap = oFilterModel.getProperty("/moduleTopicMap") || {};
+            var topicRoleMap = oFilterModel.getProperty("/topicRoleMap") || {};
+            var moduleRoleMap = oFilterModel.getProperty("/moduleRoleMap") || {};
             var allRoles = oFilterModel.getProperty("/allRoles") || [];
             var allTopics = oFilterModel.getProperty("/allTopics") || [];
             var allModules = oFilterModel.getProperty("/allModules") || [];
 
-            // Build sets of valid modules from role and topic
+            // --- Filter ROLES based on Topic and/or Module ---
+            var validRolesFromTopic = sTopic ? (topicRoleMap[sTopic] || {}) : null;
+            var validRolesFromModule = sModule ? (moduleRoleMap[sModule] || {}) : null;
+            var filteredRoles;
+            if (validRolesFromTopic && validRolesFromModule) {
+                filteredRoles = [{ key: "", text: "All" }];
+                Object.keys(validRolesFromTopic).sort().forEach(function (r) {
+                    if (validRolesFromModule[r]) {
+                        filteredRoles.push({ key: r, text: r });
+                    }
+                });
+            } else if (validRolesFromTopic) {
+                filteredRoles = [{ key: "", text: "All" }];
+                Object.keys(validRolesFromTopic).sort().forEach(function (r) {
+                    filteredRoles.push({ key: r, text: r });
+                });
+            } else if (validRolesFromModule) {
+                filteredRoles = [{ key: "", text: "All" }];
+                Object.keys(validRolesFromModule).sort().forEach(function (r) {
+                    filteredRoles.push({ key: r, text: r });
+                });
+            } else {
+                filteredRoles = allRoles.slice(0);
+            }
+
+            // --- Filter MODULES based on Role and/or Topic ---
             var validModulesFromRole = sRole ? (roleModuleMap[sRole] || {}) : null;
             var validModulesFromTopic = sTopic ? (topicModuleMap[sTopic] || {}) : null;
-
-            // Intersect module sets
             var filteredModules;
             if (validModulesFromRole && validModulesFromTopic) {
                 filteredModules = [{ key: "", text: "All" }];
@@ -1130,27 +1159,25 @@ sap.ui.define([
                 filteredModules = allModules.slice(0);
             }
 
-            // Filter topics based on selected module AND/OR role
-            var filteredTopics;
-            var validTopicsFromModule = sModule ? (moduleTopicMap[sModule] || {}) : null;
+            // --- Filter TOPICS based on Role and/or Module ---
             var validTopicsFromRole = sRole ? (roleTopicMap[sRole] || {}) : null;
-
-            if (validTopicsFromModule && validTopicsFromRole) {
-                // Intersect topics from module and role
+            var validTopicsFromModule = sModule ? (moduleTopicMap[sModule] || {}) : null;
+            var filteredTopics;
+            if (validTopicsFromRole && validTopicsFromModule) {
                 filteredTopics = [{ key: "", text: "All" }];
-                Object.keys(validTopicsFromModule).sort().forEach(function (t) {
-                    if (validTopicsFromRole[t]) {
+                Object.keys(validTopicsFromRole).sort().forEach(function (t) {
+                    if (validTopicsFromModule[t]) {
                         filteredTopics.push({ key: t, text: t });
                     }
-                });
-            } else if (validTopicsFromModule) {
-                filteredTopics = [{ key: "", text: "All" }];
-                Object.keys(validTopicsFromModule).sort().forEach(function (t) {
-                    filteredTopics.push({ key: t, text: t });
                 });
             } else if (validTopicsFromRole) {
                 filteredTopics = [{ key: "", text: "All" }];
                 Object.keys(validTopicsFromRole).sort().forEach(function (t) {
+                    filteredTopics.push({ key: t, text: t });
+                });
+            } else if (validTopicsFromModule) {
+                filteredTopics = [{ key: "", text: "All" }];
+                Object.keys(validTopicsFromModule).sort().forEach(function (t) {
                     filteredTopics.push({ key: t, text: t });
                 });
             } else {
@@ -1158,16 +1185,20 @@ sap.ui.define([
             }
 
             // Update model — but don't reset the filter that was just changed
+            if (sChangedFilter !== "role") {
+                oFilterModel.setProperty("/roles", filteredRoles);
+                if (sRole && !filteredRoles.some(function (r) { return r.key === sRole; })) {
+                    if (oRoleSelect) { oRoleSelect.setSelectedKey(""); }
+                }
+            }
             if (sChangedFilter !== "module") {
                 oFilterModel.setProperty("/modules", filteredModules);
-                // Reset module if current value is not in filtered list
                 if (sModule && !filteredModules.some(function (m) { return m.key === sModule; })) {
                     if (oModuleSelect) { oModuleSelect.setSelectedKey(""); }
                 }
             }
             if (sChangedFilter !== "topic") {
                 oFilterModel.setProperty("/topics", filteredTopics);
-                // Reset topic if current value is not in filtered list
                 if (sTopic && !filteredTopics.some(function (t) { return t.key === sTopic; })) {
                     if (oTopicSelect) { oTopicSelect.setSelectedKey(""); }
                 }

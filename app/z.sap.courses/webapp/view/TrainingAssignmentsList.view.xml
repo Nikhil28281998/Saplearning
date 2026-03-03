@@ -17,12 +17,6 @@
         class="assignmentsPage">
 
         <headerContent>
-            <Button
-                id="assignTutorialBtn"
-                icon="sap-icon://sys-help"
-                tooltip="{i18n>howToUsePage}"
-                press="onOpenTutorial"
-                type="Transparent" />
         </headerContent>
 
         <dependents>

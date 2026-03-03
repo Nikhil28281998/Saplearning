@@ -57,6 +57,8 @@ sap.ui.define([
                         var oRoleTopicMap = {};
                         var oTopicModuleMap = {};
                         var oModuleTopicMap = {};
+                        var oTopicRoleMap = {};
+                        var oModuleRoleMap = {};
 
                         aResults.forEach(function (t) {
                             if (t.SapModule) {
@@ -64,6 +66,8 @@ sap.ui.define([
                                 oModuleSet[t.SapModule] = true;
                                 if (!oModuleTopicMap[t.SapModule]) { oModuleTopicMap[t.SapModule] = {}; }
                                 if (t.Topic) { oModuleTopicMap[t.SapModule][t.Topic] = true; }
+                                if (!oModuleRoleMap[t.SapModule]) { oModuleRoleMap[t.SapModule] = {}; }
+                                if (t.Role) { oModuleRoleMap[t.SapModule][t.Role] = true; }
                             }
                             if (t.Role) {
                                 oRoleSet[t.Role] = true;
@@ -76,6 +80,8 @@ sap.ui.define([
                                 oTopicSet[t.Topic] = true;
                                 if (!oTopicModuleMap[t.Topic]) { oTopicModuleMap[t.Topic] = {}; }
                                 if (t.SapModule) { oTopicModuleMap[t.Topic][t.SapModule] = true; }
+                                if (!oTopicRoleMap[t.Topic]) { oTopicRoleMap[t.Topic] = {}; }
+                                if (t.Role) { oTopicRoleMap[t.Topic][t.Role] = true; }
                             }
                         });
 
@@ -107,7 +113,9 @@ sap.ui.define([
                             roleModuleMap: oRoleModuleMap,
                             roleTopicMap: oRoleTopicMap,
                             topicModuleMap: oTopicModuleMap,
-                            moduleTopicMap: oModuleTopicMap
+                            moduleTopicMap: oModuleTopicMap,
+                            topicRoleMap: oTopicRoleMap,
+                            moduleRoleMap: oModuleRoleMap
                         });
                         },
                         error: function (err) {
