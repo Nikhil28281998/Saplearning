@@ -286,6 +286,54 @@ sap.ui.define([
             });
 
             oAnalyticsModel.setProperty("/moduleDistribution", aChartData);
+
+            // If team assignment stats already loaded, merge catalog modules into them
+            this._mergeCatalogIntoAssignmentStats();
+        },
+
+        /**
+         * Merge catalog modules into moduleAssignmentStats so ALL system modules appear.
+         * Called from both _buildModuleChart and _loadTeamAnalyticsFallback to handle
+         * whichever dataset loads last.
+         */
+        _mergeCatalogIntoAssignmentStats: function () {
+            var oAnalyticsModel = this.getView().getModel("analyticsModel");
+            var oTeamModel = this.getView().getModel("teamAnalytics");
+            if (!oAnalyticsModel || !oTeamModel) { return; }
+
+            var aCatalog = oAnalyticsModel.getProperty("/moduleDistribution") || [];
+            var aAssignment = oTeamModel.getProperty("/moduleAssignmentStats") || [];
+            if (aCatalog.length === 0 || aAssignment.length === 0) { return; }
+
+            var oExisting = {};
+            aAssignment.forEach(function (m) { oExisting[m.label] = m; });
+
+            var bChanged = false;
+            aCatalog.forEach(function (oCat) {
+                if (!oExisting[oCat.label]) {
+                    aAssignment.push({
+                        label: oCat.label,
+                        total: 0,
+                        completed: 0,
+                        inProgress: 0,
+                        overdue: 0,
+                        completionPct: 0,
+                        barPct: 0,
+                        displayValue: "0/0 (0%) \u00b7 " + oCat.count + " courses",
+                        catalogCount: oCat.count
+                    });
+                    bChanged = true;
+                } else if (!oExisting[oCat.label].catalogCount) {
+                    oExisting[oCat.label].catalogCount = oCat.count;
+                    var m = oExisting[oCat.label];
+                    m.displayValue = m.completed + "/" + m.total + " (" + m.completionPct + "%) \u00b7 " + oCat.count + " courses";
+                    bChanged = true;
+                }
+            });
+
+            if (bChanged) {
+                oTeamModel.setProperty("/moduleAssignmentStats", aAssignment);
+            }
         },
 
         /* ================================================================== */
@@ -688,15 +736,35 @@ sap.ui.define([
                         oTeamModel.setProperty("/userBreakdown", aUsers);
                         oTeamModel.setProperty("/allAssignments", aAll);
 
-                        // Build module-level assignment stats (top 5 by total assignments)
+                        // Build module-level assignment stats — include ALL catalog modules
                         var aModules = Object.keys(oModuleMap).map(function (k) { return oModuleMap[k]; });
+
+                        // Merge catalog modules so ALL courses in the system are shown
+                        var oAnalyticsModel2 = that.getView().getModel("analyticsModel");
+                        var aCatalog = oAnalyticsModel2 ? oAnalyticsModel2.getProperty("/moduleDistribution") || [] : [];
+                        aCatalog.forEach(function (oCat) {
+                            if (!oModuleMap[oCat.label]) {
+                                aModules.push({
+                                    label: oCat.label,
+                                    total: 0,
+                                    completed: 0,
+                                    inProgress: 0,
+                                    overdue: 0,
+                                    catalogCount: oCat.count
+                                });
+                            } else {
+                                oModuleMap[oCat.label].catalogCount = oCat.count;
+                            }
+                        });
+
                         aModules.sort(function (a, b) { return b.total - a.total; });
                         var aTopModules = aModules; // Show all modules in analytics dashboard
                         var iMaxModuleTotal = aTopModules.length > 0 ? aTopModules[0].total : 1;
                         aTopModules.forEach(function (m) {
                             m.completionPct = m.total > 0 ? Math.round((m.completed / m.total) * 100) : 0;
                             m.barPct = iMaxModuleTotal > 0 ? Math.round((m.total / iMaxModuleTotal) * 100) : 0;
-                            m.displayValue = m.completed + "/" + m.total + " (" + m.completionPct + "%)";
+                            var sCatalogInfo = m.catalogCount ? " · " + m.catalogCount + " courses" : "";
+                            m.displayValue = m.completed + "/" + m.total + " (" + m.completionPct + "%)" + sCatalogInfo;
                         });
                         oTeamModel.setProperty("/moduleAssignmentStats", aTopModules);
 
@@ -1153,6 +1221,7 @@ sap.ui.define([
                     that._enableColumnMenus(oTable);
                     that._applyLinkTemplates(oTable);
                     that._formatDateColumns(oTable);
+                    that._distributeColumnWidths(oTable);
                 });
 
                 // Fallback: cellClick handler opens URLs even if Link templates fail
@@ -1301,6 +1370,44 @@ sap.ui.define([
                 if (sText === "Last Updated" || sText === "LastUpdated") { return "LastUpdated"; }
             }
             return "";
+        },
+
+        /**
+         * Distribute column widths proportionally so columns fill available table width.
+         * Prevents empty space on large/ultrawide monitors (32"+). Runs once per init.
+         */
+        _distributeColumnWidths: function (oTable) {
+            if (this._bColumnsDistributed) { return; }
+            var aCols = oTable.getColumns();
+            if (!aCols || aCols.length === 0) { return; }
+
+            // Proportional weight map — wider columns for content-heavy fields
+            var oWeightMap = {
+                "Title": 3,
+                "Description": 3,
+                "Role": 1.5,
+                "Topic": 1.5,
+                "SapModule": 1.5,
+                "LastUpdated": 1.2,
+                "Url": 1.5,
+                "SapHelpLink": 1.5
+            };
+
+            var that = this;
+            var iTotalWeight = 0;
+            var aWeights = aCols.map(function (oCol) {
+                var sKey = that._getColumnKey(oCol);
+                var w = oWeightMap[sKey] || 1;
+                iTotalWeight += w;
+                return w;
+            });
+
+            aCols.forEach(function (oCol, i) {
+                var pct = Math.round((aWeights[i] / iTotalWeight) * 100);
+                oCol.setWidth(pct + "%");
+            });
+
+            this._bColumnsDistributed = true;
         },
 
         /**

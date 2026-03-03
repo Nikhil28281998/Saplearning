@@ -317,6 +317,7 @@ sap.ui.define([
                 // (idempotent — skips cells already replaced)
                 oTable.attachUpdateFinished(function () {
                     that._applyAssignmentColumnTemplates(oTable);
+                    that._distributeAssignmentColumnWidths(oTable);
                 });
             }
 
@@ -332,6 +333,62 @@ sap.ui.define([
                     }
                 });
             }
+        },
+
+        /**
+         * Distribute column widths proportionally for ResponsiveTable.
+         * Prevents empty space on large monitors (32"+). Runs once.
+         */
+        _distributeAssignmentColumnWidths: function (oTable) {
+            if (this._bAssignColumnsDistributed) { return; }
+            var aCols = oTable.getColumns();
+            if (!aCols || aCols.length === 0) { return; }
+
+            // Proportional weights for assignment columns
+            var oWeightMap = {
+                "Title": 3,
+                "Url": 1.5,
+                "SapModule": 1.5,
+                "UserId": 1.2,
+                "UserName": 1.5,
+                "Status": 1,
+                "DueDate": 1.3,
+                "CompletionDate": 1.3
+            };
+
+            var iTotalWeight = 0;
+            var aWeights = aCols.map(function (oCol) {
+                var oHeader = oCol.getHeader();
+                var sText = (oHeader && typeof oHeader.getText === "function") ? oHeader.getText() : "";
+                // Try to match column header to known fields
+                var w = 1;
+                Object.keys(oWeightMap).forEach(function (k) {
+                    if (sText.toLowerCase().indexOf(k.toLowerCase()) >= 0 || sText === k) {
+                        w = oWeightMap[k];
+                    }
+                });
+                // Match by p13nData custom data
+                var aCD = oCol.getCustomData ? oCol.getCustomData() : [];
+                for (var i = 0; i < aCD.length; i++) {
+                    if (aCD[i].getKey() === "p13nData") {
+                        try {
+                            var oP13n = JSON.parse(aCD[i].getValue());
+                            var sKey = oP13n.leadingProperty || oP13n.columnKey || "";
+                            if (sKey.indexOf("/") >= 0) { sKey = sKey.substring(sKey.lastIndexOf("/") + 1); }
+                            if (oWeightMap[sKey]) { w = oWeightMap[sKey]; }
+                        } catch (e) { /* ignore */ }
+                    }
+                }
+                iTotalWeight += w;
+                return w;
+            });
+
+            aCols.forEach(function (oCol, i) {
+                var pct = Math.round((aWeights[i] / iTotalWeight) * 100);
+                oCol.setWidth(pct + "%");
+            });
+
+            this._bAssignColumnsDistributed = true;
         },
 
         /**

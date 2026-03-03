@@ -207,8 +207,8 @@ html, body, html.sap-desktop, .sapUiBody {
 .analyticsCard {
     min-width: 0;
     max-width: none;
-    min-height: 90px;
-    padding: 0.625rem 0.5rem;
+    min-height: 100px;
+    padding: 0.75rem 0.625rem;
     border-radius: var(--sapRadius);
     background: var(--sapGlass);
     -webkit-backdrop-filter: blur(12px);
@@ -346,11 +346,18 @@ html, body, html.sap-desktop, .sapUiBody {
     letter-spacing: -0.02em;
     line-height: 1.3 !important;
     overflow: visible !important;
+    white-space: nowrap !important;
+    width: auto !important;
+    max-width: none !important;
 }
 
 .analyticsCard .sapMObjectNumber .sapMObjectNumberText {
     overflow: visible !important;
     text-overflow: unset !important;
+    white-space: nowrap !important;
+    display: inline-block !important;
+    width: auto !important;
+    max-width: none !important;
 }
 
 .analyticsLabel {
@@ -364,11 +371,12 @@ html, body, html.sap-desktop, .sapUiBody {
 
 /* Sub-label under KPI number (e.g. "75% completed") */
 .analyticsSubLabel {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     font-weight: 600;
     text-transform: none;
     margin-top: 0.125rem;
     opacity: 0.85;
+    white-space: nowrap;
 }
 
 /* Analytics icon — only KPI cards, not chart cards or nested list icons */
@@ -565,6 +573,66 @@ html, body, html.sap-desktop, .sapUiBody {
     border: 1px solid var(--sapBorder);
     border-radius: 0.5rem;
     padding: 0.5rem 0.75rem 0.75rem;
+    overflow: auto;
+}
+
+/* Auto-resize dashboard panels with screen size */
+@media (min-width: 1441px) {
+    .dashChartPanel {
+        flex: 1 1 500px;
+        min-width: 400px;
+        padding: 0.75rem 1rem 1rem;
+    }
+    .dashModuleLabel {
+        min-width: 12rem;
+        max-width: 18rem;
+        font-size: 0.8125rem;
+    }
+    .dashModuleBar {
+        min-width: 0 !important;
+    }
+    .dashUserInfo {
+        min-width: 10rem;
+        max-width: 14rem;
+    }
+    .dashUserName {
+        font-size: 0.8125rem;
+    }
+    .dashUserStats {
+        min-width: 5.5rem;
+    }
+}
+
+@media (min-width: 1921px) {
+    .dashChartPanel {
+        flex: 1 1 600px;
+        min-width: 480px;
+        padding: 1rem 1.25rem 1.25rem;
+    }
+    .dashModuleLabel {
+        min-width: 14rem;
+        max-width: 22rem;
+        font-size: 0.875rem;
+    }
+    .dashModuleRow {
+        padding: 0.375rem 0;
+    }
+    .dashUserInfo {
+        min-width: 12rem;
+        max-width: 16rem;
+    }
+    .dashUserName {
+        font-size: 0.875rem;
+    }
+    .dashUserRow {
+        padding: 0.5rem 0;
+    }
+    .dashUserStats {
+        min-width: 6.5rem;
+    }
+    .dashUserStat .sapMObjStatusText {
+        font-size: 0.75rem !important;
+    }
 }
 
 /* Quick Stats + Status Distribution CSS removed — duplicated main page KPIs */
@@ -1330,14 +1398,33 @@ html, body, html.sap-desktop, .sapUiBody {
     max-height: 90vh !important;
 }
 
-/* GridTable auto-resize */
+/* GridTable auto-resize – stretch columns to fill available width */
 .sapUiTable {
     width: 100% !important;
 }
 
-/* ResponsiveTable (assignments) – full width */
+.sapUiTableCtrlCnt {
+    width: 100% !important;
+}
+
+/* GridTable column cells stretch to fill */
+.sapUiTableCCnt .sapUiTableCtrl {
+    table-layout: fixed !important;
+    width: 100% !important;
+}
+
+/* ResponsiveTable (assignments) – full width with auto column sizing */
 .sapMListTbl {
-    table-layout: auto !important;
+    table-layout: fixed !important;
+    width: 100% !important;
+}
+
+/* Ensure table cells don't overflow, wrap text instead */
+.sapUiTableCell,
+.sapMListTblCell {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    word-break: break-word;
 }
 
 /* ===== View Details Dialog: proper display ===== */
@@ -1668,8 +1755,21 @@ html, body, html.sap-desktop, .sapUiBody {
         grid-template-columns: repeat(5, 1fr) !important;
     }
 
+    .analyticsCard {
+        min-height: 110px;
+        padding: 0.875rem 0.75rem;
+    }
+
     .analyticsCard .sapMObjectNumber {
         font-size: 2rem !important;
+    }
+
+    .analyticsLabel {
+        font-size: 0.875rem;
+    }
+
+    .analyticsSubLabel {
+        font-size: 0.8125rem;
     }
 
     .analyticsCard:not(.chartCard) .sapUiIcon {
@@ -1683,10 +1783,6 @@ html, body, html.sap-desktop, .sapUiBody {
     .chartCard {
         max-width: 100%;
     }
-
-    .sapUiTableCol {
-        min-width: 100px !important;
-    }
 }
 
 /* Large desktop (1921-2560px): ~27"-34" ultrawide screens */
@@ -1699,8 +1795,21 @@ html, body, html.sap-desktop, .sapUiBody {
         grid-template-columns: repeat(5, 1fr) !important;
     }
 
+    .analyticsCard {
+        min-height: 120px;
+        padding: 1rem 0.875rem;
+    }
+
     .analyticsCard .sapMObjectNumber {
         font-size: 2.25rem !important;
+    }
+
+    .analyticsLabel {
+        font-size: 0.9375rem;
+    }
+
+    .analyticsSubLabel {
+        font-size: 0.875rem;
     }
 
     .analyticsCard:not(.chartCard) .sapUiIcon {
@@ -1724,10 +1833,6 @@ html, body, html.sap-desktop, .sapUiBody {
         min-height: 200px;
     }
 
-    .sapUiTableCol {
-        min-width: 120px !important;
-    }
-
     .sapMPage > .sapMPageHeader .sapMBar .sapMTitle {
         font-size: 1.25rem;
     }
@@ -1743,6 +1848,11 @@ html, body, html.sap-desktop, .sapUiBody {
         grid-template-columns: repeat(5, 1fr) !important;
     }
 
+    .analyticsCard {
+        min-height: 140px;
+        padding: 1.125rem 1rem;
+    }
+
     .analyticsCard .sapMObjectNumber {
         font-size: 2.5rem !important;
     }
@@ -1752,6 +1862,10 @@ html, body, html.sap-desktop, .sapUiBody {
     }
 
     .analyticsLabel {
+        font-size: 1rem;
+    }
+
+    .analyticsSubLabel {
         font-size: 0.9375rem;
     }
 
@@ -1776,14 +1890,6 @@ html, body, html.sap-desktop, .sapUiBody {
     .chartCard .sapSuiteSBMCBar {
         min-height: 160px !important;
         height: 160px !important;
-    }
-
-    .sapUiTableCol {
-        min-width: 150px !important;
-    }
-
-    .sapUiTableCell {
-        font-size: 0.9375rem;
     }
 
     .sapMPage > .sapMPageHeader .sapMBar .sapMTitle {
