@@ -558,62 +558,7 @@ html, body, html.sap-desktop, .sapUiBody {
     padding: 0.5rem 0.75rem 0.75rem;
 }
 
-/* ===== Quick Stats Bar ===== */
-.dashQuickStatsRow {
-    gap: 0.5rem;
-    padding: 0.25rem 0;
-}
-
-.dashQuickStatCard {
-    flex: 1 1 100px;
-    min-width: 90px;
-    max-width: 160px;
-    padding: 0.625rem 0.5rem;
-    border-radius: 0.5rem;
-    text-align: center;
-    transition: transform 0.2s ease;
-}
-
-.dashQuickStatCard:hover {
-    transform: translateY(-2px);
-}
-
-.dashQuickBlue   { background: rgba(8, 84, 160, 0.08); border: 1px solid rgba(8, 84, 160, 0.2); }
-.dashQuickOrange { background: rgba(231, 101, 0, 0.08); border: 1px solid rgba(231, 101, 0, 0.2); }
-.dashQuickTeal   { background: rgba(4, 118, 183, 0.08); border: 1px solid rgba(4, 118, 183, 0.2); }
-.dashQuickGreen  { background: rgba(16, 126, 62, 0.08); border: 1px solid rgba(16, 126, 62, 0.2); }
-.dashQuickRed    { background: rgba(187, 0, 0, 0.08); border: 1px solid rgba(187, 0, 0, 0.2); }
-.dashQuickPurple { background: rgba(108, 50, 169, 0.08); border: 1px solid rgba(108, 50, 169, 0.2); }
-
-.dashQSNumber .sapMObjectNumberText {
-    font-size: 1.5rem !important;
-    font-weight: 700 !important;
-}
-
-.dashQSLabel {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--sapContent_LabelColor);
-    margin-top: 0.125rem;
-}
-
-/* ===== Status Distribution Bars ===== */
-.dashStatusBarsContainer {
-    padding: 0.25rem 0;
-}
-
-.dashStatusBarLabel {
-    font-size: 0.8125rem !important;
-    font-weight: 600;
-    color: var(--sapTextColor);
-}
-
-.dashStatusBarValue {
-    font-size: 0.8125rem !important;
-    color: var(--sapContent_LabelColor);
-}
+/* Quick Stats + Status Distribution CSS removed — duplicated main page KPIs */
 
 .dashboardSection {
     border: 1px solid var(--sapBorder);
