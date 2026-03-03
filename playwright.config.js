@@ -31,6 +31,10 @@ module.exports = defineConfig({
     trace: 'on-first-retry',
     actionTimeout: 10000,
     navigationTimeout: 30000,
+    browserName: 'chromium',
+    launchOptions: {
+      args: ['--ignore-certificate-errors', '--disable-web-security'],
+    },
   },
-  /* Tests connect via CDP in beforeAll — no browser launch config needed */
+  /* CDP connection or launched browser — both work */
 });

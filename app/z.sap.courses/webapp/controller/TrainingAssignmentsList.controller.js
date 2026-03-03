@@ -177,8 +177,7 @@ sap.ui.define([
                 { id: "myAssignedBox",       status: "Assigned" },
                 { id: "myInProgressBox",     status: "In Progress" },
                 { id: "myOverdueBox",        status: "Overdue" },
-                { id: "myCompletedBox",      status: "Completed" },
-                { id: "myCompletionPctBox",  status: "" }
+                { id: "myCompletedBox",      status: "Completed" }
             ];
             aClickCards.forEach(function (card) {
                 var oCard = that.byId(card.id);
@@ -339,7 +338,7 @@ sap.ui.define([
          * M-6 FIX: Toggle skeleton loading animation on my progress KPI cards.
          */
         _setMyCardSkeletons: function (bShow) {
-            var aCardIds = ["myTotalBox", "myAssignedBox", "myInProgressBox", "myOverdueBox", "myCompletedBox", "myCompletionPctBox"];
+            var aCardIds = ["myTotalBox", "myAssignedBox", "myInProgressBox", "myOverdueBox", "myCompletedBox"];
             var that = this;
             aCardIds.forEach(function (id) {
                 var oCard = that.byId(id);
@@ -1162,7 +1161,7 @@ sap.ui.define([
                 oComponent.getEventBus().unsubscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
                 oComponent.getEventBus().unsubscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
             }
-            var aCards = ["myTotalBox", "myAssignedBox", "myInProgressBox", "myOverdueBox", "myCompletedBox", "myCompletionPctBox"];
+            var aCards = ["myTotalBox", "myAssignedBox", "myInProgressBox", "myOverdueBox", "myCompletedBox"];
             var that = this;
             aCards.forEach(function (id) {
                 var oCard = that.byId(id);

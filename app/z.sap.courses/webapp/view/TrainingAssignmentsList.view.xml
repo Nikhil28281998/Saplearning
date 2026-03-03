@@ -12,8 +12,7 @@
     <Page
         id="assignmentsListPage"
         title=""
-        showNavButton="true"
-        navButtonPress=".onNavBack"
+        showNavButton="false"
         enableScrolling="true"
         class="assignmentsPage">
 
@@ -57,8 +56,8 @@
                 headerText="{i18n>myProgress}"
                 class="sapUiSmallMarginBottom analyticsPanel">
 
-                <!-- 5 KPI Cards: Total + Assigned + In Progress + Overdue + Completed + Completion% (matches Team Analytics order) -->
-                <VBox id="myProgressHBox" class="sapUiSmallMargin analyticsContainer userAnalyticsContainer">
+                <!-- 5 KPI Cards: Total + Assigned + In Progress + Overdue + Completed (with % merged) -->
+                <VBox id="myProgressHBox" class="analyticsContainer userAnalyticsContainer">
                     <VBox id="myTotalBox" alignItems="Center" class="analyticsCard analyticsCardBlue analyticsCardClickable" tooltip="{i18n>clickToFilter}">
                         <core:Icon id="myTotalIcon" src="sap-icon://group" size="1.5rem" color="#0854a0" class="sapUiTinyMarginBottom" />
                         <ObjectNumber
@@ -106,17 +105,10 @@
                             number="{assignAnalytics>/completed}"
                             state="Success"
                             class="analyticsNumber" />
+                        <Text id="myCompletedPctText"
+                            text="{= ${assignAnalytics>/completionPercent} + '% completed'}"
+                            class="analyticsLabel analyticsSubLabel" />
                         <Text id="myCompletedLabel" text="{i18n>completed}" class="analyticsLabel" />
-                    </VBox>
-
-                    <VBox id="myCompletionPctBox" alignItems="Center" class="analyticsCard analyticsCardPurple analyticsCardClickable heroCard" tooltip="{i18n>yourCompletion}">
-                        <core:Icon id="myCompletionPctIcon" src="sap-icon://performance" size="1.5rem" color="#6c32a9" class="sapUiTinyMarginBottom" />
-                        <ObjectNumber
-                            id="myCompletionPctCount"
-                            number="{= ${assignAnalytics>/completionPercent} + '%' }"
-                            state="{= ${assignAnalytics>/completionPercent} >= 80 ? 'Success' : ${assignAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Information' }"
-                            class="analyticsNumber" />
-                        <Text id="myCompletionPctLabel" text="{i18n>yourCompletion}" class="analyticsLabel" />
                     </VBox>
                 </VBox>
             </Panel>
