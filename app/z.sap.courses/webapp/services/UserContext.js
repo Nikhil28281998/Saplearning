@@ -257,6 +257,7 @@ sap.ui.define([
          * TODO: Implement actual authorization fetching from backend
          * (e.g., a /getAuthorizations function import)
          *
+         * @deprecated Since v1.0 - Stub only. Implement when backend /getAuthorizations is available.
          * @param {string} authObject - Authorization object to check
          * @param {Object} [fields] - Optional fields to check
          * @returns {Promise<boolean>} Always returns false until backend integration

@@ -58,11 +58,17 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
      * @returns {boolean} true if valid, false if errors were registered via req.reject()
      */
     function validateInput(data, req) {
+      if (!data || typeof data !== 'object') {
+        req.reject(400, 'Invalid request payload');
+        return false;
+      }
       const errors = [];
 
       // Sanitize text inputs (XSS protection — CDS does not do this)
       ['title', 'description', 'userName', 'userEmail', 'assignedByName'].forEach(field => {
-        if (data[field] && typeof data[field] === 'string') {
+        if (data[field] != null && typeof data[field] !== 'string') {
+          errors.push(`Field '${field}' must be a string`);
+        } else if (data[field] && typeof data[field] === 'string') {
           data[field] = xss(data[field]).trim();
         }
       });
@@ -601,7 +607,7 @@ module.exports = class SAPLearningService extends cds.ApplicationService {
 
     this.after('READ', 'Trainings', (trainings, req) => {
       if (req.res) {
-        req.res.set('Cache-Control', 'public, max-age=3600');
+        req.res.set('Cache-Control', 'private, max-age=300');
       }
     });
 

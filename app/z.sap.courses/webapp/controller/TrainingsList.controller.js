@@ -12,8 +12,9 @@ sap.ui.define([
     "sap/m/MessagePopover",
     "sap/m/MessageItem",
     "z/sap/courses/services/AnalyticsService",
-    "z/sap/courses/utils/formatter"
-], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, mLibrary, MessagePopover, MessageItem, AnalyticsService, SharedFormatter) {
+    "z/sap/courses/utils/formatter",
+    "z/sap/courses/utils/AnimationHelper"
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Link, Text, Log, mLibrary, MessagePopover, MessageItem, AnalyticsService, SharedFormatter, AnimationHelper) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingsList", {
@@ -152,6 +153,8 @@ sap.ui.define([
             if (oComponent) {
                 oComponent.getEventBus().unsubscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
                 oComponent.getEventBus().unsubscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
+                // L-5 FIX: Also unsubscribe assignmentsChanged
+                oComponent.getEventBus().unsubscribe("sapCourses", "assignmentsChanged", this._onAssignmentsChanged, this);
             }
             var that = this;
             if (this._aTeamCardIds) {
@@ -238,28 +241,10 @@ sap.ui.define([
         },
 
         /**
-         * Animated count-up for KPI numbers. Smoothly increments from 0 to target.
+         * M-1 FIX: Delegate to shared AnimationHelper.
          */
         _animateNumbers: function (oModel, aPaths, iDuration) {
-            iDuration = iDuration || 600;
-            var aTargets = aPaths.map(function (sPath) {
-                return { path: sPath, target: oModel.getProperty(sPath) || 0 };
-            });
-            // Set all to 0
-            aTargets.forEach(function (t) { oModel.setProperty(t.path, 0); });
-            var iStart = performance.now();
-            var fnStep = function (ts) {
-                var fProgress = Math.min((ts - iStart) / iDuration, 1);
-                // Ease-out cubic
-                var fEase = 1 - Math.pow(1 - fProgress, 3);
-                aTargets.forEach(function (t) {
-                    oModel.setProperty(t.path, Math.round(t.target * fEase));
-                });
-                if (fProgress < 1) {
-                    requestAnimationFrame(fnStep);
-                }
-            };
-            requestAnimationFrame(fnStep);
+            AnimationHelper.animateNumbers(oModel, aPaths, iDuration);
         },
 
         /**
@@ -1630,8 +1615,11 @@ sap.ui.define([
                 error: ""
             });
 
-            this.loadFragment({
-                name: "z.sap.courses.fragments.CreateTrainingDialog"
+            // H-4 FIX: Use Fragment.load() with unique ID to prevent stale cache issues
+            sap.ui.core.Fragment.load({
+                name: "z.sap.courses.fragments.CreateTrainingDialog",
+                controller: this,
+                id: this.getView().getId() + "--createDlg" + Date.now()
             }).then(function (oDialog) {
                 that._createDlg = oDialog;
                 oDialog.setModel(oDlgModel, "createModel");
@@ -1687,27 +1675,26 @@ sap.ui.define([
                         return;
                     }
                     // No duplicate — proceed to create
-                    // FIX 8.2: Removed redundant refreshSecurityToken
-                        oModel.create("/Trainings", payload, {
-                            success: function () {
-                                that._createDlg.close();
-                                oDlgModel.setProperty("/submitting", false);
-                                MessageToast.show(i18n.getText("trainingCreated"));
-                                that.byId("smartTable").rebindTable(true);
-                                that._loadAnalytics();
-                            },
-                            error: function (err) {
-                                oDlgModel.setProperty("/submitting", false);
-                                var msg = i18n.getText("createFailed");
-                                try {
-                                    var parsed = JSON.parse(err.responseText);
-                                    msg = parsed.error.message.value || msg;
-                                } catch (e) {
-                                    msg = (err && err.message) || msg;
-                                }
-                                oDlgModel.setProperty("/error", msg);
+                    oModel.create("/Trainings", payload, {
+                        success: function () {
+                            that._createDlg.close();
+                            oDlgModel.setProperty("/submitting", false);
+                            MessageToast.show(i18n.getText("trainingCreated"));
+                            that.byId("smartTable").rebindTable(true);
+                            that._loadAnalytics();
+                        },
+                        error: function (err) {
+                            oDlgModel.setProperty("/submitting", false);
+                            var msg = i18n.getText("createFailed");
+                            try {
+                                var parsed = JSON.parse(err.responseText);
+                                msg = parsed.error.message.value || msg;
+                            } catch (e) {
+                                msg = (err && err.message) || msg;
                             }
-                        });
+                            oDlgModel.setProperty("/error", msg);
+                        }
+                    });
                 },
                 error: function () {
                     oDlgModel.setProperty("/submitting", false);
@@ -1752,8 +1739,11 @@ sap.ui.define([
                 error: ""
             });
 
-            this.loadFragment({
-                name: "z.sap.courses.fragments.EditTrainingDialog"
+            // H-4 FIX: Use Fragment.load() with unique ID to prevent stale cache issues
+            sap.ui.core.Fragment.load({
+                name: "z.sap.courses.fragments.EditTrainingDialog",
+                controller: this,
+                id: this.getView().getId() + "--editDlg" + Date.now()
             }).then(function (oDialog) {
                 that._editDlg = oDialog;
                 oDialog.setModel(oDlgModel, "editModel");
@@ -1796,27 +1786,27 @@ sap.ui.define([
                 SapHelpLink: (data.sapHelpLink || "").trim()
             };
 
-            // FIX 8.2: Removed redundant refreshSecurityToken
-                oModel.update(that._editTrainingPath, payload, {
-                    success: function () {
-                        that._editDlg.close();
-                        oDlgModel.setProperty("/submitting", false);
-                        MessageToast.show(i18n.getText("trainingUpdated"));
-                        that.byId("smartTable").rebindTable(true);
-                        that._loadAnalytics();
-                    },
-                    error: function (err) {
-                        oDlgModel.setProperty("/submitting", false);
-                        var msg = i18n.getText("updateFailed");
-                        try {
-                            var parsed = JSON.parse(err.responseText);
-                            msg = parsed.error.message.value || msg;
-                        } catch (e) {
-                            msg = (err && err.message) || msg;
-                        }
-                        oDlgModel.setProperty("/error", msg);
+            // M-7 FIX: Corrected indentation (was left over from removed refreshSecurityToken wrapper)
+            oModel.update(that._editTrainingPath, payload, {
+                success: function () {
+                    that._editDlg.close();
+                    oDlgModel.setProperty("/submitting", false);
+                    MessageToast.show(i18n.getText("trainingUpdated"));
+                    that.byId("smartTable").rebindTable(true);
+                    that._loadAnalytics();
+                },
+                error: function (err) {
+                    oDlgModel.setProperty("/submitting", false);
+                    var msg = i18n.getText("updateFailed");
+                    try {
+                        var parsed = JSON.parse(err.responseText);
+                        msg = parsed.error.message.value || msg;
+                    } catch (e) {
+                        msg = (err && err.message) || msg;
                     }
-                });
+                    oDlgModel.setProperty("/error", msg);
+                }
+            });
         },
 
         onEditTrainingCancel: function () {
@@ -1861,37 +1851,36 @@ sap.ui.define([
                 onClose: function (sAction) {
                     if (sAction === MessageBox.Action.OK) {
                         var oModel = that.getOwnerComponent().getModel();
-                        // FIX 8.2: Removed redundant refreshSecurityToken
-                            var iDone = 0, iFail = 0, iTotal = aContexts.length;
-                            aContexts.forEach(function (oCtx) {
-                                oModel.remove(oCtx.getPath(), {
-                                    success: function () {
-                                        iDone++;
-                                        if (iDone + iFail === iTotal) {
-                                            MessageToast.show(i18n.getText("bulkDeleteSuccess", [iDone]));
-                                            oSmartTable.rebindTable(true);
-                                            that._loadAnalytics();
-                                        }
-                                    },
-                                    error: function (err) {
-                                        iFail++;
-                                        if (iDone + iFail === iTotal) {
-                                            if (iDone > 0) {
-                                                MessageToast.show(i18n.getText("bulkDeleteSuccess", [iDone]));
-                                            } else {
-                                                var msg = i18n.getText("deleteFailed");
-                                                try {
-                                                    var parsed = JSON.parse(err.responseText);
-                                                    msg = parsed.error.message.value || msg;
-                                                } catch (e) { /* keep default */ }
-                                                MessageBox.error(msg);
-                                            }
-                                            oSmartTable.rebindTable(true);
-                                            that._loadAnalytics();
-                                        }
+                        var iDone = 0, iFail = 0, iTotal = aContexts.length;
+                        aContexts.forEach(function (oCtx) {
+                            oModel.remove(oCtx.getPath(), {
+                                success: function () {
+                                    iDone++;
+                                    if (iDone + iFail === iTotal) {
+                                        MessageToast.show(i18n.getText("bulkDeleteSuccess", [iDone]));
+                                        oSmartTable.rebindTable(true);
+                                        that._loadAnalytics();
                                     }
-                                });
+                                },
+                                error: function (err) {
+                                    iFail++;
+                                    if (iDone + iFail === iTotal) {
+                                        if (iDone > 0) {
+                                            MessageToast.show(i18n.getText("bulkDeleteSuccess", [iDone]));
+                                        } else {
+                                            var msg = i18n.getText("deleteFailed");
+                                            try {
+                                                var parsed = JSON.parse(err.responseText);
+                                                msg = parsed.error.message.value || msg;
+                                            } catch (e) { /* keep default */ }
+                                            MessageBox.error(msg);
+                                        }
+                                        oSmartTable.rebindTable(true);
+                                        that._loadAnalytics();
+                                    }
+                                }
                             });
+                        });
                     }
                 }
             });
@@ -1945,24 +1934,23 @@ sap.ui.define([
                         DueDate: dDefaultDue.toISOString()
                     };
 
-                    // FIX 8.2: Removed redundant refreshSecurityToken
-                        oModel.create("/" + sEntitySet, oPayload, {
-                            success: function () {
-                                MessageToast.show(i18n.getText("enrollSuccess"));
-                            },
-                            error: function (err) {
-                                var msg = i18n.getText("createFailed");
-                                try {
-                                    var parsed = JSON.parse(err.responseText);
-                                    msg = parsed.error.message.value || msg;
-                                } catch (e) { /* keep default */ }
-                                if (msg.indexOf("already assigned") > -1 || msg.indexOf("duplicate") > -1) {
-                                    MessageToast.show(i18n.getText("alreadyEnrolled"));
-                                } else {
-                                    MessageBox.error(msg);
-                                }
+                    oModel.create("/" + sEntitySet, oPayload, {
+                        success: function () {
+                            MessageToast.show(i18n.getText("enrollSuccess"));
+                        },
+                        error: function (err) {
+                            var msg = i18n.getText("createFailed");
+                            try {
+                                var parsed = JSON.parse(err.responseText);
+                                msg = parsed.error.message.value || msg;
+                            } catch (e) { /* keep default */ }
+                            if (msg.indexOf("already assigned") > -1 || msg.indexOf("duplicate") > -1) {
+                                MessageToast.show(i18n.getText("alreadyEnrolled"));
+                            } else {
+                                MessageBox.error(msg);
                             }
-                        });
+                        }
+                    });
                 }
             });
         },
@@ -1987,7 +1975,6 @@ sap.ui.define([
         },
 
         onViewDetails: function () {
-            var that = this;
             var oSmartTable = this.byId("smartTable");
             var oTable = oSmartTable.getTable();
             var iIndex = oTable.getSelectedIndex();
@@ -2000,47 +1987,8 @@ sap.ui.define([
             if (!oContext) { return; }
             var oTraining = oContext.getObject();
 
-            // Destroy previous dialog
-            if (this._detailDlg) {
-                this._detailDlg.destroy();
-                this._detailDlg = null;
-            }
-
-            // UI-1: Prepare detail model with pre-formatted fields
-            var sLastUpdated = "";
-            if (oTraining.LastUpdated) {
-                sLastUpdated = oTraining.LastUpdated instanceof Date
-                    ? "Updated: " + oTraining.LastUpdated.toLocaleDateString()
-                    : "Updated: " + oTraining.LastUpdated;
-            }
-            var oDetailModel = new JSONModel({
-                Title: oTraining.Title || "Untitled",
-                SapModule: oTraining.SapModule || "",
-                Role: oTraining.Role || "",
-                Topic: oTraining.Topic || "",
-                LastUpdatedText: sLastUpdated,
-                Description: oTraining.Description || "",
-                Url: oTraining.Url || "",
-                SapHelpLink: oTraining.SapHelpLink || "",
-                Id: oTraining.Id || "N/A"
-            });
-
-            this.loadFragment({
-                name: "z.sap.courses.fragments.TrainingDetailDialog"
-            }).then(function (oDialog) {
-                that._detailDlg = oDialog;
-                oDialog.setModel(oDetailModel, "detail");
-                oDialog.setModel(that.getView().getModel("i18n"), "i18n");
-                if (sap.ui.Device.system.phone) {
-                    oDialog.setStretch(true);
-                }
-                oDialog.addStyleClass("sapUiContentPadding detailDialog");
-                oDialog.attachAfterClose(function () {
-                    oDialog.destroy();
-                    that._detailDlg = null;
-                });
-                oDialog.open();
-            });
+            // H-3 FIX: Delegate to shared _openTrainingDetail to avoid code duplication
+            this._openTrainingDetail(oTraining);
         },
 
         onTrainingDetailClose: function () {
@@ -2072,17 +2020,11 @@ sap.ui.define([
             var oSmartTable = this.byId("smartTable");
 
             // H33 FIX: Always exit full-screen before switching views
+            // M-10 FIX: Use only the public API, not internal SmartTable properties
             if (oSmartTable) {
                 try {
                     if (typeof oSmartTable.setFullScreen === "function") {
                         oSmartTable.setFullScreen(false);
-                    }
-                } catch (_e) { /* ignore */ }
-                // Force-click the fullscreen exit button if it exists
-                try {
-                    var oFullScreenBtn = oSmartTable._oFullScreenButton || oSmartTable.byId("btnFullScreen");
-                    if (oFullScreenBtn && oSmartTable._bFullScreen) {
-                        oFullScreenBtn.firePress();
                     }
                 } catch (_e) { /* ignore */ }
             }
@@ -2143,15 +2085,15 @@ sap.ui.define([
                 // Update card count after filter
                 oBinding.attachEventOnce("dataReceived", this._onCardDataReceived.bind(this));
             } else {
-                // Binding not yet ready (initial load) — try again shortly
+                // L-2 FIX: Use binding event instead of hardcoded setTimeout
                 var that = this;
-                setTimeout(function () {
+                oCardGrid.attachEventOnce("updateFinished", function () {
                     var oB = oCardGrid.getBinding("items");
                     if (oB) {
                         oB.filter(aFilters);
                         oB.attachEventOnce("dataReceived", that._onCardDataReceived.bind(that));
                     }
-                }, 500);
+                });
             }
 
             Log.info("[CardGrid] Rebound with " + aFilters.length + " filters");
@@ -2171,11 +2113,9 @@ sap.ui.define([
         },
 
         /**
-         * Card press handler — toggle card selection (for multi-select operations like Assign).
+         * Card press handler — noop (Active type handles selection in MultiSelect mode).
          */
-        onCardPress: function (oEvent) {
-            // Default Active type handles selection; nothing extra needed for MultiSelect mode
-        },
+        onCardPress: function () { },
 
         /**
          * Card detail button press — open Training Detail Dialog.
@@ -2254,8 +2194,11 @@ sap.ui.define([
                 Id: oTraining.Id || "N/A"
             });
 
-            this.loadFragment({
-                name: "z.sap.courses.fragments.TrainingDetailDialog"
+            // H-4 FIX: Use Fragment.load() with unique ID to prevent stale cache issues
+            sap.ui.core.Fragment.load({
+                name: "z.sap.courses.fragments.TrainingDetailDialog",
+                controller: this,
+                id: this.getView().getId() + "--trainDetail" + Date.now()
             }).then(function (oDialog) {
                 that._detailDlg = oDialog;
                 oDialog.setModel(oDetailModel, "detail");
@@ -2326,17 +2269,19 @@ sap.ui.define([
             var aHeaders = ["UserId", "UserName", "Training", "Module", "Status", "Priority", "DueDate", "CompletionDate", "AssignedBy"];
             var aRows = [aHeaders.join(",")];
 
+            // M-8 FIX: Quote ALL fields consistently to prevent malformed CSV with embedded commas
             aAll.forEach(function (a) {
+                var fnQ = function (v) { return '"' + String(v || "").replace(/"/g, '""') + '"'; };
                 var row = [
-                    (a.UserId || a.userId || ""),
-                    '"' + (a.UserName || a.userName || "").replace(/"/g, '""') + '"',
-                    '"' + (a.Title || a.title || "").replace(/"/g, '""') + '"',
-                    '"' + (a.SapModule || a.sap_module || "").replace(/"/g, '""') + '"',
-                    (a.Status || a.status || ""),
-                    (a.Priority || a.priority || "Medium"),
-                    (a.DueDate || a.dueDate ? new Date(a.DueDate || a.dueDate).toISOString().split("T")[0] : ""),
-                    (a.CompletionDate || a.completionDate ? new Date(a.CompletionDate || a.completionDate).toISOString().split("T")[0] : ""),
-                    (a.AssignedBy || a.assignedBy || "")
+                    fnQ(a.UserId || a.userId || ""),
+                    fnQ(a.UserName || a.userName || ""),
+                    fnQ(a.Title || a.title || ""),
+                    fnQ(a.SapModule || a.sap_module || ""),
+                    fnQ(a.Status || a.status || ""),
+                    fnQ(a.Priority || a.priority || "Medium"),
+                    fnQ(a.DueDate || a.dueDate ? new Date(a.DueDate || a.dueDate).toISOString().split("T")[0] : ""),
+                    fnQ(a.CompletionDate || a.completionDate ? new Date(a.CompletionDate || a.completionDate).toISOString().split("T")[0] : ""),
+                    fnQ(a.AssignedBy || a.assignedBy || "")
                 ];
                 aRows.push(row.join(","));
             });
@@ -2394,128 +2339,26 @@ sap.ui.define([
             oRouter.navTo("TrainingAssignmentsList");
         },
 
-        /* ================================================================== */
-        /* TUTORIAL DIALOG                                                     */
-        /* ================================================================== */
-
-        onOpenTutorial: function () {
-            var sRole = this.getOwnerComponent()._role || "User";
-            var oTutorialData = this._getTutorialContent(sRole, "catalog");
-            var oTutorialModel = new JSONModel(oTutorialData);
-
-            var that = this;
-            sap.ui.core.Fragment.load({
-                name: "z.sap.courses.fragments.TutorialDialog",
-                controller: this,
-                id: this.getView().getId() + "--tutorial" + Date.now()
-            }).then(function (oDialog) {
-                that._tutorialDialog = oDialog;
-                oDialog.setModel(oTutorialModel, "tutorialData");
-                oDialog.attachAfterClose(function () {
-                    oDialog.destroy();
-                    that._tutorialDialog = null;
-                });
-                oDialog.open();
-            });
-        },
-
-        onCloseTutorial: function () {
-            if (this._tutorialDialog) {
-                this._tutorialDialog.close();
-            }
-        },
-
-        _getTutorialContent: function (sRole, sPage) {
-            var oContent = {
-                selectedTab: "start",
-                title: "Training Catalog Guide"
-            };
-
-            if (sRole === "Admin") {
-                oContent.gettingStarted =
-                    "<p><strong>As an Admin</strong>, you have full control over the training catalog and assignments.</p>" +
-                    "<ol>" +
-                    "<li><strong>Browse Trainings:</strong> Use the filter bar to search by title, module, role, or topic.</li>" +
-                    "<li><strong>Create Training:</strong> Click the <em>Create</em> button in the table toolbar to add new courses.</li>" +
-                    "<li><strong>Edit / Delete:</strong> Select a training row and use the toolbar actions.</li>" +
-                    "<li><strong>Assign Trainings:</strong> Select one or more trainings and click <em>Assign</em> to assign them to users.</li>" +
-                    "<li><strong>Team Analytics:</strong> Expand the analytics panel to see organization-wide completion metrics.</li>" +
-                    "</ol>";
-                oContent.features =
-                    "<ul>" +
-                    "<li><strong>Card / Table Toggle:</strong> Switch between card grid and table view using the toggle buttons.</li>" +
-                    "<li><strong>Team Analytics Dashboard:</strong> View KPI cards (Total, Assigned, In Progress, Overdue, Completed) and drill down by clicking them.</li>" +
-                    "<li><strong>Charts:</strong> Status distribution, top modules, and user progress charts.</li>" +
-                    "<li><strong>Bulk Operations:</strong> Select multiple trainings for batch assign or delete.</li>" +
-                    "<li><strong>Smart Filters:</strong> Cross-filtering by Role, Topic, and Module with dynamic suggestions.</li>" +
-                    "</ul>";
-                oContent.tips =
-                    "<ul>" +
-                    "<li>Click a KPI card in Team Analytics to drill down into that specific status group.</li>" +
-                    "<li>Use the search bar for quick keyword lookups across training titles.</li>" +
-                    "<li>Export table data to spreadsheet using the export button.</li>" +
-                    "<li>Navigate to <em>My Assignments</em> to track your own learning progress.</li>" +
-                    "</ul>";
-            } else if (sRole === "Manager") {
-                oContent.gettingStarted =
-                    "<p><strong>As a Manager</strong>, you can browse the catalog, assign trainings to your team, and monitor progress.</p>" +
-                    "<ol>" +
-                    "<li><strong>Browse Trainings:</strong> Use the filter bar to find relevant courses by module, role, or topic.</li>" +
-                    "<li><strong>Assign to Team:</strong> Select trainings and click <em>Assign</em> to delegate them to team members.</li>" +
-                    "<li><strong>Team Analytics:</strong> Expand the analytics panel to monitor your team's completion rates.</li>" +
-                    "<li><strong>Drill Down:</strong> Click any KPI card to see individual assignment details.</li>" +
-                    "</ol>";
-                oContent.features =
-                    "<ul>" +
-                    "<li><strong>Team Analytics Dashboard:</strong> 5 KPI cards with completion progress bar and charts.</li>" +
-                    "<li><strong>Card / Table Toggle:</strong> Choose your preferred view for browsing trainings.</li>" +
-                    "<li><strong>Smart Filters:</strong> Filter by Role, Topic, Module with auto-suggestions.</li>" +
-                    "<li><strong>Assignment Management:</strong> Assign and track trainings for your direct reports.</li>" +
-                    "</ul>";
-                oContent.tips =
-                    "<ul>" +
-                    "<li>Keep an eye on the <em>Overdue</em> KPI card — these are tasks past their due date that need attention.</li>" +
-                    "<li>Use the completion progress bar to track overall team performance at a glance.</li>" +
-                    "<li>Click on user rows in the Team Members chart to see per-person details.</li>" +
-                    "<li>Navigate to <em>My Assignments</em> to also manage your own learning tasks.</li>" +
-                    "</ul>";
-            } else {
-                // User role
-                oContent.gettingStarted =
-                    "<p><strong>Welcome!</strong> This is the SAP Training Catalog where you can explore available courses.</p>" +
-                    "<ol>" +
-                    "<li><strong>Browse Trainings:</strong> Use the filter bar to search by title, module, role, or topic.</li>" +
-                    "<li><strong>View Details:</strong> Click on any training card or row to see full details and links.</li>" +
-                    "<li><strong>My Assignments:</strong> Click the <em>My Assignments</em> button (top right) to see your assigned tasks.</li>" +
-                    "<li><strong>Switch Views:</strong> Toggle between card grid and table view using the view buttons.</li>" +
-                    "</ol>";
-                oContent.features =
-                    "<ul>" +
-                    "<li><strong>Card View:</strong> Visual card layout with key training information at a glance.</li>" +
-                    "<li><strong>Table View:</strong> Detailed tabular view with sorting and column personalization.</li>" +
-                    "<li><strong>Smart Filters:</strong> Filter by Role, Topic, and Module to find relevant courses quickly.</li>" +
-                    "<li><strong>Training URLs:</strong> Direct links to SAP Courses resources.</li>" +
-                    "</ul>";
-                oContent.tips =
-                    "<ul>" +
-                    "<li>Use the search bar for quick keyword lookups.</li>" +
-                    "<li>Check <em>My Assignments</em> regularly to stay on top of your learning tasks.</li>" +
-                    "<li>Look for the due date warnings — complete overdue tasks first!</li>" +
-                    "<li>Click training URLs to open SAP Courses content directly.</li>" +
-                    "</ul>";
-            }
-
-            return oContent;
-        },
-
         /**
          * Back navigation from Home page → SAP Launchpad shell (FLP home).
+         * L-4 FIX: Use getServiceAsync instead of deprecated getService.
          */
         onNavBack: function () {
             // Try cross-app navigation to FLP Shell-home
-            var oCrossAppNav = sap.ushell && sap.ushell.Container && sap.ushell.Container.getService("CrossApplicationNavigation");
-            if (oCrossAppNav) {
-                oCrossAppNav.toExternal({ target: { shellHash: "#" } });
+            if (sap.ushell && sap.ushell.Container && sap.ushell.Container.getServiceAsync) {
+                sap.ushell.Container.getServiceAsync("CrossApplicationNavigation").then(function (oCrossAppNav) {
+                    oCrossAppNav.toExternal({ target: { shellHash: "#" } });
+                }).catch(function () {
+                    window.history.go(-1);
+                });
+            } else if (sap.ushell && sap.ushell.Container && sap.ushell.Container.getService) {
+                // Fallback for older FLP versions
+                var oCrossAppNav = sap.ushell.Container.getService("CrossApplicationNavigation");
+                if (oCrossAppNav) {
+                    oCrossAppNav.toExternal({ target: { shellHash: "#" } });
+                } else {
+                    window.history.go(-1);
+                }
             } else {
                 // Fallback: browser history back
                 window.history.go(-1);

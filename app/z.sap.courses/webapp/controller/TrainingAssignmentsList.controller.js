@@ -9,8 +9,9 @@ sap.ui.define([
     "sap/m/Link",
     "sap/m/Text",
     "sap/m/ObjectStatus",
-    "z/sap/courses/utils/formatter"
-], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Log, Link, Text, ObjectStatus, SharedFormatter) {
+    "z/sap/courses/utils/formatter",
+    "z/sap/courses/utils/AnimationHelper"
+], function (Controller, MessageToast, MessageBox, JSONModel, Filter, FilterOperator, Log, Link, Text, ObjectStatus, SharedFormatter, AnimationHelper) {
     "use strict";
 
     return Controller.extend("z.sap.courses.controller.TrainingAssignmentsList", {
@@ -407,28 +408,10 @@ sap.ui.define([
         },
 
         /**
-         * Animated count-up for KPI numbers. Smoothly increments from 0 to target.
+         * M-1 FIX: Delegate to shared AnimationHelper.
          */
         _animateNumbers: function (oModel, aPaths, iDuration) {
-            iDuration = iDuration || 600;
-            var aTargets = aPaths.map(function (sPath) {
-                return { path: sPath, target: oModel.getProperty(sPath) || 0 };
-            });
-            // Set all to 0
-            aTargets.forEach(function (t) { oModel.setProperty(t.path, 0); });
-            var iStart = performance.now();
-            var fnStep = function (ts) {
-                var fProgress = Math.min((ts - iStart) / iDuration, 1);
-                // Ease-out cubic
-                var fEase = 1 - Math.pow(1 - fProgress, 3);
-                aTargets.forEach(function (t) {
-                    oModel.setProperty(t.path, Math.round(t.target * fEase));
-                });
-                if (fProgress < 1) {
-                    requestAnimationFrame(fnStep);
-                }
-            };
-            requestAnimationFrame(fnStep);
+            AnimationHelper.animateNumbers(oModel, aPaths, iDuration);
         },
 
         /**
@@ -441,6 +424,9 @@ sap.ui.define([
             var aCols = oTable.getColumns();
             var aItems = oTable.getItems();
             if (aItems.length === 0) { return; }
+
+            // C-1 FIX: Declare i18n in scope so formatter closures can reference it
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
 
             // Detect column indices via p13nData customData (i18n-safe)
             var iUrlIdx = -1, iStatusIdx = -1, iDueDateIdx = -1;
@@ -728,120 +714,6 @@ sap.ui.define([
             if (oViewMode && oViewMode.getProperty("/showCards")) {
                 this._rebindAssignCardGrid();
             }
-        },
-
-        /* ================================================================== */
-        /* TUTORIAL DIALOG                                                     */
-        /* ================================================================== */
-
-        onOpenTutorial: function () {
-            var sRole = this.getOwnerComponent()._role || "User";
-            var oTutorialData = this._getTutorialContent(sRole);
-            var oTutorialModel = new JSONModel(oTutorialData);
-
-            var that = this;
-            sap.ui.core.Fragment.load({
-                name: "z.sap.courses.fragments.TutorialDialog",
-                controller: this,
-                id: this.getView().getId() + "--tutorial" + Date.now()
-            }).then(function (oDialog) {
-                that._tutorialDialog = oDialog;
-                oDialog.setModel(oTutorialModel, "tutorialData");
-                oDialog.attachAfterClose(function () {
-                    oDialog.destroy();
-                    that._tutorialDialog = null;
-                });
-                oDialog.open();
-            });
-        },
-
-        onCloseTutorial: function () {
-            if (this._tutorialDialog) {
-                this._tutorialDialog.close();
-            }
-        },
-
-        _getTutorialContent: function (sRole) {
-            var oContent = {
-                selectedTab: "start",
-                title: "My Assignments Guide"
-            };
-
-            if (sRole === "Admin") {
-                oContent.gettingStarted =
-                    "<p><strong>As an Admin</strong>, this page shows your personal training assignments.</p>" +
-                    "<ol>" +
-                    "<li><strong>View Assignments:</strong> See all trainings assigned to you with status and due dates.</li>" +
-                    "<li><strong>Start Training:</strong> Select an assignment and click <em>Start</em> to begin learning.</li>" +
-                    "<li><strong>Mark Completed:</strong> When finished, select and click <em>Mark Completed</em>.</li>" +
-                    "<li><strong>My Progress:</strong> Track your own completion rate in the progress panel above.</li>" +
-                    "<li><strong>Back to Catalog:</strong> Use the back arrow (top left) to return to the Training Catalog.</li>" +
-                    "</ol>";
-                oContent.features =
-                    "<ul>" +
-                    "<li><strong>Progress Dashboard:</strong> 4 KPI cards showing Assigned, In Progress, Overdue, and Completed counts.</li>" +
-                    "<li><strong>Completion Bar:</strong> Visual progress bar showing your overall completion percentage.</li>" +
-                    "<li><strong>Due Date Warnings:</strong> Banner alerts when assignments are due within 3 days.</li>" +
-                    "<li><strong>Card / Table Toggle:</strong> Switch views for your preferred layout.</li>" +
-                    "<li><strong>Status Filter:</strong> Use the filter bar to quickly find assignments by status.</li>" +
-                    "</ul>";
-                oContent.tips =
-                    "<ul>" +
-                    "<li>Click a KPI card to filter the list by that status.</li>" +
-                    "<li>Watch for the <em>Overdue</em> count — prioritize past-due assignments first.</li>" +
-                    "<li>Use card actions (Start / Complete / Details / Open URL) for quick operations.</li>" +
-                    "<li>Return to the catalog to browse and explore more available trainings.</li>" +
-                    "</ul>";
-            } else if (sRole === "Manager") {
-                oContent.gettingStarted =
-                    "<p><strong>As a Manager</strong>, this page tracks your personal learning assignments.</p>" +
-                    "<ol>" +
-                    "<li><strong>View Your Assignments:</strong> All trainings assigned to you appear here.</li>" +
-                    "<li><strong>Start / Complete:</strong> Use the action buttons to update your training status.</li>" +
-                    "<li><strong>Monitor Progress:</strong> Your personal KPIs are shown in the progress panel.</li>" +
-                    "<li><strong>Back to Catalog:</strong> Use the back arrow to return to the catalog and manage team assignments.</li>" +
-                    "</ol>";
-                oContent.features =
-                    "<ul>" +
-                    "<li><strong>Personal Progress:</strong> 4 KPI cards showing your assignment status breakdown.</li>" +
-                    "<li><strong>Due Date Alerts:</strong> Warning banners for assignments due within 3 days.</li>" +
-                    "<li><strong>Quick Actions:</strong> Start training and mark completed directly from cards.</li>" +
-                    "<li><strong>Filter by Status:</strong> Click KPI cards or use the status filter dropdown.</li>" +
-                    "</ul>";
-                oContent.tips =
-                    "<ul>" +
-                    "<li>Stay on track by completing assignments before their due date.</li>" +
-                    "<li>Switch to the catalog page to view your team's analytics and assign new trainings.</li>" +
-                    "<li>Use the <em>Overdue</em> filter to focus on past-due items that need immediate attention.</li>" +
-                    "</ul>";
-            } else {
-                // User role
-                oContent.gettingStarted =
-                    "<p><strong>Welcome!</strong> This page shows all training assignments given to you.</p>" +
-                    "<ol>" +
-                    "<li><strong>View Assignments:</strong> See your pending, in-progress, and completed trainings.</li>" +
-                    "<li><strong>Start Training:</strong> Select an assignment and click <em>Start</em> to begin.</li>" +
-                    "<li><strong>Mark Completed:</strong> After finishing, select and click <em>Mark Completed</em>.</li>" +
-                    "<li><strong>Track Progress:</strong> Check the progress panel for your completion rate.</li>" +
-                    "<li><strong>Back to Catalog:</strong> Click the back arrow (top left) to explore more courses.</li>" +
-                    "</ol>";
-                oContent.features =
-                    "<ul>" +
-                    "<li><strong>Progress Dashboard:</strong> Assigned, In Progress, Overdue, and Completed at a glance.</li>" +
-                    "<li><strong>Due Date Warning:</strong> Alerts appear when assignments are due soon.</li>" +
-                    "<li><strong>Card / Table Views:</strong> Choose your preferred view mode.</li>" +
-                    "<li><strong>Quick Actions:</strong> Start, complete, or view details right from the card buttons.</li>" +
-                    "</ul>";
-                oContent.tips =
-                    "<ul>" +
-                    "<li>Prioritize <em>Overdue</em> assignments — complete them before other tasks.</li>" +
-                    "<li>Click a KPI card to instantly filter the list by that status.</li>" +
-                    "<li>Open training URLs directly to access SAP Courses content.</li>" +
-                    "<li>Check back regularly for newly assigned trainings.</li>" +
-                    "</ul>";
-            }
-
-            return oContent;
         },
 
         /* ================================================================== */
@@ -1217,6 +1089,8 @@ sap.ui.define([
             if (oComponent) {
                 oComponent.getEventBus().unsubscribe("sapCourses", "roleChanged", this._onRoleChanged, this);
                 oComponent.getEventBus().unsubscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
+                // L-5 FIX: Also unsubscribe assignmentsChanged
+                oComponent.getEventBus().unsubscribe("sapCourses", "assignmentsChanged", this._onAssignmentsChanged, this);
             }
             var aCards = ["myTotalBox", "myAssignedBox", "myInProgressBox", "myOverdueBox", "myCompletedBox"];
             var that = this;
@@ -1370,6 +1244,7 @@ sap.ui.define([
             if (!oContext) { return; }
             var oAssignment = oContext.getObject();
             var that = this;
+            var i18n = this.getView().getModel("i18n").getResourceBundle();
 
             // Store context reference for Mark Completed action
             this._detailContext = oContext;
@@ -1486,19 +1361,13 @@ sap.ui.define([
                     var oSmartTable = that.byId("assignSmartTable");
                     if (oSmartTable) { oSmartTable.setBusy(true); }
 
-                    // FIX 1.1: Call markCompleted as OData V2 Function Import (POST)
-                    // ABAP SEGW defines markCompleted as a function import with parameter Id
-                    var sEntitySet = oComponent.getAssignmentEntitySet ? oComponent.getAssignmentEntitySet() : 'TrainingAssignments';
+                    // H-1 FIX: Use oModel.callFunction instead of jQuery.ajax
+                    // This leverages the OData model's CSRF token pool and error handling.
                     var sId = oAssignment.ID || oAssignment.Id;
-                    var sServiceUrl = oModel.sServiceUrl || '';
-                    var sActionUrl = sServiceUrl + "/markCompleted?Id='" + sId + "'";
 
-                    jQuery.ajax({
-                        url: sActionUrl,
+                    oModel.callFunction("/markCompleted", {
                         method: "POST",
-                        contentType: "application/json",
-                        data: JSON.stringify({}),
-                        headers: oModel.getHeaders(),
+                        urlParameters: { Id: sId },
                         success: function () {
                             if (oSmartTable) { oSmartTable.setBusy(false); }
                             MessageToast.show(i18n.getText("markedCompleted"));
@@ -1506,14 +1375,14 @@ sap.ui.define([
                             that._filterByStatus("Completed");
                             that._loadAnalytics();
                         },
-                        error: function (xhr) {
+                        error: function (oError) {
                             if (oSmartTable) { oSmartTable.setBusy(false); }
                             var msg = i18n.getText("updateFailed");
                             try {
-                                var parsed = JSON.parse(xhr.responseText);
+                                var parsed = JSON.parse(oError.responseText);
                                 msg = (parsed.error && parsed.error.message && (parsed.error.message.value || parsed.error.message)) || msg;
                             } catch (e) {
-                                msg = (xhr && xhr.statusText) || msg;
+                                msg = (oError && oError.message) || msg;
                             }
                             MessageBox.error(msg);
                         }
@@ -1523,8 +1392,8 @@ sap.ui.define([
         },
 
         /**
-         * ADD-3: Bulk mark completed — FIX 1.1: Call bound action for each assignment
-         * Uses sequential AJAX calls to server-side markCompleted action.
+         * ADD-3: Bulk mark completed — H-1 FIX: Use oModel.callFunction
+         * instead of jQuery.ajax for proper CSRF token and batch handling.
          */
         _markCompletedBulk: function (aContexts) {
             var that = this;
@@ -1538,49 +1407,47 @@ sap.ui.define([
                     if (sAction !== MessageBox.Action.OK) { return; }
 
                     var oModel = that.getView().getModel();
-                    var oComponent = that.getOwnerComponent();
-                    var sEntitySet = oComponent.getAssignmentEntitySet ? oComponent.getAssignmentEntitySet() : 'TrainingAssignments';
-                    var sServiceUrl = oModel.sServiceUrl || '';
                     var oSmartTable = that.byId("assignSmartTable");
                     if (oSmartTable) { oSmartTable.setBusy(true); }
 
-                    // Build array of function import call promises
-                    var aPromises = aContexts.map(function (oCtx) {
+                    var iDone = 0, iFail = 0, iTotal = aContexts.length;
+                    aContexts.forEach(function (oCtx) {
                         var oData = oCtx.getObject();
                         var sId = oData.ID || oData.Id;
-                        // Use function import URL: markCompleted?Id='uuid'
-                        var sActionUrl = sServiceUrl + "/markCompleted?Id='" + sId + "'";
-                        return new Promise(function (resolve, reject) {
-                            jQuery.ajax({
-                                url: sActionUrl,
-                                method: "POST",
-                                contentType: "application/json",
-                                data: JSON.stringify({}),
-                                headers: oModel.getHeaders(),
-                                success: function () { resolve(); },
-                                error: function (xhr) { reject(xhr); }
-                            });
+                        oModel.callFunction("/markCompleted", {
+                            method: "POST",
+                            urlParameters: { Id: sId },
+                            success: function () {
+                                iDone++;
+                                if (iDone + iFail === iTotal) {
+                                    if (oSmartTable) { oSmartTable.setBusy(false); }
+                                    oModel.refresh(true);
+                                    MessageToast.show(i18n.getText("bulkCompleteSuccess", [iDone]));
+                                    that._filterByStatus("Completed");
+                                    that._loadAnalytics();
+                                }
+                            },
+                            error: function (oError) {
+                                iFail++;
+                                if (iDone + iFail === iTotal) {
+                                    if (oSmartTable) { oSmartTable.setBusy(false); }
+                                    oModel.refresh(true);
+                                    if (iDone > 0) {
+                                        MessageToast.show(i18n.getText("bulkCompleteSuccess", [iDone]));
+                                    } else {
+                                        var msg = i18n.getText("updateFailed");
+                                        try {
+                                            var parsed = JSON.parse(oError.responseText);
+                                            msg = (parsed.error && parsed.error.message && (parsed.error.message.value || parsed.error.message)) || msg;
+                                        } catch (e) { msg = (oError && oError.message) || msg; }
+                                        MessageBox.error(msg);
+                                    }
+                                    that._filterByStatus("Completed");
+                                    that._loadAnalytics();
+                                }
+                            }
                         });
                     });
-
-                    Promise.all(aPromises)
-                        .then(function () {
-                            if (oSmartTable) { oSmartTable.setBusy(false); }
-                            oModel.refresh(true);
-                            MessageToast.show(i18n.getText("bulkCompleteSuccess", [iCount]));
-                            that._filterByStatus("Completed");
-                            that._loadAnalytics();
-                        })
-                        .catch(function (xhr) {
-                            if (oSmartTable) { oSmartTable.setBusy(false); }
-                            oModel.refresh(true);
-                            var msg = i18n.getText("updateFailed");
-                            try {
-                                var parsed = JSON.parse(xhr.responseText);
-                                msg = (parsed.error && parsed.error.message && (parsed.error.message.value || parsed.error.message)) || msg;
-                            } catch (e) { msg = (xhr && xhr.statusText) || msg; }
-                            MessageBox.error(msg);
-                        });
                 }
             });
         },

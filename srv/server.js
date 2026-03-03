@@ -31,6 +31,9 @@ cds.on('bootstrap', (app) => {
 
   // ========================================================================
   // SECURITY: Rate Limiting — ON by default, disabled only in dev profile
+  // NOTE: Uses in-memory store. In multi-instance (clustered/CF scaled)
+  //       deployments, switch to a shared store (e.g. rate-limit-redis)
+  //       so counters are consistent across instances.
   // ========================================================================
   if (!isDev) {
     try {
