@@ -115,6 +115,28 @@ html, body, html.sap-desktop, .sapUiBody {
     flex: 1 1 0 !important;
     overflow: hidden !important;
     min-height: 200px !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* SmartTable inner content area – make the responsive table scroll vertically */
+.assignmentsPage .sapUiCompSmartTable > .sapMList,
+.assignmentsPage .sapUiCompSmartTable > .sapMTable {
+    flex: 1 1 0 !important;
+    overflow-y: auto !important;
+    min-height: 0 !important;
+}
+
+/* SmartTable toolbar stays at natural height */
+.assignmentsPage .sapUiCompSmartTable > .sapMTB,
+.assignmentsPage .sapUiCompSmartTable > .sapMOTB,
+.assignmentsPage .sapUiCompSmartTable > .sapMIBar {
+    flex: 0 0 auto !important;
+}
+
+/* InfoToolbar (showing filter/count) stays at natural height */
+.assignmentsPage .sapUiCompSmartTable .sapMListInfoTBar {
+    flex: 0 0 auto !important;
 }
 
 /* Card ScrollContainer also fills remaining space when card view is active */
