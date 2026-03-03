@@ -299,24 +299,18 @@ sap.ui.define([
             var oTable = oSmartTable.getTable();
             var that = this;
             if (oTable) {
-                oTable.setMode("MultiSelect");
+                // sap.ui.table.Table APIs (tableType="Table")
+                oTable.setSelectionMode("MultiToggle");
                 oTable.setAlternateRowColors(true);
 
-                // BUG-6 FIX: Enable growing for ResponsiveTable (lazy scroll-to-load)
-                if (typeof oTable.setGrowing === "function") {
-                    oTable.setGrowing(true);
-                    oTable.setGrowingScrollToLoad(true);
-                    oTable.setGrowingThreshold(50);
+                // Row click → open detail dialog
+                if (!this._cellClickAttached) {
+                    oTable.attachCellClick(this.onItemPress.bind(this));
+                    this._cellClickAttached = true;
                 }
 
-                if (!this._itemPressAttached) {
-                    oTable.attachItemPress(this.onItemPress.bind(this));
-                    this._itemPressAttached = true;
-                }
-
-                // BUG-7 FIX: Apply column templates on EVERY data update
-                // (idempotent — skips cells already replaced)
-                oTable.attachUpdateFinished(function () {
+                // Apply column templates + widths after rows load
+                oTable.attachRowsUpdated(function () {
                     that._applyAssignmentColumnTemplates(oTable);
                     that._distributeAssignmentColumnWidths(oTable);
                 });
@@ -359,8 +353,12 @@ sap.ui.define([
 
             var iTotalWeight = 0;
             var aWeights = aCols.map(function (oCol) {
-                var oHeader = oCol.getHeader();
-                var sText = (oHeader && typeof oHeader.getText === "function") ? oHeader.getText() : "";
+                // sap.ui.table.Column: getLabel(), sap.m.Column: getHeader()
+                var oLabelCtrl = oCol.getLabel ? oCol.getLabel() : (oCol.getHeader ? oCol.getHeader() : null);
+                var sText = "";
+                if (oLabelCtrl) {
+                    sText = typeof oLabelCtrl === "string" ? oLabelCtrl : (oLabelCtrl.getText ? oLabelCtrl.getText() : "");
+                }
                 // Try to match column header to known fields
                 var w = 1;
                 Object.keys(oWeightMap).forEach(function (k) {
@@ -415,148 +413,131 @@ sap.ui.define([
         },
 
         /**
-         * BUG-7 FIX: Apply Link + ObjectStatus cell templates using p13nData
-         * for robust column detection, and OData bindings so controls survive
-         * ColumnListItem context changes on sort/filter/growing.
+         * Helper: extract the p13nData column key from a SmartTable column.
+         */
+        _getColumnP13nKey: function (oCol) {
+            var aCD = oCol.getCustomData ? oCol.getCustomData() : [];
+            for (var i = 0; i < aCD.length; i++) {
+                if (aCD[i].getKey && aCD[i].getKey() === "p13nData") {
+                    try {
+                        var oP13n = typeof aCD[i].getValue() === "string"
+                            ? JSON.parse(aCD[i].getValue()) : aCD[i].getValue();
+                        return oP13n.leadingProperty || oP13n.columnKey || "";
+                    } catch (e) { /* ignore */ }
+                }
+            }
+            // Fallback: label text
+            var oLabelCtrl = oCol.getLabel ? oCol.getLabel() : (oCol.getHeader ? oCol.getHeader() : null);
+            var sText = "";
+            if (oLabelCtrl) {
+                sText = typeof oLabelCtrl === "string" ? oLabelCtrl : (oLabelCtrl.getText ? oLabelCtrl.getText() : "");
+            }
+            if (sText === "Url" || sText === "Training Link") { return "Url"; }
+            if (sText === "Status") { return "Status"; }
+            if (sText === "DueDate" || sText === "Due Date") { return "DueDate"; }
+            return "";
+        },
+
+        /**
+         * Helper: get selected binding contexts from sap.ui.table.Table
+         * (works with getSelectedIndices + getContextByIndex).
+         */
+        _getSelectedAssignmentContexts: function (oTable) {
+            if (oTable.getSelectedIndices) {
+                return oTable.getSelectedIndices().map(function (i) {
+                    return oTable.getContextByIndex(i);
+                }).filter(Boolean);
+            }
+            // Fallback for sap.m.Table
+            var aItems = oTable.getSelectedItems ? oTable.getSelectedItems() : [];
+            return aItems.map(function (oItem) { return oItem.getBindingContext(); }).filter(Boolean);
+        },
+
+        /**
+         * Apply Link + ObjectStatus column templates for sap.ui.table.Table.
+         * Sets template ONCE per column (not per row) — much cleaner.
          */
         _applyAssignmentColumnTemplates: function (oTable) {
+            if (this._bAssignTemplatesApplied) { return; }
             if (!oTable || !oTable.getColumns) { return; }
             var aCols = oTable.getColumns();
-            var aItems = oTable.getItems();
-            if (aItems.length === 0) { return; }
+            if (!aCols || aCols.length === 0) { return; }
 
-            // C-1 FIX: Declare i18n in scope so formatter closures can reference it
             var i18n = this.getView().getModel("i18n").getResourceBundle();
+            var that = this;
 
-            // Detect column indices via p13nData customData (i18n-safe)
-            var iUrlIdx = -1, iStatusIdx = -1, iDueDateIdx = -1;
-            aCols.forEach(function (oCol, iIdx) {
-                var aCustomData = oCol.getCustomData();
-                for (var i = 0; i < aCustomData.length; i++) {
-                    var oCD = aCustomData[i];
-                    if (oCD.getKey && oCD.getKey() === "p13nData") {
-                        try {
-                            var oP13n = typeof oCD.getValue() === "string"
-                                ? JSON.parse(oCD.getValue()) : oCD.getValue();
-                            if (oP13n.columnKey === "Url" || oP13n.leadingProperty === "Url") {
-                                iUrlIdx = iIdx;
-                            }
-                            if (oP13n.columnKey === "Status" || oP13n.leadingProperty === "Status") {
-                                iStatusIdx = iIdx;
-                            }
-                            if (oP13n.columnKey === "DueDate" || oP13n.leadingProperty === "DueDate") {
-                                iDueDateIdx = iIdx;
-                            }
-                        } catch (e) { /* ignore parse errors */ }
-                    }
-                }
-                // Fallback: header text (for SmartTable without p13nData)
-                var oHeader = oCol.getHeader();
-                var sLabel = (oHeader && typeof oHeader.getText === "function") ? oHeader.getText() : "";
-                if ((sLabel === "Url" || sLabel === "Training Link") && iUrlIdx < 0) { iUrlIdx = iIdx; }
-                if (sLabel === "Status" && iStatusIdx < 0) { iStatusIdx = iIdx; }
-                if ((sLabel === "DueDate" || sLabel === "Due Date") && iDueDateIdx < 0) { iDueDateIdx = iIdx; }
-            });
+            aCols.forEach(function (oCol) {
+                var sKey = that._getColumnP13nKey(oCol);
 
-            aItems.forEach(function (oItem) {
-                if (!oItem.getCells) { return; }
-                var aCells = oItem.getCells();
-
-                // Url → Link with OData binding (survives context changes)
-                if (iUrlIdx >= 0 && iUrlIdx < aCells.length) {
-                    var oUrlCell = aCells[iUrlIdx];
-                    // Replace if not a Link, or if Link lacks target="_blank"
-                    if (oUrlCell.getMetadata().getName() !== "sap.m.Link" ||
-                        (oUrlCell.getTarget && oUrlCell.getTarget() !== "_blank")) {
-                        var oLink = new Link({
-                            text: {
-                                path: "Url",
-                                formatter: function (sUrl) {
-                                    return (sUrl && /^https?:\/\//i.test(sUrl)) ? i18n.getText("openTraining") : (sUrl || "");
-                                }
-                            },
-                            href: "{Url}",
-                            target: "_blank",
-                            wrapping: false,
-                            enabled: {
-                                path: "Url",
-                                formatter: function (sUrl) {
-                                    return !!(sUrl && /^https?:\/\//i.test(sUrl));
-                                }
+                if (sKey === "Url") {
+                    oCol.setTemplate(new Link({
+                        text: {
+                            path: "Url",
+                            formatter: function (sUrl) {
+                                return (sUrl && /^https?:\/\//i.test(sUrl)) ? i18n.getText("openTraining") : (sUrl || "");
                             }
-                        }).addStyleClass("assignmentLink");
-                        oItem.removeCell(oUrlCell);
-                        oItem.insertCell(oLink, iUrlIdx);
-                        oUrlCell.destroy();
-                    }
-                }
-
-                // ADD-1: Status → ObjectStatus with overdue indicator — FIX 5.2: Use shared formatter
-                if (iStatusIdx >= 0 && iStatusIdx < aCells.length) {
-                    var oStatusCell = aCells[iStatusIdx];
-                    if (oStatusCell.getMetadata().getName() !== "sap.m.ObjectStatus") {
-                        var oStatusCtrl = new ObjectStatus({
-                            text: {
-                                parts: [{ path: "Status" }, { path: "DueDate" }],
-                                formatter: function (sStatus, dDue) {
-                                    return SharedFormatter.formatStatusText.call(SharedFormatter, sStatus, dDue);
-                                }
-                            },
-                            state: {
-                                parts: [{ path: "Status" }, { path: "DueDate" }],
-                                formatter: function (sStatus, dDue) {
-                                    return SharedFormatter.formatStatusState(sStatus, dDue);
-                                }
-                            },
-                            icon: {
-                                parts: [{ path: "Status" }, { path: "DueDate" }],
-                                formatter: function (sStatus, dDue) {
-                                    return SharedFormatter.formatStatusIcon(sStatus, dDue);
-                                }
+                        },
+                        href: "{Url}",
+                        target: "_blank",
+                        wrapping: false,
+                        enabled: {
+                            path: "Url",
+                            formatter: function (sUrl) {
+                                return !!(sUrl && /^https?:\/\//i.test(sUrl));
                             }
-                        }).addStyleClass("assignmentStatusBadge");
-                        oItem.removeCell(oStatusCell);
-                        oItem.insertCell(oStatusCtrl, iStatusIdx);
-                        oStatusCell.destroy();
-                    }
-                }
-
-                // ADD-4: DueDate → ObjectStatus with color-coded warnings — FIX 5.2: Use shared formatter
-                if (iDueDateIdx >= 0 && iDueDateIdx < aCells.length) {
-                    var oDueDateCell = aCells[iDueDateIdx];
-                    if (oDueDateCell.getMetadata().getName() !== "sap.m.ObjectStatus") {
-                        var oDueDateCtrl = new ObjectStatus({
-                            text: {
-                                path: "DueDate",
-                                formatter: function (dDate) {
-                                    return SharedFormatter.formatDate(dDate) || i18n.getText("notSet");
-                                }
-                            },
-                            state: {
-                                parts: [{ path: "DueDate" }, { path: "Status" }],
-                                formatter: function (dDate, sStatus) {
-                                    return SharedFormatter.formatDueDateState(dDate, sStatus);
-                                }
-                            },
-                            icon: {
-                                parts: [{ path: "DueDate" }, { path: "Status" }],
-                                formatter: function (dDate, sStatus) {
-                                    if (sStatus === "Completed" || !dDate) { return ""; }
-                                    var diff = Math.ceil((new Date(dDate) - new Date()) / 86400000);
-                                    if (diff < 0) { return "sap-icon://alert"; }
-                                    if (diff <= 7) { return "sap-icon://warning2"; }
-                                    return "";
-                                }
+                        }
+                    }).addStyleClass("assignmentLink"));
+                } else if (sKey === "Status") {
+                    oCol.setTemplate(new ObjectStatus({
+                        text: {
+                            parts: [{ path: "Status" }, { path: "DueDate" }],
+                            formatter: function (sStatus, dDue) {
+                                return SharedFormatter.formatStatusText.call(SharedFormatter, sStatus, dDue);
                             }
-                        }).addStyleClass("assignmentDueDate");
-                        oItem.removeCell(oDueDateCell);
-                        oItem.insertCell(oDueDateCtrl, iDueDateIdx);
-                        oDueDateCell.destroy();
-                    }
+                        },
+                        state: {
+                            parts: [{ path: "Status" }, { path: "DueDate" }],
+                            formatter: function (sStatus, dDue) {
+                                return SharedFormatter.formatStatusState(sStatus, dDue);
+                            }
+                        },
+                        icon: {
+                            parts: [{ path: "Status" }, { path: "DueDate" }],
+                            formatter: function (sStatus, dDue) {
+                                return SharedFormatter.formatStatusIcon(sStatus, dDue);
+                            }
+                        }
+                    }).addStyleClass("assignmentStatusBadge"));
+                } else if (sKey === "DueDate") {
+                    oCol.setTemplate(new ObjectStatus({
+                        text: {
+                            path: "DueDate",
+                            formatter: function (dDate) {
+                                return SharedFormatter.formatDate(dDate) || i18n.getText("notSet");
+                            }
+                        },
+                        state: {
+                            parts: [{ path: "DueDate" }, { path: "Status" }],
+                            formatter: function (dDate, sStatus) {
+                                return SharedFormatter.formatDueDateState(dDate, sStatus);
+                            }
+                        },
+                        icon: {
+                            parts: [{ path: "DueDate" }, { path: "Status" }],
+                            formatter: function (dDate, sStatus) {
+                                if (sStatus === "Completed" || !dDate) { return ""; }
+                                var diff = Math.ceil((new Date(dDate) - new Date()) / 86400000);
+                                if (diff < 0) { return "sap-icon://alert"; }
+                                if (diff <= 7) { return "sap-icon://warning2"; }
+                                return "";
+                            }
+                        }
+                    }).addStyleClass("assignmentDueDate"));
                 }
             });
 
-            Log.info("[AssignLinks] Column templates applied (Url=" + iUrlIdx + ", Status=" + iStatusIdx + ", DueDate=" + iDueDateIdx + ")");
+            this._bAssignTemplatesApplied = true;
+            Log.info("[AssignLinks] Column templates applied via sap.ui.table.Table setTemplate");
         },
 
         /* ===== Refresh ===== */
@@ -1110,8 +1091,8 @@ sap.ui.define([
             var i18n = this.getView().getModel("i18n").getResourceBundle();
             var that = this;
 
-            var aSelectedItems = oTable.getSelectedItems();
-            if (!aSelectedItems || aSelectedItems.length === 0) {
+            var aSelectedContexts = this._getSelectedAssignmentContexts(oTable);
+            if (aSelectedContexts.length === 0) {
                 MessageToast.show(i18n.getText("selectAssignmentFirst"));
                 return;
             }
@@ -1119,10 +1100,16 @@ sap.ui.define([
             var oComponent = this.getOwnerComponent();
             var sCurrentUserId = oComponent.getCurrentUserId();
 
+            // sap.ui.table.Table: use indices-based selection
+            var aSelectedContexts = this._getSelectedAssignmentContexts(oTable);
+            if (aSelectedContexts.length === 0) {
+                MessageToast.show(i18n.getText("selectAssignmentFirst"));
+                return;
+            }
+
             // Filter to only "Assigned" status items belonging to current user
             var aValidContexts = [];
-            aSelectedItems.forEach(function (oItem) {
-                var oCtx = oItem.getBindingContext();
+            aSelectedContexts.forEach(function (oCtx) {
                 if (!oCtx) { return; }
                 var oData = oCtx.getObject();
                 if (oData.Status !== "Assigned") { return; }
@@ -1199,8 +1186,8 @@ sap.ui.define([
             var i18n = this.getView().getModel("i18n").getResourceBundle();
 
             // ADD-3: Bulk operations — support multiple selection
-            var aSelectedItems = oTable.getSelectedItems();
-            if (!aSelectedItems || aSelectedItems.length === 0) {
+            var aSelectedContexts = this._getSelectedAssignmentContexts(oTable);
+            if (aSelectedContexts.length === 0) {
                 MessageToast.show(i18n.getText("selectAssignmentFirst"));
                 return;
             }
@@ -1213,8 +1200,7 @@ sap.ui.define([
             // Validate selected items
             var aValidContexts = [];
             var iSkippedCompleted = 0, iSkippedOthers = 0;
-            aSelectedItems.forEach(function (oItem) {
-                var oCtx = oItem.getBindingContext();
+            aSelectedContexts.forEach(function (oCtx) {
                 if (!oCtx) { return; }
                 var oData = oCtx.getObject();
                 if (oData.Status === "Completed") { iSkippedCompleted++; return; }
@@ -1239,8 +1225,13 @@ sap.ui.define([
 
         /* ===== Item Press – Detail dialog via XML Fragment (UI-1) ===== */
         onItemPress: function (oEvent) {
-            var oItem = oEvent.getParameter("listItem") || oEvent.getSource();
-            var oContext = oItem.getBindingContext();
+            // sap.ui.table.Table cellClick: use rowBindingContext
+            var oContext = oEvent.getParameter("rowBindingContext");
+            if (!oContext) {
+                // Fallback for simulated events (e.g. from card view)
+                var oItem = oEvent.getParameter("listItem") || oEvent.getSource();
+                oContext = oItem ? oItem.getBindingContext() : null;
+            }
             if (!oContext) { return; }
             var oAssignment = oContext.getObject();
             var that = this;
@@ -1464,13 +1455,13 @@ sap.ui.define([
             var oInnerTable = oTable ? oTable.getTable() : null;
             if (!oInnerTable) return;
 
-            var aSelected = oInnerTable.getSelectedItems ? oInnerTable.getSelectedItems() : [];
-            if (aSelected.length === 0) {
+            var aSelectedContexts = this._getSelectedAssignmentContexts(oInnerTable);
+            if (aSelectedContexts.length === 0) {
                 MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("selectAssignmentFirst"));
                 return;
             }
 
-            var oCtx = aSelected[0].getBindingContext();
+            var oCtx = aSelectedContexts[0];
             if (!oCtx) return;
             var oData = oCtx.getObject();
             oComponent.sendReminder(

@@ -102,7 +102,7 @@ html, body, html.sap-desktop, .sapUiBody {
     min-height: 200px !important;
 }
 
-/* Assignments page – flex layout so SmartTable fills remaining space with internal scroll */
+/* Assignments page – flex layout so SmartTable fills remaining space */
 .assignmentsPage.sapMPage > section {
     display: flex !important;
     flex-direction: column !important;
@@ -110,43 +110,11 @@ html, body, html.sap-desktop, .sapUiBody {
     height: 100% !important;
 }
 
-/* SmartTable fills remaining height and scrolls internally (fitContainer=true) */
+/* SmartTable fills remaining height; sap.ui.table.Table + fitContainer handles its own scroll */
 .assignmentsPage .sapUiCompSmartTable {
     flex: 1 1 0 !important;
     overflow: hidden !important;
     min-height: 200px !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-
-/* SmartTable inner flex-item wrappers: toolbar stays fixed, table area scrolls */
-.assignmentsPage .sapUiCompSmartTable > .sapMFlexItem:first-child {
-    flex: 0 0 auto !important;
-}
-.assignmentsPage .sapUiCompSmartTable > .sapMFlexItem:last-child {
-    flex: 1 1 0 !important;
-    overflow-y: auto !important;
-    min-height: 0 !important;
-}
-
-/* Fallback: also target direct table/list children if structure differs */
-.assignmentsPage .sapUiCompSmartTable > .sapMList,
-.assignmentsPage .sapUiCompSmartTable > .sapMTable {
-    flex: 1 1 0 !important;
-    overflow-y: auto !important;
-    min-height: 0 !important;
-}
-
-/* SmartTable toolbar stays at natural height */
-.assignmentsPage .sapUiCompSmartTable > .sapMTB,
-.assignmentsPage .sapUiCompSmartTable > .sapMOTB,
-.assignmentsPage .sapUiCompSmartTable > .sapMIBar {
-    flex: 0 0 auto !important;
-}
-
-/* InfoToolbar (showing filter/count) stays at natural height */
-.assignmentsPage .sapUiCompSmartTable .sapMListInfoTBar {
-    flex: 0 0 auto !important;
 }
 
 /* Card ScrollContainer also fills remaining space when card view is active */
