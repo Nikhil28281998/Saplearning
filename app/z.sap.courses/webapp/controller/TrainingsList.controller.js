@@ -2018,17 +2018,49 @@ sap.ui.define([
             var sKey = oEvent.getParameter("key") || oEvent.getSource().getSelectedKey();
             var oViewMode = this.getView().getModel("viewMode");
             var oSmartTable = this.byId("smartTable");
+            var that = this;
 
-            // H33 FIX: Always exit full-screen before switching views
-            // M-10 FIX: Use only the public API, not internal SmartTable properties
+            // FIX: Detect if SmartTable is in fullscreen mode (same as assignments page)
+            var bIsFullScreen = false;
             if (oSmartTable) {
+                bIsFullScreen = oSmartTable._bFullScreen || oSmartTable.bFullScreen || false;
+                // Also check if the fullscreen overlay container exists
+                if (!bIsFullScreen) {
+                    try {
+                        var oDomRef = oSmartTable.getDomRef();
+                        if (oDomRef) {
+                            bIsFullScreen = oDomRef.closest(".sapUiCompSmartTableFullScreen") !== null ||
+                                           oDomRef.classList.contains("sapUiCompSmartTableFullScreen");
+                        }
+                    } catch (_e) { /* ignore */ }
+                }
+            }
+
+            // FIX: If in fullscreen, exit first and then switch view after DOM settles
+            if (bIsFullScreen && oSmartTable) {
                 try {
-                    if (typeof oSmartTable.setFullScreen === "function") {
+                    var oFullScreenBtn = oSmartTable._oFullScreenButton ||
+                        sap.ui.getCore().byId(oSmartTable.getId() + "-btnFullScreen");
+                    if (oFullScreenBtn) {
+                        oFullScreenBtn.firePress();
+                    } else if (typeof oSmartTable.setFullScreen === "function") {
                         oSmartTable.setFullScreen(false);
                     }
                 } catch (_e) { /* ignore */ }
-            }
 
+                // Wait for fullscreen exit to complete before switching view
+                setTimeout(function () {
+                    that._applyHomeViewModeSwitch(sKey, oViewMode, oSmartTable);
+                }, 300);
+            } else {
+                this._applyHomeViewModeSwitch(sKey, oViewMode, oSmartTable);
+            }
+        },
+
+        /**
+         * Internal: Apply the actual view mode switch (cards/table) for homepage.
+         */
+        _applyHomeViewModeSwitch: function (sKey, oViewMode, oSmartTable) {
             if (sKey === "cards") {
                 oViewMode.setProperty("/showCards", true);
                 oViewMode.setProperty("/showTable", false);
