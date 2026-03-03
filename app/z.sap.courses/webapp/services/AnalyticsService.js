@@ -54,6 +54,7 @@ sap.ui.define([
                         var oTopicSet = {};
                         var oModuleSet = {};
                         var oRoleModuleMap = {};
+                        var oRoleTopicMap = {};
                         var oTopicModuleMap = {};
                         var oModuleTopicMap = {};
 
@@ -68,6 +69,8 @@ sap.ui.define([
                                 oRoleSet[t.Role] = true;
                                 if (!oRoleModuleMap[t.Role]) { oRoleModuleMap[t.Role] = {}; }
                                 if (t.SapModule) { oRoleModuleMap[t.Role][t.SapModule] = true; }
+                                if (!oRoleTopicMap[t.Role]) { oRoleTopicMap[t.Role] = {}; }
+                                if (t.Topic) { oRoleTopicMap[t.Role][t.Topic] = true; }
                             }
                             if (t.Topic) {
                                 oTopicSet[t.Topic] = true;
@@ -102,6 +105,7 @@ sap.ui.define([
                             topics: aTopics,
                             modules: aModules,
                             roleModuleMap: oRoleModuleMap,
+                            roleTopicMap: oRoleTopicMap,
                             topicModuleMap: oTopicModuleMap,
                             moduleTopicMap: oModuleTopicMap
                         });

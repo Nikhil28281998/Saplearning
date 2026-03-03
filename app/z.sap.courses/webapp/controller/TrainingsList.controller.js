@@ -78,6 +78,7 @@ sap.ui.define([
                 allTopics: [{ key: "", text: "All" }],
                 allModules: [{ key: "", text: "All" }],
                 roleModuleMap: {},
+                roleTopicMap: {},
                 topicModuleMap: {},
                 moduleTopicMap: {}
             });
@@ -190,6 +191,7 @@ sap.ui.define([
                 oFilterModel.setProperty("/allTopics", oStats.topics.slice(0));
                 oFilterModel.setProperty("/allModules", oStats.modules.slice(0));
                 oFilterModel.setProperty("/roleModuleMap", oStats.roleModuleMap);
+                oFilterModel.setProperty("/roleTopicMap", oStats.roleTopicMap || {});
                 oFilterModel.setProperty("/topicModuleMap", oStats.topicModuleMap);
                 oFilterModel.setProperty("/moduleTopicMap", oStats.moduleTopicMap || {});
             }).catch(function () {
@@ -1026,6 +1028,7 @@ sap.ui.define([
             var sModule = oModuleSelect ? oModuleSelect.getSelectedKey() : "";
 
             var roleModuleMap = oFilterModel.getProperty("/roleModuleMap") || {};
+            var roleTopicMap = oFilterModel.getProperty("/roleTopicMap") || {};
             var topicModuleMap = oFilterModel.getProperty("/topicModuleMap") || {};
             var moduleTopicMap = oFilterModel.getProperty("/moduleTopicMap") || {};
             var allRoles = oFilterModel.getProperty("/allRoles") || [];
@@ -1059,12 +1062,27 @@ sap.ui.define([
                 filteredModules = allModules.slice(0);
             }
 
-            // Filter topics based on selected module (and role if applicable)
+            // Filter topics based on selected module AND/OR role
             var filteredTopics;
-            if (sModule) {
-                var topicsForModule = moduleTopicMap[sModule] || {};
+            var validTopicsFromModule = sModule ? (moduleTopicMap[sModule] || {}) : null;
+            var validTopicsFromRole = sRole ? (roleTopicMap[sRole] || {}) : null;
+
+            if (validTopicsFromModule && validTopicsFromRole) {
+                // Intersect topics from module and role
                 filteredTopics = [{ key: "", text: "All" }];
-                Object.keys(topicsForModule).sort().forEach(function (t) {
+                Object.keys(validTopicsFromModule).sort().forEach(function (t) {
+                    if (validTopicsFromRole[t]) {
+                        filteredTopics.push({ key: t, text: t });
+                    }
+                });
+            } else if (validTopicsFromModule) {
+                filteredTopics = [{ key: "", text: "All" }];
+                Object.keys(validTopicsFromModule).sort().forEach(function (t) {
+                    filteredTopics.push({ key: t, text: t });
+                });
+            } else if (validTopicsFromRole) {
+                filteredTopics = [{ key: "", text: "All" }];
+                Object.keys(validTopicsFromRole).sort().forEach(function (t) {
                     filteredTopics.push({ key: t, text: t });
                 });
             } else {

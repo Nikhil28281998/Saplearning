@@ -12,8 +12,7 @@
     <Page
         id="trainingsListPage"
         title=""
-        showNavButton="true"
-        navButtonPress=".onNavBack"
+        showNavButton="false"
         enableScrolling="false"
         class="trainingsPage">
 

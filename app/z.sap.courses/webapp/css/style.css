@@ -167,7 +167,7 @@ html, body, html.sap-desktop, .sapUiBody {
     border: 1px solid var(--sapBorder);
     overflow: visible;
     background: var(--sapSurface) !important;
-    margin-top: 0.5rem !important; /* FIX: prevent page header from overlapping panel toolbar / Export button */
+    margin-top: 1.25rem !important; /* FIX: prevent custom header from overlapping Analytics/Export buttons on large monitors */
 }
 
 .analyticsPanel.sapMPanel > .sapMPanelHdr {
