@@ -117,13 +117,13 @@ annotate Trainings with @(
 };
 
 // ============================================================================
-// VALUE HELP VIEWS - For UI dropdowns (filter NULLs)
+// VALUE HELP VIEWS - For UI dropdowns (dependent filtering across role/topic/module)
 // ============================================================================
-view Roles as select from Trainings { key role }
-    where role is not null group by role;
+view Roles as select from Trainings { key role, topic, sap_module }
+    where role is not null group by role, topic, sap_module;
 
-view Topics as select from Trainings { key topic }
-    where topic is not null group by topic;
+view Topics as select from Trainings { key topic, role, sap_module }
+    where topic is not null group by topic, role, sap_module;
 
-view Modules as select from Trainings { key sap_module }
-    where sap_module is not null group by sap_module;
+view Modules as select from Trainings { key sap_module, role, topic }
+    where sap_module is not null group by sap_module, role, topic;
