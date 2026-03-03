@@ -25,66 +25,6 @@
             <ScrollContainer id="dashScrollContainer" height="100%" vertical="true" horizontal="false">
                 <VBox id="dashMainContainer" class="sapUiSmallMargin">
 
-                    <!-- ====== STATUS BREAKDOWN ====== -->
-                    <Panel id="dashStatusPanel" class="dashboardSection sapUiSmallMarginBottom" expandable="false">
-                        <headerToolbar>
-                            <Toolbar id="dashStatusToolbar">
-                                <core:Icon src="sap-icon://pie-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
-                                <Title id="dashStatusTitle" text="{i18n>dashStatusOverview}" level="H5" />
-                            </Toolbar>
-                        </headerToolbar>
-                        <HBox id="dashStatusRow" class="dashStatusRow" wrap="Wrap" justifyContent="SpaceAround">
-                            <!-- Assigned -->
-                            <VBox id="dashStatusAssigned" alignItems="Center" class="dashStatusCard dashStatusCardOrange">
-                                <core:Icon src="sap-icon://pending" size="1.5rem" color="#e76500" class="sapUiTinyMarginBottom" />
-                                <ObjectNumber id="dashAssignedNum" number="{teamAnalytics>/assigned}" state="Warning" class="dashStatusNumber" />
-                                <Text id="dashAssignedLabel" text="{i18n>teamPending}" class="dashStatusLabel" />
-                                <Text id="dashAssignedPct"
-                                    text="{= ${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/assigned} / ${teamAnalytics>/totalAssignments} * 100) + '%' : '0%' }"
-                                    class="dashStatusPct" />
-                            </VBox>
-                            <!-- In Progress -->
-                            <VBox id="dashStatusInProgress" alignItems="Center" class="dashStatusCard dashStatusCardBlue">
-                                <core:Icon src="sap-icon://activity-2" size="1.5rem" color="#0854a0" class="sapUiTinyMarginBottom" />
-                                <ObjectNumber id="dashInProgressNum" number="{teamAnalytics>/inProgress}" state="Information" class="dashStatusNumber" />
-                                <Text id="dashInProgressLabel" text="{i18n>teamInProgress}" class="dashStatusLabel" />
-                                <Text id="dashInProgressPct"
-                                    text="{= ${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/inProgress} / ${teamAnalytics>/totalAssignments} * 100) + '%' : '0%' }"
-                                    class="dashStatusPct" />
-                            </VBox>
-                            <!-- Completed -->
-                            <VBox id="dashStatusCompleted" alignItems="Center" class="dashStatusCard dashStatusCardGreen">
-                                <core:Icon src="sap-icon://accept" size="1.5rem" color="#107e3e" class="sapUiTinyMarginBottom" />
-                                <ObjectNumber id="dashCompletedNum" number="{teamAnalytics>/completed}" state="Success" class="dashStatusNumber" />
-                                <Text id="dashCompletedLabel" text="{i18n>teamCompleted}" class="dashStatusLabel" />
-                                <Text id="dashCompletedPct"
-                                    text="{= ${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/completed} / ${teamAnalytics>/totalAssignments} * 100) + '%' : '0%' }"
-                                    class="dashStatusPct" />
-                            </VBox>
-                            <!-- Overdue -->
-                            <VBox id="dashStatusOverdue" alignItems="Center" class="dashStatusCard dashStatusCardRed">
-                                <core:Icon src="sap-icon://alert" size="1.5rem" color="#bb0000" class="sapUiTinyMarginBottom" />
-                                <ObjectNumber id="dashOverdueNum" number="{teamAnalytics>/overdue}" state="Error" class="dashStatusNumber" />
-                                <Text id="dashOverdueLabel" text="{i18n>teamOverdue}" class="dashStatusLabel" />
-                                <Text id="dashOverduePct"
-                                    text="{= ${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/overdue} / ${teamAnalytics>/totalAssignments} * 100) + '%' : '0%' }"
-                                    class="dashStatusPct" />
-                            </VBox>
-                            <!-- Completion Rate -->
-                            <VBox id="dashStatusCompletion" alignItems="Center" class="dashStatusCard dashStatusCardPurple">
-                                <core:Icon src="sap-icon://performance" size="1.5rem" color="#6c32a9" class="sapUiTinyMarginBottom" />
-                                <ObjectNumber id="dashCompletionPctNum"
-                                    number="{= ${teamAnalytics>/completionPercent} + '%' }"
-                                    state="{= ${teamAnalytics>/completionPercent} >= 80 ? 'Success' : ${teamAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Information' }"
-                                    class="dashStatusNumber" />
-                                <Text id="dashCompletionLabel" text="{i18n>teamCompletionRate}" class="dashStatusLabel" />
-                                <Text id="dashTotalLabel"
-                                    text="{= ${teamAnalytics>/totalAssignments} + ' total' }"
-                                    class="dashStatusPct" />
-                            </VBox>
-                        </HBox>
-                    </Panel>
-
                     <HBox id="dashChartsContainer" class="dashChartsContainer" wrap="Wrap">
 
                         <!-- ====== MODULE DISTRIBUTION ====== -->

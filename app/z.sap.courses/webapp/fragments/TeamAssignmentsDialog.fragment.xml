@@ -64,17 +64,21 @@
             </Table>
         </content>
 
-        <beginButton>
+        <buttons>
             <Button
                 id="drillDownDeassignBtn"
                 text="{i18n>deassign}"
                 type="Reject"
                 icon="sap-icon://delete"
                 press=".onDeassignFromDrillDown" />
-        </beginButton>
-        <endButton>
+            <Button
+                id="drillDownReminderBtn"
+                text="{i18n>sendReminder}"
+                type="Ghost"
+                icon="sap-icon://email"
+                press=".onSendReminderFromDrillDown" />
             <Button id="drillDownCloseBtn" text="{i18n>closeButton}" press=".onCloseDrillDown" />
-        </endButton>
+        </buttons>
     </Dialog>
 
 </core:FragmentDefinition>

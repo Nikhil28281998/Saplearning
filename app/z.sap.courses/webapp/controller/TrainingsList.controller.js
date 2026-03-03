@@ -695,15 +695,22 @@ sap.ui.define([
                 oDialog.setModel(oDrillModel, "drillDown");
                 oDialog.setModel(that.getView().getModel("i18n"), "i18n");
 
-                // Hide de-assign button for In Progress / Overdue / Completed views
-                var aButtons = oDialog.getBeginButton ? [oDialog.getBeginButton()] : [];
-                aButtons.forEach(function (btn) {
-                    if (btn) { btn.setVisible(bAllowDeassign); }
+                // Show/hide action buttons based on drill-down type
+                var bShowReminder = (sStatusFilter === "Assigned" || sStatusFilter === "Overdue");
+                var aDialogButtons = oDialog.getButtons ? oDialog.getButtons() : [];
+                aDialogButtons.forEach(function (btn) {
+                    var sId = btn.getId() || "";
+                    if (sId.indexOf("DeassignBtn") > -1) {
+                        btn.setVisible(bAllowDeassign);
+                    } else if (sId.indexOf("ReminderBtn") > -1) {
+                        btn.setVisible(bShowReminder);
+                    }
                 });
-                // Also disable multi-select when de-assign not allowed
+                // Enable multi-select when de-assign or reminder is available
+                var bMultiSelect = bAllowDeassign || bShowReminder;
                 var aContent = oDialog.getContent();
                 if (aContent && aContent[0] && aContent[0].setMode) {
-                    aContent[0].setMode(bAllowDeassign ? "MultiSelect" : "None");
+                    aContent[0].setMode(bMultiSelect ? "MultiSelect" : "None");
                 }
 
                 oDialog.attachAfterClose(function () {
@@ -835,6 +842,38 @@ sap.ui.define([
             if (this._teamDrillDownDlg) {
                 this._teamDrillDownDlg.close();
             }
+        },
+
+        /**
+         * Send reminder email for selected assignments in drill-down dialog.
+         * Available for Pending and Overdue drill-down views (Manager/Admin only).
+         */
+        onSendReminderFromDrillDown: function () {
+            var oComponent = this.getOwnerComponent();
+            if (!oComponent || !oComponent.sendReminder) { return; }
+
+            var oDialog = this._teamDrillDownDlg;
+            if (!oDialog) { return; }
+
+            var aContent = oDialog.getContent();
+            var oTable = aContent && aContent.length > 0 ? aContent[0] : null;
+            if (!oTable) { return; }
+
+            var aSelectedItems = oTable.getSelectedItems ? oTable.getSelectedItems() : [];
+            if (!aSelectedItems || aSelectedItems.length === 0) {
+                MessageToast.show(this.getView().getModel("i18n").getResourceBundle().getText("selectAssignmentFirst"));
+                return;
+            }
+
+            // Send reminder for the first selected assignment
+            var oCtx = aSelectedItems[0].getBindingContext("drillDown");
+            if (!oCtx) { return; }
+            var oData = oCtx.getObject();
+            oComponent.sendReminder(
+                oData.UserEmail || oData.userEmail || '',
+                oData.UserName || oData.userName || oData.UserId || '',
+                oData.Title || oData.title || ''
+            );
         },
 
         /**
