@@ -8,8 +8,8 @@
         title="{i18n>analyticsDashboardTitle}"
         stretch="false"
         class="analyticsDashboardDialog"
-        contentHeight="85%"
-        contentWidth="90%">
+        contentHeight="75%"
+        contentWidth="85%">
 
         <subHeader>
             <Toolbar id="dashSubHeader">

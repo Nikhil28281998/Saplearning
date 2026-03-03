@@ -517,6 +517,11 @@ html, body, html.sap-desktop, .sapUiBody {
 }
 
 /* ===== Analytics Dashboard — fullscreen popup with all charts ===== */
+.analyticsDashboardDialog {
+    max-height: 78vh !important;
+    max-width: 85vw !important;
+}
+
 .analyticsDashboardDialog .sapMDialogScrollCont {
     padding: 0 !important;
 }
@@ -826,7 +831,7 @@ html, body, html.sap-desktop, .sapUiBody {
 }
 
 .dashUserName {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--sapText);
     overflow: hidden;
@@ -834,7 +839,7 @@ html, body, html.sap-desktop, .sapUiBody {
 }
 
 .dashUserId {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     color: var(--sapNeutral);
 }
 
@@ -851,7 +856,7 @@ html, body, html.sap-desktop, .sapUiBody {
 .dashModuleBar .sapMPIText,
 .dashModuleBar .sapMPITextLeft,
 .dashModuleBar .sapMPITextRight {
-    font-size: 0.6875rem !important;
+    font-size: 0.75rem !important;
     font-weight: 600;
 }
 
@@ -861,11 +866,11 @@ html, body, html.sap-desktop, .sapUiBody {
 }
 
 .dashUserStat .sapMObjStatusText {
-    font-size: 0.6875rem !important;
+    font-size: 0.75rem !important;
 }
 
 .dashUserCountText {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: var(--sapNeutral);
 }
 
@@ -877,7 +882,69 @@ html, body, html.sap-desktop, .sapUiBody {
     text-align: center;
 }
 
+/* Laptop 13"-15" screens (≤1440px) — compact dashboard */
+@media (max-width: 1440px) {
+    .analyticsDashboardDialog {
+        max-height: 75vh !important;
+        max-width: 88vw !important;
+    }
+    .dashChartPanel {
+        flex: 1 1 300px;
+        min-width: 280px;
+        padding: 0.375rem 0.5rem 0.5rem;
+    }
+    .dashUserName {
+        font-size: 0.8125rem;
+    }
+    .dashUserId {
+        font-size: 0.6875rem;
+    }
+    .dashModuleLabel {
+        font-size: 0.75rem;
+        min-width: 8rem;
+        max-width: 12rem;
+    }
+    .dashUserBar .sapMPIText,
+    .dashUserBar .sapMPITextLeft,
+    .dashUserBar .sapMPITextRight,
+    .dashModuleBar .sapMPIText,
+    .dashModuleBar .sapMPITextLeft,
+    .dashModuleBar .sapMPITextRight {
+        font-size: 0.6875rem !important;
+    }
+    .dashModuleBar,
+    .dashUserBar {
+        height: 1.125rem !important;
+    }
+    .dashModuleBar .sapMPI,
+    .dashUserBar .sapMPI {
+        min-height: 1.125rem !important;
+        height: 1.125rem !important;
+    }
+    .dashUserInfo {
+        min-width: 7rem;
+        max-width: 10rem;
+    }
+    .dashUserStat .sapMObjStatusText {
+        font-size: 0.6875rem !important;
+    }
+    .dashUserCountText {
+        font-size: 0.75rem;
+    }
+    .dashStatusNumber .sapMObjectNumberText {
+        font-size: 1.5rem !important;
+    }
+    .dashStatusLabel {
+        font-size: 0.6875rem;
+    }
+}
+
+/* Small phone/tablet (≤600px) */
 @media (max-width: 600px) {
+    .analyticsDashboardDialog {
+        max-height: 80vh !important;
+        max-width: 95vw !important;
+    }
     .dashModuleLabel {
         min-width: 5rem;
         max-width: 7rem;
@@ -891,6 +958,12 @@ html, body, html.sap-desktop, .sapUiBody {
     }
     .dashChartPanel {
         min-width: 100%;
+    }
+    .dashUserName {
+        font-size: 0.75rem;
+    }
+    .dashUserId {
+        font-size: 0.625rem;
     }
 }
 
