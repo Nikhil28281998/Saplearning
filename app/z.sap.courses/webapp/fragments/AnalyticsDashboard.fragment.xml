@@ -1,0 +1,199 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:l="sap.ui.layout">
+
+    <Dialog
+        id="analyticsDashboardDialog"
+        title="{i18n>analyticsDashboardTitle}"
+        stretch="true"
+        class="analyticsDashboardDialog"
+        contentHeight="100%"
+        contentWidth="100%">
+
+        <subHeader>
+            <Toolbar id="dashSubHeader">
+                <core:Icon src="sap-icon://business-objects-experience" size="1.125rem" color="#0854a0" />
+                <Title id="dashSubTitle" text="{i18n>analyticsDashboardSubtitle}" level="H5" />
+                <ToolbarSpacer />
+                <Button id="dashExportBtn" icon="sap-icon://excel-attachment" text="{i18n>exportReport}"
+                    press="onExportTeamReport" type="Ghost" />
+            </Toolbar>
+        </subHeader>
+
+        <content>
+            <ScrollContainer id="dashScrollContainer" height="100%" vertical="true" horizontal="false">
+                <VBox id="dashMainContainer" class="sapUiSmallMargin">
+
+                    <!-- ====== STATUS BREAKDOWN ====== -->
+                    <Panel id="dashStatusPanel" class="dashboardSection sapUiSmallMarginBottom" expandable="false">
+                        <headerToolbar>
+                            <Toolbar id="dashStatusToolbar">
+                                <core:Icon src="sap-icon://pie-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
+                                <Title id="dashStatusTitle" text="{i18n>dashStatusOverview}" level="H5" />
+                            </Toolbar>
+                        </headerToolbar>
+                        <HBox id="dashStatusRow" class="dashStatusRow" wrap="Wrap" justifyContent="SpaceAround">
+                            <!-- Assigned -->
+                            <VBox id="dashStatusAssigned" alignItems="Center" class="dashStatusCard dashStatusCardOrange">
+                                <core:Icon src="sap-icon://pending" size="1.5rem" color="#e76500" class="sapUiTinyMarginBottom" />
+                                <ObjectNumber id="dashAssignedNum" number="{teamAnalytics>/assigned}" state="Warning" class="dashStatusNumber" />
+                                <Text id="dashAssignedLabel" text="{i18n>teamPending}" class="dashStatusLabel" />
+                                <Text id="dashAssignedPct"
+                                    text="{= ${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/assigned} / ${teamAnalytics>/totalAssignments} * 100) + '%' : '0%' }"
+                                    class="dashStatusPct" />
+                            </VBox>
+                            <!-- In Progress -->
+                            <VBox id="dashStatusInProgress" alignItems="Center" class="dashStatusCard dashStatusCardBlue">
+                                <core:Icon src="sap-icon://activity-2" size="1.5rem" color="#0854a0" class="sapUiTinyMarginBottom" />
+                                <ObjectNumber id="dashInProgressNum" number="{teamAnalytics>/inProgress}" state="Information" class="dashStatusNumber" />
+                                <Text id="dashInProgressLabel" text="{i18n>teamInProgress}" class="dashStatusLabel" />
+                                <Text id="dashInProgressPct"
+                                    text="{= ${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/inProgress} / ${teamAnalytics>/totalAssignments} * 100) + '%' : '0%' }"
+                                    class="dashStatusPct" />
+                            </VBox>
+                            <!-- Completed -->
+                            <VBox id="dashStatusCompleted" alignItems="Center" class="dashStatusCard dashStatusCardGreen">
+                                <core:Icon src="sap-icon://accept" size="1.5rem" color="#107e3e" class="sapUiTinyMarginBottom" />
+                                <ObjectNumber id="dashCompletedNum" number="{teamAnalytics>/completed}" state="Success" class="dashStatusNumber" />
+                                <Text id="dashCompletedLabel" text="{i18n>teamCompleted}" class="dashStatusLabel" />
+                                <Text id="dashCompletedPct"
+                                    text="{= ${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/completed} / ${teamAnalytics>/totalAssignments} * 100) + '%' : '0%' }"
+                                    class="dashStatusPct" />
+                            </VBox>
+                            <!-- Overdue -->
+                            <VBox id="dashStatusOverdue" alignItems="Center" class="dashStatusCard dashStatusCardRed">
+                                <core:Icon src="sap-icon://alert" size="1.5rem" color="#bb0000" class="sapUiTinyMarginBottom" />
+                                <ObjectNumber id="dashOverdueNum" number="{teamAnalytics>/overdue}" state="Error" class="dashStatusNumber" />
+                                <Text id="dashOverdueLabel" text="{i18n>teamOverdue}" class="dashStatusLabel" />
+                                <Text id="dashOverduePct"
+                                    text="{= ${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/overdue} / ${teamAnalytics>/totalAssignments} * 100) + '%' : '0%' }"
+                                    class="dashStatusPct" />
+                            </VBox>
+                            <!-- Completion Rate -->
+                            <VBox id="dashStatusCompletion" alignItems="Center" class="dashStatusCard dashStatusCardPurple">
+                                <core:Icon src="sap-icon://performance" size="1.5rem" color="#6c32a9" class="sapUiTinyMarginBottom" />
+                                <ObjectNumber id="dashCompletionPctNum"
+                                    number="{= ${teamAnalytics>/completionPercent} + '%' }"
+                                    state="{= ${teamAnalytics>/completionPercent} >= 80 ? 'Success' : ${teamAnalytics>/completionPercent} >= 50 ? 'Warning' : 'Information' }"
+                                    class="dashStatusNumber" />
+                                <Text id="dashCompletionLabel" text="{i18n>teamCompletionRate}" class="dashStatusLabel" />
+                                <Text id="dashTotalLabel"
+                                    text="{= ${teamAnalytics>/totalAssignments} + ' total' }"
+                                    class="dashStatusPct" />
+                            </VBox>
+                        </HBox>
+                    </Panel>
+
+                    <HBox id="dashChartsContainer" class="dashChartsContainer" wrap="Wrap">
+
+                        <!-- ====== MODULE DISTRIBUTION ====== -->
+                        <VBox id="dashModulePanel" class="dashChartPanel sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                            <Toolbar id="dashModuleToolbar" class="sapUiTinyMarginBottom">
+                                <core:Icon src="sap-icon://bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
+                                <Title id="dashModuleTitle" text="{i18n>dashModuleDistribution}" level="H5" />
+                            </Toolbar>
+                            <!-- Assignment-based module stats (primary) -->
+                            <VBox id="dashModuleAssignList"
+                                items="{teamAnalytics>/moduleAssignmentStats}"
+                                visible="{= !!${teamAnalytics>/moduleAssignmentStats} }"
+                                class="dashModuleList">
+                                <items>
+                                    <HBox alignItems="Center" class="dashModuleRow">
+                                        <core:Icon src="sap-icon://tree" size="0.875rem" class="sapUiTinyMarginEnd dashModuleIcon" />
+                                        <Text text="{teamAnalytics>label}" class="dashModuleLabel" wrapping="false" />
+                                        <ProgressIndicator
+                                            percentValue="{teamAnalytics>completionPct}"
+                                            displayValue="{teamAnalytics>displayValue}"
+                                            state="{= ${teamAnalytics>completionPct} >= 80 ? 'Success' : ${teamAnalytics>completionPct} >= 50 ? 'Warning' : 'Error' }"
+                                            showValue="true"
+                                            width="100%"
+                                            height="1.25rem"
+                                            class="dashModuleBar" />
+                                        <ObjectStatus
+                                            text="{= ${teamAnalytics>overdue} > 0 ? ${teamAnalytics>overdue} + ' !' : '' }"
+                                            state="Error"
+                                            visible="{= ${teamAnalytics>overdue} > 0 }"
+                                            class="sapUiTinyMarginBegin" />
+                                    </HBox>
+                                </items>
+                            </VBox>
+                            <!-- Fallback: training catalog module distribution -->
+                            <VBox id="dashModuleCatalogList"
+                                items="{analyticsModel>/moduleDistribution}"
+                                visible="{= !${teamAnalytics>/moduleAssignmentStats} || ${teamAnalytics>/moduleAssignmentStats}.length === 0 }"
+                                class="dashModuleList">
+                                <items>
+                                    <HBox alignItems="Center" class="dashModuleRow">
+                                        <core:Icon src="sap-icon://tree" size="0.875rem" class="sapUiTinyMarginEnd dashModuleIcon" />
+                                        <Text text="{analyticsModel>label}" class="dashModuleLabel" wrapping="false" />
+                                        <ProgressIndicator
+                                            percentValue="{analyticsModel>percentOfMax}"
+                                            displayValue="{analyticsModel>displayValue}"
+                                            state="Information"
+                                            showValue="true"
+                                            width="100%"
+                                            height="1.25rem"
+                                            class="dashModuleBar" />
+                                    </HBox>
+                                </items>
+                            </VBox>
+                            <Text id="dashModuleNoData" text="{i18n>noModuleData}" class="dashNoData"
+                                visible="{= (!${teamAnalytics>/moduleAssignmentStats} || ${teamAnalytics>/moduleAssignmentStats}.length === 0) &amp;&amp; (!${analyticsModel>/moduleDistribution} || ${analyticsModel>/moduleDistribution}.length === 0) }" />
+                        </VBox>
+
+                        <!-- ====== TEAM MEMBER PROGRESS ====== -->
+                        <VBox id="dashUserPanel" class="dashChartPanel sapUiSmallMarginBottom">
+                            <Toolbar id="dashUserToolbar" class="sapUiTinyMarginBottom">
+                                <core:Icon src="sap-icon://customer" size="1rem" color="#0a6ed1" class="sapUiTinyMarginEnd" />
+                                <Title id="dashUserTitle" text="{i18n>dashTeamProgress}" level="H5" />
+                                <ToolbarSpacer />
+                                <Text id="dashUserCount" text="{= ${teamAnalytics>/userBreakdown} ? ${teamAnalytics>/userBreakdown}.length + ' members' : '' }" class="dashUserCountText" />
+                            </Toolbar>
+                            <VBox id="dashUserList"
+                                items="{teamAnalytics>/userBreakdown}"
+                                class="dashUserList">
+                                <items>
+                                    <HBox alignItems="Center" class="dashUserRow">
+                                        <core:Icon src="sap-icon://person-placeholder" size="1rem" class="sapUiTinyMarginEnd dashUserIcon" />
+                                        <VBox class="dashUserInfo">
+                                            <Text text="{teamAnalytics>userName}" class="dashUserName" wrapping="false" />
+                                            <Text text="{teamAnalytics>userId}" class="dashUserId" wrapping="false" />
+                                        </VBox>
+                                        <ProgressIndicator
+                                            percentValue="{= ${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0 }"
+                                            displayValue="{= ${teamAnalytics>completed} + '/' + ${teamAnalytics>total} + ' done' }"
+                                            state="{= (${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0) >= 100 ? 'Success' : (${teamAnalytics>total} > 0 ? Math.round(${teamAnalytics>completed} / ${teamAnalytics>total} * 100) : 0) >= 50 ? 'Warning' : 'Error' }"
+                                            showValue="true"
+                                            width="100%"
+                                            height="1.25rem"
+                                            class="dashUserBar" />
+                                        <VBox alignItems="End" class="dashUserStats">
+                                            <ObjectStatus
+                                                text="{= ${teamAnalytics>inProgress} > 0 ? ${teamAnalytics>inProgress} + ' active' : '' }"
+                                                state="Information"
+                                                visible="{= ${teamAnalytics>inProgress} > 0 }"
+                                                class="dashUserStat" />
+                                            <ObjectStatus
+                                                text="{= ${teamAnalytics>overdue} > 0 ? ${teamAnalytics>overdue} + ' overdue' : '' }"
+                                                state="Error"
+                                                visible="{= ${teamAnalytics>overdue} > 0 }"
+                                                class="dashUserStat" />
+                                        </VBox>
+                                    </HBox>
+                                </items>
+                            </VBox>
+                            <Text id="dashUserNoData" text="{i18n>noTeamMembers}" class="dashNoData"
+                                visible="{= !${teamAnalytics>/userBreakdown} || ${teamAnalytics>/userBreakdown}.length === 0 }" />
+                        </VBox>
+
+                    </HBox>
+                </VBox>
+            </ScrollContainer>
+        </content>
+
+        <endButton>
+            <Button id="dashCloseBtn" text="{i18n>close}" press="onCloseAnalyticsDashboard" type="Emphasized" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

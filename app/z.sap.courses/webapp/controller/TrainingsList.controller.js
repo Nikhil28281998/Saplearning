@@ -263,11 +263,10 @@ sap.ui.define([
                 return;
             }
 
-            var aTop = moduleArr.slice(0, 5);
-            var iMaxCount = aTop.length > 0 ? aTop[0].count : 1; // already sorted desc
+            var iMaxCount = moduleArr.length > 0 ? moduleArr[0].count : 1; // already sorted desc
             var iTotalModules = moduleArr.reduce(function (sum, m) { return sum + m.count; }, 0);
 
-            var aChartData = aTop.map(function (m) {
+            var aChartData = moduleArr.map(function (m) {
                 var iPct = iTotalModules > 0 ? Math.round((m.count / iTotalModules) * 100) : 0;
                 var iBarPct = iMaxCount > 0 ? Math.round((m.count / iMaxCount) * 100) : 0;
                 return {
@@ -555,7 +554,7 @@ sap.ui.define([
                         // Build module-level assignment stats (top 5 by total assignments)
                         var aModules = Object.keys(oModuleMap).map(function (k) { return oModuleMap[k]; });
                         aModules.sort(function (a, b) { return b.total - a.total; });
-                        var aTopModules = aModules.slice(0, 5);
+                        var aTopModules = aModules; // Show all modules in analytics dashboard
                         var iMaxModuleTotal = aTopModules.length > 0 ? aTopModules[0].total : 1;
                         aTopModules.forEach(function (m) {
                             m.completionPct = m.total > 0 ? Math.round((m.completed / m.total) * 100) : 0;
@@ -2021,6 +2020,43 @@ sap.ui.define([
             link.click();
             URL.revokeObjectURL(url);
             MessageToast.show("Report exported");
+        },
+
+        // ============================================================
+        // Analytics Dashboard — full-screen popup with all charts
+        // ============================================================
+
+        onOpenAnalyticsDashboard: function () {
+            var that = this;
+
+            // Destroy previous instance to avoid duplicate ID errors
+            if (this._analyticsDashboardDlg) {
+                this._analyticsDashboardDlg.destroy();
+                this._analyticsDashboardDlg = null;
+            }
+
+            sap.ui.core.Fragment.load({
+                name: "z.sap.courses.fragments.AnalyticsDashboard",
+                controller: this,
+                id: this.getView().getId() + "--analyticsDash" + Date.now()
+            }).then(function (oDialog) {
+                that._analyticsDashboardDlg = oDialog;
+                // Propagate all models from the view
+                oDialog.setModel(that.getView().getModel("teamAnalytics"), "teamAnalytics");
+                oDialog.setModel(that.getView().getModel("analyticsModel"), "analyticsModel");
+                oDialog.setModel(that.getView().getModel("i18n"), "i18n");
+                oDialog.setModel(that.getView().getModel("user"), "user");
+                that.getView().addDependent(oDialog);
+                oDialog.open();
+            });
+        },
+
+        onCloseAnalyticsDashboard: function () {
+            if (this._analyticsDashboardDlg) {
+                this._analyticsDashboardDlg.close();
+                this._analyticsDashboardDlg.destroy();
+                this._analyticsDashboardDlg = null;
+            }
         },
 
         onViewAssignments: function () {
