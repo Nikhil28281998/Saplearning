@@ -119,7 +119,17 @@ html, body, html.sap-desktop, .sapUiBody {
     flex-direction: column !important;
 }
 
-/* SmartTable inner content area – make the responsive table scroll vertically */
+/* SmartTable inner flex-item wrappers: toolbar stays fixed, table area scrolls */
+.assignmentsPage .sapUiCompSmartTable > .sapMFlexItem:first-child {
+    flex: 0 0 auto !important;
+}
+.assignmentsPage .sapUiCompSmartTable > .sapMFlexItem:last-child {
+    flex: 1 1 0 !important;
+    overflow-y: auto !important;
+    min-height: 0 !important;
+}
+
+/* Fallback: also target direct table/list children if structure differs */
 .assignmentsPage .sapUiCompSmartTable > .sapMList,
 .assignmentsPage .sapUiCompSmartTable > .sapMTable {
     flex: 1 1 0 !important;
