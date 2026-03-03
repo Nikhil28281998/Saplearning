@@ -241,8 +241,8 @@ METHOD trainingassignme_get_entityset.
 * -- FIX: Resolve missing denormalized fields from related tables -----
 *   Older records in ZCOURSE_ASGN may lack Title, UserName, SapModule
 *   because they were loaded before denormalization was implemented.
-*   Join against ZCOURSE_TRN (Trainings) and USR21/ADRP (Users) to fill gaps.
-  DATA: ls_trn     TYPE zcourse_trn,
+*   Join against ZCOURSES (Trainings) and USR21/ADRP (Users) to fill gaps.
+  DATA: ls_trn     TYPE zcourses,
         ls_usr21   TYPE usr21,
         ls_adrp    TYPE adrp,
         lv_uname   TYPE char80.
@@ -250,7 +250,7 @@ METHOD trainingassignme_get_entityset.
   LOOP AT lt_asgn ASSIGNING FIELD-SYMBOL(<fs_asgn>).
 *   Fill Training fields if missing
     IF <fs_asgn>-title IS INITIAL AND <fs_asgn>-training_id IS NOT INITIAL.
-      SELECT SINGLE * FROM zcourse_trn INTO ls_trn
+      SELECT SINGLE * FROM zcourses INTO ls_trn
         WHERE id = <fs_asgn>-training_id.
       IF sy-subrc = 0.
         IF <fs_asgn>-title IS INITIAL.
