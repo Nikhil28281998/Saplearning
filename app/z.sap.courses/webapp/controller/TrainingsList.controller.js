@@ -403,6 +403,7 @@ sap.ui.define([
             var oModel = this.getOwnerComponent().getModel();
             var oTeamModel = this.getView().getModel("teamAnalytics");
             var sEntitySet = this.getOwnerComponent().getAssignmentEntitySet();
+            var that = this;
 
             var aFilters = [];
             if (sRole === "Manager") {
@@ -425,8 +426,10 @@ sap.ui.define([
                         if (aPage.length >= iPageSize) {
                             fnLoadPage(iSkip + iPageSize);
                         } else {
-                            oTeamModel.setProperty("/allAssignments", aAll);
                             Log.info("[TeamAnalytics] Loaded " + aAll.length + " assignments for drill-down");
+                            // FIX: Enrich assignments that have missing Title/UserName/SapModule
+                            // (older records in ZCOURSE_ASGN may lack denormalized fields)
+                            that._enrichAssignmentsForDrillDown(aAll, oTeamModel);
                         }
                     },
                     error: function (err) {
@@ -437,6 +440,132 @@ sap.ui.define([
             };
 
             fnLoadPage(0);
+        },
+
+        /**
+         * FIX: Enrich assignment records that have missing denormalized fields
+         * (Title, UserName, SapModule). Older records in ZCOURSE_ASGN may not have
+         * these populated. We do secondary reads on Trainings and Users to fill gaps.
+         */
+        _enrichAssignmentsForDrillDown: function (aAll, oTeamModel) {
+            var oModel = this.getOwnerComponent().getModel();
+            // Helper to get value case-insensitively (OData V2 PascalCase or CAP camelCase)
+            var _v = function (o, cc, pc) { return o[cc] || o[pc] || ""; };
+
+            // Check if any records need enrichment
+            var bNeedTrainings = false;
+            var bNeedUsers = false;
+            aAll.forEach(function (a) {
+                if (!_v(a, "title", "Title")) { bNeedTrainings = true; }
+                if (!_v(a, "userName", "UserName")) { bNeedUsers = true; }
+            });
+
+            if (!bNeedTrainings && !bNeedUsers) {
+                // All data already present — no enrichment needed
+                oTeamModel.setProperty("/allAssignments", aAll);
+                return;
+            }
+
+            Log.info("[TeamAnalytics] Enriching drill-down data: needTrainings=" + bNeedTrainings + " needUsers=" + bNeedUsers);
+
+            var iPending = 0;
+            var mTrainings = {};  // TrainingId → { Title, SapModule, Topic, Role, Url }
+            var mUsers = {};      // UserId → { UserName }
+
+            var fnFinalize = function () {
+                iPending--;
+                if (iPending > 0) { return; }
+
+                // Enrich assignment records with looked-up data
+                aAll.forEach(function (a) {
+                    var sTrainingId = _v(a, "trainingId", "TrainingId") || _v(a, "Trainingid", "trainingid");
+                    var sUserId = _v(a, "userId", "UserId") || _v(a, "Userid", "userid");
+
+                    // Fill Title from Trainings lookup if missing
+                    if (!_v(a, "title", "Title") && sTrainingId && mTrainings[sTrainingId]) {
+                        var t = mTrainings[sTrainingId];
+                        // Set both cases so binding works regardless of model casing
+                        a.Title = a.Title || t.Title || "";
+                        a.title = a.title || t.title || a.Title || "";
+                        a.SapModule = a.SapModule || t.SapModule || "";
+                        a.sap_module = a.sap_module || t.sap_module || a.SapModule || "";
+                        a.Sapmodule = a.Sapmodule || t.Sapmodule || a.SapModule || "";
+                        a.Topic = a.Topic || t.Topic || "";
+                        a.topic = a.topic || t.topic || a.Topic || "";
+                        a.Role = a.Role || t.Role || "";
+                        a.role = a.role || t.role || a.Role || "";
+                        a.Url = a.Url || t.Url || "";
+                        a.url = a.url || t.url || a.Url || "";
+                    }
+
+                    // Fill UserName from Users lookup if missing
+                    if (!_v(a, "userName", "UserName") && sUserId && mUsers[sUserId]) {
+                        a.UserName = a.UserName || mUsers[sUserId];
+                        a.userName = a.userName || a.UserName;
+                        a.Username = a.Username || a.UserName;
+                    }
+                });
+
+                oTeamModel.setProperty("/allAssignments", aAll);
+                Log.info("[TeamAnalytics] Enrichment complete — " + aAll.length + " assignments ready");
+            };
+
+            // Read Trainings entity set
+            if (bNeedTrainings) {
+                iPending++;
+                oModel.read("/Trainings", {
+                    urlParameters: { "$top": "9999" },
+                    success: function (oData) {
+                        var aTrainings = oData.results || [];
+                        aTrainings.forEach(function (tr) {
+                            // Map by both PascalCase "Id" and lowercase "ID"
+                            var sId = tr.Id || tr.ID || tr.id || "";
+                            if (sId) {
+                                mTrainings[sId] = tr;
+                            }
+                        });
+                        Log.info("[TeamAnalytics] Loaded " + aTrainings.length + " trainings for enrichment");
+                        fnFinalize();
+                    },
+                    error: function () {
+                        Log.warning("[TeamAnalytics] Failed to load trainings for enrichment");
+                        fnFinalize();
+                    }
+                });
+            }
+
+            // Read Users entity set
+            if (bNeedUsers) {
+                iPending++;
+                var sUserEntitySet = this.getOwnerComponent()._userEntitySet || "UserSet";
+                oModel.read("/" + sUserEntitySet, {
+                    urlParameters: { "$top": "9999" },
+                    success: function (oData) {
+                        var aUsers = oData.results || [];
+                        aUsers.forEach(function (u) {
+                            var sId = u.UserId || u.userId || u.Userid || "";
+                            // Build full name from FirstName + LastName
+                            var sFirst = u.FirstName || u.firstName || u.Firstname || "";
+                            var sLast = u.LastName || u.lastName || u.Lastname || "";
+                            var sName = (sFirst + " " + sLast).trim();
+                            if (sId) {
+                                mUsers[sId] = sName || sId;
+                            }
+                        });
+                        Log.info("[TeamAnalytics] Loaded " + aUsers.length + " users for enrichment");
+                        fnFinalize();
+                    },
+                    error: function () {
+                        Log.warning("[TeamAnalytics] Failed to load users for enrichment");
+                        fnFinalize();
+                    }
+                });
+            }
+
+            // Edge case: if neither was needed (shouldn't reach here, but safety)
+            if (iPending === 0) {
+                oTeamModel.setProperty("/allAssignments", aAll);
+            }
         },
 
         /**

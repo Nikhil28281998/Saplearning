@@ -238,6 +238,56 @@ METHOD trainingassignme_get_entityset.
     DELETE lt_asgn FROM ( lv_top + 1 ).
   ENDIF.
 
+* -- FIX: Resolve missing denormalized fields from related tables -----
+*   Older records in ZCOURSE_ASGN may lack Title, UserName, SapModule
+*   because they were loaded before denormalization was implemented.
+*   Join against ZCOURSE_TRN (Trainings) and USR21/ADRP (Users) to fill gaps.
+  DATA: ls_trn     TYPE zcourse_trn,
+        ls_usr21   TYPE usr21,
+        ls_adrp    TYPE adrp,
+        lv_uname   TYPE char80.
+
+  LOOP AT lt_asgn ASSIGNING FIELD-SYMBOL(<fs_asgn>).
+*   Fill Training fields if missing
+    IF <fs_asgn>-title IS INITIAL AND <fs_asgn>-training_id IS NOT INITIAL.
+      SELECT SINGLE * FROM zcourse_trn INTO ls_trn
+        WHERE id = <fs_asgn>-training_id.
+      IF sy-subrc = 0.
+        IF <fs_asgn>-title IS INITIAL.
+          <fs_asgn>-title = ls_trn-title.
+        ENDIF.
+        IF <fs_asgn>-sap_module IS INITIAL.
+          <fs_asgn>-sap_module = ls_trn-sap_module.
+        ENDIF.
+        IF <fs_asgn>-topic IS INITIAL.
+          <fs_asgn>-topic = ls_trn-topic.
+        ENDIF.
+        IF <fs_asgn>-role IS INITIAL.
+          <fs_asgn>-role = ls_trn-role.
+        ENDIF.
+        IF <fs_asgn>-url IS INITIAL.
+          <fs_asgn>-url = ls_trn-url.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+*   Fill User name if missing
+    IF <fs_asgn>-user_name IS INITIAL AND <fs_asgn>-user_id IS NOT INITIAL.
+      SELECT SINGLE * FROM usr21 INTO ls_usr21
+        WHERE bname = <fs_asgn>-user_id.
+      IF sy-subrc = 0.
+        SELECT SINGLE * FROM adrp INTO ls_adrp
+          WHERE persnumber = ls_usr21-persnumber
+            AND date_from <= sy-datum.
+        IF sy-subrc = 0.
+          CONCATENATE ls_adrp-name_first ls_adrp-name_last
+            INTO lv_uname SEPARATED BY space.
+          CONDENSE lv_uname.
+          <fs_asgn>-user_name = lv_uname.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+  ENDLOOP.
+
 * -- Map database records to OData entity structure -------------------
   LOOP AT lt_asgn INTO ls_asgn.
     CLEAR ls_entity.

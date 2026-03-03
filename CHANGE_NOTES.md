@@ -5,7 +5,8 @@
 ### Commit History (newest first)
 | Commit | Description |
 |--------|-------------|
-| Current (unpushed) | Remove re-added KPIs from Analytics Dashboard, cleanup CSS, add change notes |
+| Current (unpushed) | Fix drill-down missing Name/Title/Module for older assignments |
+| `5b062f5` | Remove re-added KPIs from Analytics Dashboard, cleanup CSS, add change notes, E2E tests |
 | `46add80` | Data refresh after assign, card styling, navigation, analytics enhancements |
 | `7612618` | Move Send Reminder to drill-down, remove duplicate KPIs from Analytics Dashboard |
 | `8ae2a64` | Replace inline charts with Analytics Dashboard popup, add NIKKUMAR test data |
@@ -99,7 +100,7 @@
 | File | Changes |
 |------|---------|
 | `Component.js` | EventBus publish after assignment |
-| `TrainingsList.controller.js` | EventBus listener, onNavBack, onSendReminderFromDrillDown, drill-down button visibility |
+| `TrainingsList.controller.js` | EventBus listener, onNavBack, onSendReminderFromDrillDown, drill-down button visibility, **enrichment of missing drill-down data** |
 | `TrainingAssignmentsList.controller.js` | EventBus listener, onNavBack |
 | `AnalyticsDashboard.fragment.xml` | Removed all KPI cards/stats, kept Module + User charts, resized to 90×85% |
 | `TeamAssignmentsDialog.fragment.xml` | Changed to `<buttons>` aggregation with De-assign + Send Reminder + Close |
