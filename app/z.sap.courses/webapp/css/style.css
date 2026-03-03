@@ -1114,15 +1114,15 @@ html, body, html.sap-desktop, .sapUiBody {
 /* Progress bars in team breakdown – compact */
 .teamUserRow .sapMPI {
     border-radius: 4px;
-    min-height: 1.25rem !important;
-    height: 1.25rem !important;
+    min-height: 1.5rem !important;
+    height: 1.5rem !important;
 }
 
 .teamUserRow .sapMPI .sapMPITextRight,
 .teamUserRow .sapMPI .sapMPIText {
-    font-size: 0.6875rem !important;
+    font-size: 0.8125rem !important;
     font-weight: 600 !important;
-    line-height: 1.25rem !important;
+    line-height: 1.5rem !important;
 }
 
 .sapSuiteCpMC {
@@ -2261,15 +2261,15 @@ html, body, html.sap-desktop, .sapUiBody {
 
 .teamUserName {
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 1rem;
     color: var(--sapText);
-    line-height: 1.2;
+    line-height: 1.3;
 }
 
 .teamUserId {
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
     color: var(--sapTextLight);
-    line-height: 1.2;
+    line-height: 1.3;
 }
 
 .teamUserStatus {
@@ -2278,19 +2278,19 @@ html, body, html.sap-desktop, .sapUiBody {
 }
 
 .teamUserStatus .sapMObjStatusText {
-    font-size: 0.75rem !important;
+    font-size: 0.875rem !important;
 }
 
 .teamUserOverdueBadge {
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
 }
 
 /* Small overdue badge next to userId */
 .teamUserOverdueBadge .sapMObjStatusText {
-    font-size: 0.6875rem !important;
+    font-size: 0.8125rem !important;
 }
 .teamUserOverdueBadge .sapMObjStatusIcon {
-    font-size: 0.75rem !important;
+    font-size: 0.875rem !important;
 }
 
 /* ===== Mark Completed Toolbar Button (Ghost type — outlined with accent) ===== */
