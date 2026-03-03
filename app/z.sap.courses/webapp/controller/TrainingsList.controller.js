@@ -112,6 +112,12 @@ sap.ui.define([
             };
             oComponent.getEventBus().subscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
 
+            // Refresh team analytics after new assignments are created
+            this._onAssignmentsChanged = function () {
+                that._loadTeamAnalytics();
+            };
+            oComponent.getEventBus().subscribe("sapCourses", "assignmentsChanged", this._onAssignmentsChanged, this);
+
             // F2: Wire Team Analytics card click handlers for drill-down
             this._aTeamCardIds = ["teamTotalBox", "teamAssignedBox", "teamInProgressBox", "teamOverdueBox", "teamCompletedBox", "teamCompletionPctBox"];
             var aTeamCards = [
@@ -2215,6 +2221,20 @@ sap.ui.define([
             }
 
             return oContent;
+        },
+
+        /**
+         * Back navigation from Home page → SAP Launchpad shell (FLP home).
+         */
+        onNavBack: function () {
+            // Try cross-app navigation to FLP Shell-home
+            var oCrossAppNav = sap.ushell && sap.ushell.Container && sap.ushell.Container.getService("CrossApplicationNavigation");
+            if (oCrossAppNav) {
+                oCrossAppNav.toExternal({ target: { shellHash: "#" } });
+            } else {
+                // Fallback: browser history back
+                window.history.go(-1);
+            }
         }
     });
 });

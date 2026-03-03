@@ -78,7 +78,7 @@ sap.ui.define([
 
                         var aModuleDist = Object.keys(oModuleMap).map(function (m) {
                             return { label: m, count: oModuleMap[m] };
-                        }).sort(function (a, b) { return b.count - a.count; }).slice(0, 5);
+                        }).sort(function (a, b) { return b.count - a.count; });
 
                         var aRoles = [{ key: "", text: "All" }];
                         Object.keys(oRoleSet).sort().forEach(function (r) {

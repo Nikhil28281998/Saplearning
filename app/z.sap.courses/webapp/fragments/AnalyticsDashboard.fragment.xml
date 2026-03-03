@@ -6,10 +6,10 @@
     <Dialog
         id="analyticsDashboardDialog"
         title="{i18n>analyticsDashboardTitle}"
-        stretch="true"
+        stretch="false"
         class="analyticsDashboardDialog"
-        contentHeight="100%"
-        contentWidth="100%">
+        contentHeight="85%"
+        contentWidth="90%">
 
         <subHeader>
             <Toolbar id="dashSubHeader">
@@ -24,6 +24,74 @@
         <content>
             <ScrollContainer id="dashScrollContainer" height="100%" vertical="true" horizontal="false">
                 <VBox id="dashMainContainer" class="sapUiSmallMargin">
+
+                    <!-- ====== QUICK STATS BAR ====== -->
+                    <HBox id="dashQuickStats" class="dashQuickStatsRow sapUiSmallMarginBottom" wrap="Wrap" justifyContent="Center">
+                        <VBox class="dashQuickStatCard dashQuickBlue" alignItems="Center">
+                            <ObjectNumber id="dashQSTotal" number="{teamAnalytics>/totalAssignments}" class="dashQSNumber" />
+                            <Text text="Total" class="dashQSLabel" />
+                        </VBox>
+                        <VBox class="dashQuickStatCard dashQuickOrange" alignItems="Center">
+                            <ObjectNumber id="dashQSAssigned" number="{teamAnalytics>/assigned}" class="dashQSNumber" />
+                            <Text text="Pending" class="dashQSLabel" />
+                        </VBox>
+                        <VBox class="dashQuickStatCard dashQuickTeal" alignItems="Center">
+                            <ObjectNumber id="dashQSInProgress" number="{teamAnalytics>/inProgress}" class="dashQSNumber" />
+                            <Text text="In Progress" class="dashQSLabel" />
+                        </VBox>
+                        <VBox class="dashQuickStatCard dashQuickGreen" alignItems="Center">
+                            <ObjectNumber id="dashQSCompleted" number="{teamAnalytics>/completed}" class="dashQSNumber" />
+                            <Text text="Completed" class="dashQSLabel" />
+                        </VBox>
+                        <VBox class="dashQuickStatCard dashQuickRed" alignItems="Center">
+                            <ObjectNumber id="dashQSOverdue" number="{teamAnalytics>/overdue}" class="dashQSNumber" />
+                            <Text text="Overdue" class="dashQSLabel" />
+                        </VBox>
+                        <VBox class="dashQuickStatCard dashQuickPurple" alignItems="Center">
+                            <ObjectNumber id="dashQSPct" number="{teamAnalytics>/completionPercent}" unit="%" class="dashQSNumber" />
+                            <Text text="Completion" class="dashQSLabel" />
+                        </VBox>
+                    </HBox>
+
+                    <!-- ====== STATUS DISTRIBUTION BAR ====== -->
+                    <VBox id="dashStatusDistPanel" class="dashChartPanel sapUiSmallMarginBottom">
+                        <Toolbar id="dashStatusDistToolbar" class="sapUiTinyMarginBottom">
+                            <core:Icon src="sap-icon://horizontal-bar-chart" size="1rem" color="#0854a0" class="sapUiTinyMarginEnd" />
+                            <Title id="dashStatusDistTitle" text="Status Distribution" level="H5" />
+                        </Toolbar>
+                        <HBox id="dashStatusBars" class="dashStatusBarsContainer" justifyContent="SpaceBetween" alignItems="Center">
+                            <VBox class="dashStatusBarItem" width="100%">
+                                <HBox justifyContent="SpaceBetween" class="sapUiTinyMarginBottom">
+                                    <Text text="Assigned / Pending" class="dashStatusBarLabel" />
+                                    <Text text="{= ${teamAnalytics>/assigned} + ' (' + (${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/assigned} / ${teamAnalytics>/totalAssignments} * 100) : 0) + '%)'}" class="dashStatusBarValue" />
+                                </HBox>
+                                <ProgressIndicator
+                                    percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/assigned} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
+                                    state="Warning" showValue="false" height="0.75rem" />
+                                <HBox justifyContent="SpaceBetween" class="sapUiTinyMarginBottom sapUiSmallMarginTop">
+                                    <Text text="In Progress" class="dashStatusBarLabel" />
+                                    <Text text="{= ${teamAnalytics>/inProgress} + ' (' + (${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/inProgress} / ${teamAnalytics>/totalAssignments} * 100) : 0) + '%)'}" class="dashStatusBarValue" />
+                                </HBox>
+                                <ProgressIndicator
+                                    percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/inProgress} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
+                                    state="Information" showValue="false" height="0.75rem" />
+                                <HBox justifyContent="SpaceBetween" class="sapUiTinyMarginBottom sapUiSmallMarginTop">
+                                    <Text text="Completed" class="dashStatusBarLabel" />
+                                    <Text text="{= ${teamAnalytics>/completed} + ' (' + (${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/completed} / ${teamAnalytics>/totalAssignments} * 100) : 0) + '%)'}" class="dashStatusBarValue" />
+                                </HBox>
+                                <ProgressIndicator
+                                    percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/completed} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
+                                    state="Success" showValue="false" height="0.75rem" />
+                                <HBox justifyContent="SpaceBetween" class="sapUiTinyMarginBottom sapUiSmallMarginTop">
+                                    <Text text="Overdue" class="dashStatusBarLabel" />
+                                    <Text text="{= ${teamAnalytics>/overdue} + ' (' + (${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/overdue} / ${teamAnalytics>/totalAssignments} * 100) : 0) + '%)'}" class="dashStatusBarValue" />
+                                </HBox>
+                                <ProgressIndicator
+                                    percentValue="{= ${teamAnalytics>/totalAssignments} > 0 ? Math.round(${teamAnalytics>/overdue} / ${teamAnalytics>/totalAssignments} * 100) : 0 }"
+                                    state="Error" showValue="false" height="0.75rem" />
+                            </VBox>
+                        </HBox>
+                    </VBox>
 
                     <HBox id="dashChartsContainer" class="dashChartsContainer" wrap="Wrap">
 

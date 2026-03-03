@@ -918,6 +918,8 @@ sap.ui.define([
                     // Close assign dialog
                     if (that._assignDlg) { that._assignDlg.close(); }
                     oModel.refresh(true);
+                    // Notify controllers to refresh analytics after new assignments
+                    that.getEventBus().publish("sapCourses", "assignmentsChanged", { successCount: iSuccess });
                     // A5: Show result dialog
                     that._showAssignResult(aResults, iSuccess, iFail, iSkip);
                     return;

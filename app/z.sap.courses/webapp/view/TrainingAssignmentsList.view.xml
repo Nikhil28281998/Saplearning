@@ -12,7 +12,8 @@
     <Page
         id="assignmentsListPage"
         title=""
-        showNavButton="false"
+        showNavButton="true"
+        navButtonPress=".onNavBack"
         enableScrolling="true"
         class="assignmentsPage">
 

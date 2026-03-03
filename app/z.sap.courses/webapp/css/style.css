@@ -545,7 +545,7 @@ html, body, html.sap-desktop, .sapUiBody {
 }
 
 .dashChartsContainer {
-    gap: 0;
+    gap: 0.75rem;
     width: 100%;
 }
 
@@ -556,6 +556,63 @@ html, body, html.sap-desktop, .sapUiBody {
     border: 1px solid var(--sapBorder);
     border-radius: 0.5rem;
     padding: 0.5rem 0.75rem 0.75rem;
+}
+
+/* ===== Quick Stats Bar ===== */
+.dashQuickStatsRow {
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+.dashQuickStatCard {
+    flex: 1 1 100px;
+    min-width: 90px;
+    max-width: 160px;
+    padding: 0.625rem 0.5rem;
+    border-radius: 0.5rem;
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+.dashQuickStatCard:hover {
+    transform: translateY(-2px);
+}
+
+.dashQuickBlue   { background: rgba(8, 84, 160, 0.08); border: 1px solid rgba(8, 84, 160, 0.2); }
+.dashQuickOrange { background: rgba(231, 101, 0, 0.08); border: 1px solid rgba(231, 101, 0, 0.2); }
+.dashQuickTeal   { background: rgba(4, 118, 183, 0.08); border: 1px solid rgba(4, 118, 183, 0.2); }
+.dashQuickGreen  { background: rgba(16, 126, 62, 0.08); border: 1px solid rgba(16, 126, 62, 0.2); }
+.dashQuickRed    { background: rgba(187, 0, 0, 0.08); border: 1px solid rgba(187, 0, 0, 0.2); }
+.dashQuickPurple { background: rgba(108, 50, 169, 0.08); border: 1px solid rgba(108, 50, 169, 0.2); }
+
+.dashQSNumber .sapMObjectNumberText {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+}
+
+.dashQSLabel {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--sapContent_LabelColor);
+    margin-top: 0.125rem;
+}
+
+/* ===== Status Distribution Bars ===== */
+.dashStatusBarsContainer {
+    padding: 0.25rem 0;
+}
+
+.dashStatusBarLabel {
+    font-size: 0.8125rem !important;
+    font-weight: 600;
+    color: var(--sapTextColor);
+}
+
+.dashStatusBarValue {
+    font-size: 0.8125rem !important;
+    color: var(--sapContent_LabelColor);
 }
 
 .dashboardSection {
@@ -2296,9 +2353,10 @@ html[data-sap-ui-theme*="dark"] .dueDateWarningBar {
 }
 
 .learningCardTitleRow {
-    align-items: center;
+    align-items: flex-start;
     gap: 0.375rem;
     margin-bottom: 0.25rem;
+    flex-shrink: 0;
 }
 
 /* H11 FIX: Consistent card layout — all cards equal height with bottom-aligned meta */
@@ -2308,7 +2366,6 @@ html[data-sap-ui-theme*="dark"] .dueDateWarningBar {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
 }
 
 .learningCardTitle {
@@ -2322,7 +2379,9 @@ html[data-sap-ui-theme*="dark"] .dueDateWarningBar {
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-height: 2.625rem; /* reserve 2 lines = 1.4 line-height × 0.9375rem × 2 */
+    /* Fixed 2-line height so all titles align regardless of text length */
+    height: 2.625rem; /* exactly 2 lines = 1.4 line-height × 0.9375rem × 2 */
+    flex-shrink: 0;
 }
 
 .learningCardDesc {
@@ -2334,13 +2393,15 @@ html[data-sap-ui-theme*="dark"] .dueDateWarningBar {
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-height: 2.4375rem; /* reserve 2 lines */
+    height: 2.4375rem; /* exactly 2 lines */
+    flex-shrink: 0;
 }
 
 .learningCardMeta {
     margin-top: auto !important; /* push meta to bottom of card */
     overflow: hidden !important;
     max-width: 100% !important;
+    flex-shrink: 0;
 }
 
 .learningCardMeta .sapMObjStatus {

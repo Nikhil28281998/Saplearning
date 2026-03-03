@@ -135,6 +135,15 @@ sap.ui.define([
             };
             oComponent.getEventBus().subscribe("sapCourses", "userIdResolved", this._onUserIdResolved, this);
 
+            // Refresh my analytics after new assignments are created
+            this._onAssignmentsChanged = function () {
+                that._loadAnalytics();
+                var oST = that.byId("assignSmartTable");
+                if (oST) { oST.rebindTable(true); }
+                that._rebindAssignCardGrid();
+            };
+            oComponent.getEventBus().subscribe("sapCourses", "assignmentsChanged", this._onAssignmentsChanged, this);
+
             // Reload data every time user navigates to this page
             this._bIsActive = false;
             var oRouter = oComponent.getRouter();
@@ -1545,6 +1554,14 @@ sap.ui.define([
                 oData.UserName || oData.userName || oData.UserId || '',
                 oData.Title || oData.title || ''
             );
+        },
+
+        /**
+         * Back navigation from My Assignments → Home page (TrainingsList).
+         */
+        onNavBack: function () {
+            var oRouter = this.getOwnerComponent().getRouter();
+            oRouter.navTo("TrainingsList", {}, true);
         }
     });
 });
