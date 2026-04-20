@@ -44,7 +44,7 @@ $Arguments = @(
     "--remote-debugging-port=9222",
     "--remote-allow-origins=*",
     "--user-data-dir=`"$UserDataDir`"",
-    "https://vhbrbws1wd01.hec.bridgebio.com:44380/sap/bc/ui2/flp?saml2=disabled&sap-client=400&sap-language=EN#ZLEARNING-display"
+    "https://vhbrbws1wd01.hec.bridgebio.com:44380/sap/bc/ui2/flp?sap-client=400&saml2=disabled#Shell-home"
 )
 
 Write-Host "Launching Chrome with remote debugging..." -ForegroundColor Yellow

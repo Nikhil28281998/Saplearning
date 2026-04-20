@@ -6,8 +6,9 @@
  * Matches record_demo_v2.js scene order.
  */
 
-const say = require('say');
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+const DEMO_LIBS = 'C:\\Users\\NikhilKumar-EXT\\demo-libs\\node_modules';
+const say = require(DEMO_LIBS + '\\say');
+const ffmpegPath = require(DEMO_LIBS + '\\@ffmpeg-installer\\ffmpeg').path;
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');

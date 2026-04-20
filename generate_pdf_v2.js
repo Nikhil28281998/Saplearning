@@ -6,7 +6,8 @@
  * Uses screenshots from screenshots_v2/ captured by record_demo_v2.js.
  */
 
-const PDFDocument = require('pdfkit');
+const DEMO_LIBS = 'C:\\Users\\NikhilKumar-EXT\\demo-libs\\node_modules';
+const PDFDocument = require(DEMO_LIBS + '\\pdfkit');
 const fs = require('fs');
 const path = require('path');
 

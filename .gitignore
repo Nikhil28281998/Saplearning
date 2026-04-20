@@ -27,6 +27,9 @@ reports/
 # App-specific
 apps/fiori-ui5/dist/
 apps/fiori-ui5/.cache/
+
+# Demo recording intermediate frames (large, regenerated on each run)
+presentation/frames_*/
 # Dependencies
 node_modules/
 .pnp
